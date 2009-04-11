@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>Porcupine Server - Error</title>
+	</head>
+	<body style="font-family:Tahoma">
+		<h3>%(code)i - %(description)s</h3>
+		<table cellspacing="0" width="100%%" bgcolor="#FFFFCC">
+			<tr>
+				<td><pre>%(info)s</pre></td>
+			</tr>
+		</table>
+		<table cellspacing="0" style="font-size:10px">
+	        <tr>
+				<td>HTTP-METHOD:</td>
+				<td>%(http_method)s</td>
+			</tr>
+        	<tr>
+				<td>BROWSER:</td>
+				<td>%(browser)s</td>
+			</tr>
+            <tr>
+				<td>LANG:</td>
+				<td>%(lang)s</td>
+			</tr>
+            <tr>
+				<td>CONTENT-CLASS:</td>
+				<td>%(contentclass)s</td>
+			</tr>
+            <tr>
+				<td>METHOD:</td>
+				<td>%(method)s</td>
+			</tr>
+		</table>
+	</body>
+</html>

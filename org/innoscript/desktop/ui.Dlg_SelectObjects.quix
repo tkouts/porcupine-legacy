@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<dialog xmlns="http://www.innoscript.org/quix"
+		title="@@SELECT_OBJECTS@@" resizable="true" close="true" bgcolor="menu"
+		align="right" width="380" height="400" left="30%" top="30%">
+	<script name="Select Objects Dialog Script" src="desktop/ui.Dlg_SelectObjects.js"/>
+	<prop name="CC" value="$CC"/>
+	<wbody>
+		<box width="100%" height="100%" spacing="1" orientation="v">
+			<toolbar width="100%" height="34">
+				<tbbutton id="btn_folders" width="92" type="toggle" caption="@@FOLDERS@@" img="desktop/images/view_tree22.gif" onclick="selectObjectsDialog.showFolders"></tbbutton>
+				<tbbutton id="btn_search" width="92" type="toggle" caption="@@SEARCH@@" img="desktop/images/search22.gif" onclick="selectObjectsDialog.showSearch"></tbbutton>
+			</toolbar>
+			<box id="vbox_main" orientation="v" height="0" spacing="0">
+				<rect overflow="auto" bgcolor="white" height="0">
+					<foldertree id="tree" padding="2,2,2,2" method="getSubtree" onselect="selectObjectsDialog.refreshList">
+						<treenode id="$ID" haschildren="$HAS_SUBFOLDERS"
+							img="$IMG" caption="$DN"/>
+					</foldertree>
+				</rect>
+				<rect overflow="auto" height="0" padding="4,4,4,4">
+					<label top="2" left="5" width="160" height="20" caption="@@ALL_OR_PART_OF_THE_NAME@@:"/>
+					<field id="displayName" left="165" top="0" width="200" value=""/>
+					<label top="29" left="5" width="160" height="20" caption="@@WORD_OR_PHRASE_IN_DESCRIPTION@@:"/>
+					<field id="description" top="27" left="165" width="200" value=""/>
+					<field id="deep" type="checkbox" top="54" left="165" caption="@@INCLUDESUBS@@"/>
+
+					<button top="84" left="140" width="70" height="22" caption="@@SEARCH@@" onclick="selectObjectsDialog.search"/>
+				</rect>
+			</box>
+			<selectlist id="selection" multiple="$MULTIPLE" border="0" posts="selected" height="-1">
+				$OPTIONS
+			</selectlist>
+		</box>
+	</wbody>
+	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@SELECT@@"/>
+	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@CLOSE@@"/>
+</dialog>

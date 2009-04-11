@@ -1,0 +1,24 @@
+<config>
+	<context path="usermgmnt.quix"
+			method="GET"
+			client=".*"
+			lang=".*"
+			action="usermgmnt.quix">
+		<filter
+			type="porcupine.filters.output.I18n"
+			using="org.innoscript.desktop.strings.resources"/>
+	</context>
+	<context path="usermgmnt.js"
+		method="GET"
+		client=".*"
+		lang=".*"
+		action="usermgmnt.js"
+		max-age="3600"/>
+	<!-- images -->
+	<context match="images/(.*)"
+		method="GET"
+		client=".*"
+		lang=".*"
+		action="images/$1"
+		max-age="3600"/>
+</config>

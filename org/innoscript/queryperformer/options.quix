@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dialog xmlns="http://www.innoscript.org/quix"
+		width="300" height="160" img="queryperformer/images/configure.gif"
+		left="center" top="center">
+	<wbody>
+		<label top="7" left="5" caption="Attribute for tree captions:" width="140"/>
+		<field id="tree_caption" width="120" height="22" top="5" left="140"/>
+		<field id="use_image" type="checkbox" top="30" left="5"
+			caption="Use image for tree nodes"
+			onclick="queryPerformer.toggleUseImage"/>
+		<label top="62" left="5" caption="Image attribute:" width="120"/>
+		<field id="tree_image" width="120" height="22" top="60" left="90"/>
+	</wbody>
+	<dlgbutton width="60" height="22" caption="OK" onclick="queryPerformer.applyPreferences"/>
+	<dlgbutton width="60" height="22" onclick="__closeDialog__" caption="Cancel"/>
+</dialog>

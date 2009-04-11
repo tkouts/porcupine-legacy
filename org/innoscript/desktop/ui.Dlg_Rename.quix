@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<dialog xmlns="http://www.innoscript.org/quix"
+		title="@@RENAME@@ &quot;$TITLE&quot;" resizable="false" close="true"
+		align="right" bgcolor="Menu" width="280" height="100" left="40%"
+		top="40%">
+	<prop name="ID" value="$ID"/>
+	<wbody>
+		<label align="right" top="14" width="120" height="20" caption="@@ENTER_NEW_NAME@@:"/>
+		<field id="new_name" left="125" top="12" width="50%%" value="$DN"/>
+	</wbody>
+	<dlgbutton default="true" onclick="__closeDialog__" width="80" height="22" caption="@@RENAME@@"/>
+	<dlgbutton onclick="__closeDialog__" width="80" height="22" caption="@@CANCEL@@"/>
+</dialog>

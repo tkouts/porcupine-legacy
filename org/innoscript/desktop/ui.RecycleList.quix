@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<window xmlns="http://www.innoscript.org/quix"
+		title="Please wait..." resizable="true" close="true" minimize="true"
+		maximize="true" width="600" height="400" left="center" top="center"
+		onload="recycleBin.getContainerInfo">
+	<prop name="FolderID" value="$ID"/>
+	<script name="Recycle Bin Script" src="desktop/ui.RecycleList.js"/>
+	<wbody>
+		<box orientation="v" spacing="0" width="100%" height="100%">
+			<toolbar width="100%" height="34">
+				<tbbutton width="90"
+					img="desktop/images/reload22.gif"
+					caption="@@REFRESH@@" onclick="recycleBin.refresh"/>
+				<tbbutton width="120"
+						img="desktop/images/trashcan_empty22.gif"
+						caption="@@EMPTY_BIN@@" onclick="recycleBin.empty">
+					<prop name="confirmString" value="@@EMPTY_BIN_Q@@"/>
+				</tbbutton>
+			</toolbar>
+			<listview id="itemslist" multiple="true" ondblclick="recycleBin.showProperties">
+				<contextmenu id="contextmenu" onshow="recycleBin.listMenu_show">
+					<menuoption caption="@@RESTORE@@" onclick="recycleBin.restoreItem"/>
+					<menuoption caption="@@RESTORE_TO@@..." onclick="recycleBin.restoreTo">
+						<prop name="action" value="restore"/>
+					</menuoption>
+					<menuoption caption="@@DELETE@@" img="desktop/images/editdelete.gif" onclick="recycleBin.deleteItem"/>
+					<sep/>
+					<menuoption caption="@@EMPTY_BIN@@" img="desktop/images/trashcan_empty8.gif" onclick="recycleBin.empty">
+						<prop name="confirmString" value="@@EMPTY_BIN_Q@@"/>
+					</menuoption>
+					<sep/>
+					<menuoption caption="@@PROPERTIES@@" onclick="recycleBin.showProperties"/>
+				</contextmenu>
+				<listheader>
+					<column width="24" caption="" type="img" name="image" resizable="false"/>
+					<column width="140" caption="@@NAME@@" name="displayName" bgcolor="#EFEFEF" sortable="true"/>
+					<column width="140" caption="@@ORIGINAL_LOC@@" name="origloc" bgcolor="#EFEFEF" sortable="true"/>
+					<column width="160" caption="@@DATEDEL@@" type="date" name="modified" sortable="true"/>
+					<column width="80" caption="@@SIZE@@" name="size" xform="generic.computeSize" sortable="true"/>
+				</listheader>
+			</listview>
+		</box>
+	</wbody>
+</window>

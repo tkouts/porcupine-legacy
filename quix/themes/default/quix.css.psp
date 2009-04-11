@@ -1,0 +1,420 @@
+<%
+	Response.content_type = 'text/css'
+	browser = Request.serverVariables['HTTP_USER_AGENT']
+	background = ''
+	# allow background image only on IE7 and FF
+	if not 'MSIE 6' in browser:
+		background = 'background-image : url(images/desktop.jpg);'
+	end
+%>
+HTML {
+	overflow : hidden;
+}
+
+BODY {
+	margin : 0px;
+	width : 100%;
+	height : 100%;
+	position : fixed;
+	font-family : Geneva, sans-serif;
+	font-size : 11px;
+}
+
+.desktop {
+	<%Response.write(background)%>
+}
+
+.outline{
+	border-style : dashed;
+	border-color : red;
+}
+
+.field {
+	border-style : solid;
+	border-color: DarkGray;
+}
+
+.field INPUT, .field TEXTAREA {border:none}
+
+.field .optionselected {
+	cursor: default;
+	color : white;
+	background-color : navy;
+}
+
+.label {
+	cursor: default;
+	border-style: solid;
+}
+
+.flat {
+	text-align : center;
+	margin-right: 6px;
+	cursor:pointer;
+}
+.flatover{
+	border-style : solid;
+	color: blue;
+	border-color:	ThreedHighlight ThreeDDarkShadow
+			ThreeDDarkShadow ThreedHighlight;
+}
+.flaton {
+	border-style: solid;
+	border-color:	ThreeDDarkShadow ThreedHighlight
+			ThreedHighlight ThreeDDarkShadow;
+	background-color : InfoBackground;
+	cursor:pointer;
+}
+
+.btn {
+	border-style : solid;
+	border-color: ThreedHighlight ThreeDDarkShadow
+			ThreeDDarkShadow ThreedHighlight;
+}
+
+.btn .l2, .btnover .l2 {
+	border-style : solid;
+	border-color: ThreedLightShadow ThreedShadow
+			ThreedShadow ThreedLightShadow;
+}
+
+.btn .l2default, .btnover .l2default {
+	border-style : solid;
+	border-color: Gray;
+}
+
+.btnover{
+	border-style : solid;
+	border-color: #FFA500 #663300
+			#663300 #FFA500;
+	color: blue;
+}
+
+.btndown {
+	border-style : solid;
+	border-color: ThreeDDarkShadow ThreedHighlight
+			ThreedHighlight ThreeDDarkShadow;
+}
+
+.btndown .l2, .btndown .l2default {
+	border-style : solid;
+	border-color: ThreedShadow ThreedLightShadow
+			ThreedLightShadow ThreedShadow;
+}
+
+.btnmenu {
+	border-style : solid;
+	border-color:	ThreeDDarkShadow ThreedLightShadow
+			ThreedLightShadow ThreeDDarkShadow;
+	text-align : center;
+	cursor:pointer;
+}
+
+.window, .groupbox {
+	border-style : solid;
+	border-color: black;
+	background-color : #D5CCBB;
+}
+
+.window .header{
+	color : white;
+	font-weight : bolder;
+	background-image : url(images/win_title.gif);
+	background-color : #FF6600;
+	background-repeat : repeat-x;
+	white-space: nowrap;
+	cursor: move;
+}
+
+.window .status{
+	border-style : solid;
+	border-color:	ThreeDDarkShadow ThreedHighlight 
+			ThreedHighlight ThreeDDarkShadow;
+}
+
+.resize{
+	background-image : url(images/resize-handle.gif);
+	background-repeat : no-repeat;
+	cursor : se-resize;
+}
+
+.window .control {
+	background-color : ButtonFace;
+	cursor: default;
+	border-style : outset;
+}
+
+.splitter .pane{
+}
+
+.splitter .handleV{
+	border-style : solid;
+	background-color: menu;
+	border-color: menu ThreeDDarkShadow
+			menu ThreedHighlight;
+}
+
+.splitter .handleH{
+	border-style : solid;
+	background-color: menu;
+	border-color:	ThreedHighlight menu
+			ThreeDDarkShadow menu;
+}
+
+.outlookbar {
+}
+
+.outlookbar .tool {
+	border-style : solid;
+	border-color:	ThreedHighlight ThreeDDarkShadow
+			ThreeDDarkShadow ThreedHighlight;
+	background-color : Menu;
+	white-space : nowrap;
+	text-align: center;
+	font-weight: bolder;
+	cursor: pointer;
+}
+
+.toolbar {
+	border-style : solid;
+	border-color:	ThreedHighlight ThreeDShadow
+			ThreeDShadow ThreedHighlight;
+	white-space : nowrap;
+}
+
+.toolbar .handle {
+	background-image : url(images/tb_handle.gif);
+}
+
+.menubar {
+	border-style : solid;
+	border-color:	ThreedHighlight ThreeDShadow
+			ThreeDShadow ThreedHighlight;
+	white-space : nowrap;
+}
+
+.menubar .menu {
+	cursor : default;
+	border-style: solid;
+	float: left;
+	clear: right;
+}
+
+.menubar .over{
+	border-color: ThreedHighlight ThreeDDarkShadow
+			ThreeDDarkShadow ThreedHighlight;
+}
+
+.menubar .selected {
+	border-style : solid;
+	border-color:	ThreeDDarkShadow ThreedHighlight
+			ThreedHighlight ThreeDDarkShadow;
+}
+
+.contextmenu {
+	border-style : solid;
+	border-color:	ThreedLightShadow ThreeDDarkShadow
+			ThreeDDarkShadow ThreedLightShadow;
+	background-color: #F5F5F5;
+	cursor : default;
+}
+
+.contextmenu .submenu {
+	background-image : url(images/submenu.gif);
+	background-position : right;
+	background-repeat : no-repeat;
+}
+
+.contextmenu .over {
+	color: White;
+	background-color : #6699FF;
+}
+
+.contextmenu .separator {
+	border-style : solid;
+	border-color: ThreedShadow ThreedLightShadow
+					ThreedLightShadow ThreedShadow;
+}
+
+.separator {
+	border-style : solid;
+	border-color: ThreedDarkShadow ThreedHighlight
+					ThreedHighlight ThreedDarkShadow;
+}
+
+.tabpane .tab {
+	background-color : #E5D9C8;
+	cursor : pointer;
+	border-style : solid solid none solid;
+	border-color:	ThreeDHighlight ThreeDDarkShadow
+					ThreeDDarkShadow ThreeDHighlight;
+	margin-top: 2px;
+	float: left;
+	clear: right;
+	white-space : nowrap;
+}
+
+.tabpane .over {
+	color: blue;
+}
+
+.tabpane .tabpage {
+	background-color : #E5D9C8;
+	border-style : solid;
+	border-color:	ThreeDHighlight ThreeDDarkShadow
+			ThreeDDarkShadow ThreeDHighlight;
+}
+
+.listview .listheader {
+	background-color: #F5F2EF;
+	background-image : url(images/list_header.gif);
+	background-repeat : repeat-x;
+	background-position : bottom left;
+}
+
+.listview .listheader .column {
+	border-width: 1px;
+	border-style : none solid none solid;
+	border-color:	ThreeDHighlight ThreeDDarkShadow
+					ThreeDDarkShadow ThreeDHighlight;
+	white-space : nowrap;
+	overflow : hidden;
+	cursor : default;
+}
+
+.listview .list .column {
+	background-color: ThreeDFace;
+	border-width: 1px;
+	border-style : solid;
+	border-color:	ThreeDHighlight ThreeDShadow
+					ThreeDShadow ThreeDHighlight;
+	overflow : hidden;
+	cursor : default;
+	
+}
+.listview .listheader .filler {
+	border-style: none none none solid;
+}
+
+.listview .listheader .resizer {
+	cursor : e-resize;
+	border-style : solid;
+	background-image : url(images/transp.gif);
+}
+
+.listview .list .cell{
+	overflow : hidden;
+	border-color : silver;
+	border-style : none solid solid none;
+	cursor : default;
+}
+
+.listview .list .cell SPAN {
+	white-space : nowrap;
+}
+
+.listview TABLE {
+	table-layout: fixed;
+	font-size : 11px;
+}
+
+.progressbar {
+	border-style: solid;
+	border-color: black;
+}
+
+.progressbar .bar {
+	background-color : #6699FF;
+}
+
+.tree {}
+
+.tree .treenode {
+	cursor : default;
+	border-style:none;
+}
+
+.tree .treenode A {
+	color : black;
+	text-decoration: none;
+}
+
+.tree .treenode A:hover {
+	color: Orange;
+	text-decoration: underline;
+}
+
+.tree .treenode A.disabled, .tree .treenode A:hover.disabled {
+	color : GrayText;
+	text-decoration: none;
+	cursor: default;
+}
+
+.tree .treenode A.selected{
+	background: highlight;
+	color: highlighttext;
+	text-decoration: none;
+}
+
+.combo {}
+
+.combodropdown .option {
+	cursor: default;
+	white-space: nowrap;
+}
+
+.combodropdown .over {
+	color: White;
+	background-color : #6699FF;
+}
+
+.combodropdown {
+	border-style : solid;
+	border-color : gray;
+}
+
+.DatePicker {
+     background-color: #EDEDED;
+}
+
+.DatePickerBtn {
+     cursor: pointer;
+}
+
+.DatePickerBtnNow {
+     background-color: #c0c0ff;
+}
+
+.DatePickerBtnSelect {
+	  background-color: red;
+}
+
+.groupboxframe {
+     border-color: lightgray;
+     border-style: groove;
+}
+
+.tooltip {
+	border-style: solid;
+	
+}
+
+.slider .slot {
+     border-color: lightgray;
+     border-style: inset;
+}
+
+.slider .handle {
+	cursor : e-resize;
+}
+
+.flowbox .selected {
+	background-color : #6699FF;
+}
+
+/* Rich text editor */
+
+.editframe {
+    border-style : solid;
+	border-color: DarkGray;
+}

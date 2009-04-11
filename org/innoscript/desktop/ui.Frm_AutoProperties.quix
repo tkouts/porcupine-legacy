@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<dialog xmlns="http://www.innoscript.org/quix"
+		title="$NAME" img="$ICON" resizable="true" close="true" width="400"
+		height="420" left="30%" top="10%">
+	<script name="Generic Form Script" src="desktop/ui.Frm_Auto.js"/>
+	<script name="Generic Form Widgets" src="desktop/widgets.js" depends="10,14,15"/>
+	<wbody>
+		<form action="$ID" method="update">
+			<tabpane top="0" left="0" width="100%" height="100%">
+				<tab caption="@@PROPERTIES@@">
+					<box orientation="v" width="100%" height="100%">
+						$PROPERTIES
+					</box>
+				</tab>
+				$EXTRA_TABS
+				$SECURITY_TAB
+				<tab caption="@@INFO@@">
+					<label top="0" left="5" width="120" height="20" caption="@@DATEMOD@@:"/>
+					<label top="0" left="125" width="55%" height="20" caption="$MODIFIED"/>
+
+					<label top="25" left="5" width="120" height="20" caption="@@MODIFIEDBY@@:"/>
+					<label top="25" left="125" width="55%" height="20" caption="$MODIFIED_BY"/>
+
+					<label top="50" left="5" width="120" height="20" caption="@@ID@@:"/>
+					<label top="50" left="125" width="55%" height="20" canselect="true" caption="$ID"/>
+
+					<label top="75" left="5" width="120" height="20" caption="@@CLASS@@:"/>
+					<label top="75" left="125" width="55%" height="20" canselect="true" caption="$CONTENTCLASS"/>
+				</tab>
+			</tabpane>
+		</form>
+	</wbody>
+	<dlgbutton onclick="generic.submitForm" width="70" height="22" caption="@@UPDATE@@" default="true" disabled="%(UPDATE_DISABLED)s"/>
+	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@CLOSE@@"/>
+</dialog>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<%
+	Response.content_type = "text/xml"
+	container_id = ""
+	container_title = ""
+	
+	if Request.queryString.has_key("id"):
+		container_id = Request.queryString["id"][0]
+		container = Server.db.get_item(container_id)
+		container_title = container.displayName.value
+	end
+%>
+<window xmlns="http://www.innoscript.org/quix" img="desktop/images/search16.gif"
+		left="center" top="center" width="640" height="440"
+		title="Hypersearch" close="true" minimize="true" maximize="true"
+		resizable="true">
+	<script name="Hypersearch script" src="hypersearch/hypersearch.js"/>
+	<wbody>
+		<splitter width="100%" height="100%">
+			<box orientation="v" padding="8,8,8,8" width="220"
+					id="search_criteria" overflow="auto" minw="180">
+				<label height="22" caption="@@SEARCH_IN@@"/>
+				<box height="24">
+					<field id="container_name" value="<%Response.write(container_title)%>"/>
+					<field type="hidden" id="container_id" value="<%Response.write(container_id)%>"/>
+					<flatbutton caption="..." tooltip="@@SELECT_FOLDER@@" width="24" onclick="hypersearch.selectFolder"/>
+				</box>
+				<field id="scope" type="checkbox" caption="@@INCLUDESUBS@@" />
+				<hr/>
+				<label height="22" caption="@@ALL_OR_PART_OF_THE_NAME@@:"/>
+				<field id="name" />
+				<label height="22" caption="@@WORD_OR_PHRASE_IN_DESCRIPTION@@:"/>
+				<field id="description" />
+				<hr/>
+				<label height="22" caption="@@MODIFIED_WITHIN@@:"/>
+				<field id="modified" type="radio" onclick="hypersearch.updateModifiedMode" value="0" checked="true" caption="@@DONT_REMEMBER@@"/>
+				<field id="modified" type="radio" onclick="hypersearch.updateModifiedMode" value="1" caption="@@LAST_WEEK@@"/>
+				<field id="modified" type="radio" onclick="hypersearch.updateModifiedMode" value="2" caption="@@LAST_MONTH@@"/>
+				<field id="modified" type="radio" onclick="hypersearch.updateModifiedMode" value="3" caption="@@SPECIFY_DATES@@"/>
+				<box id="date_from_box" height="24" padding="8,0,0,0" disabled="true">
+					<label caption="@@FROM@@" width="40"/>
+					<datepicker id="from"/>
+				</box>
+				<box id="date_to_box" height="24" padding="8,0,0,0" disabled="true">
+					<label caption="@@TO@@" width="40"/>
+					<datepicker id="to"/>
+				</box>
+				<box padding="0,0,8,0" orientation="v" childrenalign="right">
+					<button width="80" height="24" caption="@@SEARCH@@" onclick="hypersearch.search"/>
+				</box>
+			</box>
+			<rect overflow="hidden" bgcolor="white">
+				<contextmenu onshow="hypersearch.updateContextMenu">
+					<menuoption caption="@@OPEN_CONTAINER@@" onclick="hypersearch.openContainer"/>
+					<sep/>
+					<menuoption caption="@@PROPERTIES@@" onclick="hypersearch.openPropertiesDialog"/>
+				</contextmenu>
+				<listview id="searchresults"
+						width="100%" height="100%"
+						ondblclick="hypersearch.showObjectProperties">
+					<listheader>
+						<column width="24" caption="" type="img" name="image" resizable="false"/>
+						<column width="120" caption="@@displayName@@" name="displayName" bgcolor="#EFEFEF" sortable="true"/>
+						<column width="60" caption="@@SIZE@@" name="size" xform="generic.computeSize" sortable="true"/>
+						<column width="120" caption="@@MODIFIEDBY@@" name="modifiedBy" sortable="true"/>
+						<column width="160" caption="@@DATEMOD@@" type="date" name="modified" sortable="true"/>
+					</listheader>
+				</listview>
+			</rect>
+		</splitter>
+	</wbody>
+</window>

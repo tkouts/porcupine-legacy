@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<window xmlns="http://www.innoscript.org/quix"
+		title="OQL Query Performer"	resizable="true" close="true" minimize="true"
+		maximize="true"	img="queryperformer/images/icon.gif" width="600"
+		height="400" left="center" top="center">
+	<script name="OQL Query Performer Script" src="queryperformer/queryperformer.js"/>
+	<wbody>
+		<box orientation="v" spacing="0" width="100%" height="100%">
+		    <menubar height="24">
+		        <menu caption="File">
+		            <menuoption caption="New query" onclick="queryPerformer.newQuery"/>
+		            <sep/>
+		            <menuoption img="queryperformer/images/exit.gif" caption="Exit" onclick="queryPerformer.exitApp"/>
+		        </menu>
+		        <menu caption="Edit">
+		            <menuoption img="queryperformer/images/configure.gif" caption="Options" onclick="queryPerformer.showSettings"/>
+		        </menu>
+		        <menu caption="About">
+		            <menuoption img="queryperformer/images/about16.gif" caption="About OQL Query Performer" onclick="queryPerformer.about"/>
+		        </menu>
+		    </menubar>
+		    <rect length="-1" overflow="auto" id="clientArea">
+		        <prop name="tree_caption" value="displayName"/>
+		        <prop name="use_image" type="bool" value="0"/>
+		        <prop name="tree_image" value="__image__"/>
+		        <file display="none"/>
+		    </rect>
+		</box>
+	</wbody>
+</window>

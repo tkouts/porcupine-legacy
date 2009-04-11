@@ -1,0 +1,21 @@
+<config>
+	<context match="(.*)\.quix"
+		method="GET"
+		client=".*"
+		lang=".*"
+		action="$1.quix"
+		max-age="3600"/>
+	<context path="queryperformer.js"
+		method="GET"
+		client=".*"
+		lang=".*"
+		action="queryperformer.js"
+		max-age="3600"/>
+	<!-- images -->
+	<context match="images/(.*)"
+		method="GET"
+		client=".*"
+		lang=".*"
+		action="images/$1"
+		max-age="3600"/>
+</config>

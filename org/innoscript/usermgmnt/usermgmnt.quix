@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<window xmlns="http://www.innoscript.org/quix"
+		title="Users and Groups Management" resizable="true" close="true"
+		minimize="true" maximize="true" img="usermgmnt/images/icon.gif"
+		width="600" height="400" left="center" top="center">
+	<script name="Users and Groups Management Script" src="usermgmnt/usermgmnt.js"/>
+	<wbody>
+		<box orientation="v" spacing="0" width="100%" height="100%">
+		    <menubar height="24">
+		        <menu caption="File">
+		            <menuoption img="usermgmnt/images/filenew.gif" caption="New">
+		                <menuoption img="desktop/images/user.gif" caption="User"
+		                	onclick="usermgmnt.newUser"/>
+		                <menuoption img="desktop/images/group.gif" caption="Group"
+		                	onclick="usermgmnt.newGroup"/>
+		            </menuoption>
+		            <sep/>
+		            <menuoption img="usermgmnt/images/exit.gif" caption="Exit"
+		            	onclick="usermgmnt.exitApp"/>
+		        </menu>
+		        <menu caption="About">
+		            <menuoption img="usermgmnt/images/about16.gif"
+		            	caption="About Users and Groups Management"
+		            	onclick="usermgmnt.about"/>
+		        </menu>
+		    </menubar>
+		    <toolbar height="34">
+		        <tbbutton width="30" img="usermgmnt/images/reload22.gif"
+		        	onclick="usermgmnt.refreshUsersList"
+		        	tooltip="@@REFRESH@@"/>
+		        
+		        <tbbutton width="38" id="filter"
+		        			img="usermgmnt/images/colorpicker22.gif"
+		        			type="menu" tooltip="@@FILTER@@">
+		                <menuoption id="fv" type="radio" caption="Show all"
+		                	selected="true" onclick="usermgmnt.applyFilter"/>
+		                <menuoption id="fv" type="radio" caption="Show users"
+		                		onclick="usermgmnt.applyFilter">
+		                    <prop name="CC"
+		                    	value="org.innoscript.desktop.schema.security.User"/>
+		                </menuoption>
+		                <menuoption id="fv" type="radio" caption="Show groups"
+		                		onclick="usermgmnt.applyFilter">
+		                    <prop name="CC"
+		                    	value="org.innoscript.desktop.schema.security.Group"/>
+		                </menuoption>
+		        </tbbutton>
+		    </toolbar>
+		    <rect height="-1">
+		        <contextmenu onshow="usermgmnt.usersListMenu_show">
+		            <menuoption img="usermgmnt/images/filenew.gif" caption="New">
+		                    <menuoption img="desktop/images/user.gif" caption="User"
+		                    	onclick="usermgmnt.newUser"/>
+		                    <menuoption img="desktop/images/group.gif" caption="Group"
+		                    	onclick="usermgmnt.newGroup"/>
+		            </menuoption>
+		            <menuoption img="usermgmnt/images/editdelete.gif" caption="Delete"
+		            		onclick="usermgmnt.deleteItem"/>
+		            <sep/>
+		            <menuoption img="usermgmnt/images/change_password.gif"
+		            		caption="Reset password"
+		            		onclick="usermgmnt.showResetPasswordDialog"/>
+		            <menuoption caption="Properties"
+		            	onclick="usermgmnt.showProperties"/>
+		        </contextmenu>
+		        <listview id="userslist" multiple="true" width="100%" height="100%"
+		        		ondblclick="usermgmnt.loadItem" onload="usermgmnt.getUsers">
+		            <prop name="FolderID" value="users"/>
+		            <prop name="filter" value=""/>
+		            <listheader>
+		                <column width="24" caption="" type="img" name="image"
+		                	resizable="false"/>
+		                <column width="24" caption="S" type="bool" name="issystem"
+		                	resizable="false" sortable="true"/>
+		                <column width="140" caption="Name" name="displayName"
+		                	bgcolor="#EFEFEF" sortable="true"/>
+		                <column width="140" caption="Full Name" name="fname"
+		                	sortable="true"/>
+		                <column width="220" caption="Description" name="description"
+		                	sortable="true"/>
+		            </listheader>
+		        </listview>
+		    </rect>
+		</box>
+	</wbody>
+</window>
