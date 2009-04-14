@@ -29,7 +29,7 @@ class SessionManager(GenericSessionManager):
     """
     In memory session manager implementation class
     """
-    def __init__(self, timeout):
+    def __init__(self, timeout, **kwargs):
         GenericSessionManager.__init__(self, timeout)
         self._sessions = {}
         self._list = []

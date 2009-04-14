@@ -32,7 +32,7 @@ class SessionManager(GenericSessionManager):
     _expire_thread = ContextThread(name='Session expriration thread',
                                    target=None)
     
-    def __init__(self, timeout):
+    def __init__(self, timeout, **kwargs):
         GenericSessionManager.__init__(self, timeout)
         session_container = db._db.get_item('_sessions')
         if session_container == None:
