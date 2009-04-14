@@ -43,18 +43,26 @@ class HttpContext(SecurityContext):
     @ivar user: The current user
     @type user: L{GenericItem<porcupine.systemObjects.GenericItem>}
     """
-    sid_pattern = re.compile('/\{([a-f0-9]{32})\}')
+    sid_pattern = re.compile('/\{(.*?)\}')
     server = serverutility.Server()
     def __init__(self, request=None, response=None):
         SecurityContext.__init__(self)
         self.request = request
         self.response = response
+
+        self.sessionid_in_url = None
+        if request:
+            path_info = request.serverVariables['PATH_INFO']
+            # detect if the session id is in url
+            session_match = re.match(self.sid_pattern, path_info)
+            if session_match:
+                path_info = path_info.replace(session_match.group(), '', 1) or '/'
+                request.serverVariables['PATH_INFO'] = path_info
+                self.sessionid_in_url = session_match.group(1)
+
         self.session = None
 
     def _fetch_session(self):
-        path_info = self.request.serverVariables['PATH_INFO'] or '/'
-
-        # get session
         session = None
         cookiesEnabled = True
         if self.request.cookies.has_key('_sid'):
@@ -62,11 +70,8 @@ class HttpContext(SecurityContext):
                 self.request.cookies['_sid'].value)
         else:
             cookiesEnabled = False
-            session_match = re.match(self.sid_pattern, path_info)
-            if session_match:
-                path_info = path_info.replace(session_match.group(), '', 1) or '/'
-                self.request.serverVariables['PATH_INFO'] = path_info
-                session = SessionManager.fetch_session(session_match.group(1))
+            if self.sessionid_in_url != None:
+                session = SessionManager.fetch_session(self.sessionid_in_url)
 
         if session != None:
             self.session = session

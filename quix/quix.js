@@ -20,7 +20,7 @@ var QuiX = {};
 QuiX.version = '1.0 build 20090402';
 QuiX.namespace = 'http://www.innoscript.org/quix';
 QuiX.root = (new RegExp(
-	"https?://[^/]+(?:/[^/\?]+)?(?:/(?:{|%7B)[0-9a-f]{32}(?:}|%7D))?",
+	"https?://[^/]+(?:/[^/\?]+)?(?:/(?:{|%7B)(?:.*?)(?:}|%7D))?",
 	"i")).exec(document.location.href) + '/';
 QuiX.baseUrl = '__quix/';
 QuiX.maxz = 999999999;

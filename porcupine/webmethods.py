@@ -65,7 +65,7 @@ def quixui(of_type, isPage=False, lang='', qs='',
         <script type="text/javascript" defer="defer" src="%s/__quix/quix.js"></script>
         <script type="text/javascript" defer="defer">
             var cookiesEnabled = false;
-            var session_id = (new RegExp("/\(?:{|%%7b)([0-9a-f]{32})\(?:}|%%7d)", "i")).exec(document.location.href);
+            var session_id = (new RegExp("/\(?:{|%%7b)(.*?)\(?:}|%%7d)", "i")).exec(document.location.href);
             if (session_id)
                 session_id = session_id[1];
             if (typeof document.cookie == "string" && document.cookie.length != 0)
