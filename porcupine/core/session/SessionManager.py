@@ -19,10 +19,10 @@ import time
 
 _sm = None
 
-def open(sm_type, session_timeout, init_expiration):
+def open(sm_type, session_timeout, init_expiration, **kwargs):
     global _sm
     if _sm == None:
-        _sm = sm_type(session_timeout)
+        _sm = sm_type(session_timeout, **kwargs)
         if init_expiration:
             _sm.init_expiration_mechanism()
         return True

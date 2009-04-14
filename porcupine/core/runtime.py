@@ -58,9 +58,10 @@ def unlock_db():
 
 def init_session_manager(init_expiration=True):
     return SessionManager.open(
-        misc.get_rto_by_name(settings['sessionmanager']['interface']),
-        int(settings['sessionmanager']['timeout']),
-        init_expiration
+        misc.get_rto_by_name(settings['sessionmanager'].pop('interface')),
+        int(settings['sessionmanager'].pop('timeout')),
+        init_expiration,
+        **settings['sessionmanager']
     )
 
 def init_config():
