@@ -143,9 +143,13 @@ class BaseServer(BaseService, Dispatcher):
                 kwargs['socket'] = sock
             else:
                 kwargs['request_queue'] = (self.request_queue,
-                                           self.request_queue.qsize)
+                                           self.request_queue.qsize,
+                                           self.request_queue.item_pushed,
+                                           self.request_queue.item_popped)
                 kwargs['done_queue'] = (self.done_queue,
-                                        self.done_queue.qsize)
+                                        self.done_queue.qsize,
+                                        self.done_queue.item_pushed,
+                                        self.done_queue.item_popped)
                 kwargs['sentinel'] = self.sentinel
 
             # start worker processes
@@ -160,7 +164,7 @@ class BaseServer(BaseService, Dispatcher):
 
             if self.request_queue != None:
                 # start task dispatcher thread(s)
-                for i in range(4):
+                for i in range(8):
                     t = Thread(target=self._task_dispatch,
                                name='%s task dispatcher %d' % (self.name, i+1))
                     t.start()
@@ -304,7 +308,7 @@ class RequestHandler(asyncore.dispatcher):
         if len(self.output_buffer) > 0:
             sent = self.send(self.output_buffer)
             self.output_buffer = self.output_buffer[sent:]
-            if self.output_buffer == '':
+            if len(self.output_buffer) == 0:
                 self.close()
 
     def close(self):
@@ -326,8 +330,10 @@ if multiprocessing:
         # create shared memory queues
         from array import array
         from types import MethodType
-        from ctypes import Structure, c_int, c_ubyte, memmove, sizeof, addressof
+        from ctypes import Structure, c_int, c_ubyte, memmove, sizeof, \
+                           addressof, string_at
         from multiprocessing.sharedctypes import Array, RawValue
+        from multiprocessing import Condition
 
         class Message(Structure):
             _fields_ = [('fn', c_int),
@@ -336,33 +342,32 @@ if multiprocessing:
 
         def get_shared_queue(size):
             queue = Array(Message, size)
-            init_queue(queue, RawValue('i', 0))#, lock=queue.get_lock()))
+            init_queue(queue,
+                       RawValue('i', 0),
+                       Condition(queue.get_lock()),
+                       Condition(queue.get_lock()))
             return queue
             
-        def init_queue(queue, qsize):
+        def init_queue(queue, qsize, item_pushed, item_popped):
             def get(self):
-                while True:
-                    self.acquire()
-                    if qsize.value == 0:
-                        self.release()
-                        time.sleep(0.01)
-                    else:
-                        break
+                self.acquire()
+                while qsize.value == 0:
+                    self.item_pushed.wait()
                 message = self[0]
                 fn = message.fn
-                chunk = array('B', message.buffer[:message.count])
-                buffer = [chunk.tostring()]
+                buffer = [string_at(addressof(message.buffer), message.count)]
                 i = 1
                 if fn > 0:
                     while self[i].fn == fn and i < qsize.value:
-                        chunk = array('B', self[i].buffer[:self[i].count])
-                        buffer.append(chunk.tostring())
+                        buffer.append(string_at(addressof(self[i].buffer),
+                                                self[i].count))
                         i += 1
                 # shift
                 memmove(addressof(self[0]),
                         addressof(self[i]),
                         (qsize.value - i) * sizeof(self[0]))
                 qsize.value -= i
+                self.item_popped.notify()
                 self.release()
                 return fn, ''.join(buffer)
 
@@ -370,24 +375,26 @@ if multiprocessing:
                 # split buffer into chunks
                 chunks = [array('B', b[i:i + 16384])
                           for i in range(0, len(b), 16384)]
-                while True:
-                    self.acquire()
-                    if qsize.value + len(chunks) > len(self):
-                        self.release()
-                        time.sleep(0.01)
-                    else:
-                        break
-                for chunk in chunks:
-                    count = len(chunk)
-                    self[qsize.value].fn = fn
-                    self[qsize.value].count = count
-                    self[qsize.value].buffer[:count] = chunk.tolist()
-                    qsize.value += 1
+                buffer_info = [chunk.buffer_info()
+                               for chunk in chunks]
+                ln = len(chunks)
+                self.acquire()
+                while qsize.value + ln > len(self):
+                    self.item_popped.wait()
+                for i in range(ln):
+                    self[qsize.value + i].fn = fn
+                    self[qsize.value + i].count = buffer_info[i][1]
+                    memmove(addressof(self[qsize.value + i].buffer),
+                            *buffer_info[i])
+                qsize.value += ln
+                self.item_pushed.notify()
                 self.release()
 
             queue.get = MethodType(get, queue, type(queue))
             queue.put = MethodType(put, queue, type(queue))
             queue.qsize = qsize
+            queue.item_pushed = item_pushed
+            queue.item_popped = item_popped
             return queue
 
         class RequestHandlerProxy(object):
