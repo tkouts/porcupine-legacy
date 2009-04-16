@@ -17,20 +17,14 @@
 """
 Porcupine base classes for multi processing, multi threaded network servers
 """
-import sys
 import socket
 import time
 import Queue
 import select
 from threading import Thread, currentThread
-try:
-    import multiprocessing
-    if sys.platform == 'win32':
-        import multiprocessing.reduction
-except ImportError:
-    multiprocessing = None
 
 from porcupine.core import asyncore
+from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
 
 class BaseServerThread(Thread):

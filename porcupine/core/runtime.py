@@ -17,10 +17,13 @@
 """
 Porcupine runtime services accessed by multiple processes
 """
+import sys
 import logging
 import logging.handlers
 try:
     import multiprocessing
+    if sys.platform == 'win32':
+        import multiprocessing.reduction
 except ImportError:
     multiprocessing = None
 
