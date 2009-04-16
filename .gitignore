@@ -1,5 +1,6 @@
 *.pyc
 *.pyo
 *.bin
+conf/.pid
 lextab.*
 oql_parsetab.*
