@@ -1,3 +1,5 @@
 *.pyc
 *.pyo
 *.bin
+lextab.*
+oql_parsetab.*
