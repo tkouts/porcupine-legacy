@@ -176,7 +176,7 @@ def truncate():
     _db_handle.truncate()
 
 def shrink():
-    _db_handle.shrink()
+    return _db_handle.shrink()
 
 def close():
     global _db_handle
