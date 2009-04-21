@@ -140,7 +140,7 @@ QuiX.__resource_onstatechange = function() {
 				this.resource.width = this.width;
 				this.resource.height = this.height;
 				QuiX.removeNode(this);
-                QuiX._image_cache[this.src] = this;
+                QuiX._image_cache[this.resource.url] = this;
 			}
 			this.resource.isLoaded = true;
             if (this.resource.callback)
@@ -619,8 +619,7 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
 	
 	if (iMod && oNode.getAttribute('img')) {
 		var src = oNode.getAttribute('img');
-		if (src != '' && !QuiX._image_cache[src]) {
-			//QuiX.images.push(src);
+		if (src != '' && !(QuiX._image_cache[src])) {
 			this.__imagesToLoad.push(src);
 		}
 	}
