@@ -65,11 +65,18 @@ def open(**kwargs):
         additional_flags = additional_flags | db.DB_RECOVER
 
     _env = db.DBEnv()
+
     _env.open(_dir,
               db.DB_THREAD | db.DB_INIT_MPOOL | db.DB_INIT_LOCK |
               db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
               additional_flags)
-    
+
+    if settings['store'].has_key('bdb_log_dir'):
+        log_dir = settings['store']['bdb_log_dir']
+        if log_dir[-1] != '/':
+            log_dir += '/'
+        _env.set_lg_dir(log_dir)
+
     dbMode = 0660
     dbFlags = db.DB_THREAD | db.DB_CREATE | db.DB_AUTO_COMMIT
     
