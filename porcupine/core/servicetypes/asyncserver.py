@@ -55,17 +55,19 @@ class Dispatcher(asyncore.dispatcher):
 
     def handle_accept(self):
         # accept client connection
-        client_socket, addr = self.accept()
-        try:
-            # get inactive requestHandler from queue
-            rh = self.rh_queue.get_nowait()
-        except Queue.Empty:
-            # if empty then create new requestHandler
-            rh = RequestHandler(self)
-        # set the client socket of requestHandler
-        self.active_connections += 1
-        client_socket.setblocking(0)
-        rh.activate(client_socket, self.socket_map)
+        client = self.accept()
+        if client != None:
+            client_socket, addr = client
+            try:
+                # get inactive requestHandler from queue
+                rh = self.rh_queue.get_nowait()
+            except Queue.Empty:
+                # if empty then create new requestHandler
+                rh = RequestHandler(self)
+            # set the client socket of requestHandler
+            self.active_connections += 1
+            client_socket.setblocking(0)
+            rh.activate(client_socket, self.socket_map)
 
 class BaseServer(BaseService, Dispatcher):
     "Base class for threaded TCP server using asynchronous sockets"
