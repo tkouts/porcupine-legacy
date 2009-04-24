@@ -191,7 +191,7 @@ def selectobjects(self):
         'ID': self.id or '/',
         'IMG': self.__image__,
         'DN': self.displayName.value,
-        'HAS_SUBFOLDERS': str(self.hasSubfolders()).lower(),
+        'HAS_SUBFOLDERS': str(self.has_subfolders()).lower(),
         'MULTIPLE': context.request.queryString['multiple'][0],
         'CC': sCC
     }
