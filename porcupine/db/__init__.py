@@ -93,18 +93,14 @@ def transactional(auto_commit=False, nosync=False):
                         if is_top_level:
                             txn.abort()
                             retries += 1
-                            #print retries
-                            txn._retry()
                             time.sleep(retries * 0.01)
+                            txn._retry()
                         else:
                             raise
                 else:
                     raise exceptions.DBTransactionIncomplete
             finally:
                 if is_top_level:
-                    # abort uncommitted transactions
-                    if not txn._iscommited:
-                        txn.abort()
                     c_thread.context.trans = None
         transactional_wrapper.func_name = function.func_name
         transactional_wrapper.func_doc = function.func_doc

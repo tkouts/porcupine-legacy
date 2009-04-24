@@ -27,7 +27,6 @@ class BaseTransaction(object):
         txn_max_retries = int(settings['store']['trans_max_retries'])
     
     def __init__(self):
-        self._iscommited = False
         _db._activeTxns += 1
 
     def _retry(self):
@@ -39,7 +38,6 @@ class BaseTransaction(object):
 
         @return: None
         """
-        self._iscommited = True
         _db._activeTxns -= 1
 
     def abort(self):

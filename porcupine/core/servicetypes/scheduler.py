@@ -50,10 +50,6 @@ class BaseTask(BaseService):
             except:
                 e = exceptions.InternalServerError()
                 e.emit()
-            if self.thread.context.trans and \
-                    not self.thread.context.trans._iscommited:
-                self.thread.context.trans.abort()
-            self.thread.context.trans = None
             
     def execute(self):
         raise NotImplementedError
