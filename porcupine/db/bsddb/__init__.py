@@ -119,7 +119,7 @@ def is_open():
 def get_item(oid, trans=None):
     try:
         if trans == None:
-            flags = 0
+            flags = db.DB_READ_COMMITTED
         else:
             flags = db.DB_RMW
         return _itemdb.get(oid, txn=trans and trans.txn, flags=flags)
