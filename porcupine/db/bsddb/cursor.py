@@ -33,7 +33,8 @@ class Cursor(BaseCursor):
         BaseCursor.set(self, v)
         try:
             self._is_set = bool(self._cursor.set(self._value))
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError), e:
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+                db.DBInvalidArgError):
             self._cursor.close()
             raise exceptions.DBTransactionIncomplete
 
@@ -41,7 +42,8 @@ class Cursor(BaseCursor):
         BaseCursor.set_range(self, v1, v2)
         try:
             self._is_set = bool(self._cursor.set_range(self._range[0]))
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError), e:
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+                db.DBInvalidArgError):
             self._cursor.close()
             raise exceptions.DBTransactionIncomplete
 
@@ -77,7 +79,8 @@ class Cursor(BaseCursor):
     def get_current(self, get_primary=False):
         try:
             key, prim_key, value = self._cursor.pget(db.DB_CURRENT)
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError), e:
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+                db.DBInvalidArgError):
             self._cursor.close()
             raise exceptions.DBTransactionIncomplete
         if get_primary:
@@ -117,7 +120,8 @@ class Cursor(BaseCursor):
                     if not next:
                         break
                     key, prim_key, value = next
-            except (db.DBLockDeadlockError, db.DBLockNotGrantedError), e:
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+                    db.DBInvalidArgError):
                 self._cursor.close()
                 raise exceptions.DBTransactionIncomplete
 
@@ -160,7 +164,8 @@ class Join(BaseCursor):
                     get = self._join.get
                 try:
                     next = get(0)
-                except (db.DBLockDeadlockError, db.DBLockNotGrantedError), e:
+                except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+                        db.DBInvalidArgError):
                     self.close()
                     raise exceptions.DBTransactionIncomplete
                 while next != None:

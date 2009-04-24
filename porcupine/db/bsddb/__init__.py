@@ -66,16 +66,16 @@ def open(**kwargs):
 
     _env = db.DBEnv()
 
-    _env.open(_dir,
-              db.DB_THREAD | db.DB_INIT_MPOOL | db.DB_INIT_LOCK |
-              db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
-              additional_flags)
-
     if settings['store'].has_key('bdb_log_dir'):
         log_dir = settings['store']['bdb_log_dir']
         if log_dir[-1] != '/':
             log_dir += '/'
-        _env.set_lg_dir(log_dir)
+        _env.set_lg_dir(os.path.abspath(log_dir))
+    
+    _env.open(os.path.abspath(_dir),
+              db.DB_THREAD | db.DB_INIT_MPOOL | db.DB_INIT_LOCK |
+              db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
+              additional_flags)
 
     dbMode = 0660
     dbFlags = db.DB_THREAD | db.DB_CREATE | db.DB_AUTO_COMMIT
@@ -123,38 +123,44 @@ def get_item(oid, trans=None):
         else:
             flags = db.DB_RMW
         return _itemdb.get(oid, txn=trans and trans.txn, flags=flags)
-    except (db.DBLockDeadlockError, db.DBLockNotGrantedError), e:
+    except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+            db.DBInvalidArgError):
         raise exceptions.DBTransactionIncomplete
 
 def put_item(item, trans=None):
     try:
         _itemdb.put(item._id, persist.dumps(item), trans and trans.txn)
-    except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+    except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+            db.DBInvalidArgError):
         raise exceptions.DBTransactionIncomplete
 
 def delete_item(oid, trans):
     try:
         _itemdb.delete(oid, trans and trans.txn)
-    except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+    except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+            db.DBInvalidArgError):
         raise exceptions.DBTransactionIncomplete
 
 # external attributes
 def get_external(id, trans):
     try:
         return _docdb.get(id, txn=trans and trans.txn)
-    except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+    except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+            db.DBInvalidArgError):
         raise exceptions.DBTransactionIncomplete
 
 def put_external(id, stream, trans):
     try:
         _docdb.put(id, stream, trans and trans.txn)
-    except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+    except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+            db.DBInvalidArgError):
         raise exceptions.DBTransactionIncomplete
 
 def delete_external(id, trans):
     try:
         _docdb.delete(id, trans and trans.txn)
-    except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+    except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+            db.DBInvalidArgError):
         raise exceptions.DBTransactionIncomplete
 
 # indices

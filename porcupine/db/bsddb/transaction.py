@@ -42,7 +42,8 @@ class Transaction(BaseTransaction):
         """
         try:
             self.txn.commit()
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
+                db.DBInvalidArgError):
             raise exceptions.DBTransactionIncomplete
         BaseTransaction.commit(self)
 
