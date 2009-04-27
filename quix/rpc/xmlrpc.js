@@ -35,9 +35,9 @@ QuiX.rpc.XMLRPCRequest = function(sUrl, async) {
 // backwards compatibility
 var XMLRPCRequest = QuiX.rpc.XMLRPCRequest;
 
-QuiX.rpc.XMLRPCRequest.prototype.processResult = function() {
+QuiX.rpc.XMLRPCRequest.prototype.processResult = function(dom) {
 	try {
-		var dom = this.xmlhttp.responseXML;
+		dom = dom || this.xmlhttp.responseXML;
 		if (dom) {
             return QuiX.parsers.XMLRPC.parse(dom);
 		}
@@ -77,17 +77,20 @@ QuiX.rpc.XMLRPCRequest.prototype.callmethod = function(method_name) {
 			this.xmlhttp.onreadystatechange = function() {
 				if (self.xmlhttp.readyState==4) {
                     var retVal = null;
+                    var dom = null;
                     var status = self.xmlhttp.status;
 					// parse response...
                     try {
                         if (status == 304) { //Not modified
-                            retVal = self._cached;
+                            dom = QuiX.domFromString(self._cached)
+                            retVal = self.processResult(dom);
                         }
                         else {
                             retVal = self.processResult();
                             var etag = self.xmlhttp.getResponseHeader('Etag');
                             if (QuiX.rpc._cache && etag) {
-                                QuiX.rpc._cache.set(key, [etag, retVal]);
+                                QuiX.rpc._cache.set(key,
+                                    etag, self.xmlhttp.responseText);
                             }
                         }
                         if (retVal != null && self.oncomplete) {

@@ -48,14 +48,15 @@ QuiX.rpc._cache = (function() {
             get : function(key, callback) {
                 cache.get(key,
                     function(ok, value){
-                        if (value)
-                            callback(QuiX.parsers.JSON.parse(unescape(value)));
+                        if (value) {
+                            callback(value.split('_', 1));
+                        }
                         else
                             callback(null);
                     });
             },
-            set : function(key, obj) {
-                var value = escape(QuiX.parsers.JSON.stringify(obj));
+            set : function(key, etag, response) {
+                var value = escape(etag + '_' + response);
                 if (QuiX.persist.size < 0 || QuiX.persist.size > value.length)
                     cache.set(key, value);
             }
