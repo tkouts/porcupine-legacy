@@ -49,7 +49,10 @@ QuiX.rpc._cache = (function() {
                 cache.get(key,
                     function(ok, value){
                         if (value) {
-                            callback(value.split('_', 1));
+                            value = unescape(value);
+                            var _pos = value.indexOf('_')
+                            callback([value.substring(0, _pos),
+                                      value.substring(_pos + 1)]);
                         }
                         else
                             callback(null);
