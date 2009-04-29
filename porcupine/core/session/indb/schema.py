@@ -43,9 +43,10 @@ class Session(GenericItem, GenericSession):
 
     @db.transactional(auto_commit=True, nosync=True)
     def set_value(self, name, value):
-        self.__data[name] = value
         trans = db.get_transaction()
-        self.update(trans)
+        session = db.get_item(self._id, trans)
+        session.__data[name] = value
+        session.update(trans)
     setValue = deprecated(set_value)
 
     def get_value(self, name):
