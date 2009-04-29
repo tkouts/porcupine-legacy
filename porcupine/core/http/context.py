@@ -93,19 +93,16 @@ class HttpContext(SecurityContext):
         # create new session with the specified guest user
         self.user = _db.get_item(settings['sessionmanager']['guest'])
         new_session = SessionManager.create(settings['sessionmanager']['guest'])
-        
         session_id = new_session.sessionid
-        query_string = self.request.get_query_string()
         
-        if '_nojavascript' in query_string:
-            root_url = self.request.get_root_url()
-            path = self.request.serverVariables['PATH_INFO']
-            self.response.redirect(
-                '%(root_url)s/{%(session_id)s}%(path)s' % locals()
-            )
+        if 'PMB' in self.request.serverVariables['HTTP_USER_AGENT']:
+            # if is a mobile client
+            # add session id in special header
+            self.response.set_header('Porcupine-Session', session_id)
+        else:
+            # add cookie with sessionid
+            self.response.cookies['_sid'] = session_id
+            self.response.cookies['_sid']['path'] = \
+                self.request.serverVariables['SCRIPT_NAME']
         
-        # add cookie with sessionid
-        self.response.cookies['_sid'] = session_id
-        self.response.cookies['_sid']['path'] = \
-            self.request.serverVariables['SCRIPT_NAME']
         return new_session
