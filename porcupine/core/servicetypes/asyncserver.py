@@ -98,6 +98,7 @@ class BaseServer(BaseService, Dispatcher):
                                     # from subprocesses only when sockets are
                                     # not pickleable
         self.sentinel = None
+        self._socket = None
 
         request_queue = None
         done_queue = None
@@ -120,23 +121,28 @@ class BaseServer(BaseService, Dispatcher):
         # start runtime services
         BaseService.start(self)
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setblocking(0)
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket.setblocking(0)
         try:
-            sock.bind(self.addr)
+            self._socket.bind(self.addr)
         except socket.error, v:
-            sock.close()
+            self._socket.close()
             raise v
-        sock.listen(64)
+        self._socket.listen(64)
 
         if self.request_queue != None:
             # activate server socket
-            self.set_socket(sock)
+            self.set_socket(self._socket)
 
+        # start workers
+        self._start_workers()
+        self.running = True
+
+    def _start_workers(self):
         if self.is_multiprocess:
             kwargs = {}
             if self.request_queue == None:
-                kwargs['socket'] = sock
+                kwargs['socket'] = self._socket
             else:
                 kwargs['request_queue'] = (self.request_queue,
                                            self.request_queue.qsize,
@@ -172,7 +178,33 @@ class BaseServer(BaseService, Dispatcher):
                 t.start()
                 self.worker_pool.append(t)
 
-        self.running = True
+    def _stop_workers(self):
+        if self.request_queue:
+            if self.is_multiprocess:
+                qlen = self.worker_processes * self.worker_threads
+            else:
+                qlen = self.worker_threads
+            Dispatcher.close(self)
+            for i in range(qlen):
+                self.request_queue.put(self.sentinel)
+
+        if self.pipes:
+            self.send(self.sentinel)
+            self.pipes = []
+
+        # join workers
+        for t in self.worker_pool:
+            t.join()
+
+        self.worker_pool = []
+
+        if self.done_queue:
+            # we have multiprocessing queues
+            # join task dispatchers
+            for i in range(len(self.task_dispatchers)):
+                self.done_queue.put(self.sentinel)
+            for t in self.task_dispatchers:
+                t.join()
 
     def send(self, message):
         [conn.send(message) for conn in self.pipes]
@@ -181,13 +213,22 @@ class BaseServer(BaseService, Dispatcher):
     def add_runtime_service(self, component, *args, **kwargs):
         inited = BaseService.add_runtime_service(self, component, *args, **kwargs)
         if self.is_multiprocess and component == 'db':
-            self.send('DB_OPEN')
+            if self.request_queue == None and self.running:
+                # restart workers
+                self._start_workers()
+            else:
+                self.send('DB_OPEN')
         return inited
 
     def remove_runtime_service(self, component):
-        BaseService.remove_runtime_service(self, component)
         if self.is_multiprocess and component == 'db':
-            self.send('DB_CLOSE')
+            if self.request_queue == None and self.running:
+                # stop the workers in order to reflect
+                # the new db environment in case of db restoration
+                self._stop_workers()
+            else:
+                self.send('DB_CLOSE')
+        BaseService.remove_runtime_service(self, component)
 
     def lock_db(self):
         BaseService.lock_db(self)
@@ -227,31 +268,7 @@ class BaseServer(BaseService, Dispatcher):
     def shutdown(self):
         if self.running:
             self.running = False
-            if self.request_queue:
-                if self.is_multiprocess:
-                    qlen = self.worker_processes * self.worker_threads
-                else:
-                    qlen = self.worker_threads
-                Dispatcher.close(self)
-                for i in range(qlen):
-                    self.request_queue.put(self.sentinel)
-
-            if self.pipes:
-                self.send(self.sentinel)
-                self.pipes = []
-
-            # join workers
-            for t in self.worker_pool:
-                t.join()
-
-            if self.done_queue:
-                # we have multiprocessing queues
-                # join task dispatchers
-                for i in range(len(self.task_dispatchers)):
-                    self.done_queue.put(self.sentinel)
-                for t in self.task_dispatchers:
-                    t.join()
-
+            self._stop_workers()
             # shut down runtime services
             BaseService.shutdown(self)
 
@@ -305,6 +322,7 @@ class RequestHandler(asyncore.dispatcher):
             sent = self.send(self.output_buffer)
             self.output_buffer = self.output_buffer[sent:]
             if len(self.output_buffer) == 0:
+                self.shutdown(socket.SHUT_WR)
                 self.close()
 
     def close(self):

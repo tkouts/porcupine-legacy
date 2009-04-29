@@ -22,19 +22,22 @@ class BackupFile(object):
     def __init__(self, fileName):
         self.__filename = fileName
         
-    def addfiles(self, filelist):
-        backupFile = tarfile.open(self.__filename, 'w')
+    def add_files(self, filelist):
+        backup_file = tarfile.open(self.__filename, 'w')
         try:
             for fl in filelist:
-                tarinfo = backupFile.gettarinfo(fl, os.path.basename(fl))
-                backupFile.addfile(tarinfo, file(fl, 'rb'))
+                tarinfo = backup_file.gettarinfo(fl, os.path.basename(fl))
+                backup_file.addfile(tarinfo, file(fl, 'rb'))
         finally:
-            backupFile.close()
+            backup_file.close()
             
-    def extractTo(self, path):
-        backupFile = tarfile.open(self.__filename, 'r')
+    def extract(self, data_dir, log_dir):
+        backup_file = tarfile.open(self.__filename, 'r')
         try:
-            for info in backupFile.getmembers():
-                backupFile.extract(info, path)
+            for info in backup_file.getmembers():
+                if os.path.splitext(info.name)[0][-3:] == 'log':
+                    backup_file.extract(info, log_dir)
+                else:
+                    backup_file.extract(info, data_dir)
         finally:
-            backupFile.close()
+            backup_file.close()

@@ -17,6 +17,7 @@
 """
 Porcupine server Berkeley DB interface
 """
+import os.path
 import os
 import time
 import glob
@@ -42,12 +43,13 @@ _docdb = None
 _indices = {}
 _maintenance_thread = None
 _dir = None
+_log_dir = None
 _checkpoint_interval = 1
 
 def open(**kwargs):
-    global _env, _itemdb, _docdb, _running, _maintenance_thread, _dir
-    
-    _dir = settings['store']['bdb_data_dir']
+    global _env, _itemdb, _docdb, _running, _maintenance_thread, _dir, _log_dir
+
+    _dir = os.path.abspath(settings['store']['bdb_data_dir'])
     # add trailing '/'
     if _dir[-1] != '/':
         _dir += '/'
@@ -66,11 +68,15 @@ def open(**kwargs):
 
     _env = db.DBEnv()
 
+    _env.set_data_dir(_dir)
+
     if settings['store'].has_key('bdb_log_dir'):
-        log_dir = settings['store']['bdb_log_dir']
-        if log_dir[-1] != '/':
-            log_dir += '/'
-        _env.set_lg_dir(os.path.abspath(log_dir))
+        _log_dir = os.path.abspath(settings['store']['bdb_log_dir'])
+        if _log_dir[-1] != '/':
+            _log_dir += '/'
+        _env.set_lg_dir(_log_dir)
+    else:
+        _log_dir = _dir
     
     _env.open(os.path.abspath(_dir),
               db.DB_THREAD | db.DB_INIT_MPOOL | db.DB_INIT_LOCK |
@@ -213,7 +219,7 @@ def __removeFiles():
     for oldFile in oldFiles:
         os.remove(oldFile)
     # log files
-    oldFiles = glob.glob(_dir + 'log.*')
+    oldFiles = glob.glob(_log_dir + 'log.*')
     for oldFile in oldFiles:
         os.remove(oldFile)
     # database file
@@ -239,20 +245,22 @@ def backup(output_file):
     _env.txn_checkpoint(0, 0, db.DB_FORCE)
     logs = _env.log_archive(db.DB_ARCH_LOG)
     logs.sort()
-    backfiles = (_dir + 'porcupine.db', _dir + logs[-1])
+    backfiles = (_dir + 'porcupine.db',
+                 _dir + 'porcupine.idx',
+                 _log_dir + logs[-1])
     # compact backup....
     backupFile = BackupFile(output_file)
-    backupFile.addfiles(backfiles)
+    backupFile.add_files(backfiles)
         
 def restore(bset):
     __removeFiles()
     backupFile = BackupFile(bset)
-    backupFile.extractTo(_dir)
+    backupFile.extract(_dir, _log_dir)
 
 def shrink():
     logs = _env.log_archive()
     for log in logs:
-        os.remove(_dir + log)
+        os.remove(_log_dir + log)
     return len(logs)
 
 def __maintain():

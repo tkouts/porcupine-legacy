@@ -179,6 +179,5 @@ def shrink():
     return _db_handle.shrink()
 
 def close():
-    global _db_handle
     if _db_handle.is_open():
         _db_handle.close()
