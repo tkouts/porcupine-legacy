@@ -15,8 +15,12 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine Server CGI Interface"
+import httplib
 
 def cgi_handler(rh, response):
+    # write status line
+    rh.write_buffer('Status: %d %s\n' % (response._code,
+                                         httplib.responses[response._code]))
     # write headers
     for header, value in response._get_headers().items():
         rh.write_buffer('%s: %s\n' % (header, value))
