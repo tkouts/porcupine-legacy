@@ -582,6 +582,37 @@ QuiX.getParentNode = function(el) {
 	return el.parentNode || el.parentElement;
 }
 
+QuiX.setOpacity = function(el, op) {
+    if (QuiX.utils.BrowserInfo.family == 'moz')
+        el.style.MozOpacity = op;
+    else if (QuiX.utils.BrowserInfo.family == 'ie')
+        el.style.filter = 'alpha(opacity=' + op * 100 + ')';
+    else
+        el.style.opacity = op;
+}
+
+QuiX.getOpacity = function(el) {
+    if (QuiX.utils.BrowserInfo.family == 'moz')
+        return parseFloat(el.style.MozOpacity);
+    else if (QuiX.utils.BrowserInfo.family == 'ie') {
+        var re = /alpha\(opacity=(\d+)\)/;
+        var arrOpacity = re.exec(el.style.filter);
+        if (arrOpacity.length > 1)
+            return parseInt(arrOpacity[1]) / 100;
+        else
+            return 1;
+    }
+    else
+        return parseFloat(el.style.opacity);
+}
+
+QuiX.setStyle = function(el, cssText) {
+    if (QuiX.utils.BrowserInfo.family == 'ie')
+        el.style.cssText = cssText;
+    else
+        el.setAttribute('style', cssText);
+}
+
 QuiX.detachFrames = function(w) {
 	if (QuiX.modules[9].isLoaded) {
 		var frms = w.getWidgetsByType(IFrame);
