@@ -81,6 +81,16 @@ def quixui(of_type, isPage=False, lang='', qs='',
                 context.response.write('</xml></body></html>')
     return WebMethod
 
+def mobileui(of_type, lang='', qs='',
+             max_age=0, encoding='utf-8',
+             template=None, template_engine='string_template'):
+    class WebMethod(WebMethodDescriptor):
+        def __init__(self, function):
+            WebMethodDescriptor.__init__(self, function, of_type,
+                ('GET', 'PMB|UNTRUSTED', lang, qs),
+                'text/xml', encoding, max_age, template, template_engine)
+    return WebMethod
+
 def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
     class WebMethod(WebMethodDescriptor):
         def __init__(self, function):
