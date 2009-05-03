@@ -1,3 +1,82 @@
+-----------
+Version 0.6
+-----------
+NEW: Object indexing support including unique indexes per container. Currently,
+     the indexes are used for common database usage patterns such as getting the
+     children of a container, but not yet leveraged by OQL.
+NEW: Added multi-processing support for the asynchrounous TCP-IP services
+     (requires Python 2.6).
+NEW: Added conditional Etag support by using the provided
+     "porcupine.filters.etag" decorator or the "porcupine.filters.caching.Etag"
+     pre-processing filter.
+NEW: New database and cookie based session managers.
+NEW: Added support for shortcuts by using the new
+     "porcupine.systemObjects.Shortcut" content type.
+NEW: Cascade deletes for Relator1 and RelatorN data types.
+NEW: QuiX now includes a lightweight rich text editor based on
+     Cameron Adams' work (http://www.themaninblue.com/).
+NEW: QuiX now supports auto sized labels, icons, buttons and boxes. The
+     dimensions of these kind of widgets are automatically adjusted based
+     on their contents.
+NEW: Added themes support for QuiX.
+NEW: New "QuiX.queryString" function for getting query string parameters.
+NEW: New "QuiX.baseUrl" setting that contains the toolkit's root folder.
+NEW: QuiX now includes a JSON parser. See "QuiX.parsers.JSON".
+NEW: QuiX now has a client side persistence module based on PersistJS
+     (http://pablotron.org/?cid=1557).
+NEW: New "QuiX.utils.hashlib" module.
+NEW: Ability for having persistent datasets on the client side by using smart
+     conditional Etags.
+NEW: QuiX now supports IE 8, Safari 4 and Opera 9.
+NEW: New method "setValue" for QuiX select lists.
+
+OPT: QuiX now has namespaces (i.e XButton is now QuiX.ui.Button).
+     The old naming convention is kept for backwards compatibility.
+OPT: "db.getItem" no longer raises an ObjectNotFound exception. Instead None is
+     returned.
+OPT: "relCc" attribute of relators and references now accepts base classes.
+OPT: server side XMLRPC encoding speed improvements.
+OPT: Porcupine OQL is now using PLY 2.5.
+OPT: New implementation of "QuiX.innerText" function.
+OPT: The "setExpiration" method of the HttpResponse class now accepts a
+     "cache_type" optional argument. The default value is "private".
+OPT: New refactored transactions. Transactions are now non-blocking by using
+     the DB_TXN_NOWAIT flag.
+OPT: Otimized session management.
+OPT: Optimized asyncore loop by using longer timeouts.
+OPT: Do not retrieve session info for static files.
+OPT: Ability to set widget overflow values per axis i.e "auto hidden".
+OPT: "porcupineadmin.py -c" now performs disaster recovery.
+OPT: The "_safetype" class attribute of data type classes now accepts a list
+     of the allowed Python types.
+OPT: If the bsddb module is not present then try to import bsddb3, since bsddb
+     is removed from the latest Python versions.
+OPT: The "@db.transactional" decorator now accepts an optional "nosync" argument
+     for having faster but non durable transactions.
+OPT: Ability to have the data and log files in different locations by using
+     the "bdb_log_dir" setting in the porcupine configuration file.
+OPT: QuiX now includes a universal base Widget script.
+
+FIX: Fixed QuiX's "onunload" event (it was fired only when the destroy method
+     of a widget was explicitly called)
+FIX: Fixed __props__ generation when using codegen.
+FIX: Fixed internal redirection.
+FIX: "padding" is now a valid parameter for QuiX windows.
+
+DEP: Containers no longer have the "_subfolders" and "_items" attributes. This
+     kind of info is now derived from indexes allowing hundrends of thousands
+     descendants with no perfomance penalty.
+DEP: Most of the API methods are deprecrated due to PEP8 alignment. Check
+     the server's log for deprecated calls.
+DEP: Removed all __slots__ attributes from all schema related classes.
+DEP: "porcupine.core.servicetypes.asyncBaseServer.BaseRequest" is now
+     "porcupine.core.networking.request.BaseRequest"
+DEP: "porcupine.security.objectAccess.getAccess" is deprecated.
+     Use "porcupine.utils.permsresolver.get_access" instead.
+DEP: QuiX boxes are no longer redrawn when removing a child widget.
+     The developer should take care of this.
+DEP: "QuiX.getOS" is deprecated use "QuiX.utils.BrowserInfo.OS" instead.
+
 -------------
 Version 0.5.2
 -------------
