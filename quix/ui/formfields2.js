@@ -288,7 +288,7 @@ function ComboBtn__onclick(evt, w) {
 	if (w)
 		oCombo = w.parent
 	else
-		oCombo = (this.parentNode || this.parentElement).widget;
+		oCombo = QuiX.getParentNode(this).widget;
 	if (!oCombo.isExpanded) {
 		QuiX.cleanupOverlays();
 		oCombo.showDropdown();

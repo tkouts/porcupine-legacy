@@ -202,7 +202,7 @@ function DatepickerMonth__click(evt, w) {
 	if (w)
 		oCombo = w.parent
 	else
-		oCombo = (this.parentNode || this.parentElement).widget;
+		oCombo = QuiX.getParentNode(this).widget;
 	if (!oCombo.isExpanded)
 		oCombo.showDropdown();
 	else
@@ -232,10 +232,10 @@ function DatepickerPrev__click(evt, w) {
 
 function DatepickerCell__click() {
 	var oDatepicker;
-	if (QuiX.utils.BrowserInfo.family == 'moz')
-		oDatepicker = this.parentNode.parentNode.parentNode.datepicker;
-	else
+	if (typeof this.parentElement != 'undefined')
 		oDatepicker = this.parentElement.parentElement.parentElement.datepicker;
+	else
+		oDatepicker = this.parentNode.parentNode.parentNode.datepicker;
 	oDatepicker.onDay(this);
 }
 

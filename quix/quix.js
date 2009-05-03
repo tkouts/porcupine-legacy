@@ -568,7 +568,7 @@ QuiX.removeWidget = function(w) {
 
 	w._detachEvents();
 	
-	parentElement = w.div.parentNode || w.div.parentElement;
+	parentElement = QuiX.getParentNode(w.div);
 	if (parentElement)
 		QuiX.removeNode(w.div);
 	
@@ -579,7 +579,10 @@ QuiX.removeWidget = function(w) {
 }
 
 QuiX.getParentNode = function(el) {
-	return el.parentNode || el.parentElement;
+    if (typeof el.parentElement != 'undefined')
+        return el.parentElement;
+    else
+        return el.parentNode;
 }
 
 QuiX.setOpacity = function(el, op) {

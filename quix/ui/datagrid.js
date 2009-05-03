@@ -61,7 +61,7 @@ QuiX.ui.DataGrid.prototype.refresh = function() {
 QuiX.ui.DataGrid.prototype.edit = function(cell) {
 	var editValue, w2, w2_type;
 	var idx = cell.cellIndex;
-	var ridx = (cell.parentElement || cell.parentNode).rowIndex;
+	var ridx = QuiX.getParentNode(cell).rowIndex;
 	if (idx>0 && idx<this.columns.length-1 && this.columns[idx].editable) {
 		editValue = this.dataSet[ridx][this.columns[idx].name];
 		if (typeof editValue == 'undefined' && !this.editUndef)
@@ -115,7 +115,7 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 function DataGrid__onclick(evt, w) {
 	var target = QuiX.getTarget(evt);
 	while (target && target.tagName != 'TD')
-		target = target.parentElement || target.parentNode;
+		target = QuiX.getParentNode(target);
 	if (target)
 		w.parent.edit(target);
 }

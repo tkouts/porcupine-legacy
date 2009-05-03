@@ -3,32 +3,16 @@
 		method="GET"
 		client="MSIE [6-8]"
 		lang=".*"
-		action="ui/widget_ie.js"
+		action="ui/widget.js"
 		max-age="1200"/>
     <context path="ui/widget.js"
 			method="GET"
-			client="Version/[3-4].\d(.*)Safari|Chrome/\d.\d"
+			client="Version/[3-4].\d(.*)Safari|Chrome/\d.\d|Netscape/7|Mozilla/5.0|Opera/9"
 			lang=".*"
-			action="ui/widget_saf.js"
+			action="ui/widget.js"
 			max-age="1200">
 		<filter type="porcupine.filters.output.Gzip"/>
 	</context>
-    <context path="ui/widget.js"
-			method="GET"
-			client="Netscape/7|Mozilla/5.0"
-			lang=".*"
-			action="ui/widget_moz.js"
-            max-age="1200">
-        <filter type="porcupine.filters.output.Gzip"/>
-    </context>
-    <context path="ui/widget.js"
-			method="GET"
-			client="Opera/9"
-			lang=".*"
-			action="ui/widget_op.js"
-            max-age="1200">
-        <filter type="porcupine.filters.output.Gzip"/>
-    </context>
 	<context path="utils/date.js"
 		method="GET"
 		client=".*"
