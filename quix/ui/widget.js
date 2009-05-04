@@ -258,7 +258,9 @@ QuiX.ui.Widget.prototype.setOverflow = function(sOverflow) {
         this.div.style.overflowX = value[0];
         this.div.style.overflowY = value[1];
     }
-    this._overflow = sOverflow;
+    if (QuiX.utils.BrowserInfo.family == 'moz'
+            && QuiX.utils.BrowserInfo.OS == 'MacOS')
+        this._overflow = sOverflow;
 }
 QuiX.ui.Widget.prototype.getOverflow = function() {
     if (QuiX.utils.BrowserInfo.family == 'saf') {
@@ -867,8 +869,8 @@ QuiX.ui.Widget.prototype.attachEvent = function(eventType, f) {
     var registry = (isCustom)?this._customRegistry:this._registry;
     // opera oncontextmenu patch
     if (eventType == 'onclick'
-        && this.customEvents.hasItem('oncontextmenu')
-        && this._getHandler('onclick_')) {
+            && this.customEvents.hasItem('oncontextmenu')
+            && this._getHandler('onclick_')) {
         eventType = 'onclick_';
         isCustom = true;
     }

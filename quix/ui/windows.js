@@ -394,6 +394,7 @@ QuiX.ui.Window.prototype.bringToFront = function() {
             && QuiX.utils.BrowserInfo.OS == 'MacOS';
 		Widget.prototype.bringToFront.apply(this, arguments);
 		if (macff) {
+            alert('macff')
 			dt = document.desktop;
 			//hide scrollbars
 			sw = dt.query('/(auto|scroll)/.exec(w.getOverflow()) != param', null);
@@ -402,9 +403,8 @@ QuiX.ui.Window.prototype.bringToFront = function() {
 					sw[i].div.style.overflow = 'hidden';
 			}
 			//restore scrollbars
-			sw = dt.query('/(auto|scroll)/.exec(w.getOverflow()) != param', null);
 			for (i=0; i<sw.length; i++)
-				sw[i].div.style.overflow = sw[i]._overflow;
+				sw[i].setOverflow(sw[i]._overflow);
 		}
 	}
 }
