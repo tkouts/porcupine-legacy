@@ -145,8 +145,8 @@ QuiX.ui.Window.prototype.setResizable = function(bResizable) {
 	var oWindow = this;
 	if (bResizable && !this._resizer) {
 		this._resizer = new QuiX.ui.Widget({
-			left : 'this.parent.getWidth()-16',
-			top : 'this.parent.getHeight()-16',
+			left : 'this.parent.getWidth(false, memo)-16',
+			top : 'this.parent.getHeight(false, memo)-16',
 			width : 16,
 			height : 16,
 			border : 0,
@@ -435,6 +435,7 @@ WindowTitle__onmousedown = function(evt, w) {
 	QuiX.cleanupOverlays();
 	QuiX.stopPropag(evt);
 	QuiX.cancelDefault(evt);
+    w.parent.parent.bringToFront();
 	w.parent.parent._startMove(evt);
 }
 
@@ -526,7 +527,7 @@ QuiX.ui.Dialog.prototype.setButtonsAlign = function(sAlign) {
 			left = 'center';
 			break;
 		default:
-			left = 'this.parent.getWidth()-this.getWidth(true)';
+			left = 'this.parent.getWidth(false, memo)-this.getWidth(true, memo)';
 	}
 	this.buttonHolder.left = left;
 	this.buttonHolder.redraw();
@@ -555,7 +556,7 @@ function Dialog__buttonHolderRedraw(bForceAll, memo) {
 	var iOffset = 0;
 	for (var i=0; i<this.widgets.length; i++) {
 		this.widgets[i].left = iOffset;
-		iOffset += this.widgets[i].getWidth(true) + 8;
+		iOffset += this.widgets[i].getWidth(true, memo) + 8;
 	}
 	this.width = iOffset;
 	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);

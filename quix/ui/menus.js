@@ -234,9 +234,9 @@ QuiX.ui.ContextMenu.prototype.redraw = function(bForceAll, memo) {
 	
 	this.height = iHeight + 2;
 	
-	if (this.top + this.height > document.desktop.getHeight(true))
+	if (this.top + this.height > document.desktop.getHeight(true, memo))
 		this.top = this.top - this.height;
-	if (this.left + this.width > document.desktop.getWidth(true))
+	if (this.left + this.width > document.desktop.getWidth(true, memo))
 		this.left = this.left - this.width;
 
 	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
@@ -287,7 +287,7 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
 	}
 	else {
 		oOption = new QuiX.ui.Widget({
-			width : 'this.parent.getWidth()-22',
+			width : 'this.parent.getWidth(false, memo)-22',
 			height : 2,
 			left : 22,
 			border : 1,

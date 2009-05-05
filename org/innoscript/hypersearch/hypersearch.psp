@@ -45,7 +45,7 @@
 					<label caption="@@TO@@" width="40"/>
 					<datepicker id="to"/>
 				</box>
-				<box padding="0,0,8,0" orientation="v" childrenalign="right">
+				<box padding="0,0,8,0" orientation="v" childrenalign="right" height="40">
 					<button width="80" height="24" caption="@@SEARCH@@" onclick="hypersearch.search"/>
 				</box>
 			</box>

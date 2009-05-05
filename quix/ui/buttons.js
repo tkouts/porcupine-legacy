@@ -66,7 +66,7 @@ QuiX.ui.Label.prototype._calcSize = function(height, offset, getHeight, memo) {
                     padding[padding_offset + 1] +
                     2*this.getBorderWidth();
         QuiX.removeNode(div);
-        if (memo)
+        if (typeof memo != 'undefined')
             memo[this._uniqueid + height] = value;
         return value - offset;
     }

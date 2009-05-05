@@ -229,7 +229,7 @@ QuiX.ui.MultiFile = function(params) {
 	
 	this.selectlist = new QuiX.ui.SelectList({
 		width : '100%',
-		height : 'this.parent.getHeight()-24',
+		height : 'this.parent.getHeight(false, memo)-24',
 		ondblclick : this.downloadFile
 	});
 	this.appendChild(this.selectlist);
@@ -238,8 +238,8 @@ QuiX.ui.MultiFile = function(params) {
 		width : 24,
 		height : 24,
 		img : '$THEME_URL$images/remove16.gif',
-		top : 'this.parent.getHeight()-24',
-		left : 'this.parent.getWidth()-24',
+		top : 'this.parent.getHeight(false, memo)-24',
+		left : 'this.parent.getWidth(false, memo)-24',
 		disabled : this.readonly
 	});
 	this.appendChild(this.removeButton);
@@ -248,8 +248,8 @@ QuiX.ui.MultiFile = function(params) {
 		width : 24,
 		height : 24,
 		img : '$THEME_URL$images/add16.gif',
-		top : 'this.parent.getHeight()-24',
-		left : 'this.parent.getWidth()-48',
+		top : 'this.parent.getHeight(false, memo)-24',
+		left : 'this.parent.getWidth(false, memo)-48',
 		disabled : this.readonly
 	});
 	this.appendChild(this.addButton);

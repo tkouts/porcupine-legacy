@@ -21,7 +21,7 @@ QuiX.ui.Splitter.prototype = new QuiX.ui.Box;
 // backwards compatibility
 var Splitter = QuiX.ui.Splitter;
 
-QuiX.ui.Splitter.prototype.free_length = 'this.parent._calcWidgetLength()';
+QuiX.ui.Splitter.prototype.free_length = 'this.parent._calcWidgetLength(memo)';
 
 QuiX.ui.Splitter.prototype.appendChild = function(w) {
 	if (this.panes.length > 0) {
@@ -68,12 +68,13 @@ QuiX.ui.Splitter.prototype._handleMoving = function(evt, iHandle) {
 
 	var offset = evt['client' + offset_var] - QuiX['start' + offset_var];
 
+    var memo = {};
 	var	pane1 = this.panes[iHandle];
 	var	pane2 = this.panes[iHandle + 1];
-	var length1 = pane1[length_func](true);
-	var length2 = pane2[length_func](true);
-	var limit1 = pane1[length_func]();
-	var limit2 = pane2[length_func]();
+	var length1 = pane1[length_func](true, memo);
+	var length2 = pane2[length_func](true, memo);
+	var limit1 = pane1[length_func](false, memo);
+	var limit2 = pane2[length_func](false, memo);
 	var min1 = pane1[min_length_var]();
 	var min2 = pane2[min_length_var]();
 	var free1 = (pane1[length_var] == this.free_length);

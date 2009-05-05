@@ -12,6 +12,7 @@ QuiX.ui.Box = function(params) {
 	var spacing = (typeof params.spacing == 'undefined')? 2:params.spacing;
 	this.spacing = parseInt(spacing);
 	this.childrenAlign = params.childrenalign;
+    this._offset = 0;
 }
 
 QuiX.constructors['box'] = QuiX.ui.Box;
@@ -38,11 +39,11 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll, memo) {
 		var width_var = (this.orientation=='h')?'height':'width';
 		for (var i=0; i<this.widgets.length; i++) {
 			oWidget = this.widgets[i];
-			oWidget[offset_var] = 'this.parent._getWidgetOffset(' + i + ')';
-			oWidget[center_var] = 'this.parent._getWidgetPos(' + i + ')';
+			oWidget[offset_var] = 'this.parent._getWidgetOffset(' + i + ', memo)';
+			oWidget[center_var] = 'this.parent._getWidgetPos(' + i + ', memo)';
 
 			if (oWidget[length_var] == null || oWidget[length_var] == '-1')
-				oWidget[length_var] = 'this.parent._calcWidgetLength()';
+				oWidget[length_var] = 'this.parent._calcWidgetLength(memo)';
 			if (oWidget[width_var] == '-1')
 				oWidget[width_var] = 'this.parent._calcWidgetWidth()';
 		}
@@ -73,7 +74,7 @@ QuiX.ui.Box.prototype._calcSize = function(height, offset, getHeight, memo) {
                 padding[padding_offset] +
                 padding[padding_offset + 1] +
                 2 * this.getBorderWidth();
-        if (memo)
+        if (typeof memo != 'undefined')
             memo[this._uniqueid + height] = value;
         return value - offset;
     }
@@ -81,11 +82,13 @@ QuiX.ui.Box.prototype._calcSize = function(height, offset, getHeight, memo) {
         return Widget.prototype._calcSize.apply(this, arguments);
 }
 
-QuiX.ui.Box.prototype._getWidgetPos = function(iPane) {
+QuiX.ui.Box.prototype._getWidgetPos = function(iPane, memo) {
 	var oWidget = this.widgets[iPane];
 	var boxalign =  oWidget.boxAlign || this.childrenAlign;
-	var w1 = (this.orientation=='h')?this.getHeight():this.getWidth();
-	var w2 = (this.orientation=='h')?oWidget.getHeight(true):oWidget.getWidth(true);
+	var w1 = (this.orientation=='h')?
+        this.getHeight(false, memo):this.getWidth(false, memo);
+	var w2 = (this.orientation=='h')?
+        oWidget.getHeight(true, memo):oWidget.getWidth(true, memo);
 	switch (boxalign) {
 		case 'center':
 			return (w1 - w2)/2;
@@ -97,44 +100,48 @@ QuiX.ui.Box.prototype._getWidgetPos = function(iPane) {
 	}
 }
 
-QuiX.ui.Box.prototype._getWidgetOffset = function(iPane) {
-	var offset = 0;
-	if (iPane > 0)
-	{
-		var i = iPane - 1;
-		var ow = this.widgets[i];
-		while (ow.isHidden() && i >= 0) {
-			if (i==0)
-				return 0;
-			i -= 1;
-			ow = this.widgets[i];
-		}
-		
-		if (this.orientation=='h')
-			offset = ow.getLeft() + ow.getWidth(true) + this.spacing;
+QuiX.ui.Box.prototype._getWidgetOffset = function(iPane, memo) {
+    if (iPane == 0) {
+        this._offset = 0;
+    }
+    else {
+        var ow = this.widgets[iPane - 1];
+        while (ow.isHidden()) {
+            if (iPane == 1) {
+                this._offset = 0;
+                return 0;
+            }
+            else {
+                iPane -= 1;
+                ow = this.widgets[iPane - 1];
+            }
+        }
+		if (this.orientation == 'h')
+			this._offset += ow._calcWidth(true, memo) + this.spacing;
 		else
-			offset = ow.getTop() + ow.getHeight(true) + this.spacing;
-	}
-	return(offset);
+			this._offset += ow._calcHeight(true, memo) + this.spacing;
+    }
+    return this._offset;
 }
 
-QuiX.ui.Box.prototype._calcWidgetLength = function() {
+QuiX.ui.Box.prototype._calcWidgetLength = function(memo) {
 	var tl = 0;
 	var free_widgets = 0;
 	var length_var = (this.orientation=='h')?'width':'height';
 	
 	for (var i=0; i<this.widgets.length; i++) {
 		if (this.widgets[i].isHidden()) continue;
-		if (this.widgets[i][length_var] != 'this.parent._calcWidgetLength()') {
+		if (this.widgets[i][length_var] != 'this.parent._calcWidgetLength(memo)') {
 			if (this.orientation=='h')
-				tl += this.widgets[i]._calcWidth(true);
+				tl += this.widgets[i]._calcWidth(true, memo);
 			else
-				tl += this.widgets[i]._calcHeight(true);
+				tl += this.widgets[i]._calcHeight(true, memo);
 		}
 		else
 			free_widgets += 1;
 	}
-	var l = (this.orientation=='h')?this.getWidth():this.getHeight();
+	var l = (this.orientation=='h')?
+        this.getWidth(false, memo):this.getHeight(false, memo);
 	
 	var nl = (l - tl - ((this.widgets.length-1)*this.spacing)) / free_widgets;
 	return(nl>0?nl:0);
@@ -159,7 +166,7 @@ function BoxWidget__destroy() {
 	var length_var = (oBox.orientation=='h')?'width':'height';
 	
 	var idx = oBox.widgets.indexOf(this);
-	if (this[length_var] == 'this.parent._calcWidgetLength()' &&
+	if (this[length_var] == 'this.parent._calcWidgetLength(memo)' &&
 			oBox.widgets.length == 2) {
 		if (idx == 0)
 			oBox.widgets[1][length_var] = '-1';
@@ -231,7 +238,7 @@ QuiX.ui.FlowBox.prototype._rearrange = function(iStart, memo) {
 	var x = 0;
 	var y = 0;
 	var rowHeight = 0;
-	var iWidth = this.getWidth();
+	var iWidth = this.getWidth(false, memo);
 	var icWidth;
     memo = memo || {};
 	

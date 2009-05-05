@@ -65,7 +65,7 @@ QuiX.queryString = function(param) {
             }
         }
     }
-    return "";
+    return '';
 }
 
 QuiX.getThemeUrl = function() {
@@ -73,11 +73,10 @@ QuiX.getThemeUrl = function() {
     return QuiX.baseUrl + 'themes/' + theme + '/';
 }
 
-QuiX.progress = '<rect xmlns="http://www.innoscript.org/quix" display="none" \
-    width="18" height="18" overflow="auto" top="center" left="center">\
-    <rect width="100%" height="100%" overflow="hidden"><xhtml><![CDATA[\
+QuiX.progress = '<rect xmlns="http://www.innoscript.org/quix" \
+    width="18" height="18"><xhtml><![CDATA[\
     <img src="' + QuiX.getThemeUrl() + 'images/loader.gif">\
-    ]]></xhtml></rect></rect>';
+    ]]></xhtml></rect>';
 
 QuiX.Module = function(sName, sFile, d) {
 	this.isLoaded = false;
@@ -255,10 +254,8 @@ QuiX.addLoader = function() {
 		document.body.onmousemove = function(evt) {
 			evt = evt || event;
 			var loader = document.desktop._loader;
-			if (loader.div.style.display == 'none') {
+			if (loader.div.style.display == 'none')
 				loader.show();
-				loader.redraw();
-			}
 			loader.moveTo(evt.clientX + 16, evt.clientY + 20);
 		}
 	}

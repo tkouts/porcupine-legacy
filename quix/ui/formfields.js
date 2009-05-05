@@ -234,10 +234,10 @@ QuiX.ui.Field.prototype.redraw = function(bForceAll, memo) {
 	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
 }
 
-QuiX.ui.Field.prototype._adjustFieldSize = function() {
+QuiX.ui.Field.prototype._adjustFieldSize = function(memo) {
 	if (this.type!='checkbox' && this.type!='radio' && this.div.firstChild) {
-		var nw = this.getWidth() || 0;
-		var nh = this.getHeight() || 0;
+		var nw = this.getWidth(false, memo) || 0;
+		var nh = this.getHeight(false, memo) || 0;
 		if (this.type == 'textarea' && QuiX.utils.BrowserInfo.family == 'moz')
 			this.div.firstChild.style.top = '-1px';
 		nw = nw - 2 * this.textPadding;
@@ -249,9 +249,9 @@ QuiX.ui.Field.prototype._adjustFieldSize = function() {
 	}
 }
 
-QuiX.ui.Field.prototype._setCommonProps = function() {
+QuiX.ui.Field.prototype._setCommonProps = function(memo) {
 	QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
-	this._adjustFieldSize();
+	this._adjustFieldSize(memo);
 }
 
 function Check__click(evt, w) {
@@ -307,14 +307,14 @@ QuiX.ui.Spin = function(params) {
 	var oSpin = this;
 
 	upbutton = new QuiX.ui.Button({
-		left : "this.parent.getWidth()-16",
+		left : "this.parent.getWidth(false, memo)-16",
 		height : '50%', width : 16,
 		onclick : SpinUp__onclick
 	});
 	this.appendChild(upbutton);
 
 	downbutton = new QuiX.ui.Button({
-		left : "this.parent.getWidth()-16",
+		left : "this.parent.getWidth(false, memo)-16",
 		height : '50%', top : '50%', width : 16,
 		onclick : SpinDown__onclick
 	});
@@ -353,17 +353,17 @@ QuiX.ui.Spin.prototype.customEvents =
 // backwards compatibility
 var Spin = QuiX.ui.Spin;
 
-QuiX.ui.Spin.prototype._adjustFieldSize = function() {
+QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
 	if (this.div.firstChild) {
-		var nh = this.getHeight() - 2;
-		this.div.firstChild.style.width = (this.getWidth() - 18) + 'px';
+		var nh = this.getHeight(false, memo) - 2;
+		this.div.firstChild.style.width = (this.getWidth(false, memo) - 18) + 'px';
 		this.div.firstChild.style.height = nh + 'px';
 	}
 }
 
-QuiX.ui.Spin.prototype._setCommonProps = function() {
+QuiX.ui.Spin.prototype._setCommonProps = function(memo) {
 	QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
-	this._adjustFieldSize();
+	this._adjustFieldSize(memo);
 }
 
 QuiX.ui.Spin.prototype.validate = function(val) {

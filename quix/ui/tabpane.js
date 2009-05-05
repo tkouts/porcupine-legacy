@@ -36,7 +36,7 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
 	oTab.div.className = 'tab';
 
 	params.top = 24;
-	params.height = 'this.parent.getHeight()-24';
+	params.height = 'this.parent.getHeight(false, memo)-24';
 	params.width = '100%';
 	params.border = 1;
 	params.padding = params.padding || '8,8,8,8';
@@ -75,20 +75,20 @@ QuiX.ui.TabPane.prototype.activateTab = function(tab) {
 	oTab.redraw();
 	
 	oTab.tabButton.bringToFront();
-	oTab.tabButton.div.style.top='-2px';
-	oTab.tabButton.div.className='tab';
-	oTab.tabButton.div.style.cursor='default';
+	oTab.tabButton.div.style.top = '-2px';
+	oTab.tabButton.div.className = 'tab';
+	oTab.tabButton.div.style.cursor = 'default';
 	oTab.tabButton.detachEvent('onmouseout');
 	oTab.tabButton.detachEvent('onmouseover');
 	oTab.tabButton.detachEvent('onclick');
 	
 	if (iActive != iTab) {
 		activeTabButton = this.tabs[iActive].tabButton;
-		activeTabButton.div.style.top=0;
+		activeTabButton.div.style.top = 0;
 		activeTabButton.attachEvent('onmouseout');
 		activeTabButton.attachEvent('onmouseover');
 		activeTabButton.attachEvent('onclick');
-		activeTabButton.div.style.cursor='';
+		activeTabButton.div.style.cursor = '';
 		this.tabs[iActive].hide();
 	}
 	

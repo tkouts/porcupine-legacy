@@ -98,7 +98,7 @@ QuiX.ui.GroupBox = function(params) {
 		top: 8,
 		width:"100%",
 		padding:"12,12,12,12",
-		height: "this.parent.getHeight()-this.top",
+		height: "this.parent.getHeight(false, memo)-this.top",
 		border: params.border || 2
 	});
 	this.border.div.className = "groupboxframe";
@@ -170,7 +170,7 @@ QuiX.ui.Slider = function(params) {
 	var slot = new QuiX.ui.Widget({
 		top : 'center',
 		left : 4,
-		width : 'this.parent.getWidth() - 8',
+		width : 'this.parent.getWidth(false, memo) - 8',
 		height : 2,
 		bgcolor : 'silver',
 		border : 1,
@@ -228,7 +228,7 @@ QuiX.ui.Slider.prototype.setValue = function(val) {
 QuiX.ui.Slider.prototype._update = function() {
 	var x = '((this.parent._value - this.parent.min)/' +
             '(this.parent.max - this.parent.min))*' +
-            '(this.parent.getWidth() - 8)';
+            '(this.parent.getWidth(false, memo) - 8)';
 	this.handle.moveTo(x ,'center');
 	this.label.setCaption(this._value);
 }

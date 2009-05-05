@@ -103,7 +103,8 @@ QuiX.ui.OutlookBar.prototype.addPane = function(params) {
 	header.attachEvent('onclick', OutlookBarHeader__onclick);
 
 	params.width = '100%';
-	params.height = 'this.parent.getHeight(true)-this.parent.panes.length*this.parent.headerHeight';
+	params.height = 'this.parent.getHeight(true, memo)-' +
+        'this.parent.panes.length*this.parent.headerHeight';
 
 	var w1 = new QuiX.ui.Widget(params);
 	

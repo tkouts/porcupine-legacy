@@ -104,8 +104,8 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
 
 	var list = new QuiX.ui.Widget({
 		top : ltop,
-		width : 'this.parent.getWidth()-1',
-		height : 'this.parent.getHeight()-' + lho,
+		width : 'this.parent.getWidth(false, memo)-1',
+		height : 'this.parent.getHeight(false, memo)-' + lho,
 		dragable : this._dragable,
 		overflow : 'auto'
 	});

@@ -58,8 +58,8 @@ QuiX.ui.Combo = function(params) {
 	this.options = cont.widgets;
 
 	var resizer = new QuiX.ui.Widget({
-		left : 'this.parent.getWidth()-16',
-		top : 'this.parent.getHeight()-16',
+		left : 'this.parent.getWidth(false, memo)-16',
+		top : 'this.parent.getHeight(false, memo)-16',
 		width : 16,
 		height : 16,
 		border : 0,
@@ -74,7 +74,7 @@ QuiX.ui.Combo = function(params) {
 	});
 	
 	this.button = new QuiX.ui.Button({
-		left : 'this.parent.getWidth()-20',
+		left : 'this.parent.getWidth(false, memo)-20',
 		height : '100%', width : 20,
 		img : params.img || '$THEME_URL$images/desc8.gif'
 	});
@@ -117,18 +117,18 @@ QuiX.ui.Combo.prototype.customEvents =
 // backwards compatibility
 var Combo = QuiX.ui.Combo;
 
-QuiX.ui.Combo.prototype._adjustFieldSize = function() {
+QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
 	if (this.div.firstChild) {
-		var nh = this.getHeight() - 2;
-		var nw = this.getWidth() - 22;
+		var nh = this.getHeight(false, memo) - 2;
+		var nw = this.getWidth(false, memo) - 22;
 		this.div.firstChild.style.width = (nw>0?nw:0) + 'px';
 		this.div.firstChild.style.height = nh + 'px';
 	}
 }
 
-QuiX.ui.Combo.prototype._setCommonProps = function() {
+QuiX.ui.Combo.prototype._setCommonProps = function(memo) {
 	Widget.prototype._setCommonProps.apply(this, arguments);
-	this._adjustFieldSize();
+	this._adjustFieldSize(memo);
 }
 
 QuiX.ui.Combo.prototype.getValue = function() {
@@ -230,7 +230,7 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
 	this.dropdown.top = iTop;
 	this.dropdown.left = iLeft;
 	if (!this.dropdown.width)
-		this.dropdown.width = 'this.combo.getWidth(true)';
+		this.dropdown.width = 'this.combo.getWidth(true, memo)';
 	this.dropdown.height = this.menuHeight;
 	this.dropdown.setBgColor(this.getBgColor());
 
