@@ -238,9 +238,9 @@ QuiX.ui.FlowBox.prototype._rearrange = function(iStart, memo) {
 	var x = 0;
 	var y = 0;
 	var rowHeight = 0;
-	var iWidth = this.getWidth(false, memo);
 	var icWidth;
     memo = memo || {};
+	var iWidth = this.getWidth(false, memo);
 	
 	if (iStart > 0) {
 		x = this.widgets[iStart - 1]._calcLeft(memo) +
