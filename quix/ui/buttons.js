@@ -220,6 +220,7 @@ QuiX.ui.Button = function(/*params*/) {
 		top: params.top,
 		left: params.left,
 		disabled: params.disabled,
+        display: params.display,
 		bgcolor: params.bgcolor || 'buttonface',
 		overflow: 'hidden',
 		onmouseover: QuiX.getEventWrapper(XButton__onmouseover,
@@ -239,7 +240,7 @@ QuiX.ui.Button = function(/*params*/) {
 	delete params.minw;	delete params.minh; delete params.onclick;
 	delete params.onmouseover; delete params.onmousedown;
 	delete params.onmouseup; delete params.onmousedown;
-	delete params.bgcolor; delete params.width;
+	delete params.bgcolor; delete params.width; delete params.display;
     
 	params.height = '100%';
 	params.border = 1;
