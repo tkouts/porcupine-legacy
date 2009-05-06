@@ -2,8 +2,8 @@
 Date picker control
 ************************/
 
-QuiX.ui.Datepicker = function(params) {
-	params = params || {};
+QuiX.ui.Datepicker = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.editable = false;
 	params.menuheight = 160;
 	params.img = params.img || '$THEME_URL$images/date16.gif';

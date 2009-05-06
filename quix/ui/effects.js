@@ -1,8 +1,8 @@
 /************************
 Effect widget
 ************************/
-QuiX.ui.Effect = function(params) {
-	params = params || {};
+QuiX.ui.Effect = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.display = 'none';
 	params.handler = this._handler;
 	params.interval = params.interval || 50;

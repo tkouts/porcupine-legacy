@@ -3,8 +3,8 @@
 // by the desktop
 
 // Reference1 datatype QuiX control
-function Reference1(params) {
-	params = params || {};
+function Reference1(/*params*/) {
+	var params = arguments[0] || {};
 	this.base = Box;
 	
 	params.orientation = 'h';
@@ -97,8 +97,8 @@ function Reference1__fill(dlg) {
 }
 
 // ReferenceN datatype QuiX control
-function ReferenceN(params) {
-	params = params || {};
+function ReferenceN(/*params*/) {
+	var params = arguments[0] || {};
 	this.base = Box;
 	
 	params.orientation = 'v';
@@ -189,8 +189,8 @@ function ReferenceN__fill(dlg) {
 }
 
 // ACLEditor QuiX control
-function ACLEditor(params) {
-	params = params || {};
+function ACLEditor(/*params*/) {
+	var params = arguments[0] || {};
 	this.base = Box;
 	
 	params.orientation = 'v';

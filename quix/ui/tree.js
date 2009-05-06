@@ -2,8 +2,8 @@
 Tree node
 ************************/
 
-QuiX.ui.TreeNode = function(params) {
-	params = params || {};
+QuiX.ui.TreeNode = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.display = 'none';
 	params.padding = '13,0,1,1';
 	params.onmousedown = QuiX.cancelDefault;
@@ -78,7 +78,7 @@ QuiX.ui.TreeNode.prototype._putImage = function() {
 	}
 }
 
-QuiX.ui.TreeNode.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.TreeNode.prototype.redraw = function(bForceAll /*, memo*/) {
 	this._putImage();
 	if (this.hasChildren())
 		this._addExpandImg();

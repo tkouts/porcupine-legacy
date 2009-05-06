@@ -1,8 +1,8 @@
 /************************
 Labels & Buttons
 ************************/
-QuiX.ui.Label = function(params) {
-	params = params || {};
+QuiX.ui.Label = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.padding = params.padding || '2,2,2,2';
 	params.onmousedown = QuiX.getEventWrapper(Label__onmousedown,
 		params.onmousedown);
@@ -82,7 +82,7 @@ QuiX.ui.Label.prototype.getCaption = function(s) {
 	return(this.div.getElementsByTagName('SPAN')[0].innerHTML.xmlDecode());
 }
 
-QuiX.ui.Label.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
 	with (this.div.style) {
 		if (!this.wrap)
 			whiteSpace = 'nowrap';
@@ -100,8 +100,8 @@ function Label__onmousedown(evt, w) {
 		QuiX.stopPropag(evt);
 }
 
-QuiX.ui.Icon = function(params) {
-	params = params || {};
+QuiX.ui.Icon = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.border = params.border || 0;
 	params.canSelect = false;
 	params.align = params.align || 'center';
@@ -144,7 +144,7 @@ QuiX.ui.Icon.prototype._addDummyImage = function() {
 	}
 }
 
-QuiX.ui.Icon.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
 	if (bForceAll) {
 		var imgs = this.div.getElementsByTagName('IMG');
 		while (imgs.length > 0)
@@ -206,8 +206,8 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll, memo) {
 
 //XButton class
 
-QuiX.ui.Button = function(params) {
-	params = params || {};
+QuiX.ui.Button = function(/*params*/) {
+	var params = arguments[0] || {};
 	this.icon = null;
 	this.base = QuiX.ui.Widget;
 	this.base({
@@ -310,7 +310,8 @@ QuiX.ui.Button.prototype.getCaption = function() {
 	return this.icon.getCaption();
 }
 
-QuiX.ui.Button.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.Button.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
 	if (bForceAll) {
 		this.icon.align = this.align;
 		this.icon.img = this.img;
@@ -318,7 +319,7 @@ QuiX.ui.Button.prototype.redraw = function(bForceAll, memo) {
 		this.icon.setPadding(this.iconPadding.split(','));
 		this.icon.redraw(true, memo);
 	}
-	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 function XButton__onmouseover(evt, w) {
@@ -349,8 +350,8 @@ function XButton__onmouseup(evt, w) {
 }
 
 //FlatButton class
-QuiX.ui.FlatButton = function(params) {
-	params = params || {};
+QuiX.ui.FlatButton = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.border = 0;
 	params.padding = params.padding || '4,4,4,4';
 	params.overflow = 'hidden';
@@ -396,7 +397,7 @@ QuiX.ui.FlatButton.prototype = new QuiX.ui.Icon;
 // backwards compatibility
 var FlatButton = QuiX.ui.FlatButton;
 
-QuiX.ui.FlatButton.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
 	QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
 
 	if (this.type == 'menu' && (!this._menuImg || bForceAll)) {

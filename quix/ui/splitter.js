@@ -1,8 +1,8 @@
 /************************
 Splitter
 ************************/
-QuiX.ui.Splitter = function(params) {
-	params = params || {};
+QuiX.ui.Splitter = function(/*params*/) {
+	var params = arguments[0] || {};
 	var spacing = parseInt(params.spacing) || 6;
 	params.overflow = 'hidden';
 	params.spacing = 0;

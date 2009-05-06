@@ -2,8 +2,8 @@
 Data Grid
 ************************/
 
-QuiX.ui.DataGrid = function(params) {
-	params = params || {};
+QuiX.ui.DataGrid = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.multiple = true;
 	params.cellborder = params.cellborder || 1;
 	params.cellpadding = params.cellpadding || 2;

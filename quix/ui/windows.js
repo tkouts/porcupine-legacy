@@ -7,8 +7,8 @@ function __closeDialog__(evt, w) {
 }
 
 //Window class
-QuiX.ui.Window = function(params) {
-	params = params || {};
+QuiX.ui.Window = function(/*params*/) {
+	var params = arguments[0] || {};
 	var overflow = params.overflow;
     var padding = params.padding;
 	params.border = 1;
@@ -468,7 +468,8 @@ Window__onmaximize = function(w) {
 }
 
 //Dialog class
-QuiX.ui.Dialog = function(params) {
+QuiX.ui.Dialog = function(/*params*/) {
+    var params = arguments[0] || {};
 	var stat = params.status || false;
 	var resizable = params.resizable || false;
 	
@@ -552,14 +553,15 @@ function Dialog__keypress(evt, w) {
 		w.close();
 }
 
-function Dialog__buttonHolderRedraw(bForceAll, memo) {
+function Dialog__buttonHolderRedraw(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
 	var iOffset = 0;
 	for (var i=0; i<this.widgets.length; i++) {
 		this.widgets[i].left = iOffset;
 		iOffset += this.widgets[i].getWidth(true, memo) + 8;
 	}
 	this.width = iOffset;
-	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 QuiX.ui.DialogButton = function(params, dialog) {

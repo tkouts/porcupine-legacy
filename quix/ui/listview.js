@@ -2,8 +2,8 @@
 List View
 ************************/
 
-QuiX.ui.ListView = function(params) {
-	params = params || {};
+QuiX.ui.ListView = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.bgcolor = params.bgcolor || 'white';
 	params.overflow = 'hidden';
 	
@@ -127,7 +127,8 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
 	return(this.header);
 }
 
-QuiX.ui.ListView.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.ListView.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
 	var columns = this.columns;
 	var header_width = this._calcWidth(false, memo);
 	var wdth;
@@ -141,7 +142,7 @@ QuiX.ui.ListView.prototype.redraw = function(bForceAll, memo) {
 				this.list.rows[0].cells[i].style.width = wdth;
 		}
 	}
-	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 QuiX.ui.ListView.prototype._getSelector = function() {

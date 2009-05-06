@@ -43,6 +43,7 @@ QuiX.constructors = {
 	'stylesheet' : null
 };
 QuiX._activeLoaders = 0;
+QuiX._scrollbarSize = 16;
 QuiX.effectsEnabled = true;
 QuiX.ui = {};
 
@@ -228,6 +229,13 @@ QuiX.__init__ = function() {
             var root = document.body.removeChild(
                 document.getElementById("quix"));
             var parser = new QuiX.Parser();
+            parser.oncomplete = function() {
+                // calculate scrollbars size
+                var w1 = document.desktop.div.clientWidth;
+                document.desktop.div.style.overflow = 'scroll';
+                QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
+                document.desktop.div.style.overflow = 'hidden';
+            }
             parser.parse(QuiX.domFromElement(root));
         }
     );

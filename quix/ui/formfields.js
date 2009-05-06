@@ -1,8 +1,8 @@
 /************************
 Form & Field controls
 ************************/
-QuiX.ui.Form = function(params) {
-	params = params || {};
+QuiX.ui.Form = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.width = params.width || '100%';
 	params.height = params.height || '100%';
 	this.base = QuiX.ui.Widget;
@@ -56,8 +56,8 @@ QuiX.ui.Form.prototype.getData = function()
 	return formData;	
 }
 
-QuiX.ui.Field = function(params) {
-	params = params || {};
+QuiX.ui.Field = function(/*params*/) {
+	var params = arguments[0] || {};
 	this.base = QuiX.ui.Widget;
 	params.border = (typeof params.border == 'undefined')?1:params.border;
 	params.overflow = 'hidden';
@@ -228,7 +228,7 @@ QuiX.ui.Field.prototype.setBgColor = function(color) {
 		this.div.firstChild.style.backgroundColor = color;
 }
 
-QuiX.ui.Field.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.Field.prototype.redraw = function(bForceAll /*, memo*/) {
 	if (this.type == 'text' || this.type == 'textarea' || this.type == 'password')
 		this.div.firstChild.style.padding = this.textPadding + 'px';
 	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
@@ -272,8 +272,8 @@ function Radio__click(evt, w) {
 }
 
 // spin button
-QuiX.ui.Spin = function(params) {
-	params = params || {};
+QuiX.ui.Spin = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.bgcolor = params.bgcolor || 'white';
 	params.border = params.border || 1;
 	params.padding = '0,0,0,0';

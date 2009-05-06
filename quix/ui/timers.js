@@ -2,8 +2,8 @@
 Timer widget
 ************************/
 
-QuiX.ui.Timer = function(params) {
-	params = params || {};
+QuiX.ui.Timer = function(/*params*/) {
+	var params = arguments[0] || {};
 
 	this.base = QuiX.ui.Widget;
 	this.base(params);

@@ -2,8 +2,8 @@
 Box layout
 ************************/
 
-QuiX.ui.Box = function(params) {
-	params = params || {};
+QuiX.ui.Box = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.overflow = params.overflow || 'hidden';
 	this.base = QuiX.ui.Widget;
 	this.base(params);
@@ -20,8 +20,8 @@ QuiX.ui.Box.prototype = new QuiX.ui.Widget;
 // backwards compatibility
 var Box = QuiX.ui.Box;
 
-QuiX.ui.Box.prototype.appendChild = function(w, p) {
-	p = p || this;
+QuiX.ui.Box.prototype.appendChild = function(w /*, p*/) {
+	var p = arguments[1] || this;
 	w.destroy = BoxWidget__destroy;
 	if (p.orientation == 'h')
 		w.height = w.height || '100%';
@@ -30,7 +30,7 @@ QuiX.ui.Box.prototype.appendChild = function(w, p) {
 	QuiX.ui.Widget.prototype.appendChild(w, p);
 }
 
-QuiX.ui.Box.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
 	if (bForceAll) {
 		var oWidget;
 		var offset_var = (this.orientation=='h')?'left':'top';
@@ -179,8 +179,8 @@ function BoxWidget__destroy() {
 		QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 }
 
-QuiX.ui.FlowBox = function(params) {
-	params = params || {};
+QuiX.ui.FlowBox = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.overflow = params.overflow || 'auto';
 	this.base = QuiX.ui.Widget;
 	this.base(params);
@@ -222,8 +222,9 @@ QuiX.ui.FlowBox.prototype.appendChild = function(w) {
 		w.show();
 }
 
-QuiX.ui.FlowBox.prototype.redraw = function(bForceAll, memo) {
-	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+QuiX.ui.FlowBox.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
+	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 	this._rearrange(0, memo);
 }
 

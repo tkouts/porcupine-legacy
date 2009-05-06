@@ -20,8 +20,8 @@
 //    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //==============================================================================
 
-QuiX.ui.RichText = function(params) {
-	params = params || {};
+QuiX.ui.RichText = function(/*params*/) {
+	var params = arguments[0] || {};
     params.orientation = 'v';
     params.spacing = 0;
 	this.base = QuiX.ui.Box;
@@ -205,7 +205,7 @@ QuiX.ui.RichText.prototype.getValue = function() {
     return this.doc.body.innerHTML;
 }
 
-QuiX.ui.RichText.prototype.redraw = function(bForceAll, memo) {
+QuiX.ui.RichText.prototype.redraw = function(bForceAll /*, memo*/) {
     if (QQuiX.utils.BrowserInfo.family == 'moz' && this.wysiwyg && this.doc) {
         this._updateInput();
     }

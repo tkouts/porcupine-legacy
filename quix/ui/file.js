@@ -7,8 +7,8 @@ function FileInfo() {
 	this.temp_file = '';
 }
 
-QuiX.ui.File = function(params) {
-	params = params || {};
+QuiX.ui.File = function(/*params*/) {
+	var params = arguments[0] || {};
 
 	params.height = params.height || 20;
 	this.name = params.name;
@@ -216,8 +216,8 @@ QuiX.ui.File.prototype._upload = function(chunk, fname) {
 }
 
 //multiple file uploader
-QuiX.ui.MultiFile = function(params) {
-	params = params || {};
+QuiX.ui.MultiFile = function(/*params*/) {
+	var params = arguments[0] || {};
 	this.name = params.name;
 	this.method = params.method;
 	this.readonly = (params.readonly=='true' ||

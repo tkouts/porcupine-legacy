@@ -3,8 +3,8 @@ Field controls 2
 ************************/
 
 // combo box
-QuiX.ui.Combo = function(params) {
-	params = params || {};
+QuiX.ui.Combo = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.bgcolor = params.bgcolor || 'white';
 	params.border = params.border || 1;
 	params.overflow = 'hidden';
@@ -299,8 +299,8 @@ function ComboBtn__onclick(evt, w) {
 }
 
 // auto complete
-QuiX.ui.AutoComplete = function(params) {
-	params = params || {};
+QuiX.ui.AutoComplete = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.editable = true;
 	this.base = QuiX.ui.Combo;
 	this.base(params);
@@ -420,8 +420,8 @@ QuiX.ui.AutoComplete.prototype._captureKey = function(evt) {
 }
 
 // Select list
-QuiX.ui.SelectList  = function(params) {
-	params = params || {};
+QuiX.ui.SelectList  = function(/*params*/) {
+	var params = arguments[0] || {};
 	params.bgcolor = params.bgcolor || 'white';
 	params.border = params.border || 1;
 	params.overflow = 'auto';

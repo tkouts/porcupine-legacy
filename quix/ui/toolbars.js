@@ -2,8 +2,8 @@
 Toolbars
 ************************/
 
-QuiX.ui.Toolbar = function(params) {
-	params = params || {};
+QuiX.ui.Toolbar = function(/*params*/) {
+	var params = arguments[0] || {};
 	this.base = QuiX.ui.Widget;
 	params.padding = params.padding || '2,4,0,0';
 	params.border = params.border || 1;
@@ -70,8 +70,8 @@ function ToolbarButton__destroy() {
 	parent.redraw();
 }
 
-QuiX.ui.OutlookBar = function(params) {
-	params = params || {};
+QuiX.ui.OutlookBar = function(/*params*/) {
+	var params = arguments[0] || {};
 	this.base = QuiX.ui.Widget;
 	params.overflow = 'hidden';
 	this.base(params);

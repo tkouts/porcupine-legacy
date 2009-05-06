@@ -2,8 +2,8 @@
 Tab Pane
 ************************/
 
-QuiX.ui.TabPane = function(params) {
-	params = params || {};
+QuiX.ui.TabPane = function(/*params*/) {
+	var params = arguments[0] || {};
 	this.base = Widget;
 	params.overflow = 'hidden';
 	this.base(params);
