@@ -24,19 +24,6 @@ class ObjectSet(object):
     ====================
     The Porcupine object set is a versatile type for keeping a large collection
     of objects or rows with a specified schema.
-    There are two types of object sets; resolved and unresolved. They both
-    implement the iterator protocol and the '+' operator.
-    
-    An unresolved object set may contain references to objects that are not
-    accessible given the current security context. Such kind of object sets
-    are returned from methods such as:
-    L{get_children<porcupine.systemObjects.Container.get_children>} and
-    L{getItems<porcupine.datatypes.ReferenceN.getItems>}.
-    
-    The OQL C{select} statement always returns resolved object sets. Resolved
-    object sets provide enhanced functionality as they partially emulate
-    the list type. They provide the C{len} function, membership tests
-    (C{in} operator) and slicing.
     """
     __slots__ = ('_list', 'schema')
     
