@@ -7,7 +7,7 @@
 	<prop name="FailMsg" value="@@LOGIN_FAILED@@"/>
 	<script name="Login Script" src="desktop/ui.LoginPage.js"/>
 	<wbody>
-		<box width="100%" height="100%">
+		<hbox width="100%" height="100%">
 			<rect width="70">
 				<icon left="center" top="center" width="48" height="48" img="desktop/images/kgpg.gif"/>
 			</rect>
@@ -17,7 +17,7 @@
 				<label align="right" top="41" width="60" height="20" caption="@@PASSWORD@@:"/>
 				<field id="password" type="password" top="39" left="60" width="68%"/>
 			</rect>
-		</box>
+		</hbox>
 	</wbody>
 	<dlgbutton width="80" height="24" onclick="login.login" caption="@@LOGIN@@" default="true"/>
 	<dlgbutton width="80" height="24" onclick="__closeDialog__" caption="@@CLOSE@@"/>

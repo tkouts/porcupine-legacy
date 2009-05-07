@@ -8,7 +8,7 @@
 		<form action="$ID" method="update">
 			<tabpane top="0" left="0" width="100%%" height="100%%">
 				<tab caption="@@GENERAL@@">
-					<box height="55" width="100%">
+					<hbox height="55" width="100%">
 						<rect width="80">
 							<label top="2" width="100%" height="20" caption="@@displayName@@:"/>
 							<label top="27" width="100%" height="20" caption="@@description@@:"/>
@@ -17,11 +17,11 @@
 							<field name="displayName" width="100%%" value="$NAME" readonly="$READONLY"/>
 							<field name="description" top="25" width="100%%" value="$DESCRIPTION" readonly="$READONLY"/>
 						</rect>
-					</box>
+					</hbox>
 					
 					<hr top="57" width="100%"/>
                     
-					<box top="67" height="67" width="100%">
+					<hbox top="67" height="67" width="100%">
 						<rect width="80">
 							<label top="2" width="100%" height="20" caption="@@ICON@@:"/>
 							<label top="27" width="100%" height="20" caption="@@LAUNCH_URL@@:"/>
@@ -30,7 +30,7 @@
 							<field name="icon" width="100%" value="$ICON" readonly="$READONLY"/>
 							<field name="launchUrl" top="25" width="100%" value="$LAUNCH_URL" readonly="$READONLY"/>
 						</rect>
-					</box>
+					</hbox>
                     
 					<hr top="120" width="100%"/>
                     

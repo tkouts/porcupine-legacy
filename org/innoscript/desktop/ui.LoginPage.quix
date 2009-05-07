@@ -14,7 +14,7 @@
 		<prop name="FailMsgTitle" value="@@LOGIN_FAILED_TITLE@@"></prop>
 		<prop name="FailMsg" value="@@LOGIN_FAILED@@"></prop>
 		<wbody>
-			<box width="100%" height="100%">
+			<hbox width="100%" height="100%">
 				<rect width="70">
 					<icon left="center" top="center" width="48" height="48"
                         img="desktop/images/kgpg.gif"></icon>
@@ -30,7 +30,7 @@
 					<field id="password" type="password" top="39" left="60"
                         width="68%"></field>
 				</rect>
-			</box>
+			</hbox>
 		</wbody>
 		<dlgbutton width="80" height="24" onclick="login.login" caption="@@LOGIN@@" default="true"></dlgbutton>
 	</dialog>

@@ -14,7 +14,7 @@ QuiX.ui.Datepicker = function(/*params*/) {
 	this.utc = (params.utc==true || params.utc=='true')?true:false;
 	this.setValue(params.value || '');
 	this.dropdown.parseFromString(
-		'<box orientation="v" xmlns="http://www.innoscript.org/quix" ' +
+		'<vbox xmlns="http://www.innoscript.org/quix" ' +
 				'width="100%" height="100%" spacing="4" ' +
 				'childrenalign="center">' +
 			'<rect height="26" width="195" padding="2,2,2,2">' + 
@@ -27,7 +27,7 @@ QuiX.ui.Datepicker = function(/*params*/) {
 					'caption="&gt;&gt;"/>' +
 			'</rect>' +
 			'<rect/>' +
-		'</box>', Datepicker__fill);
+		'</vbox>', Datepicker__fill);
 
 	if (this._isDisabled) {
 		this.div.firstChild.disabled = true;

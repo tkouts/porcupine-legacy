@@ -12,8 +12,7 @@
 	<a:script xmlns:a="http://www.innoscript.org/quix" name="Generic Functions" src="desktop/generic.js"></a:script>
 	
 	<icon left="center" top="center" width="164" height="110" img="desktop/images/logo.png"></icon>
-	<box orientation="v" spacing="0" width="100%" height="100%"
-			onload="desktop.runApplication">
+	<vbox spacing="0" width="100%" height="100%" onload="desktop.runApplication">
         $TOP
 		<rect height="24" overflow="hidden">
 			<contextmenu onshow="desktop.getWindows">
@@ -47,5 +46,5 @@
 				auto="true"></timer>
 		</rect>
 		$BOTTOM
-	</box>
+	</vbox>
 </desktop>

@@ -9,9 +9,9 @@
 			<field name="CC" type="hidden" value="$CC"/>
 			<tabpane top="0" left="0" width="100%" height="100%">
 				<tab caption="@@PROPERTIES@@">
-					<box orientation="v" width="100%" height="100%">
+					<vbox width="100%" height="100%">
 						$PROPERTIES
-					</box>
+					</vbox>
 				</tab>
 				$EXTRA_TABS
 				$SECURITY_TAB

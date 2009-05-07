@@ -24,7 +24,7 @@ QuiX.rpc.handleError = function(req, e) {
                 resizable="true" close="true" width="560" height="240" \
                 left="center" top="center"> \
             <wbody> \
-                <box spacing="8" width="100%" height="100%"> \
+                <hbox spacing="8" width="100%" height="100%"> \
                     <icon width="56" height="56" padding="12,12,12,12" \
                         img="$THEME_URL$images/error32.gif"/> \
                     <rect padding="4,4,4,4" overflow="auto"><xhtml><![CDATA[ \
@@ -33,7 +33,7 @@ QuiX.rpc.handleError = function(req, e) {
                             e.name + '\n\n' + e.message +
                         '</pre>]]></xhtml> \
                     </rect> \
-                </box> \
+                </hbox> \
             </wbody> \
             <dlgbutton onclick="__closeDialog__" width="70" height="22" \
                 caption="Close"/> \

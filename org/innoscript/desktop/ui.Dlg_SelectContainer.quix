@@ -4,7 +4,7 @@
 		width="400" height="300" left="center" top="center">
 	<prop name="ID" value="$ID"></prop>
 	<wbody>
-		<box orientation="v" spacing="0" width="100%" height="100%">
+		<vbox spacing="0" width="100%" height="100%">
 			<label height="22" caption="@@SELECT_FOLDER@@:"/>
 			<rect height="-1" bgcolor="white" padding="2,2,2,2" overflow="auto" border="1" style="border-style:inset">
 				<foldertree id="tree" method="getSubtree">
@@ -15,7 +15,7 @@
 						caption="$ROOT_DN"/>
 				</foldertree>
 			</rect>
-		</box>
+		</vbox>
 	</wbody>
 	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@OK@@"/>
 	<dlgbutton onclick="__closeDialog__"  width="70" height="22" caption="@@CANCEL@@"/>

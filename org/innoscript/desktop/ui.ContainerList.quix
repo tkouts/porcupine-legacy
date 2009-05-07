@@ -10,7 +10,7 @@ top="center" onload="containerList.getContainerInfo">
 	<prop name="ParentID" value="$PARENT_ID"/>
 	<prop name="history" value="" type="strlist"/>
 	<wbody>
-		<box orientation="v" spacing="0" width="100%" height="100%">
+		<vbox spacing="0" width="100%" height="100%">
 			<menubar id="menubar" width="100%%" height="24">
 				<menu caption="@@FILE@@">
 					<menuoption img="desktop/images/filenew.gif" caption="@@CREATE@@"/>
@@ -46,12 +46,12 @@ top="center" onload="containerList.getContainerInfo">
 					tooltip="@@SEARCH@@"
 					onclick="desktop.launchHyperSearch"/>
 			</toolbar>
-			<box width="100%" height="26" border="1" childrenalign="center"
+			<hbox width="100%" height="26" border="1" childrenalign="center"
 					style="border-style:solid;border-color:ThreeDHighlight ThreeDShadow ThreeDShadow ThreeDHighlight">
 				<label height="16" width="32" align="center" caption="Path"/>
 				<combo id="path" editable="true"/>
 				<flatbutton width="28" caption="Go" onclick="containerList.navigateTo"/>
-			</box>
+			</hbox>
 			<listview id="itemslist" dragable="true" multiple="true"
 					ondblclick="containerList.loadItem">
 				<contextmenu id="contextmenu" onshow="containerList.listMenu_show">
@@ -83,6 +83,6 @@ top="center" onload="containerList.getContainerInfo">
 					<column width="160" caption="@@DATEMOD@@" type="date" name="modified" sortable="true"/>
 				</listheader>
 			</listview>
-		</box>
+		</vbox>
 	</wbody>
 </window>

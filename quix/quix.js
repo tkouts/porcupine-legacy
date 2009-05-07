@@ -199,7 +199,7 @@ QuiX.tags = {
 	'datepicker':12,
 	'timer':13,
 	'combo':14,'selectlist':14,
-	'box':15,
+	'box':15, 'vbox':15, 'hbox':15, 'flowbox':15,
 	'effect':16,
     'richtext':17
 };

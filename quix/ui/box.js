@@ -179,6 +179,24 @@ function BoxWidget__destroy() {
 		QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 }
 
+QuiX.ui.HBox = function(/*params*/) {
+	var params = arguments[0] || {};
+	params.orientation = 'h';
+	this.base = QuiX.ui.Box;
+	this.base(params);
+}
+QuiX.constructors['hbox'] = QuiX.ui.HBox;
+QuiX.ui.HBox.prototype = new QuiX.ui.Box;
+
+QuiX.ui.VBox = function(/*params*/) {
+	var params = arguments[0] || {};
+	params.orientation = 'v';
+	this.base = QuiX.ui.Box;
+	this.base(params);
+}
+QuiX.constructors['vbox'] = QuiX.ui.VBox;
+QuiX.ui.VBox.prototype = new QuiX.ui.Box;
+
 QuiX.ui.FlowBox = function(/*params*/) {
 	var params = arguments[0] || {};
 	params.overflow = params.overflow || 'auto';

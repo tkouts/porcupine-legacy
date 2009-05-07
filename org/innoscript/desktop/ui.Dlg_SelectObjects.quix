@@ -5,12 +5,12 @@
 	<script name="Select Objects Dialog Script" src="desktop/ui.Dlg_SelectObjects.js"/>
 	<prop name="CC" value="$CC"/>
 	<wbody>
-		<box width="100%" height="100%" spacing="1" orientation="v">
+		<vbox width="100%" height="100%" spacing="1">
 			<toolbar width="100%" height="34">
 				<tbbutton id="btn_folders" width="92" type="toggle" caption="@@FOLDERS@@" img="desktop/images/view_tree22.gif" onclick="selectObjectsDialog.showFolders"></tbbutton>
 				<tbbutton id="btn_search" width="92" type="toggle" caption="@@SEARCH@@" img="desktop/images/search22.gif" onclick="selectObjectsDialog.showSearch"></tbbutton>
 			</toolbar>
-			<box id="vbox_main" orientation="v" height="0" spacing="0">
+			<vbox id="vbox_main" height="0" spacing="0">
 				<rect overflow="auto" bgcolor="white" height="0">
 					<foldertree id="tree" padding="2,2,2,2" method="getSubtree" onselect="selectObjectsDialog.refreshList">
 						<treenode id="$ID" haschildren="$HAS_SUBFOLDERS"
@@ -26,11 +26,11 @@
 
 					<button top="84" left="140" width="70" height="22" caption="@@SEARCH@@" onclick="selectObjectsDialog.search"/>
 				</rect>
-			</box>
+			</vbox>
 			<selectlist id="selection" multiple="$MULTIPLE" border="0" posts="selected" height="-1">
 				$OPTIONS
 			</selectlist>
-		</box>
+		</vbox>
 	</wbody>
 	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@SELECT@@"/>
 	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@CLOSE@@"/>
