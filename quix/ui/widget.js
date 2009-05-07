@@ -451,7 +451,7 @@ QuiX.ui.Widget.prototype._calcSize = function(height, offset, getHeight, memo) {
 QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
     var value;
     if (memo && memo[this._uniqueid + left]) {
-        value = memo[this._uniqueid + left];
+        value = memo[this._uniqueid + left] - offset;
     }
     else {
         value = typeof(this[left]) == 'function'?
