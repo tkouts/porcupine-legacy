@@ -128,9 +128,15 @@ QuiX.Image.prototype.load = function(callback) {
 	var img = new Image();
 	img.resource = this;
 	img.onload = QuiX.__resource_onstatechange;
+    img.onerror = QuiX.__resource_error;
 	img.src = this.url;
 	img.style.display = 'none';
 	document.body.appendChild(img);
+}
+
+QuiX.__resource_error = function() {
+    if (this.resource.callback)
+        this.resource.callback();
 }
 
 QuiX.__resource_onstatechange = function() {
