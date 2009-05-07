@@ -29,6 +29,7 @@ NEW: Ability for having persistent datasets on the client side by using smart
      conditional Etags.
 NEW: QuiX now supports IE 8, Safari 4 and Opera 9.
 NEW: New method "setValue" for QuiX select lists.
+NEW: New "hbox" and "vbox" shortcuts for horixontal and vertical boxes.
 
 OPT: QuiX now has namespaces (i.e XButton is now QuiX.ui.Button).
      The old naming convention is kept for backwards compatibility.
@@ -62,6 +63,7 @@ FIX: Fixed QuiX's "onunload" event (it was fired only when the destroy method
 FIX: Fixed __props__ generation when using codegen.
 FIX: Fixed internal redirection.
 FIX: "padding" is now a valid parameter for QuiX windows.
+FIX: Fixed hidden buttons.
 
 DEP: Containers no longer have the "_subfolders" and "_items" attributes. This
      kind of info is now derived from indexes allowing hundrends of thousands
