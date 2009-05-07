@@ -59,7 +59,7 @@ QuiX.ui.Timer.prototype.start = function() {
 QuiX.ui.Timer.prototype.stop = function() {
 	if (this._timerid) {
 		if (this.timeout)
-			this.clearTimeout(this._timerid);
+			window.clearTimeout(this._timerid);
 		else
 			window.clearInterval(this._timerid);
 		this._timerid = null;
