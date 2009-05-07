@@ -103,23 +103,15 @@ class Package(object):
     def _importItem(self, fileobj, txn):
         sItem = fileobj.read()
         oItem = persist.loads(sItem)
-        oParent = self.db.get_item(oItem.parentid, txn)
         #check if the item already exists
         oOldItem = self.db.get_item(oItem.id, txn)
         if oOldItem == None:
             # write external attributes
-            for prop in [getattr(oItem, x) for x in oItem.__props__]:
+            for prop in [getattr(oItem, x) for x in oItem.__props__
+                         if hasattr(oItem, x)]:
                 if isinstance(prop, datatypes.ExternalAttribute):
                     prop._isDirty = True
                     prop._eventHandler.on_create(oItem, prop, txn)
-    
-            if oParent and not(oItem._id in oParent._items.values() + \
-                                           oParent._subfolders.values()):
-                if oItem.isCollection:
-                    oParent._subfolders[oItem.displayName.value] = oItem._id
-                else:
-                    oParent._items[oItem.displayName.value] = oItem._id
-                self.db.put_item(oParent, txn)
             self.db.put_item(oItem, txn)
         else:
             print 'WARNING: Item "%s" already exists. Upgrading object...' % \
@@ -131,9 +123,6 @@ class Package(object):
             oItem.modified = oOldItem.modified
             oItem._created = oOldItem._created
             oItem.security = oOldItem.security
-            if oItem.isCollection:
-                oItem._subfolders = oOldItem._subfolders
-                oItem._items = oOldItem._items
             self.db.put_item(oItem, txn)
         
     def _deltree(self, top):
