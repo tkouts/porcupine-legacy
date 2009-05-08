@@ -54,7 +54,20 @@ class SessionManager(GenericSessionManager):
         return Session.load(request)
 
     def remove_session(self, sessionid):
-        pass
+        context = HttpContext.current()
+        request = context.request
+        response = context.response
+        i = 0
+        response.cookies['_sid'] = ''
+        response.cookies['_sid'] = \
+                context.request.serverVariables['SCRIPT_NAME'] + '/'
+        session = request.cookies.get('_s%d' % i, None)
+        while session != None:
+            response.cookies['_s%d' % i] = ''
+            response.cookies['_s%d' % i]['path'] = \
+                context.request.serverVariables['SCRIPT_NAME'] + '/'
+            i += 1
+            session = request.cookies.get('_s%d' % i, None)
 
     def revive_session(self, session):
         pass
@@ -79,7 +92,7 @@ class Session(GenericSession):
         i = 0
         chunks = []
         session = request.cookies.get('_s%d' % i, None)
-        while session != None:
+        while session != None and session.value:
             chunks.append(session.value)
             i += 1
             session = request.cookies.get('_s%d' % i, None)
@@ -89,6 +102,8 @@ class Session(GenericSession):
                                  Session.secret).hexdigest()
             if session.sig != sig:
                 session = None
+        else:
+            session = None
         return session
         
     def _get_sig(self):
@@ -103,13 +118,15 @@ class Session(GenericSession):
         for i in range(len(chunks)):
             context.response.cookies['_s%d' % i] = chunks[i]
             context.response.cookies['_s%d' % i]['path'] = \
-                context.request.serverVariables['SCRIPT_NAME']
+                context.request.serverVariables['SCRIPT_NAME'] + '/'
         j = len(chunks)
-        next = context.request.cookies.get('_s%d' % j)
+        next = context.request.cookies.get('_s%d' % j, None)
         while next:
-            del context.request.cookies['_s%d' % j]
+            context.response.cookies['_s%d' % j] = ''
+            context.response.cookies['_s%d' % j]['path'] = \
+                context.request.serverVariables['SCRIPT_NAME'] + '/'
             j += 1
-            next = context.request.cookies.get('_s%d' % j)
+            next = context.request.cookies.get('_s%d' % j, None)
 
     def get_userid(self):
         return self.__userid

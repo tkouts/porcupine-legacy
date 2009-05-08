@@ -66,8 +66,9 @@ class HttpContext(SecurityContext):
         session = None
         cookiesEnabled = True
         if self.request.cookies.has_key('_sid'):
-            session = SessionManager.fetch_session(
-                self.request.cookies['_sid'].value)
+            session_id = self.request.cookies['_sid'].value
+            if session_id:
+                session = SessionManager.fetch_session(session_id)
         else:
             cookiesEnabled = False
             if self.sessionid_in_url != None:
@@ -103,6 +104,6 @@ class HttpContext(SecurityContext):
             # add cookie with sessionid
             self.response.cookies['_sid'] = session_id
             self.response.cookies['_sid']['path'] = \
-                self.request.serverVariables['SCRIPT_NAME']
+                self.request.serverVariables['SCRIPT_NAME'] + '/'
         
         return new_session
