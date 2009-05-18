@@ -33,23 +33,19 @@ from porcupine.utils import misc, permsresolver
 from porcupine.core.decorators import deprecated
 
 class _Shortcuts(datatypes.RelatorN):
-    'Data type for keeping the shortcuts IDs that an object has'
+    "Data type for keeping the shortcuts IDs that an object has"
     relCc = ('porcupine.systemObjects.Shortcut',)
     relAttr = 'target'
     cascadeDelete = True
     
 class _TargetItem(datatypes.Relator1):
-    'The object ID of the target item of the shortcut.'
+    "The object ID of the target item of the shortcut."
     relCc = ('porcupine.systemObjects.Item',)
     relAttr = 'shortcuts'
     isRequired = True
 
-class displayName(datatypes.String):
-    """Legacy data type. To be removed in the next version.
-    Use L{porcupine.datatypes.RequiredString} instead.
-    """
-    __slots__ = ()
-    isRequired = True
+# deprecated datatype (used for backwards compatibility)
+displayName = datatypes.RequiredString
 
 #================================================================================
 # Porcupine server top level content classes
