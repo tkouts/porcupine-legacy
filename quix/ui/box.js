@@ -115,11 +115,11 @@ QuiX.ui.Box.prototype._getWidgetOffset = function(iPane, memo) {
             }
         }
 		if (this.orientation == 'h')
-			offset += ow._calcLeft(memo) + ow._calcWidth(true, memo) +
-                this.spacing;
+			offset = ow._calcLeft(memo) + ow._calcWidth(true, memo) +
+                this.spacing - this.getPadding()[0];
 		else
-			offset += ow._calcTop(memo) + ow._calcHeight(true, memo) +
-                this.spacing;
+			offset = ow._calcTop(memo) + ow._calcHeight(true, memo) +
+                this.spacing - this.getPadding()[2];
     }
     return offset;
 }
