@@ -18,7 +18,7 @@
 This module defines all the custom properties used
 by the L{org.innoscript.desktop.schema} module custom objects.
 """
-from porcupine.datatypes import RelatorN
+from porcupine.datatypes import RelatorN, RequiredString, RequiredFile as RFile
 
 class CategoryObjects(RelatorN):
     """
@@ -91,3 +91,7 @@ class PolicyGranted(RelatorN):
         'org.innoscript.desktop.schema.security.GenericGroup'
     )
     relAttr = 'policies'
+
+# deprecated datatypes (used for backwards compatibility)
+LaunchUrl = RequiredString
+RequiredFile = RFile
