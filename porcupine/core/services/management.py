@@ -87,8 +87,8 @@ class ManagementThread(asyncserver.BaseServerThread):
                 output_file = request.data
                 if not os.path.isdir(os.path.dirname(output_file)):
                     raise IOError
+                services.services['_controller'].lock_db()
                 try:
-                    services.services['_controller'].lock_db()
                     _db.backup(output_file)
                 finally:
                     services.services['_controller'].unlock_db()
@@ -98,9 +98,13 @@ class ManagementThread(asyncserver.BaseServerThread):
                 backup_set = request.data
                 if not os.path.exists(backup_set):
                     raise IOError
+                services.services['_controller'].lock_db()
                 services.services['_controller'].close_db()
-                _db.restore(backup_set)
-                services.services['_controller'].open_db()
+                try:
+                    _db.restore(backup_set)
+                finally:
+                    services.services['_controller'].open_db()
+                    services.services['_controller'].unlock_db()
                 return (0, 'Database restore completed successfully.')
     
             elif cmd == 'DB_SHRINK':

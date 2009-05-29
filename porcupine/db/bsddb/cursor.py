@@ -23,9 +23,15 @@ from porcupine.db.basecursor import BaseCursor
 
 class Cursor(BaseCursor):
     "BerkeleyDB cursor class"
-    def __init__(self, index, txn=None):
-        BaseCursor.__init__(self, index, txn)
-        self._cursor = self._index.db.cursor(txn, db.DB_READ_COMMITTED)
+    def __init__(self, index, trans=None):
+        BaseCursor.__init__(self, index, trans)
+        if trans:
+            isolation = 0
+        else:
+            isolation = db.DB_READ_COMMITTED
+        self._cursor = self._index.db.cursor(trans and trans.txn, isolation)
+        if trans:
+            trans._cursors.append(self)
         self._is_set = False
         self._get_flag = db.DB_NEXT
         
@@ -33,19 +39,17 @@ class Cursor(BaseCursor):
         BaseCursor.set(self, v)
         try:
             self._is_set = bool(self._cursor.set(self._value))
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
-                db.DBInvalidArgError):
-            self._cursor.close()
-            raise exceptions.DBTransactionIncomplete
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            self._trans.abort()
+            raise exceptions.DBRetryTransaction
 
     def set_range(self, v1, v2):
         BaseCursor.set_range(self, v1, v2)
         try:
             self._is_set = bool(self._cursor.set_range(self._range[0]))
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
-                db.DBInvalidArgError):
-            self._cursor.close()
-            raise exceptions.DBTransactionIncomplete
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            self._trans.abort()
+            raise exceptions.DBRetryTransaction
 
     def reverse(self):
         BaseCursor.reverse(self)
@@ -72,21 +76,13 @@ class Cursor(BaseCursor):
                     else:
                         # range
                         self._cursor.set_range(self._range[0])
-            except (db.DBLockDeadlockError, db.DBLockNotGrantedError), e:
-                self._cursor.close()
-                raise exceptions.DBTransactionIncomplete
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                self._trans.abort()
+                raise exceptions.DBRetryTransaction
 
-    def get_current(self, get_primary=False):
-        try:
-            key, prim_key, value = self._cursor.pget(db.DB_CURRENT)
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
-                db.DBInvalidArgError):
-            self._cursor.close()
-            raise exceptions.DBTransactionIncomplete
-        if get_primary:
-            return prim_key
-        else:
-            return self._get_item(value)
+    def _get_current_item(self):
+        key, prim_key, value = self._cursor.pget(db.DB_CURRENT)
+        return self._get_item(value)
 
     def __iter__(self):
         if self._is_set:
@@ -120,18 +116,26 @@ class Cursor(BaseCursor):
                     if not next:
                         break
                     key, prim_key, value = next
-            except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
-                    db.DBInvalidArgError):
-                self._cursor.close()
-                raise exceptions.DBTransactionIncomplete
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                self._trans.abort()
+                raise exceptions.DBRetryTransaction
+
+    def _close(self):
+        self._cursor.close()
 
     def close(self):
-        self._cursor.close()
+        if self._trans:
+            self._trans._cursors.remove(self)
+        try:
+            self._close()
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            self._trans.abort()
+            raise exceptions.DBRetryTransaction
 
 class Join(BaseCursor):
     "Helper cursor for performing joins"
-    def __init__(self, primary_db, cursor_list, txn=None):
-        BaseCursor.__init__(self, None, txn)
+    def __init__(self, primary_db, cursor_list, trans=None):
+        BaseCursor.__init__(self, None, trans)
         self._cur_list = cursor_list
         self._join = None
         self._is_set = True
@@ -145,10 +149,18 @@ class Join(BaseCursor):
         if self._is_set:
             if self._is_natural:
                 self._join = self._db.join([c._cursor for c in self._cur_list])
+        
+        if trans:
+            trans._cursors.append(self)
+
 
     def reverse(self):
         if self._join:
-            self._join.close()
+            try:
+                self._join.close()
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                self._trans.abort()
+                raise exceptions.DBRetryTransaction
         self._reversed = not self._reversed
         [c.reverse() for c in self._cur_list]
         if not self._reversed and self._is_natural:
@@ -156,47 +168,55 @@ class Join(BaseCursor):
 
     def __iter__(self):
         if self._is_set:
-            if self._join != None:
-                # natural join
-                if self.use_primary:
-                    get = self._join.join_item
-                else:
-                    get = self._join.get
-                try:
-                    next = get(0)
-                except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
-                        db.DBInvalidArgError):
-                    self.close()
-                    raise exceptions.DBTransactionIncomplete
-                while next != None:
+            try:
+                if self._join != None:
+                    # natural join
                     if self.use_primary:
-                        yield next
+                        get = self._join.join_item
                     else:
-                        item = self._get_item(next[1])
-                        if item != None:
-                            yield item
+                        get = self._join.get
                     next = get(0)
-            else:
-                # not a natural join
-                [setattr(c, 'use_primary', True) for c in self._cur_list]
-                [setattr(c, 'fetch_all', self.fetch_all)
-                 for c in self._cur_list]
-                ids = [id for id in self._cur_list[0]]
-                for cursor in self._cur_list[1:-1]:
-                    ids = [id for id in cursor
-                           if id in ids]
-                    if len(ids) == 0:
-                        raise StopIteration
-                for id in self._cur_list[-1]:
-                    if id in ids:
+                    while next != None:
                         if self.use_primary:
-                            yield id
+                            yield next
                         else:
-                            item = self._cur_list[-1].get_current()
-                            if item:
+                            item = self._get_item(next[1])
+                            if item != None:
                                 yield item
+                        next = get(0)
+                else:
+                    # not a natural join
+                    [setattr(c, 'use_primary', True) for c in self._cur_list]
+                    [setattr(c, 'fetch_all', self.fetch_all)
+                     for c in self._cur_list]
+                    ids = [id for id in self._cur_list[0]]
+                    for cursor in self._cur_list[1:-1]:
+                        ids = [id for id in cursor
+                               if id in ids]
+                        if len(ids) == 0:
+                            raise StopIteration
+                    for id in self._cur_list[-1]:
+                        if id in ids:
+                            if self.use_primary:
+                                yield id
+                            else:
+                                item = self._cur_list[-1]._get_current_item()
+                                if item:
+                                    yield item
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                self._trans.abort()
+                raise exceptions.DBRetryTransaction
+
+    def _close(self):
+        self._join.close()
 
     def close(self):
-        [cur.close() for cur in self._cur_list]
+        if self._trans:
+            self._trans._cursors.remove(self)
         if self._join:
-            self._join.close()
+            try:
+                self._close()
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                self._trans.abort()
+                raise exceptions.DBRetryTransaction
+        [cur.close() for cur in self._cur_list]

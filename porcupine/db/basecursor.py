@@ -24,13 +24,13 @@ from porcupine.utils import permsresolver
 from porcupine.systemObjects import Shortcut
 
 class BaseCursor(object):
-    def __init__(self, index, txn):
+    def __init__(self, index, trans):
         self._thread = currentThread()
         self._index = index
         self._value = None
         self._range = []
         self._reversed = False
-        self._txn = txn
+        self._trans = trans
 
         self.use_primary = False
         self.fetch_all = False
@@ -41,14 +41,14 @@ class BaseCursor(object):
         if self.fetch_all:
             if self.resolve_shortcuts:
                 while item != None and isinstance(item, Shortcut):
-                    item = _db.get_item(item.target.value, self._txn)
+                    item = _db.get_item(item.target.value, self._trans)
         else:
             # check read permissions
             access = permsresolver.get_access(item, self._thread.context.user)
             if item._isDeleted or access == 0:
                 item = None
             elif self.resolve_shortcuts and isinstance(item, Shortcut):
-                item = item.get_target(self._txn)
+                item = item.get_target(self._trans)
         return item
 
     def set(self, v):
@@ -73,9 +73,6 @@ class BaseCursor(object):
 
     def reverse(self):
         self._reversed = not self._reversed
-    
-    def get_current(self, get_primary=False):
-        raise NotImplementedError
     
     def __iter__(self):
         raise NotImplementedError

@@ -55,14 +55,16 @@ def get_transaction():
     txn = currentThread().context.trans
     if txn == None:
         raise exceptions.InternalServerError, \
-            "The specified method is not defined as transactional."
+            "Not in a transactional context. Use @db.transactional."
     return txn
 getTransaction = deprecated(get_transaction)
 
 def transactional(auto_commit=False, nosync=False):
+    _min_sleep_time = 0.072
+    _max_sleep_time = 0.576
     def transactional_decorator(function):
         """
-        This is the descriptor for making a method of a content class
+        This is the descriptor for making a function or a web method
         transactional.
         """
         def transactional_wrapper(*args):
@@ -75,14 +77,19 @@ def transactional(auto_commit=False, nosync=False):
                 txn = c_thread.context.trans
                 is_top_level = False
             retries = 0
-            
+            sleep_time = _min_sleep_time
+
             try:
                 while retries < txn.txn_max_retries:
                     try:
                         if is_top_level:
                             cargs = copy.deepcopy(args)
                             if retries > 0:
-                                time.sleep(retries * 0.01)
+                                time.sleep(sleep_time)
+                                sleep_time *= 2
+                                if sleep_time > _max_sleep_time:
+                                    sleep_time = _max_sleep_time + \
+                                                 (retries * _min_sleep_time)
                                 txn._retry()
                         else:
                             cargs = args
@@ -91,17 +98,16 @@ def transactional(auto_commit=False, nosync=False):
                         if is_top_level and auto_commit:
                             txn.commit()
                         return val
-                    except exceptions.DBTransactionIncomplete:
+                    except exceptions.DBRetryTransaction:
                         if is_top_level:
-                            txn.abort()
                             retries += 1
                         else:
+                            # allow propagation
                             raise
                     except:
                         txn.abort()
                         raise
-                else:
-                    raise exceptions.DBTransactionIncomplete
+                raise exceptions.DBDeadlockError
             finally:
                 if is_top_level:
                     c_thread.context.trans = None

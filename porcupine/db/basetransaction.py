@@ -22,9 +22,7 @@ from porcupine.config.settings import settings
 
 class BaseTransaction(object):
     "The base type of a Porcupine transaction."
-    txn_max_retries = 12
-    if settings['store'].has_key('trans_max_retries'):
-        txn_max_retries = int(settings['store']['trans_max_retries'])
+    txn_max_retries = settings['store'].get('trans_max_retries', 12)
     
     def __init__(self):
         _db._activeTxns += 1

@@ -27,12 +27,24 @@ class Transaction(BaseTransaction):
         self._flags = db.DB_TXN_NOWAIT
         if nosync:
             self._flags |= db.DB_TXN_NOSYNC
+        self._cursors = []
         self.txn = env.txn_begin(None, self._flags)
         BaseTransaction.__init__(self)
 
     def _retry(self):
+        self._cursors = []
         self.txn = self.env.txn_begin(None, self._flags)
         BaseTransaction._retry(self)
+
+    def _close_cursors(self):
+        clean = True
+        for c in self._cursors:
+            try:
+                c._close()
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                clean = False
+        self._cursors = []
+        return clean
 
     def commit(self):
         """
@@ -40,11 +52,16 @@ class Transaction(BaseTransaction):
 
         @return: None
         """
+        if len(self._cursors) > 0:
+            # some cursors are left open, just close them
+            if not self._close_cursors():
+                self.abort()
+                raise exceptions.DBRetryTransaction
         try:
             self.txn.commit()
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError,
-                db.DBInvalidArgError):
-            raise exceptions.DBTransactionIncomplete
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            self.abort()
+            raise exceptions.DBRetryTransaction
         BaseTransaction.commit(self)
 
     def abort(self):
@@ -53,5 +70,6 @@ class Transaction(BaseTransaction):
 
         @return: None
         """
+        self._close_cursors()
         self.txn.abort()
         BaseTransaction.abort(self)

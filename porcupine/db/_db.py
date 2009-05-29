@@ -15,6 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine Server DB Interface"
+import os
 import time
 
 from porcupine.core import persist
@@ -22,15 +23,18 @@ from porcupine import exceptions
 from porcupine.utils import misc
 from porcupine.config.settings import settings
 
-_db_handle = None
+_pids = []
 _locks = 0
 _activeTxns = 0
+_db_handle = None
 
 def open(**kwargs):
     global _db_handle
-    if _db_handle == None or not _db_handle.is_open():
-        _db_handle = misc.get_rto_by_name(settings['store']['interface'])
-        _db_handle.open(**kwargs)
+    pid = os.getpid()
+    if not pid in _pids or not _db_handle.is_open():
+        _db_handle = misc.get_rto_by_name(settings['store']['interface'])\
+                     (**kwargs)
+        _pids.append(pid)
         return True
     else:
         return False
@@ -151,6 +155,8 @@ def check_unique(item, old_item, trans):
 
 # transactions
 def get_transaction(nosync=False):
+    while _locks:
+        time.sleep(0.2)
     return _db_handle.get_transaction(nosync)
 
 # administrative
@@ -158,8 +164,8 @@ def lock():
     global _locks
     _locks += 1
     # allow active transactions to commit or abort...
-    while _activeTxns:
-        time.sleep(0.5)
+    while _activeTxns > 0:
+        time.sleep(0.2)
 
 def unlock():
     global _locks

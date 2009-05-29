@@ -128,8 +128,11 @@ class PermissionDenied(PorcupineException):
         self.code = 403
         self.description = 'Forbidden'
 
-class DBTransactionIncomplete(InternalServerError):
+class DBDeadlockError(InternalServerError):
     def __init__(self):
         InternalServerError.__init__(self,
             'Exceeded maximum retries for transcation.')
         self.severity = logging.CRITICAL
+
+class DBRetryTransaction(Exception):
+    pass

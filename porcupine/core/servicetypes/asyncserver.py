@@ -211,23 +211,15 @@ class BaseServer(BaseService, Dispatcher):
         return [conn.recv() for conn in self.pipes]
 
     def add_runtime_service(self, component, *args, **kwargs):
-        inited = BaseService.add_runtime_service(self, component, *args, **kwargs)
+        inited = BaseService.add_runtime_service(self, component,
+                                                 *args, **kwargs)
         if self.is_multiprocess and component == 'db':
-            if self.request_queue == None and self.running:
-                # restart workers
-                self._start_workers()
-            else:
-                self.send('DB_OPEN')
+            self.send('DB_OPEN')
         return inited
 
     def remove_runtime_service(self, component):
         if self.is_multiprocess and component == 'db':
-            if self.request_queue == None and self.running:
-                # stop the workers in order to reflect
-                # the new db environment in case of db restoration
-                self._stop_workers()
-            else:
-                self.send('DB_CLOSE')
+            self.send('DB_CLOSE')
         BaseService.remove_runtime_service(self, component)
 
     def lock_db(self):

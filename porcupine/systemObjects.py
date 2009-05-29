@@ -228,14 +228,10 @@ class Removable(object):
         _db.delete_item(self, trans)
         
         if self.isCollection:
-            cursor = None
-            try:
-                cursor = _db.query_index('_parentid', self._id, trans)
-                cursor.fetch_all = True
-                [child._delete(trans) for child in cursor]
-            finally:
-                if cursor != None:
-                    cursor.close()
+            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor.fetch_all = True
+            [child._delete(trans) for child in cursor]
+            cursor.close()
 
     def delete(self, trans):
         """
@@ -276,14 +272,10 @@ class Removable(object):
         self._isDeleted = int(self._isDeleted) + 1
         
         if self.isCollection:
-            cursor = None
-            try:
-                cursor = _db.query_index('_parentid', self._id, trans)
-                cursor.fetch_all = True
-                [child._recycle(trans) for child in cursor]
-            finally:
-                if cursor != None:
-                    cursor.close()
+            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor.fetch_all = True
+            [child._recycle(trans) for child in cursor]
+            cursor.close()
         
         _db.put_item(self, trans)
         
@@ -300,14 +292,10 @@ class Removable(object):
         self._isDeleted = int(self._isDeleted) - 1
         
         if self.isCollection:
-            cursor = None
-            try:
-                cursor = _db.query_index('_parentid', self._id, trans)
-                cursor.fetch_all = True
-                [child._undelete(trans) for child in cursor]
-            finally:
-                if cursor != None:
-                    cursor.close()
+            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor.fetch_all = True
+            [child._undelete(trans) for child in cursor]
+            cursor.close()
         
         _db.put_item(self, trans)
 
@@ -470,16 +458,12 @@ class GenericItem(object):
         if self.inheritRoles:
             self.security = parent.security
         if self.isCollection and not is_new:
-            cursor = None
-            try:
-                cursor = _db.query_index('_parentid', self._id, trans)
-                cursor.fetch_all = True
-                for child in cursor:
-                    child._apply_security(self, is_new, trans)
-                    _db.put_item(child, trans)
-            finally:
-                if cursor != None:
-                    cursor.close()
+            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor.fetch_all = True
+            for child in cursor:
+                child._apply_security(self, is_new, trans)
+                _db.put_item(child, trans)
+            cursor.close()
 
     def append_to(self, parent, trans):
         """
@@ -938,21 +922,14 @@ class Container(Item):
         @rtype: str
         """
         conditions = (('_parentid', self._id), ('displayName', name))
-        cursor = None
-        iterator = None
+        cursor = _db.join(conditions, trans)
+        cursor.use_primary = True
+        iterator = iter(cursor)
         try:
-            cursor = _db.join(conditions, trans)
-            cursor.use_primary = True
-            iterator = iter(cursor)
-            try:
-                child = iterator.next()
-            except StopIteration:
-                child = None
-        finally:
-            if iterator != None:
-                iterator.close()
-            if cursor != None:
-                cursor.close()
+            child = iterator.next()
+        except StopIteration:
+            child = None
+        cursor.close()
         return child
     getChildId = deprecated(get_child_id)
     
@@ -968,20 +945,13 @@ class Container(Item):
         @rtype: L{GenericItem}
         """
         conditions = (('_parentid', self._id), ('displayName', name))
-        cursor = None
-        iterator = None
+        cursor = _db.join(conditions, trans)
+        iterator = iter(cursor)
         try:
-            cursor = _db.join(conditions, trans)
-            iterator = iter(cursor)
-            try:
-                child = iterator.next()
-            except StopIteration:
-                child = None
-        finally:
-            if iterator != None:
-                iterator.close()
-            if cursor != None:
-                cursor.close()
+            child = iterator.next()
+        except StopIteration:
+            child = None
+        cursor.close()
         return child
     getChildByName = deprecated(get_child_by_name)
     
@@ -992,14 +962,10 @@ class Container(Item):
         @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
-        cursor = None
-        try:
-            cursor = _db.query_index('_parentid', self._id, trans)
-            cursor.resolve_shortcuts = resolve_shortcuts
-            children = ObjectSet([c for c in cursor])
-        finally:
-            if cursor != None:
-                cursor.close()
+        cursor = _db.query_index('_parentid', self._id, trans)
+        cursor.resolve_shortcuts = resolve_shortcuts
+        children = ObjectSet([c for c in cursor])
+        cursor.close()
         return children
     getChildren = deprecated(get_children)
     
@@ -1011,14 +977,10 @@ class Container(Item):
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('_parentid', self._id), ('isCollection', False))
-        cursor = None
-        try:
-            cursor = _db.join(conditions, trans)
-            cursor.resolve_shortcuts = resolve_shortcuts
-            items = ObjectSet([i for i in cursor])
-        finally:
-            if cursor != None:
-                cursor.close()
+        cursor = _db.join(conditions, trans)
+        cursor.resolve_shortcuts = resolve_shortcuts
+        items = ObjectSet([i for i in cursor])
+        cursor.close()
         return items
     getItems = deprecated(get_items)
     
@@ -1030,14 +992,10 @@ class Container(Item):
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('_parentid', self._id), ('isCollection', True))
-        cursor = None
-        try:
-            cursor = _db.join(conditions, trans)
-            cursor.resolve_shortcuts = resolve_shortcuts
-            subfolders = ObjectSet([f for f in cursor])
-        finally:
-            if cursor != None:
-                cursor.close()
+        cursor = _db.join(conditions, trans)
+        cursor.resolve_shortcuts = resolve_shortcuts
+        subfolders = ObjectSet([f for f in cursor])
+        cursor.close()
         return subfolders
     getSubFolders = deprecated(get_subfolders)
     
