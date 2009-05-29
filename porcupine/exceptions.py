@@ -38,6 +38,7 @@ class PorcupineException(Exception):
     severity = 0
     description = ''
     output_traceback = False
+    
     def __init__(self, info=''):
         self.info = info
 
@@ -96,12 +97,7 @@ class InternalServerError(PorcupineException):
     severity = logging.ERROR
     description = 'Internal Server Error'
     output_traceback = True
-        
-class NotImplemented(PorcupineException):
-    code = 501
-    severity = logging.WARNING
-    description = 'Not Implemented'
-        
+
 class ContainmentError(InternalServerError):
     severity = logging.WARNING
     output_traceback = False
@@ -112,6 +108,19 @@ class ReferentialIntegrityError(InternalServerError):
 
 class OQLError(InternalServerError):
     output_traceback = False
+
+class DBDeadlockError(InternalServerError):
+    severity = logging.CRITICAL
+    output_traceback = False
+    
+    def __init__(self):
+        InternalServerError.__init__(self,
+            'Exceeded maximum retries for transcation.')
+
+class NotImplemented(PorcupineException):
+    code = 501
+    severity = logging.WARNING
+    description = 'Not Implemented'
 
 class NotFound(PorcupineException):
     code = 404
@@ -124,9 +133,3 @@ class ObjectNotFound(NotFound):
 class PermissionDenied(PorcupineException):
     code = 403
     description = 'Forbidden'
-
-class DBDeadlockError(InternalServerError):
-    severity = logging.CRITICAL
-    def __init__(self):
-        InternalServerError.__init__(self,
-            'Exceeded maximum retries for transcation.')
