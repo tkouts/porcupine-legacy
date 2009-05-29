@@ -55,7 +55,11 @@ class Dispatcher(asyncore.dispatcher):
 
     def handle_accept(self):
         # accept client connection
-        client = self.accept()
+        client = None
+        try:
+            client = self.accept()
+        except socket.error:
+            pass
         if client != None:
             client_socket, addr = client
             try:
@@ -310,12 +314,15 @@ class RequestHandler(asyncore.dispatcher):
                 self.close()
 
     def handle_write(self):
-        if len(self.output_buffer) > 0:
-            sent = self.send(self.output_buffer)
-            self.output_buffer = self.output_buffer[sent:]
-            if len(self.output_buffer) == 0:
-                self.shutdown(socket.SHUT_WR)
-                self.close()
+        try:
+            if len(self.output_buffer) > 0:
+                sent = self.send(self.output_buffer)
+                self.output_buffer = self.output_buffer[sent:]
+                if len(self.output_buffer) == 0:
+                    self.shutdown(socket.SHUT_WR)
+                    self.close()
+        except socket.error:
+            self.close()
 
     def close(self):
         asyncore.dispatcher.close(self)
