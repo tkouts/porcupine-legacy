@@ -65,7 +65,7 @@ class OqlCommand(object):
             error_string = '%s\n\n%s' % (helper_string,
                                          "OQL syntax error at line %d: '%s'" % \
                                          (lineno, errvalue))
-            raise exceptions.InternalServerError, (error_string, False)
+            raise exceptions.OQLError, error_string
         except TypeError, e:
             raise exceptions.InternalServerError, e[0]
         

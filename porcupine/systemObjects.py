@@ -106,8 +106,7 @@ class Cloneable(object):
         target = _db.get_item(target_id, trans)
         if target == None or target._isDeleted:
             raise exceptions.ObjectNotFound, (
-                'The target container "%s" does not exist.' %
-                target_id , False)
+                'The target container "%s" does not exist.' % target_id)
         
         if isinstance(self, Shortcut):
             contentclass = self.get_target_contentclass(trans)
@@ -165,8 +164,7 @@ class Movable(object):
         target = _db.get_item(target_id, trans)
         if target == None or target._isDeleted:
             raise exceptions.ObjectNotFound, (
-                'The target container "%s" does not exist.' %
-                target_id , False)
+                'The target container "%s" does not exist.' % target_id)
         
         if isinstance(self, Shortcut):
             contentclass = self.get_target_contentclass(trans)
@@ -720,12 +718,12 @@ class DeletedItem(GenericItem, Removable):
                 'Cannot locate original item.\n' +
                 'It seems that this item resided in a container\n' +
                 'that has been permanently deleted or it is shortcut\n' +
-                'having its target permanently deleted.', False)
+                'having its target permanently deleted.')
         parent = _db.get_item(parent_id or deleted._parentid, trans)
         if parent == None or parent._isDeleted:
             raise exceptions.ObjectNotFound, (
                 'Cannot locate target container.\n' +
-                'It seems that this container is deleted.', False)
+                'It seems that this container is deleted.')
         
         if isinstance(deleted, Shortcut):
             contentclass = deleted.get_target_contentclass(trans)

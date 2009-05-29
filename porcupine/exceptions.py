@@ -30,19 +30,24 @@ class ResponseEnd(Exception):
 class InternalRedirect(Exception):
     pass
 
+class DBRetryTransaction(Exception):
+    pass
+
 class PorcupineException(Exception):
-    def __init__(self, info='', outputTraceback=False):
-        self.code = 0
-        self.severity = 0
-        self.outputTraceback = outputTraceback
+    code = 0
+    severity = 0
+    description = ''
+    output_traceback = False
+    def __init__(self, info=''):
         self.info = info
 
     def emit(self, context=None, item=None):
         from porcupine.core.runtime import logger
+        print self.output_traceback
         logger.log(
             self.severity,
             self.description,
-            exc_info=self.outputTraceback
+            exc_info=True
         )
         if context != None:
             context.response._reset()
@@ -69,7 +74,7 @@ class PorcupineException(Exception):
             else:
                 contentclass = '-'
         
-            if self.outputTraceback:
+            if self.output_traceback:
                 tbk = traceback.format_exception(*sys.exc_info())
                 tbk = '\n'.join(tbk)
                 if request_type == 'xmlrpc':
@@ -88,51 +93,41 @@ class PorcupineException(Exception):
 
 # server exceptions
 class InternalServerError(PorcupineException):
-    def __init__(self, info='', outputTraceback=True):
-        PorcupineException.__init__(self, info, outputTraceback)
-        self.code = 500
-        self.description = 'Internal Server Error'
-        self.severity = logging.ERROR
+    code = 500
+    severity = logging.ERROR
+    description = 'Internal Server Error'
+    output_traceback = True
         
-class NotImplemented(InternalServerError):
-    def __init__(self, info=''):
-        InternalServerError.__init__(self, info)
-        self.code = 501
-        self.description = 'Not Implemented'
-        self.severity = logging.WARNING
+class NotImplemented(PorcupineException):
+    code = 501
+    severity = logging.WARNING
+    description = 'Not Implemented'
         
 class ContainmentError(InternalServerError):
-    def __init__(self, info=''):
-        InternalServerError.__init__(self, info, False)
-        self.description = 'Containment Error'
-        self.severity = logging.WARNING
+    severity = logging.WARNING
+    output_traceback = False
         
 class ReferentialIntegrityError(InternalServerError):
-    def __init__(self, info=''):
-        InternalServerError.__init__(self, info, False)
-        self.severity = logging.WARNING
-        
+    severity = logging.WARNING
+    output_traceback = False
+
+class OQLError(InternalServerError):
+    output_traceback = False
+
 class NotFound(PorcupineException):
-    def __init__(self, info='', outputTraceback=True):
-        PorcupineException.__init__(self, info, outputTraceback)
-        self.code = 404
-        self.description = 'Not Found'
-        self.severity = logging.INFO
+    code = 404
+    severity = logging.INFO
+    description = 'Not Found'
         
 class ObjectNotFound(NotFound):
-    pass
+    description = 'Object Not Found'
 
 class PermissionDenied(PorcupineException):
-    def __init__(self, info=''):
-        PorcupineException.__init__(self, info)
-        self.code = 403
-        self.description = 'Forbidden'
+    code = 403
+    description = 'Forbidden'
 
 class DBDeadlockError(InternalServerError):
+    severity = logging.CRITICAL
     def __init__(self):
         InternalServerError.__init__(self,
             'Exceeded maximum retries for transcation.')
-        self.severity = logging.CRITICAL
-
-class DBRetryTransaction(Exception):
-    pass
