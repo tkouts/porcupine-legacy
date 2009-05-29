@@ -43,7 +43,6 @@ class PorcupineException(Exception):
 
     def emit(self, context=None, item=None):
         from porcupine.core.runtime import logger
-        print self.output_traceback
         logger.log(
             self.severity,
             self.description,
