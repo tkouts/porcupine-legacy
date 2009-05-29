@@ -164,8 +164,9 @@ QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
     return null;
 }
 
-QuiX.ui.Widget.prototype.getWidgetById = function(sid) {
-    var ws = this.query('w._id==param', sid);
+QuiX.ui.Widget.prototype.getWidgetById = function(sid /*, shallow*/) {
+    var shallow = arguments[1] || false;
+    var ws = this.query('w._id==param', sid, shallow);
     if (ws.length==0)
         return null;
     else if (ws.length==1)

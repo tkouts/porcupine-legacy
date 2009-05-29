@@ -15,9 +15,9 @@ QuiX.ui.Window = function(/*params*/) {
 	params.padding = '1,1,1,1';
 	params.opacity = (QuiX.effectsEnabled)?0:1;
 	params.onmousedown = QuiX.getEventWrapper(Window__onmousedown,
-												params.onmousedown);
+		params.onmousedown);
 	params.oncontextmenu = QuiX.getEventWrapper(Window__oncontextmenu,
-												params.oncontextmenu);
+		params.oncontextmenu);
 	params.overflow = (QuiX.utils.BrowserInfo.family == 'moz'
         && QuiX.utils.BrowserInfo.OS == 'MacOS')?'auto':'hidden';
 	this.base = QuiX.ui.Widget;
@@ -170,14 +170,14 @@ QuiX.ui.Window.prototype.setResizable = function(bResizable) {
 
 QuiX.ui.Window.prototype._addControlButtons = function() {
 	var oControl, img;
-	var oWindow = this;
+	var self = this;
 	for (var iWhich=2; iWhich>-1; iWhich--) {
 		oControl = new QuiX.ui.Widget({
 			id : iWhich.toString(),
 			width : 16,
 			height : 16,
-			onmouseover : oWindow._mouseoverControl,
-			onmouseout : oWindow._mouseoutControl
+			onmouseover : self._mouseoverControl,
+			onmouseout : self._mouseoutControl
 		});
 		img = QuiX.getImage(this.images[iWhich]);
 		oControl.div.appendChild(img);
@@ -186,22 +186,22 @@ QuiX.ui.Window.prototype._addControlButtons = function() {
 		this.title.appendChild(oControl);
 		switch(iWhich) {
 			case 0:
-				oControl.attachEvent('onclick', function(){
-					if (oWindow.buttonIndex)
-						oWindow.buttonIndex = -1;
-					oWindow.close();
+				oControl.attachEvent('onclick', function() {
+					if (self.buttonIndex)
+						self.buttonIndex = -1;
+					self.close();
 				});
 				break;
 			case 1:
-				oControl.attachEvent('onclick', function(){oWindow.maximize()});
+				oControl.attachEvent('onclick', function(){self.maximize()});
 				this.title.attachEvent('ondblclick', 
-					function(){
-						if (!oWindow.isMinimized)
-							oWindow.maximize();
+					function() {
+						if (!self.isMinimized)
+							self.maximize();
 					});
 				break;
 			case 2:
-				oControl.attachEvent('onclick', function(){oWindow.minimize()});
+				oControl.attachEvent('onclick', function(){self.minimize()});
 		}
 	}
 }
@@ -227,11 +227,10 @@ QuiX.ui.Window.prototype.close = function() {
 	if (this.opener)
 		this.opener.childWindows.removeItem(this);
 	if (QuiX.effectsEnabled) {
-		var oWindow = this;
-		var eff = this.getWidgetById('_eff_fade');
-		if (eff.length) eff = eff[0];
+		var self = this;
+		var eff = this.getWidgetById('_eff_fade', true);
 		eff.attachEvent('oncomplete', function() {
-			oWindow.destroy();
+			self.destroy();
 		});
 		eff.play(true);
 	}
@@ -293,13 +292,14 @@ QuiX.ui.Window.prototype._mouseoutControl = function(evt, btn) {
 }
 
 QuiX.ui.Window.prototype.minimize = function() {
-	var w = this;
-	var maxControl = w.title.getWidgetById('1');
-	var minControl = w.title.getWidgetById('2');
-	var childWindow;
-	var effect;
+	var w = this,
+		maxControl = w.title.getWidgetById('1'),
+		minControl = w.title.getWidgetById('2'),
+		childWindow,
+		effect;
 	if (minControl) {
-		if (!w.isMinimized) {
+		w.isMinimized = !w.isMinimized;
+		if (w.isMinimized) {
             var i;
 			var padding = w.getPadding();
 			for (i=1; i<w.widgets[0].widgets.length; i++)
@@ -308,7 +308,7 @@ QuiX.ui.Window.prototype.minimize = function() {
 				w._resizer.hide();
 			w._stateh = w.getHeight(true);
 			w.height = w.title.getHeight(true) + 2*w.getBorderWidth() +
-						padding[2] + padding[3];
+				padding[2] + padding[3];
 			if (maxControl)
 				maxControl.disable();
 			for (i=0; i<w.childWindows.length; i++) {
@@ -318,10 +318,8 @@ QuiX.ui.Window.prototype.minimize = function() {
 					w._childwindows.push(childWindow);
 				}
 			}
-			w.isMinimized = true;
 			if (QuiX.effectsEnabled) {
-				effect = w.getWidgetById('_eff_mini');
-				if (effect.length) effect = effect[0];
+				effect = w.getWidgetById('_eff_mini', true);
 				effect.play();
 			}
 			else
@@ -330,10 +328,8 @@ QuiX.ui.Window.prototype.minimize = function() {
 		else {
 			w.bringToFront();
 			w.height = w._stateh;
-			w.isMinimized = false;
 			if (QuiX.effectsEnabled) {
-				effect = w.getWidgetById('_eff_maxi');
-				if (effect.length) effect = effect[0];
+				effect = w.getWidgetById('_eff_maxi', true);
 				effect.play();
 			}
 			else
@@ -394,7 +390,6 @@ QuiX.ui.Window.prototype.bringToFront = function() {
             && QuiX.utils.BrowserInfo.OS == 'MacOS';
 		Widget.prototype.bringToFront.apply(this, arguments);
 		if (macff) {
-            alert('macff')
 			dt = document.desktop;
 			//hide scrollbars
 			sw = dt.query('/(auto|scroll)/.exec(w.getOverflow()) != param', null);
