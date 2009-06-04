@@ -48,27 +48,34 @@ class PorcupineThread(BaseServerThread, ContextThread):
         try:
             try:
                 self.context = HttpContext(request, response)
-                sPath = request.serverVariables['PATH_INFO']
-                item = _db.get_item(sPath)
-                if item != None and not item._isDeleted:
-                    self.context._fetch_session()
-                    self.dispatch_method(item)
+                path_info = request.serverVariables['PATH_INFO']
+                path_tokens = path_info.split('/')
+                if len(path_tokens) > 1:
+                    dir_name = path_tokens[1]
+                    web_app = pubdirs.dirs.get(dir_name, None)
                 else:
-                    # dir request
-                    lstPath = sPath.split('/')
-                    dirName = lstPath[1]
+                    web_app = None
+                if web_app == None:
+                    # try to get the requested object from the db
+                    item = _db.get_item(path_info)
+                    if item != None and not item._isDeleted:
+                        self.context._fetch_session()
+                        self.dispatch_method(item)
+                    else:
+                        raise exceptions.NotFound, \
+                            'The resource "%s" does not exist' % path_info
+                else:
+                    # request to a published directory
                     # remove blank entry & app name to get the requested path
-                    sDirPath = '/'.join(lstPath[2:])
-                    webApp = pubdirs.dirs.get(dirName, None)
-                    if webApp:
-                        registration = webApp.getRegistration(
-                            sDirPath,
-                            request.serverVariables['REQUEST_METHOD'],
-                            request.serverVariables['HTTP_USER_AGENT'],
-                            request.get_lang())
+                    dir_path = '/'.join(path_tokens[2:])
+                    registration = web_app.getRegistration(
+                        dir_path,
+                        request.serverVariables['REQUEST_METHOD'],
+                        request.serverVariables['HTTP_USER_AGENT'],
+                        request.get_lang())
                     if not registration:
                         raise exceptions.NotFound, \
-                            'The resource "%s" does not exist' % sPath
+                            'The resource "%s" does not exist' % path_info
                     
                     rtype = registration.type
                     if rtype == 1: # in case of psp fetch session
