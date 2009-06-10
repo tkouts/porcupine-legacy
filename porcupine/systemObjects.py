@@ -921,7 +921,7 @@ class Container(Item):
         """
         conditions = (('_parentid', self._id), ('displayName', name))
         cursor = _db.join(conditions, trans)
-        cursor.use_primary = True
+        cursor.fetch_mode = 0
         iterator = iter(cursor)
         try:
             child = iterator.next()

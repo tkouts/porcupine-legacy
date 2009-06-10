@@ -15,9 +15,8 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Base database index class"
-import cPickle
-
 from porcupine.core import persist, cache
+from porcupine.utils.db import pack_value
 
 _cache = cache.Cache(20)
 
@@ -35,7 +34,7 @@ class BaseIndex(object):
                 attr = getattr(item, self.name)
                 if attr.__class__.__module__ != '__builtin__':
                     attr = attr.value
-                index_value = cPickle.dumps(attr, 2)
+                index_value = pack_value(attr)
             _cache[value] = item
             return index_value
         return callback

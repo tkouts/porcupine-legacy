@@ -15,7 +15,29 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine database utilities used by the system"
+import struct
+
+_err_unsupported_type = -2334
 
 def initialize_db():
     "Initializes the Porcupine database"
-    
+    # TODO: implement db initialization
+
+def pack_value(value):
+    """
+    Packs Python values to C structs used for indexed lookups.
+    Currently supported types include strings, booleans, floats and itegers.
+    """
+    packed = None
+    if type(value) == str:
+        packed = struct.pack('%ds' % len(value), value)
+    elif type(value) == bool:
+        packed = struct.pack('b', int(value))
+    elif type(value) == int:
+        packed = struct.pack('>l', value)
+    elif type(value) == float:
+        packed = struct.pack('>f', value)
+    else:
+        # unsupported data type
+        packed = _err_unsupported_type
+    return packed

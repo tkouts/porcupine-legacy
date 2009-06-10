@@ -179,6 +179,13 @@ class DB(object):
         c_join = Join(self._itemdb, cur_list, trans)
         return c_join
 
+    def switch_cursor_scope(self, cursor, scope):
+        if isinstance(cursor, Join):
+            # assume that the scope cursor is always last
+            cursor._cur_list[-1].set(scope)
+        else:
+            cursor.set(scope)
+
     def test_join(self, conditions, trans):
         cur_list = self.get_cursor_list(conditions, trans)
         c_join = Join(self._itemdb, cur_list, trans)

@@ -15,24 +15,30 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Base database cursor class"
-import cPickle
 from threading import currentThread
 
 from porcupine.core import persist
 from porcupine.db import _db
 from porcupine.utils import permsresolver
+from porcupine.utils.db import pack_value
 from porcupine.systemObjects import Shortcut
 
 class BaseCursor(object):
+    "Base cursor class"
+
     def __init__(self, index, trans):
         self._thread = currentThread()
         self._index = index
         self._value = None
-        self._range = []
+        self._range = None
         self._reversed = False
         self._trans = trans
 
-        self.use_primary = False
+        # fetch_mode possible values are
+        # 0: return primary key only
+        # 1: return objects
+        # 2: return tuples of (object_id, data_stream)
+        self.fetch_mode = 1
         self.fetch_all = False
         self.resolve_shortcuts = False
 
@@ -52,30 +58,70 @@ class BaseCursor(object):
         return item
 
     def set(self, v):
-        val = cPickle.dumps(v, 2)
+        val = pack_value(v)
         self._value = val
-        self._range = []
+        self._range = None
     
-    def set_range(self, v1, v2):
-        self._range = []
-        
-        if v1 != None:
-            val1 = cPickle.dumps(v1, 2)
-            self._range.append(val1)
-        else:
-            self._range.append(None)
-
-        if v2 != None:
-            val2 = cPickle.dumps(v2, 2)
-            self._range.append(val2)
-        else:
-            self._range.append(None)
+    def set_range(self, lower_bound, upper_bound):
+        self._range = Range(lower_bound, upper_bound)
+        self._value = None
 
     def reverse(self):
         self._reversed = not self._reversed
+
+    def duplicate(self):
+        raise NotImplementedError
+
+    def reset(self):
+        raise NotImplementedError
     
     def __iter__(self):
         raise NotImplementedError
     
     def close(self):
         raise NotImplementedError
+
+class Range(object):
+    """
+    Range objects are used for setting cursor boundaries.
+    The bounds are tuples of two elements. The first element contains the
+    value while the second is a boolean indicating if the value is
+    inclusive.
+    """
+
+    def __init__(self, lower_bound=None, upper_bound=None):
+        self.set_lower_bound(lower_bound)
+        self.set_upper_bound(upper_bound)
+
+    def set_lower_bound(self, lower_bound):
+        if lower_bound != None:
+            value, inclusive = lower_bound
+            self._lower_value = pack_value(value)
+            self._lower_inclusive = inclusive
+        else:
+            self._lower_value = None
+            self._lower_inclusive = False
+
+    def set_upper_bound(self, upper_bound):
+        if upper_bound != None:
+            value, inclusive = upper_bound
+            self._upper_value = pack_value(value)
+            self._upper_inclusive = inclusive
+        else:
+            self._upper_value = None
+            self._upper_inclusive = False
+
+    def __contains__(self, string_value):
+        if self._lower_value != None:
+            cmp_value = [-1]
+            if self._lower_inclusive:
+                cmp_value.append(0)
+            if not cmp(self._lower_value, string_value) in cmp_value:
+                return False
+        if self._upper_value != None:
+            cmp_value = [1]
+            if self._upper_inclusive:
+                cmp_value.append(0)
+            if not cmp(self._upper_value, string_value) in cmp_value:
+                return False
+        return True

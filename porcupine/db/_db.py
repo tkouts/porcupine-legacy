@@ -27,14 +27,17 @@ _pids = []
 _locks = 0
 _activeTxns = 0
 _db_handle = None
+_indices = []
 
 def open(**kwargs):
-    global _db_handle
+    global _db_handle, _indices
     pid = os.getpid()
     if not pid in _pids or not _db_handle.is_open():
         _db_handle = misc.get_rto_by_name(settings['store']['interface'])\
                      (**kwargs)
         _pids.append(pid)
+        # update indexed attributes
+        _indices = [x[0] for x in settings['store']['indices']]
         return True
     else:
         return False
@@ -128,11 +131,17 @@ def handle_undelete(item, trans):
      if attr._eventHandler]
     
 # indices
-def query_index(index, value, trans):
+def has_index(name):
+    return name in _indices
+
+def query_index(index, value, trans=None):
     return _db_handle.query_index(index, value, trans)
 
-def join(conditions, trans):
+def join(conditions, trans=None):
     return _db_handle.join(conditions, trans)
+
+def switch_cursor_scope(cursor, scope):
+    _db_handle.switch_cursor_scope(cursor, scope)
 
 def test_join(conditions, trans):
     return _db_handle.test_join(conditions, trans)

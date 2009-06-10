@@ -15,7 +15,9 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine server Berkeley DB index"
+from porcupine import exceptions
 from porcupine.db.bsddb import db
+from porcupine.utils.db import _err_unsupported_type
 from porcupine.db.baseindex import BaseIndex
 
 class DbIndex(BaseIndex):
@@ -33,9 +35,20 @@ class DbIndex(BaseIndex):
             mode = self.db_mode,
             flags = self.db_flags
         )
-        primary_db.associate(self.db,
-                             self.callback,
-                             flags=db.DB_CREATE)
+        try:
+            primary_db.associate(self.db,
+                                 self.callback,
+                                 flags=db.DB_CREATE)
+        except Exception, e:
+            if e[0] == _err_unsupported_type:
+                # remove index
+                self.close()
+                _db = db.DB(env)
+                _db.remove('porcupine.idx', dbname=name)
+                raise exceptions.ConfigurationError, \
+                    'Unsupported data type for index "%s".' % name
+            else:
+                raise
+
     def close(self):
         self.db.close()
-

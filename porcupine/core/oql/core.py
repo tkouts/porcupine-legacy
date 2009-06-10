@@ -76,26 +76,26 @@ fn  = {
     'round' : lambda a: int(a+0.5),
     'sgn' : lambda a: ( (a<0 and -1) or (a>0 and 1) or 0 ),
     'isnone' : lambda a,b: a or b,
-    'getattr' : lambda a,b: getAttribute(a, [b])
+    'getattr' : lambda a,b: get_attribute(a, [b])
 }
 
-def evaluateStack(stack, variables, forObject=None):
+def evaluate_stack(stack, variables, for_object=None):
     try:
         op = stack.pop()
     except AttributeError:
         op = stack
 
     if op in operators2:
-        op1 = evaluateStack(stack, variables, forObject)
+        op1 = evaluate_stack(stack, variables, for_object)
         if op=='and' and not op1:
             return False
         elif op=='or' and op1:
             return True
-        op2 = evaluateStack(stack, variables, forObject)
+        op2 = evaluate_stack(stack, variables, for_object)
         return opn2[op](op1,op2)
 
     elif op in operators1:
-        op1 = evaluateStack(stack, variables, forObject)
+        op1 = evaluate_stack(stack, variables, for_object)
         return opn1[op](op1)
 
     elif isinstance(op, str):
@@ -111,10 +111,10 @@ def evaluateStack(stack, variables, forObject=None):
                 else:
                     # an alias
                     alias_stack, objectid, alias_value = var
-                    if objectid != forObject._id:
-                        alias_value = evaluateStack(alias_stack[:], variables,
-                                                    forObject)
-                        variables[op] = (alias_stack, forObject._id,
+                    if objectid != for_object._id:
+                        alias_value = evaluate_stack(alias_stack[:], variables,
+                                                     for_object)
+                        variables[op] = (alias_stack, for_object._id,
                                          alias_value)
                         return alias_value
                     else:
@@ -123,19 +123,20 @@ def evaluateStack(stack, variables, forObject=None):
             else:
                 # an attribute
                 if op == '**':
-                    return forObject
+                    return for_object
                 else:
-                    return getAttribute(forObject, op.split('.'))
+                    if for_object != None:
+                        return get_attribute(for_object, op.split('.'))
 
     elif isinstance(op, list):
         cmdCode = op[0]
         cmdHandlerFunc = globals()['h_' + str(cmdCode)]
-        return(cmdHandlerFunc(op[1], variables, forObject))
+        return(cmdHandlerFunc(op[1], variables, for_object))
 
     else:
         return op
         
-def getAttribute(obj, name_list):
+def get_attribute(obj, name_list):
     try:
         attr = name_list.pop(0)
         oAttr = getattr(obj, attr) 
@@ -156,21 +157,21 @@ def getAttribute(obj, name_list):
         
         if len(name_list):
             if isinstance(obj, list):
-                obj = [getAttribute(item, name_list[:]) for item in obj]
+                obj = [get_attribute(item, name_list[:]) for item in obj]
             else:
-                obj = getAttribute(obj, name_list[:])
+                obj = get_attribute(obj, name_list[:])
         
         return obj
     except AttributeError:
         return None
         
-def sortList(list1, list2):
+def sort_list(list1, list2):
     pairs = zip(list1, list2)
     pairs.sort()
     res = [x[1] for x in pairs]
     return res
 
-def computeAggregate(aggr, lst):
+def compute_aggregate(aggr, lst):
     #print aggr, list
     if aggr=='COUNT':
         return len(lst)
@@ -195,134 +196,166 @@ def computeAggregate(aggr, lst):
                 return(lst[0])
         return None
 
-#================================================================================
+#===============================================================================
 # unary minus command handler
-#================================================================================
+#===============================================================================
 
-def h_1(params, variables, forObject):
-    return(-evaluateStack(params[:], variables, forObject))
+def h_1(params, variables, for_object):
+    return(-evaluate_stack(params[:], variables, for_object))
 
-#================================================================================
+#===============================================================================
 # array command handler
-#================================================================================
+#===============================================================================
     
-def h_51(params, variables, forObject):
-    l = [evaluateStack(x[:], variables, forObject) for x in params]
+def h_51(params, variables, for_object):
+    l = [evaluate_stack(x[:], variables, for_object) for x in params]
     return l
 
-#================================================================================
+#===============================================================================
 # function command handler
-#================================================================================
+#===============================================================================
 
-def h_60(params, variables, forObject):
+def h_60(params, variables, for_object):
     func = fn[params[0]]
     args = params[1]
     #print args
-    f_args = [evaluateStack(arg[:], variables, forObject) for arg in args]
+    f_args = [evaluate_stack(arg[:], variables, for_object) for arg in args]
     return func(*f_args)
 
-#================================================================================
+#===============================================================================
 # BETWEEN command handler
-#================================================================================
+#===============================================================================
 
-def h_61(params, variables, forObject):
-    value, low, high = [evaluateStack(expr[:], variables, forObject)
+def h_61(params, variables, for_object):
+    value, low, high = [evaluate_stack(expr[:], variables, for_object)
                         for expr in params]
     return(low < value < high)
 
-#================================================================================
+#===============================================================================
 # IN command handler
-#================================================================================
+#===============================================================================
 
-def h_62(params, variables, forObject):
-    value, iterable = [evaluateStack(expr[:], variables, forObject)
+def h_62(params, variables, for_object):
+    value, iterable = [evaluate_stack(expr[:], variables, for_object)
                        for expr in params]
     try:
         return value in iterable
     except TypeError:
         return False
 
-#================================================================================
+#===============================================================================
 # HASATTR command handler
-#================================================================================
+#===============================================================================
 
-def h_63(params, variables, forObject):
-    attrName = evaluateStack(params[0][:], variables, forObject)
-    return hasattr(forObject, attrName)
+def h_63(params, variables, for_object):
+    attrName = evaluate_stack(params[0][:], variables, for_object)
+    return hasattr(for_object, attrName)
 
-#================================================================================
+#===============================================================================
 # SLICE command handler
-#================================================================================
+#===============================================================================
 
-def h_64(params, variables, forObject):
-    expression = evaluateStack(params[0][:], variables, forObject)
-    low = evaluateStack(params[1][:], variables, forObject) or None
-    high = evaluateStack(params[2][:], variables, forObject) or None
+def h_64(params, variables, for_object):
+    expression = evaluate_stack(params[0][:], variables, for_object)
+    low = evaluate_stack(params[1][:], variables, for_object) or None
+    high = evaluate_stack(params[2][:], variables, for_object) or None
     if type(expression)==str:
         return unicode(expression, 'utf-8')[low:high].encode('utf-8')
     else:
         return expression[low:high]
 
-#================================================================================
+#===============================================================================
 # IF command handler
-#================================================================================
+#===============================================================================
 
-def h_65(params, variables, forObject):
-    test_expession = evaluateStack(params[0][:], variables, forObject)
+def h_65(params, variables, for_object):
+    test_expession = evaluate_stack(params[0][:], variables, for_object)
     if test_expession:
-        return evaluateStack(params[1][:], variables, forObject)
+        return evaluate_stack(params[1][:], variables, for_object)
     else:
-        return evaluateStack(params[2][:], variables, forObject)
+        return evaluate_stack(params[2][:], variables, for_object)
         
-#================================================================================
+#===============================================================================
 # INSTANCEOF command handler
-#================================================================================
-def h_66(params, variables, forObject):
-    className = evaluateStack(params[0][:], variables, forObject)
-    return isinstance(forObject, misc.get_rto_by_name(className))
+#===============================================================================
+def h_66(params, variables, for_object):
+    className = evaluate_stack(params[0][:], variables, for_object)
+    return isinstance(for_object, misc.get_rto_by_name(className))
 
-#================================================================================
+#===============================================================================
 # GETPARENT command handler
-#================================================================================
-def h_67(params, variables, forObject):
+#===============================================================================
+def h_67(params, variables, for_object):
     if (params):
-        obj = evaluateStack(params[0][:], variables, forObject)
+        obj = evaluate_stack(params[0][:], variables, for_object)
     else:
-        obj = forObject
+        obj = for_object
     return obj.get_parent()
 
-#================================================================================
+#===============================================================================
 # assignment command handler
-#================================================================================
+#===============================================================================
        
 def h_100(params, variables):
-    variables[params[0]] = evaluateStack(params[1][:], variables)
+    variables[params[0]] = evaluate_stack(params[1][:], variables)
 
-#================================================================================
+#===============================================================================
 # oql select command handler
-#================================================================================
+#===============================================================================
 
-def select(deep, children, fields, condition, variables):
+def select(container_id, deep, iterable, fields, condition, variables):
     results = []
-    for child in children:
+    for item in iterable:
         if condition:
-            res = evaluateStack(condition[:], variables, child)
+            res = evaluate_stack(condition[:], variables, item)
         else:
             res = True
         
         if res:
-            fieldlist = [evaluateStack(expr[1], variables, child)
+            fieldlist = [evaluate_stack(expr[1], variables, item)
                          for expr in fields]
             results.append(tuple(fieldlist))
-            
-        if deep and child.isCollection:
-            results1 = select(deep, child.get_children(), fields,
-                              condition, variables)
-            results.extend(results1)
     
-    return (results)
+    if deep:
+        subfolders = db._db.join((('_parentid', container_id),
+                                  ('isCollection', True)))
+        for folder in subfolders:
+            cursor = iterable.duplicate()
+            db._db.switch_cursor_scope(cursor, folder._id)
+            results1 = select(folder._id, deep, cursor, fields, condition,
+                              variables)
+            #cursor.close()
+            results.extend(results1)
+        subfolders.close()
+    
+    return results
 
-def h_200(params, variables, forObject = None):
+def optimize_query(conditions, variables):
+    indexes = []
+    if len(conditions) == 3 \
+            and db._db.has_index(conditions[1]) \
+            and conditions[2] in ['=', '<', '>', '<=', '>=']:
+        index_value = evaluate_stack(conditions[0], variables)
+        if index_value != None:
+            if conditions[2] == '=':
+                indexes.append((conditions[1], index_value))
+            elif conditions[2] == '<':
+                indexes.append((conditions[1],
+                               (None, (index_value, False))))
+            elif conditions[2] == '<=':
+                indexes.append((conditions[1],
+                               (None, (index_value, True))))
+            elif conditions[2] == '>':
+                indexes.append((conditions[1],
+                               ((index_value, False), None)))
+            elif conditions[2] == '>=':
+                indexes.append((conditions[1],
+                               ((index_value, True), None)))
+            conditions = []
+    #print indexes
+    return indexes, conditions
+
+def h_200(params, variables, for_object=None):
     select_fields = params[0]
     
     # get aliases
@@ -332,8 +365,8 @@ def h_200(params, variables, forObject = None):
             variables[alias] = (expr, None, None)
             aliases.append(alias)
 
-    field_names = [ x[1] for x in select_fields ]
-    expressions = [ tuple(x[0::2]) for x in select_fields ]
+    field_names = [x[1] for x in select_fields]
+    expressions = [tuple(x[0::2]) for x in select_fields]
     
     select_from = params[1]
     where_condition = params[2]
@@ -344,7 +377,7 @@ def h_200(params, variables, forObject = None):
         for ind, order_field in enumerate(order_by):
             expr, alias, aggr = order_field
             if alias in aliases:
-                order_by[ind] = select_fields[ field_names.index(alias) ]
+                order_by[ind] = select_fields[field_names.index(alias)]
             elif expr != alias:
                 if (expr, aggr) in expressions:
                     order_by[ind] = select_fields[expressions.index((expr,
@@ -376,36 +409,61 @@ def h_200(params, variables, forObject = None):
     
     aggregates = [x[2] for x in all_fields]
     results = []
+
+    #print where_condition
+    if for_object == None:
+        # in case of not being a subquery, optimize query
+        indexed_lookups, where_condition = \
+            optimize_query(where_condition[:], variables)
     
     for deep, object_id in select_from:
         if deep==2:
             # this:attr
-            if not forObject:
+            if not for_object:
                 raise TypeError, \
                     'Inner scopes using "this:" are valid only in sub-queries'
-            if hasattr(forObject, object_id):
-                attr = getattr(forObject, object_id)
+            if hasattr(for_object, object_id):
+                attr = getattr(for_object, object_id)
                 if isinstance(attr, (datatypes.ReferenceN,
                                      datatypes.Composition)):
-                    refObjects = attr.get_items()
+                    ref_objects = attr.get_items()
                 elif isinstance(attr, datatypes.Reference1):
-                    refObjects = [attr.get_item()]
+                    ref_objects = [attr.get_item()]
                 else:
                     raise TypeError, ('Inner scopes using "this:" are ' +
-                                      'valid only ReferenceN or Reference1 ' +
-                                      'data types')
-                r = select(False, refObjects, all_fields,
+                                      'valid only ReferenceN, Reference1 ' +
+                                      'and Composition data types')
+                r = select(for_object._id, False, ref_objects, all_fields,
                            where_condition, variables)
                 results.extend(r)
         else:
             # swallow-deep
             obj = db.get_item(object_id)
             if obj != None and obj.isCollection:
-                children = obj.get_children()
-                r = select(deep, children, all_fields,
-                           where_condition, variables)
+                if deep and obj._id == '':
+                    deep = False
+                    scope_condition = []
+                else:
+                    scope_condition = [('_parentid', obj._id)]
+                
+                if len(indexed_lookups) == 0:
+                    #print 'not using index'
+                    if scope_condition == []:
+                        # deep traversal of root without index
+                        scope_condition = [('displayName', (None, None))]
+                    cursor = db._db.query_index(*scope_condition[0])
+                else:
+                    #print 'using index'
+                    if len(indexed_lookups) == 1 and not scope_condition:
+                        cursor = db._db.query_index(*indexed_lookups[0])
+                    else:
+                        cursor = db._db.join(indexed_lookups + scope_condition)
+
+                r = select(obj._id, deep, cursor, all_fields, where_condition,
+                           variables)
+                cursor.close()
                 results.extend(r)
-    #print results
+    
     if results:
         if group_by:
             if select_fields:
@@ -433,7 +491,7 @@ def h_200(params, variables, forObject = None):
                 group_sum = []
                 for aggr_index, aggr_type in enumerate(aggregates):
                     # aggregates exclude None values
-                    group_sum.append(computeAggregate(
+                    group_sum.append(compute_aggregate(
                         aggr_type,
                         [x[aggr_index]
                          for x in group
@@ -450,7 +508,7 @@ def h_200(params, variables, forObject = None):
                 istart = len(select_fields)
             sortlist = tuple([x[istart:istart + len(order_by)]
                               for x in results])
-            results = sortList(sortlist, results)
+            results = sort_list(sortlist, results)
             # if it is descending reverse the result list
             if not sort_order: results.reverse()
     
@@ -470,5 +528,3 @@ def h_200(params, variables, forObject = None):
 #    print results
 
     return ObjectSet(tuple(results), schema)
-
-

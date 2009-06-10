@@ -23,9 +23,10 @@ import random
 import os
 import sys
 import imp
+
 from porcupine.core.decorators import deprecated
 
-VALID_ID_CHRS = [
+_VALID_ID_CHRS = [
     chr(x) for x in \
     range(ord('a'), ord('z')) +
     range(ord('A'), ord('Z')) +
@@ -59,9 +60,9 @@ def generate_guid():
     
     @rtype: str
     """
-    return hashlib.md5(str(time.time()+time.clock()*1000)).hexdigest()
+    return hashlib.md5(str(time.time() + time.clock()*1000)).hexdigest()
 generateGUID = deprecated(generate_guid)
-    
+
 def generate_oid():
     """
     Generates an Object ID string.
@@ -70,7 +71,7 @@ def generate_oid():
     
     @rtype: str
     """
-    return ''.join(random.sample(VALID_ID_CHRS, 8))
+    return ''.join(random.sample(_VALID_ID_CHRS, 8))
 generateOID = deprecated(generate_oid)
 
 def get_rto_by_name(name):
@@ -131,4 +132,3 @@ def get_full_path(item):
         sPath += parent.displayName.value + '/'
     return sPath
 getFullPath = deprecated(get_full_path)
-
