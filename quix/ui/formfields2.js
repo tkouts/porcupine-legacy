@@ -166,9 +166,12 @@ QuiX.ui.Combo.prototype.setValue = function(value) {
 				this.selection = opt;
 				opt.selected = true;
 				this.div.firstChild.value = opt.getCaption();
-				if ((this._set || old_value == null) && (value != old_value))
+				if ((this._set || old_value == null)
+                        && (value != old_value)
+                        && this.div.clientWidth)
 					if (this._customRegistry.onchange)
-						QuiX.getEventListener(this._customRegistry.onchange)(this);
+						QuiX.getEventListener(
+                            this._customRegistry.onchange)(this);
 				break;
 			}
 		}
