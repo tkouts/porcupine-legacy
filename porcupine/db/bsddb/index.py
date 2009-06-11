@@ -39,7 +39,7 @@ class DbIndex(BaseIndex):
             primary_db.associate(self.db,
                                  self.callback,
                                  flags=db.DB_CREATE)
-        except Exception, e:
+        except db.DBError, e:
             if e[0] == _err_unsupported_type:
                 # remove index
                 self.close()

@@ -26,13 +26,13 @@ def initialize_db():
 def pack_value(value):
     """
     Packs Python values to C structs used for indexed lookups.
-    Currently supported types include strings, booleans, floats and itegers.
+    Currently supported types include strings, booleans, floats and integers.
     """
     packed = None
     if type(value) == str:
         packed = struct.pack('%ds' % len(value), value)
-    elif type(value) == bool:
-        packed = struct.pack('b', int(value))
+    elif type(value) == bool or value == None:
+        packed = struct.pack('?', value)
     elif type(value) == int:
         packed = struct.pack('>l', value)
     elif type(value) == float:
