@@ -15,10 +15,20 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine object persistence layer"
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 import cPickle
 
 def loads(value):
     return cPickle.loads(value)
 
 def dumps(obj):
-    return cPickle.dumps(obj, 2)
+    f = StringIO()
+    pickler = cPickle.Pickler(f, 2)
+    pickler.fast = True
+    pickler.dump(obj)
+    stream = f.getvalue()
+    f.close()
+    return stream
