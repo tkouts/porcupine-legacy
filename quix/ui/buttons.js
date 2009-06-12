@@ -231,7 +231,8 @@ QuiX.ui.Button = function(/*params*/) {
 						params.onmouseup),
 		onmousedown: QuiX.getEventWrapper(XButton__onmousedown,
 						params.onmousedown),
-		onclick: params.onclick
+		onclick: params.onclick,
+        onload: params.onload
 	});
 	this.div.className = 'btn';
 	this.div.style.cursor = 'pointer';
@@ -239,7 +240,7 @@ QuiX.ui.Button = function(/*params*/) {
 	delete params.id; delete params.top; delete params.left;
 	delete params.minw;	delete params.minh; delete params.onclick;
 	delete params.onmouseover; delete params.onmousedown;
-	delete params.onmouseup; delete params.onmousedown;
+	delete params.onmouseup; delete params.onmousedown; delete params.onload;
 	delete params.bgcolor; delete params.width; delete params.display;
     
 	params.height = '100%';
