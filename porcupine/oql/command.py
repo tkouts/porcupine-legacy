@@ -35,20 +35,18 @@ class OqlCommand(object):
             self.__ast = p.parse(script)
 
     def __execute(self):
-        retVal = []
+        result = []
         for cmd in self.__ast:
-            cmdCode = cmd[0]
-            cmdHandlerFunc = getattr(core, 'h_' + str(cmdCode))
-            ret = cmdHandlerFunc(cmd[1], self.oql_vars)
-            if ret is not None:
-                retVal.append(ret)
-
-        return retVal
+            cmd_code, args = cmd
+            cmd_handler = getattr(core, 'h_%s' % cmd_code)
+            ret = cmd_handler(args, self.oql_vars)
+            if ret != None:
+                result.append(ret)
+        return result
 
     def execute(self, oql_script):
         try:
             self.__parse(oql_script)
-            #PROFILER.runcall(self.__parse, *(oql_script,))
             ret = self.__execute()
             #ret = PROFILER.runcall(self.__execute)
         
@@ -69,7 +67,7 @@ class OqlCommand(object):
         except TypeError, e:
             raise exceptions.InternalServerError, e[0]
         
-        if len(ret)==1:
+        if len(ret) == 1:
            ret = ret[0]
         
         return ret

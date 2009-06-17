@@ -62,8 +62,8 @@ opn1 = {
     "not": lambda a: not a
 }
 
-operators2 = opn2.keys()
-operators1 = opn1.keys()
+operators2 = frozenset(opn2.keys())
+operators1 = frozenset(opn1.keys())
 
 fn  = {
     'len' : len,
@@ -85,20 +85,25 @@ def evaluate_stack(stack, variables, for_object=None):
     except AttributeError:
         op = stack
 
-    if op in operators2:
-        op1 = evaluate_stack(stack, variables, for_object)
-        if op=='and' and not op1:
-            return False
-        elif op=='or' and op1:
-            return True
-        op2 = evaluate_stack(stack, variables, for_object)
-        return opn2[op](op1,op2)
-
-    elif op in operators1:
-        op1 = evaluate_stack(stack, variables, for_object)
-        return opn1[op](op1)
+    if isinstance(op, list):
+        cmdCode = op[0]
+        cmdHandlerFunc = globals()['h_' + str(cmdCode)]
+        return(cmdHandlerFunc(op[1], variables, for_object))
 
     elif isinstance(op, str):
+        if op in operators2:
+            op1 = evaluate_stack(stack, variables, for_object)
+            if op=='and' and not op1:
+                return False
+            elif op=='or' and op1:
+                return True
+            op2 = evaluate_stack(stack, variables, for_object)
+            return opn2[op](op1,op2)
+
+        elif op in operators1:
+            op1 = evaluate_stack(stack, variables, for_object)
+            return opn1[op](op1)
+        
         if op[0]=="'":
             # a string
             return op[1:-1]
@@ -127,12 +132,6 @@ def evaluate_stack(stack, variables, for_object=None):
                 else:
                     if for_object != None:
                         return get_attribute(for_object, op.split('.'))
-
-    elif isinstance(op, list):
-        cmdCode = op[0]
-        cmdHandlerFunc = globals()['h_' + str(cmdCode)]
-        return(cmdHandlerFunc(op[1], variables, for_object))
-
     else:
         return op
         
