@@ -61,8 +61,8 @@ class DB(object):
             additional_flags |= db.DB_RECOVER_FATAL
         elif recovery_mode == 1:
             additional_flags |= db.DB_RECOVER
-        if hasattr(db, 'DB_REGISTER'):
-            additional_flags |= db.DB_RECOVER | db.DB_REGISTER
+            if hasattr(db, 'DB_REGISTER'):
+                additional_flags |= db.DB_REGISTER
 
         self._env = db.DBEnv()
         self._env.set_data_dir(self.dir)

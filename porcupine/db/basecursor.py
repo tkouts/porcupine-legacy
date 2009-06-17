@@ -37,7 +37,6 @@ class BaseCursor(object):
         # fetch_mode possible values are
         # 0: return primary key only
         # 1: return objects
-        # 2: return tuples of (object_id, data_stream)
         self.fetch_mode = 1
         self.fetch_all = False
         self.resolve_shortcuts = False

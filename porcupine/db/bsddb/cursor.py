@@ -18,11 +18,13 @@
 Porcupine Berkeley DB cursor classes
 """
 import copy
+import struct
 from threading import local
 
 from porcupine import exceptions
 from porcupine.db.bsddb import db
 from porcupine.db.basecursor import BaseCursor
+from porcupine.utils.db import pack_value
 
 # thread local storage of open non-transactional cursors
 # used for duplicating cursors in order not avoid
@@ -42,7 +44,7 @@ class Cursor(BaseCursor):
             else:
                 self._cursor = self._index.db.cursor(None, db.DB_READ_COMMITTED)
                 setattr(_cursors, index.name, self._cursor)
-        
+
         self._is_set = False
         self._get_flag = db.DB_NEXT
 
@@ -97,6 +99,18 @@ class Cursor(BaseCursor):
             self._trans.abort()
             raise exceptions.DBRetryTransaction
 
+    def _eval(self, item):
+        if hasattr(item, self._index.name):
+            attr = getattr(item, self._index.name)
+            if attr.__class__.__module__ != '__builtin__':
+                attr = attr.value
+            packed = pack_value(attr)
+            if self._value != None:
+                return self._value == packed
+            else:
+                return packed in self._range
+        return False
+
     def set(self, v):
         BaseCursor.set(self, v)
         self._is_set = False
@@ -124,24 +138,20 @@ class Cursor(BaseCursor):
             else:
                 # range
                 cmp_func = lambda x: x in self._range
-            
+
             try:
-                key, prim_key, value = \
-                    (('',) + self._cursor.pget(db.DB_CURRENT))[-3:]
-                
+                key, value = self._cursor.get(db.DB_CURRENT)
                 while cmp_func(key):
-                    if self.fetch_mode == 0:
-                        yield prim_key
-                    elif self.fetch_mode == 1:
-                        item = self._get_item(value)
-                        if item != None:
+                    item = self._get_item(value)
+                    if item != None:
+                        if self.fetch_mode == 0:
+                            yield item._id
+                        elif self.fetch_mode == 1:
                             yield item
-                    elif self.fetch_mode == 2:
-                        yield (prim_key, value)
-                    next = self._cursor.pget(self._get_flag)
+                    next = self._cursor.get(self._get_flag)
                     if not next:
                         break
-                    key, prim_key, value = (('',) + next)[-3:]
+                    key, value = next
             except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
                 self._trans.abort()
                 raise exceptions.DBRetryTransaction
@@ -185,10 +195,52 @@ class Join(BaseCursor):
         self._reversed = not self._reversed
         [c.reverse() for c in self._cur_list]
 
+    def _optimize(self):
+        sizes = []
+        for cursor in self._cur_list:
+            if cursor._value != None:
+                # equality
+                sizes.append(cursor._cursor.count())
+            else:
+                # range cursor - approximate sizing
+                # assuming even distribution of keys
+                first_value = struct.unpack('>L',
+                    (cursor._cursor.first()[0] + '\x00' * 4)[:4])[0]
+                last_value = struct.unpack('>L',
+                    (cursor._cursor.last()[0] + '\x00' * 4)[:4])[0]
+
+                cursor_range = float(last_value - first_value)
+
+                if cursor._range._lower_value != None:
+                    start_value = struct.unpack('>L',
+                        (cursor._range._lower_value + '\x00' * 4)[:4])[0]
+                    if start_value < first_value:
+                        start_value = first_value
+                else:
+                    start_value = first_value
+
+                if cursor._range._upper_value != None:
+                    end_value = struct.unpack('>L',
+                        (cursor._range._upper_value + '\x00' * 4)[:4])[0]
+                    if end_value > last_value:
+                        end_value = last_value
+                else:
+                    end_value = last_value
+
+                size = int(((end_value - start_value) / cursor_range) *
+                           len(cursor._index.db))
+                sizes.append(size)
+                # reset cursor position
+                cursor._reset_position()
+
+        cursors = zip(sizes, self._cur_list)
+        cursors.sort()
+        return cursors[0][1], [c[1] for c in cursors[1:]]
+
     def __iter__(self):
         is_natural = True
         is_set = True
-        
+
         for cur in self._cur_list:
             is_natural = (cur._value != None) and is_natural
             is_set = cur._is_set and is_set
@@ -217,38 +269,15 @@ class Join(BaseCursor):
                         next = get(0)
                 else:
                     # not a natural join
-                    # TODO: sort cursors
-                    [setattr(c, 'fetch_mode', 0)
-                     for c in self._cur_list[1:]]
-
-                    if self.fetch_mode == 0:
-                        self._cur_list[0].fetch_mode = 0
-                        ids = set(self._cur_list[0])
-                    else:
-                        self._cur_list[0].fetch_mode = 2
-                        ids = None
-
-                    for cursor in self._cur_list[1:]:
-                        if ids != None:
-                            ids.intersection_update(cursor)
-                        else:
-                            ids = set(cursor)
-                        if len(ids) == 0:
-                            raise StopIteration
-                    
-                    if self.fetch_mode == 0:
-                        for id in ids:
-                            yield id
-                    elif self.fetch_mode == 1:
-                        for id, value in self._cur_list[0]:
-                            if id in ids:
-                                item = self._get_item(value)
-                                if item != None:
-                                    yield item
-                    elif self.fetch_mode == 2:
-                        for id, value in self._cur_list[0]:
-                            if id in ids:
-                                yield (id, value)
+                    cursor, rte_cursors = self._optimize()
+                    cursor.fetch_mode = 1
+                    for item in cursor:
+                        is_valid = all([c._eval(item) for c in rte_cursors])
+                        if is_valid:
+                            if self.fetch_mode == 0:
+                                yield item._id
+                            elif self.fetch_mode == 1:
+                                yield item
             except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
                 self._trans.abort()
                 raise exceptions.DBRetryTransaction
