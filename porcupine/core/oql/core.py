@@ -17,6 +17,8 @@
 """
 OQL Core Interpreter
 """
+import types
+
 from porcupine import datatypes
 from porcupine import db
 from porcupine.core.objectSet import ObjectSet
@@ -85,17 +87,28 @@ def evaluate_stack(stack, variables, for_object=None):
     except AttributeError:
         op = stack
 
-    if isinstance(op, list):
-        cmdCode = op[0]
-        cmdHandlerFunc = globals()['h_' + str(cmdCode)]
-        return(cmdHandlerFunc(op[1], variables, for_object))
+    if type(op) == list:
+        cmd_code = op[0]
+        handler = globals()['h_%s' % cmd_code]
+        return handler(op[1], variables, for_object)
 
-    elif isinstance(op, str):
-        if op in operators2:
+    elif type(op) == types.FunctionType:
+        return op(for_object)
+
+    elif type(op) == str:
+        if op[0] == "'":
+            # a string
+            return op[1:-1]
+
+        elif op[0] == "$":
+            # a variable
+            return variables[op[1:]]
+
+        elif op in operators2:
             op1 = evaluate_stack(stack, variables, for_object)
-            if op=='and' and not op1:
+            if op == 'and' and not op1:
                 return False
-            elif op=='or' and op1:
+            elif op == 'or' and op1:
                 return True
             op2 = evaluate_stack(stack, variables, for_object)
             return opn2[op](op1,op2)
@@ -103,28 +116,24 @@ def evaluate_stack(stack, variables, for_object=None):
         elif op in operators1:
             op1 = evaluate_stack(stack, variables, for_object)
             return opn1[op](op1)
-        
-        if op[0]=="'":
-            # a string
-            return op[1:-1]
+
         else:
-            if variables.has_key(op):
-                var = variables[op]
-                if not isinstance(var, tuple):
-                    # a variable
-                    return var
+            if variables.has_key(op) and type(variables[op]) == tuple:
+                # an alias or optimized attribute
+                alias_stack, objectid, alias_value = variables[op]
+                if objectid != for_object._id:
+                    # compute alias
+                    alias_value = evaluate_stack(alias_stack[:],
+                                                 variables,
+                                                 for_object)
+                    # write cached value
+                    variables[op] = (alias_stack,
+                                     for_object._id,
+                                     alias_value)
+                    return alias_value
                 else:
-                    # an alias
-                    alias_stack, objectid, alias_value = var
-                    if objectid != for_object._id:
-                        alias_value = evaluate_stack(alias_stack[:], variables,
-                                                     for_object)
-                        variables[op] = (alias_stack, for_object._id,
-                                         alias_value)
-                        return alias_value
-                    else:
-                        # get alias from cache
-                        return alias_value
+                    # get alias from cache
+                    return alias_value
             else:
                 # an attribute
                 if op == '**':
@@ -137,25 +146,25 @@ def evaluate_stack(stack, variables, for_object=None):
         
 def get_attribute(obj, name_list):
     try:
-        attr = name_list.pop(0)
-        oAttr = getattr(obj, attr) 
-        if isinstance(oAttr, datatypes.DataType):
-            if isinstance(oAttr, datatypes.Reference1):
-                obj = oAttr.get_item()
-            elif isinstance(oAttr, datatypes.ReferenceN) or \
-                    isinstance(oAttr, datatypes.Composition):
-                obj = oAttr.get_items()
-            elif isinstance(oAttr, datatypes.Date):
-                obj = oAttr
+        attr_name = name_list.pop(0)
+        attr = getattr(obj, attr_name)
+        if attr.__class__.__module__ != '__builtin__':
+            if isinstance(attr, datatypes.Reference1):
+                obj = attr.get_item()
+            elif isinstance(attr,
+                            (datatypes.ReferenceN, datatypes.Composition)):
+                obj = attr.get_items()
+            elif isinstance(attr, datatypes.Date):
+                obj = attr
             else:
-                obj = oAttr.value
-        elif attr in ('created', 'modified'):
-            obj = Date(oAttr)
+                obj = attr.value
+        elif attr_name in ('created', 'modified'):
+            obj = Date(attr)
         else:
-            obj = oAttr
+            obj = attr
         
-        if len(name_list):
-            if isinstance(obj, list):
+        if len(name_list) > 0:
+            if type(obj) == list:
                 obj = [get_attribute(item, name_list[:]) for item in obj]
             else:
                 obj = get_attribute(obj, name_list[:])
@@ -304,17 +313,16 @@ def h_100(params, variables):
 
 def select(container_id, deep, iterable, fields, condition, variables):
     results = []
-    for item in iterable:
-        if condition:
-            res = evaluate_stack(condition[:], variables, item)
-        else:
-            res = True
-        
-        if res:
-            fieldlist = [evaluate_stack(expr[1], variables, item)
-                         for expr in fields]
-            results.append(tuple(fieldlist))
-    
+    if condition:
+        results = [tuple(evaluate_stack(expr[1], variables, item)
+                         for expr in fields)
+                   for item in iterable
+                   if evaluate_stack(condition[:], variables, item)]
+    else:
+        results = [tuple(evaluate_stack(expr[1], variables, item)
+                         for expr in fields)
+                   for item in iterable]
+
     if deep:
         subfolders = db._db.join((('_parentid', container_id),
                                   ('isCollection', True)))
@@ -323,7 +331,7 @@ def select(container_id, deep, iterable, fields, condition, variables):
             db._db.switch_cursor_scope(cursor, folder._id)
             results1 = select(folder._id, deep, cursor, fields, condition,
                               variables)
-            #cursor.close()
+            cursor.close()
             results.extend(results1)
         subfolders.close()
     
@@ -405,6 +413,15 @@ def h_200(params, variables, for_object=None):
         all_fields = select_fields + order_by + group_by
     else:
         all_fields = [['**', '**', '']] + order_by + group_by
+
+    # optimize field access
+    for f in all_fields:
+        if type(f[0]) == str and f[0][0]!= "'" \
+                and f[0][0]!='$' and f[0] != '**':
+            field_spec = f[0].split('.')
+            variables[f[1]] = (
+                eval('[lambda x: get_attribute(x, %s)]' % field_spec),
+                None, None)
     
     aggregates = [x[2] for x in all_fields]
     results = []
@@ -523,7 +540,5 @@ def h_200(params, variables, for_object=None):
     else:
         schema = None
         results = tuple([x[:1][0] for x in results])
-        
-#    print results
-
-    return ObjectSet(tuple(results), schema)
+    
+    return ObjectSet(results, schema)

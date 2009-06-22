@@ -178,7 +178,7 @@ class Join(BaseCursor):
         self._cur_list = cursor_list
         self._join = None
         self._db = primary_db
-        if trans:
+        if trans != None:
             trans._cursors.append(self)
 
     def duplicate(self):
@@ -271,8 +271,10 @@ class Join(BaseCursor):
                     # not a natural join
                     cursor, rte_cursors = self._optimize()
                     cursor.fetch_mode = 1
+
                     for item in cursor:
-                        is_valid = all([c._eval(item) for c in rte_cursors])
+                        is_valid = all([c._eval(item)
+                                       for c in rte_cursors])
                         if is_valid:
                             if self.fetch_mode == 0:
                                 yield item._id

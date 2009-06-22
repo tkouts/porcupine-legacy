@@ -17,12 +17,10 @@
 """
 OQL command object
 """
+#import cProfile
 
-#import hotshot
 from porcupine import exceptions
 from porcupine.core.oql import parser, core
-
-#PROFILER = hotshot.Profile("profiler/hotshot.prof")
 
 class OqlCommand(object):
     def __init__(self):
@@ -34,7 +32,7 @@ class OqlCommand(object):
             p = parser.OqlParser()
             self.__ast = p.parse(script)
 
-    def __execute(self):
+    def _execute(self):
         result = []
         for cmd in self.__ast:
             cmd_code, args = cmd
@@ -47,8 +45,9 @@ class OqlCommand(object):
     def execute(self, oql_script):
         try:
             self.__parse(oql_script)
-            ret = self.__execute()
-            #ret = PROFILER.runcall(self.__execute)
+            #ret = []
+            #cProfile.runctx('ret = self._execute()', globals(), locals())
+            ret = self._execute()
         
         except SyntaxError, e:
             lineno = e[1]
