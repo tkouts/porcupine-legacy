@@ -31,12 +31,14 @@ def pack_value(value):
     packed = None
     if type(value) == str:
         packed = struct.pack('%ds' % len(value), value)
-    elif type(value) == bool or value == None:
-        packed = struct.pack('?', value)
+    elif type(value) == bool:
+        packed = struct.pack('c', chr(int(value)))
     elif type(value) == int:
         packed = struct.pack('>l', value)
     elif type(value) == float:
         packed = struct.pack('>f', value)
+    elif value == None:
+        packed = struct.pack('c', chr(0))
     else:
         # unsupported data type
         packed = _err_unsupported_type
