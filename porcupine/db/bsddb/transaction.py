@@ -24,7 +24,7 @@ from porcupine.db.basetransaction import BaseTransaction
 class Transaction(BaseTransaction):
     def __init__(self, env, nosync):
         self.env = env
-        self._flags = db.DB_TXN_NOWAIT | db.DB_READ_COMMITTED
+        self._flags = db.DB_READ_COMMITTED | db.DB_TXN_NOWAIT
         if nosync:
             self._flags |= db.DB_TXN_NOSYNC
         self._cursors = []

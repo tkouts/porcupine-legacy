@@ -24,7 +24,7 @@ class DbIndex(BaseIndex):
     db_mode = 0660
     db_flags = db.DB_THREAD | db.DB_CREATE | db.DB_AUTO_COMMIT
     
-    def __init__(self, env, primary_db, name, unique=False):
+    def __init__(self, env, primary_db, name, unique=False, immutable=False):
         BaseIndex.__init__(self, name, unique)
         self.db = db.DB(env)
         self.db.set_flags(db.DB_DUPSORT)
@@ -36,9 +36,15 @@ class DbIndex(BaseIndex):
             flags = self.db_flags
         )
         try:
+            flags = db.DB_CREATE
+            if immutable:
+                if hasattr(db, 'DB_IMMUTABLE_KEY'):
+                    flags |= db.DB_IMMUTABLE_KEY
+                #else:
+                #    flags |= 0x00000002
             primary_db.associate(self.db,
                                  self.callback,
-                                 flags=db.DB_CREATE)
+                                 flags=flags)
         except db.DBError, e:
             if e[0] == _err_unsupported_type:
                 # remove index

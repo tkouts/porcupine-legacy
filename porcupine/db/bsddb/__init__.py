@@ -101,8 +101,9 @@ class DB(object):
 
         # open indices
         self._indices = {}
-        for name, unique in settings['store']['indices']:
-            self._indices[name] = DbIndex(self._env, self._itemdb, name, unique)
+        for name, unique, immutable in settings['store']['indices']:
+            self._indices[name] = DbIndex(self._env, self._itemdb,
+                                          name, unique, immutable)
 
         self._running = True
 
@@ -307,4 +308,6 @@ class DB(object):
                 self._maintenance_thread.join()
             self._itemdb.close()
             self._docdb.close()
+            # close indexes
+            [index.close() for index in self._indices.values()]
             self._env.close()
