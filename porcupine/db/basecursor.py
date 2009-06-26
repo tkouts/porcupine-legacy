@@ -15,8 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Base database cursor class"
-from threading import currentThread
-
+from porcupine import context
 from porcupine.core import persist
 from porcupine.db import _db
 from porcupine.utils import permsresolver
@@ -27,7 +26,6 @@ class BaseCursor(object):
     "Base cursor class"
 
     def __init__(self, index, trans):
-        self._thread = currentThread()
         self._index = index
         self._value = None
         self._range = None
@@ -49,7 +47,7 @@ class BaseCursor(object):
                     item = _db.get_item(item.target.value, self._trans)
         else:
             # check read permissions
-            access = permsresolver.get_access(item, self._thread.context.user)
+            access = permsresolver.get_access(item, context.user)
             if item._isDeleted or access == 0:
                 item = None
             elif self.resolve_shortcuts and isinstance(item, Shortcut):

@@ -17,7 +17,7 @@
 """
 Web methods for the document content class
 """
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 
@@ -26,5 +26,4 @@ from org.innoscript.desktop.schema.common import Document
 @filters.etag()
 @webmethods.webmethod(of_type=Document)
 def getfile(self):
-    HttpContext.current().response.write_file(self.file.filename,
-                                             self.file.value)
+    context.response.write_file(self.file.filename, self.file.value)

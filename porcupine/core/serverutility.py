@@ -17,19 +17,17 @@
 """
 Server proxy class module
 """
-from porcupineserver import __version__
 from porcupine.config.settings import settings
-from porcupine import db
 
 class Server(object):
     """
     Porcupine Server utility object
     
-    A singleton of this type is available during
-    execution of HTTP requests mainly for providing
-    access to the server's database.
+    Access to this singleton is available through:
+
+    from porcupine import context
+    server = context.server
     
-    @type db: L{db<porcupine.db>}
     @type temp_folder: str
     @type version: str
     """
@@ -40,20 +38,13 @@ class Server(object):
         """
         return settings['global']['temp_folder']
     temp_folder = property(get_temp_folder, None, None,
-                           'The server\'s temporary folder')
+                        "Returns the location of the server's temporary folder")
 
-    def get_db(self):
-        """Getter of the L{db} property.
-        
-        @rtype: L{db<porcupine.db>}
-        """
-        return db
-    db = property(get_db, None, None, 'Porcupine database handle')
-    
     def get_version(self):
         """Getter of the L{version} property.
         
         @rtype: str
         """
+        from porcupineserver import __version__
         return __version__
-    version = property(get_version, None, None, 'The server\'s version')
+    version = property(get_version, None, None, "The server's version")

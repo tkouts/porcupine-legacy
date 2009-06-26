@@ -17,13 +17,14 @@
 """
 Helper functions for the HTTP context
 """
-
-from threading import currentThread
+from porcupine import context
+from porcupine.core.decorators import deprecated
 
 def current():
     """
-    Returns the current HTTP context.
+    Returns the current security context.
     
-    @rtype: L{HttpContext<porcupine.core.context.HttpContext>}
+    @rtype: L{Context<porcupine.core.context.Context>}
     """
-    return currentThread().context
+    return context
+current = deprecated(current, 'from porcupine import context')

@@ -18,10 +18,8 @@
 This modules provides an offline handle for database access through
 the Porcupine API.
 """
-from threading import currentThread
-
+from porcupine import context
 from porcupine.db import _db
-from porcupine.core.context import SecurityContext
 from porcupine.core.decorators import deprecated
 
 def get_handle(identity=None, recover=0):
@@ -29,10 +27,9 @@ def get_handle(identity=None, recover=0):
     _db.open(recover=recover, maintain=False)
     if identity == None:
         identity = _db.get_item('system')
-    currentThread().context = SecurityContext(identity)
+    context.user = identity
     return _db
 getHandle = deprecated(get_handle)
 
 def close():
     _db.close()
-

@@ -21,7 +21,7 @@ import os
 import base64
 
 from porcupine import db
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 
@@ -41,12 +41,11 @@ DESKSTOP_PANE = '''<rect height="-1" overflow="hidden">
 @webmethods.remotemethod(of_type=RootFolder)
 def login(self, username, password):
     "Remote method for authenticating users"
-    http_context = HttpContext.current()
     users_container = db.get_item('users')
     user = users_container.get_child_by_name(username)
     if user and hasattr(user, 'authenticate'):
         if user.authenticate(password):
-            http_context.session.userid = user.id
+            context.session.userid = user.id
             return True
     return False
 
@@ -56,7 +55,7 @@ def login(self, username, password):
 def login(self):
     "Displays the login page"
     return {
-        'URI': HttpContext.current().request.SCRIPT_NAME or '.'
+        'URI': context.request.SCRIPT_NAME or '.'
     }
     
 @filters.i18n('org.innoscript.desktop.strings.resources')
@@ -65,7 +64,7 @@ def login(self):
 def loginas(self):
     "Displays the login as dialog"
     return {
-        'URI': HttpContext.current().request.SCRIPT_NAME + '/?cmd=login'
+        'URI': context.request.SCRIPT_NAME + '/?cmd=login'
     }
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
@@ -74,7 +73,6 @@ def loginas(self):
                    template='../ui.AboutDialog.quix')
 def about(self):
     "Displays the about dialog"
-    context = HttpContext.current()
     return {'VERSION': context.server.version}
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
@@ -83,8 +81,6 @@ def about(self):
                    template='../ui.Dlg_UserSettings.quix')
 def user_settings(self):
     "Displays the user settings dialog"
-    context = HttpContext.current()
-    
     settings = context.user.settings
     taskbar_pos = settings.value.setdefault('TASK_BAR_POS', 'bottom')
     
@@ -134,7 +130,6 @@ def user_settings(self):
 @db.transactional(auto_commit=True)
 def applySettings(self, data):
     "Saves user's preferences"
-    context = HttpContext.current()
     activeUser = context.original_user
     for key in data:
         activeUser.settings.value[key] = data[key]
@@ -148,7 +143,7 @@ def applySettings(self, data):
 def __blank__(self):
     "Displays the browser not supported HTML page"
     return {
-        'USER_AGENT' : HttpContext.current().request.HTTP_USER_AGENT
+        'USER_AGENT' : context.request.HTTP_USER_AGENT
     }
 
 @filters.requires_login('/?cmd=login')
@@ -159,7 +154,6 @@ def __blank__(self):
                    template='../ui.Desktop.quix')
 def __blank__(self):
     "Displays the desktop"
-    context = HttpContext.current()
     oUser = context.user
     
     params = {
@@ -241,14 +235,12 @@ def executeOqlCommand(self, command, range=None):
 
 @webmethods.remotemethod(of_type=RootFolder)
 def logoff(self):
-    context = HttpContext.current()
     context.session.terminate()
     return True
 
 @filters.requires_policy('uploadpolicy')
 @webmethods.remotemethod(of_type=RootFolder)
 def upload(self, chunk, fname):
-    context = HttpContext.current()
     chunk = base64.decodestring(chunk)
     if not fname:
         fileno, fname = context.session.getTempFile()

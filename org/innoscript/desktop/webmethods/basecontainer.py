@@ -24,7 +24,7 @@ Generic interfaces applying to all container types unless overridden.
 import os
 
 from porcupine import db
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 from porcupine import datatypes
@@ -54,8 +54,6 @@ def list(self):
                    max_age=120)
 def new(self):
     "Displays a generic form for creating a new object"
-    context = HttpContext.current()
-    
     sCC = context.request.queryString['cc'][0]
     oNewItem = misc.get_rto_by_name(sCC)()
     
@@ -89,7 +87,6 @@ def new(self):
 @db.transactional(auto_commit=True)
 def create(self, data):
     "Creates a new item"
-    context = HttpContext.current()
     oNewItem = misc.get_rto_by_name(data.pop('CC'))()
 
     # get user role
@@ -129,7 +126,6 @@ def create(self, data):
 @webmethods.remotemethod(of_type=Container)
 def getInfo(self):
     "Returns info about the container's contents"
-    context = HttpContext.current()
     sLang = context.request.get_lang()
     lstChildren = []
     children = self.get_children()
@@ -185,7 +181,6 @@ def getSubtree(self):
                    template='../ui.Dlg_SelectObjects.quix')
 def selectobjects(self):
     "Displays the select objects dialog"
-    context = HttpContext.current()
     sCC = context.request.queryString['cc'][0]
     params = {
         'ID': self.id or '/',

@@ -22,7 +22,7 @@ Generic interfaces applying to all content classes
 unless overriden.
 """
 from porcupine import db
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 from porcupine import datatypes
@@ -179,7 +179,6 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
                    template='../ui.Frm_AutoProperties.quix')
 def properties(self):
     "Displays a generic edit form based on the object's schema"
-    context = HttpContext.current()
     sLang = context.request.get_lang()
     
     user = context.user
@@ -219,7 +218,6 @@ def properties(self):
                    template='../ui.Dlg_Rename.quix')
 def rename(self):
     "Displays the rename dialog"
-    context = HttpContext.current()
     return {
         'TITLE': self.displayName.value,
         'ID': self.id,
@@ -232,7 +230,6 @@ def rename(self):
                    template='../ui.Dlg_SelectContainer.quix') 
 def selectcontainer(self):
     "Displays a dialog for selecting the destination container"
-    context = HttpContext.current()
     rootFolder = db.get_item('')
     params = {
         'ROOT_ID': '/',
@@ -251,7 +248,6 @@ def selectcontainer(self):
 @db.transactional(auto_commit=True)
 def update(self, data):
     "Updates an object based on values contained inside the data dictionary"
-    context = HttpContext.current()
     # get user role
     iUserRole = permsresolver.get_access(self, context.user)
     if data.has_key('__rolesinherited') and \

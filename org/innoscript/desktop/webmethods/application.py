@@ -18,7 +18,7 @@
 Web methods for the application content class
 """
 
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 from porcupine.utils import date, xml, permsresolver
@@ -33,7 +33,6 @@ from org.innoscript.desktop.webmethods import baseitem
                    template='../ui.Frm_AppProperties.quix')
 def properties(self):
     "Displays the application's properties form"
-    context = HttpContext.current()
     sLang = context.request.get_lang()
     user = context.user
     iUserRole = permsresolver.get_access(self, user)

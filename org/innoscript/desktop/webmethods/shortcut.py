@@ -18,13 +18,12 @@
 Web methods for the shortcut content class
 """
 from porcupine import webmethods
-from porcupine import HttpContext
+from porcupine import context
 from porcupine.systemObjects import Shortcut
 
 @webmethods.webmethod(of_type=Shortcut)
 def properties(self):
     "Displays a generic edit form based on the object's schema"
-    context = HttpContext.current()
     rootUrl = context.request.get_root_url()
     context.response.redirect('%s/%s?cmd=properties' % (rootUrl,
                                                         self.target.value))

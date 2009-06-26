@@ -19,17 +19,12 @@ Porcupine Berkeley DB cursor classes
 """
 import copy
 import struct
-from threading import local
 
+from porcupine import context
 from porcupine import exceptions
 from porcupine.db.bsddb import db
 from porcupine.db.basecursor import BaseCursor
 from porcupine.utils.db import pack_value
-
-# thread local storage of open non-transactional cursors
-# used for duplicating cursors in order not avoid
-# lockers starvation
-_cursors = local()
 
 class Cursor(BaseCursor):
     "BerkeleyDB cursor class"
@@ -38,22 +33,17 @@ class Cursor(BaseCursor):
         self._get_cursor()
         if trans != None:
             trans._cursors.append(self)
-#        else:
-#            if hasattr(_cursors, index.name):
-#                self._cursor = getattr(_cursors, index.name).dup()
-#            else:
-#                self._cursor = self._index.db.cursor(None, db.DB_READ_COMMITTED)
-#                setattr(_cursors, index.name, self._cursor)
-
         self._get_flag = db.DB_NEXT
 
     def _get_cursor(self):
-        if hasattr(_cursors, self._index.name):
-            self._cursor = getattr(_cursors, self._index.name).dup()
+        if self._trans != None:
+            self._cursor = self._index.db.cursor(self._trans.txn)
         else:
-            txn = self._trans and self._trans.txn
-            self._cursor = self._index.db.cursor(txn, db.DB_READ_COMMITTED)
-            setattr(_cursors, self._index.name, self._cursor)
+            if context._cursors.has_key(self._index.name):
+                self._cursor = context._cursors[self._index.name].dup()
+            else:
+                self._cursor = self._index.db.cursor(None, db.DB_READ_COMMITTED)
+                context._cursors[self._index.name] = self._cursor
         self._closed = False
 
     def duplicate(self):
@@ -61,7 +51,7 @@ class Cursor(BaseCursor):
         clone._get_cursor()
         return clone
 
-    def _reset_position(self):
+    def _set(self):
         try:
             is_set = False
             if self._reversed:
@@ -123,7 +113,7 @@ class Cursor(BaseCursor):
             self._get_flag = db.DB_NEXT
 
     def __iter__(self):
-        if self._reset_position():
+        if self._set():
             if self._value != None:
                 # equality
                 cmp_func = lambda x: x == self._value
@@ -149,14 +139,14 @@ class Cursor(BaseCursor):
                 raise exceptions.DBRetryTransaction
 
     def _close(self):
-        if getattr(_cursors, self._index.name) == self._cursor:
-            delattr(_cursors, self._index.name)
         self._cursor.close()
 
     def close(self):
         if not self._closed:
             if self._trans != None:
                 self._trans._cursors.remove(self)
+            elif context._cursors[self._index.name] == self._cursor:
+                del context._cursors[self._index.name]
             self._closed = True
             try:
                 self._close()
@@ -219,7 +209,7 @@ class Join(BaseCursor):
                            len(cursor._index.db))
                 sizes.append(size)
                 # reset cursor position
-                cursor._reset_position()
+                cursor._set()
 
         cursors = zip(sizes, self._cur_list)
         cursors.sort()
@@ -233,7 +223,7 @@ class Join(BaseCursor):
         is_set = True
 
         is_natural = all([cur._value != None for cur in self._cur_list])
-        is_set = all([cur._reset_position() for cur in self._cur_list])
+        is_set = all([cur._set() for cur in self._cur_list])
         if is_set:
             if is_natural and not self._reversed:
                 # a natural join
@@ -254,6 +244,7 @@ class Join(BaseCursor):
             else:
                 # not a natural join
                 cursor, rte_cursors = self._optimize()
+                cursor.fetch_all = self.fetch_all
                 cursor.fetch_mode = 1
                 for item in cursor:
                     is_valid = all([c._eval(item)

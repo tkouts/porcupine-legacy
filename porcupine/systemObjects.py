@@ -22,8 +22,8 @@ Use these as base classes to create you own custom objects.
 """
 import time
 import copy
-from threading import currentThread
 
+from porcupine import context
 from porcupine import db
 from porcupine.db import _db
 from porcupine import exceptions
@@ -63,7 +63,7 @@ class Cloneable(object):
         if clear_inherited:
             clone.inheritRoles = False
         
-        user = currentThread().context.user
+        user = context.user
         clone._owner = user._id
         clone._created = time.time()
         clone.modifiedBy = user.displayName.value
@@ -119,7 +119,7 @@ class Cloneable(object):
                 'The destination is contained in the source.'
         
         # check permissions on target folder
-        user = currentThread().context.user
+        user = context.user
         user_role = permsresolver.get_access(target, user)
         if not(self._isSystem) and user_role > permsresolver.READER:
             if not(contentclass in target.containment):
@@ -155,7 +155,7 @@ class Movable(object):
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the target container does not exist.
         """
-        user = currentThread().context.user
+        user = context.user
         user_role = permsresolver.get_access(self, user)
         can_move = (user_role > permsresolver.AUTHOR)
         ## or (user_role == permsresolver.AUTHOR and oItem.owner == user.id)
@@ -238,7 +238,7 @@ class Removable(object):
         @param trans: A valid transaction handle
         @return: None
         """
-        user = currentThread().context.user
+        user = context.user
         self = _db.get_item(self._id, trans)
 
         user_role = permsresolver.get_access(self, user)
@@ -308,7 +308,7 @@ class Removable(object):
         @param trans: A valid transaction handle
         @return: None
         """
-        user = currentThread().context.user
+        user = context.user
         self = _db.get_item(self._id, trans)
         
         user_role = permsresolver.get_access(self, user)
@@ -481,7 +481,7 @@ class GenericItem(object):
         else:
             contentclass = self.get_contentclass()
         
-        user = currentThread().context.user
+        user = context.user
         user_role = permsresolver.get_access(parent, user)
         if user_role == permsresolver.READER:
             raise exceptions.PermissionDenied, \
@@ -650,7 +650,7 @@ class DeletedItem(GenericItem, Removable):
         @return: None
         """
         # check permissions
-        user = currentThread().context.user
+        user = context.user
         user_role = permsresolver.get_access(target, user)
         
         if user_role > permsresolver.READER:
@@ -784,7 +784,7 @@ class Item(GenericItem, Cloneable, Movable, Removable):
         old_item = _db.get_item(self._id, trans)
         parent = _db.get_item(self._parentid, trans)
         
-        user = currentThread().context.user
+        user = context.user
         user_role = permsresolver.get_access(old_item, user)
         
         if user_role > permsresolver.READER:

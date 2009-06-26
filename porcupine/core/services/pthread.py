@@ -19,36 +19,52 @@ import re
 import hashlib
 from cPickle import loads
 
-from porcupine.config.settings import settings
-from porcupine.config import pubdirs
+from porcupine import context
+from porcupine import exceptions
+from porcupine.utils import misc
+from porcupine.db import _db
 
-from porcupine.core.context import ContextThread
-from porcupine.core.http.context import HttpContext
+from porcupine.config import pubdirs
+from porcupine.config.settings import settings
+
 from porcupine.core.http.request import HttpRequest
 from porcupine.core.http.response import HttpResponse
 from porcupine.core.http import ServerPage
-
-from porcupine.db import _db
-from porcupine import exceptions
+from porcupine.core.session import SessionManager
 from porcupine.core.servicetypes.asyncserver import BaseServerThread
-from porcupine.utils import misc
 
-class PorcupineThread(BaseServerThread, ContextThread):
+class PorcupineThread(BaseServerThread):
+    _sid_pattern = re.compile('/\{(.*?)\}')
     _method_cache = {}
 
     def handle_request(self, rh, raw_request=None):
         if raw_request == None:
             raw_request = loads(rh.input_buffer)
-        response = HttpResponse()
-        request = HttpRequest(raw_request)
+        response = context.response = HttpResponse()
+        request = context.request = HttpRequest(raw_request)
                 
         item = None
         registration = None
+
+        # get sessionid
+        session_id = None
+        cookies_enabled = True
+        path_info = request.serverVariables['PATH_INFO']
+        
+        # detect if sessionid is injected in the URL
+        session_match = re.match(self._sid_pattern, path_info)
+        if session_match:
+            path_info = path_info.replace(session_match.group(), '', 1) or '/'
+            request.serverVariables['PATH_INFO'] = path_info
+            session_id = session_match.group(1)
+            cookies_enabled = False
+        # otherwise check cookie
+        elif request.cookies.has_key('_sid'):
+            session_id = request.cookies['_sid'].value
+            cookies_enabled = True
         
         try:
             try:
-                self.context = HttpContext(request, response)
-                path_info = request.serverVariables['PATH_INFO']
                 path_tokens = path_info.split('/')
                 if len(path_tokens) > 1:
                     dir_name = path_tokens[1]
@@ -59,8 +75,8 @@ class PorcupineThread(BaseServerThread, ContextThread):
                     # try to get the requested object from the db
                     item = _db.get_item(path_info)
                     if item != None and not item._isDeleted:
-                        self.context._fetch_session()
-                        self.dispatch_method(item)
+                        self._fetch_session(session_id, cookies_enabled)
+                        self._dispatch_method(item)
                     else:
                         raise exceptions.NotFound, \
                             'The resource "%s" does not exist' % path_info
@@ -79,15 +95,15 @@ class PorcupineThread(BaseServerThread, ContextThread):
                     
                     rtype = registration.type
                     if rtype == 1: # in case of psp fetch session
-                        self.context._fetch_session()
+                        self._fetch_session(session_id, cookies_enabled)
 
                     # apply pre-processing filters
-                    [filter[0].apply(self.context, item, registration, **filter[1])
+                    [filter[0].apply(context, item, registration, **filter[1])
                      for filter in registration.filters
                      if filter[0].type == 'pre']
 
                     if rtype == 1: # psp page
-                        ServerPage.execute(self.context, registration.context)
+                        ServerPage.execute(context, registration.context)
                     elif rtype == 0: # static file
                         f_name = registration.context
                         if_none_match = request.HTTP_IF_NONE_MATCH
@@ -109,7 +125,7 @@ class PorcupineThread(BaseServerThread, ContextThread):
                 if registration.max_age:
                     response.set_expiration(registration.max_age)
                 # apply post-processing filters
-                [filter[0].apply(self.context, item, registration, **filter[1])
+                [filter[0].apply(context, item, registration, **filter[1])
                  for filter in registration.filters
                  if filter[0].type == 'post']
 
@@ -123,23 +139,23 @@ class PorcupineThread(BaseServerThread, ContextThread):
             self.handle_request(rh, raw_request)
             
         except exceptions.PorcupineException, e:
-            e.emit(self.context, item)
+            e.emit(context, item)
                 
         except:
             e = exceptions.InternalServerError()
-            e.emit(self.context, item)
+            e.emit(context, item)
 
         settings['requestinterfaces'][request.interface](rh, response)
 
-    def dispatch_method(self, item):
-        method_name = self.context.request.method or '__blank__'
+    def _dispatch_method(self, item):
+        method_name = context.request.method or '__blank__'
         method = None
         
         # get request parameters
-        r_http_method = self.context.request.serverVariables['REQUEST_METHOD']
-        r_browser = self.context.request.serverVariables['HTTP_USER_AGENT']
-        r_qs = self.context.request.serverVariables['QUERY_STRING']
-        r_lang = self.context.request.get_lang()
+        r_http_method = context.request.serverVariables['REQUEST_METHOD']
+        r_browser = context.request.serverVariables['HTTP_USER_AGENT']
+        r_qs = context.request.serverVariables['QUERY_STRING']
+        r_lang = context.request.get_lang()
         
         method_key = hashlib.md5(''.join((str(hash(item.__class__)),
                                  method_name, r_http_method,
@@ -177,4 +193,38 @@ class PorcupineThread(BaseServerThread, ContextThread):
                 'Unknown method call "%s"' % method_name
         else:
             # execute method
-            getattr(item, method)(self.context)
+            getattr(item, method)(context)
+
+    def _fetch_session(self, session_id, cookies_enabled):
+        session = None
+        if session_id:
+            session = SessionManager.fetch_session(session_id)
+        if session != None:
+            context.session = session
+            context.user = _db.get_item(context.session.userid)
+            context.request.serverVariables["AUTH_USER"] = \
+                context.user.displayName.value
+            if not cookies_enabled:
+                if not session.sessionid in self.request.SCRIPT_NAME:
+                    context.request.serverVariables['SCRIPT_NAME'] += \
+                        '/{%s}' % session.sessionid
+                else:
+                    lstScript = self.request.SCRIPT_NAME.split('/')
+                    context.request.serverVariables['SCRIPT_NAME'] = \
+                        '/%s/{%s}' %(lstScript[1], session.sessionid)
+        else:
+            # create guest session
+            guest_id = settings['sessionmanager']['guest']
+            context.user = _db.get_item(guest_id)
+            new_session = SessionManager.create(guest_id)
+            session_id = new_session.sessionid
+            if 'PMB' in context.request.serverVariables['HTTP_USER_AGENT']:
+                # if is a mobile client
+                # add session id in special header
+                context.response.set_header('Porcupine-Session', session_id)
+            else:
+                # add cookie with sessionid
+                context.response.cookies['_sid'] = session_id
+                context.response.cookies['_sid']['path'] = \
+                    context.request.SCRIPT_NAME + '/'
+            context.session = new_session

@@ -18,7 +18,7 @@
 Web methods for the deleted item content class
 """
 from porcupine import db
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 from porcupine.utils import date, xml
@@ -33,7 +33,6 @@ from org.innoscript.desktop.webmethods import baseitem
                    template='../ui.Frm_DeletedItem.quix')
 def properties(self):
     "Displays the deleted item's properties form"
-    context = HttpContext.current()
     sLang = context.request.get_lang()
     modified = date.Date(self.modified)
     return {

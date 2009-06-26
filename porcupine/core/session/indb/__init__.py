@@ -18,9 +18,9 @@
 Porcupine database session manager
 """
 import time
+from threading import Thread
 
 from porcupine import db
-from porcupine.core.context import ContextThread
 from porcupine.core.session.genericsessionmanager import GenericSessionManager
 from porcupine.core.session.indb import schema
 
@@ -29,8 +29,8 @@ class SessionManager(GenericSessionManager):
     Database session manager implementation class
     """
     supports_multiple_processes = True
-    _expire_thread = ContextThread(name='Session expriration thread',
-                                   target=None)
+    _expire_thread = Thread(name='Session expriration thread',
+                            target=None)
     
     def __init__(self, timeout, **kwargs):
         GenericSessionManager.__init__(self, timeout)
@@ -66,8 +66,9 @@ class SessionManager(GenericSessionManager):
                                    self.revive_threshold
                 # get inactive sessions
                 cursor = db._db.join((
-                    ('_parentid', '_sessions'),
-                    ('modified', (None, expire_threshold))), None)
+                        ('_parentid', '_sessions'),
+                        ('modified', (None, (expire_threshold, False))
+                    )), None)
                 cursor.fetch_all = True
                 sessions = [session for session in cursor]
                 cursor.close()

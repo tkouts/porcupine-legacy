@@ -17,8 +17,7 @@
 """
 Web methods for the group content class
 """
-
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 from porcupine.utils import date, xml, permsresolver
@@ -32,7 +31,6 @@ from org.innoscript.desktop.webmethods import baseitem
                    template='../ui.Frm_GroupProperties.quix')
 def properties(self):
     "Displays the group's properties form"
-    context = HttpContext.current()
     sLang = context.request.get_lang()
 
     user = context.user

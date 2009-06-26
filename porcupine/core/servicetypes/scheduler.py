@@ -16,9 +16,11 @@
 #===============================================================================
 "Porcupine scheduler base classes"
 import time
+from threading import Thread
 
+from porcupine import context
 from porcupine import exceptions
-from porcupine.core.context import ContextThread
+from porcupine.db import _db
 from porcupine.core.servicetypes.service import BaseService
 
 class BaseTask(BaseService):
@@ -28,12 +30,11 @@ class BaseTask(BaseService):
     def __init__(self, name, interval):
         BaseService.__init__(self, name)
         self.interval = interval
-        
+    
     def start(self):
         BaseService.start(self)
-        self.thread = ContextThread('%s thread' % self.name,
-                                    self.thread_loop,
-                                    'system')
+        self.thread = Thread('%s thread' % self.name,
+                             self.thread_loop)
         self.running = True
         self.thread.start()
     
@@ -41,8 +42,10 @@ class BaseTask(BaseService):
         self.running = False
         self.thread.join()
         BaseService.shutdown(self)
-        
+    
     def thread_loop(self):
+        # run as system
+        context.user = _db.get_item('system')
         while self.running:
             time.sleep(self.interval)
             try:
@@ -50,7 +53,7 @@ class BaseTask(BaseService):
             except:
                 e = exceptions.InternalServerError()
                 e.emit()
-            
+    
     def execute(self):
         raise NotImplementedError
         

@@ -17,7 +17,7 @@
 """
 Web methods for the apps' container class
 """
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 
@@ -30,7 +30,6 @@ from org.innoscript.desktop.webmethods import baseitem
                    template='../ui.Frm_AppNew.quix')
 def new(self):
     "Displays the form for creating a new application"
-    context = HttpContext.current()
     oApp = common.Application()
     return {
         'CC': oApp.contentclass,

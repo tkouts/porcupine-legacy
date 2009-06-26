@@ -19,8 +19,8 @@ Porcupine database package
 """
 import time
 import copy
-from threading import currentThread
 
+from porcupine import context
 from porcupine import exceptions
 from porcupine.utils import permsresolver
 from porcupine.core.decorators import deprecated
@@ -40,7 +40,7 @@ def get_item(oid, trans=None):
     """
     item = _db.get_item(oid, trans)
     if item != None and not item._isDeleted and \
-            permsresolver.get_access(item, currentThread().context.user) != 0:
+            permsresolver.get_access(item, context.user) != 0:
         return item
 getItem = deprecated(get_item)
 
@@ -52,7 +52,7 @@ def get_transaction():
     
     @rtype: L{BaseTransaction<porcupine.db.basetransaction.BaseTransaction>}
     """
-    txn = currentThread().context.trans
+    txn = context.trans
     if txn == None:
         raise exceptions.InternalServerError, \
             "Not in a transactional context. Use @db.transactional."
@@ -68,13 +68,12 @@ def transactional(auto_commit=False, nosync=False):
         transactional.
         """
         def transactional_wrapper(*args):
-            c_thread = currentThread()
-            if c_thread.context.trans == None:
+            if context.trans == None:
                 txn = _db.get_transaction(nosync)
-                c_thread.context.trans = txn
+                context.trans = txn
                 is_top_level = True
             else:
-                txn = c_thread.context.trans
+                txn = context.trans
                 is_top_level = False
             retries = 0
             sleep_time = _min_sleep_time
@@ -110,7 +109,7 @@ def transactional(auto_commit=False, nosync=False):
                 raise exceptions.DBDeadlockError
             finally:
                 if is_top_level:
-                    c_thread.context.trans = None
+                    context.trans = None
         transactional_wrapper.func_name = function.func_name
         transactional_wrapper.func_doc = function.func_doc
         transactional_wrapper.__module__ = function.__module__

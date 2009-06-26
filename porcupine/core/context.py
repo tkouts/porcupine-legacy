@@ -14,30 +14,16 @@
 #    along with Porcupine; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
-"Security context classes"
-from threading import Thread
+"Security context thread local class"
+from threading import local
+from porcupine.core.serverutility import Server
 
-from porcupine import db
-
-class ContextThread(Thread):
-    """
-    Base thread class for providing the required security context.
-    """
-    def __init__(self, target, name, user_id=None, args=()):
-        Thread.__init__(self, name=name, target=target, args=args)
-        if user_id != None:
-            user = db._db.get_item(user_id)
-        else:
-            user = None
-        self.context = SecurityContext(user)
-
-class SecurityContext(object):
-    """
-    An instance of this class should be attached to any thread that is
-    accessing the Porcupine API.
-    
-    The user attribute is the user the current thread is acting on behalf.
-    """
-    def __init__(self, user=None):
-        self.user = user
+class Context(local):
+    server = Server()
+    def __init__(self):
+        self.user = None
         self.trans = None
+        # thread local storage of open cursors
+        # used for duplicating cursors in order not avoid
+        # lockers starvation
+        self._cursors = {}

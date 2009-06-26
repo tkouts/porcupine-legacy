@@ -17,7 +17,7 @@
 """
 Web methods for the users' container class
 """
-from porcupine import HttpContext
+from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 
@@ -31,7 +31,6 @@ from org.innoscript.desktop.webmethods import baseitem
                    max_age=1200)
 def new(self):
     "Displays the form for creating a new user"
-    context = HttpContext.current()
     oUser = security.User()
     return {
         'CC' : oUser.contentclass,
@@ -49,7 +48,6 @@ def new(self):
                    template='../ui.Frm_GroupNew.quix',
                    max_age=1200)
 def new(self):
-    context = HttpContext.current()
     oGroup = security.Group()
     return {
         'CC' : oGroup.contentclass,
@@ -60,4 +58,3 @@ def new(self):
         'POLICIES_REL_CC' : '|'.join(oGroup.policies.relCc),
         'SECURITY_TAB' : baseitem._getSecurity(self, context.user, True)
     }
-    

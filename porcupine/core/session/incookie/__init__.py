@@ -20,7 +20,7 @@ Porcupine cookie based session manager classes
 import time
 import hashlib
 
-from porcupine import HttpContext, exceptions
+from porcupine import context, exceptions
 from porcupine.utils import misc
 from porcupine.core import persist
 from porcupine.core.session.genericsessionmanager import GenericSessionManager
@@ -50,11 +50,10 @@ class SessionManager(GenericSessionManager):
         return session
 
     def get_session(self, sessionid):
-        request = HttpContext.current().request
+        request = context.request
         return Session.load(request)
 
     def remove_session(self, sessionid):
-        context = HttpContext.current()
         request = context.request
         response = context.response
         i = 0
@@ -111,7 +110,6 @@ class Session(GenericSession):
         return sig.hexdigest()
     
     def _update(self):
-        context = HttpContext.current()
         chunk = persist.dumps(self)
         chunks = [chunk[i:i + 4000]
                   for i in range(0, len(chunk), 4000)]
