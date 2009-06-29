@@ -25,7 +25,6 @@ import copy
 
 from porcupine import context
 from porcupine import db
-from porcupine.db import _db
 from porcupine import exceptions
 from porcupine import datatypes
 from porcupine.core.objectSet import ObjectSet
@@ -70,8 +69,8 @@ class Cloneable(object):
         clone.modified = time.time()
         clone._parentid = target._id
         
-        _db.handle_update(clone, None, trans)
-        _db.put_item(clone, trans)
+        db._db.handle_update(clone, None, trans)
+        db._db.put_item(clone, trans)
 
         if self.isCollection:
             [child._copy(clone, trans) for child in self.get_children(trans)]
@@ -103,7 +102,7 @@ class Cloneable(object):
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the target container does not exist.
         """
-        target = _db.get_item(target_id, trans)
+        target = db._db.get_item(target_id, trans)
         if target == None or target._isDeleted:
             raise exceptions.ObjectNotFound, (
                 'The target container "%s" does not exist.' % target_id)
@@ -130,7 +129,7 @@ class Cloneable(object):
             self._copy(target, trans, clear_inherited=True)
             # update parent
             target.modified = time.time()
-            _db.put_item(target, trans)
+            db._db.put_item(target, trans)
         else:
             raise exceptions.PermissionDenied, \
                 'The object was not copied.\n' + \
@@ -161,7 +160,7 @@ class Movable(object):
         ## or (user_role == permsresolver.AUTHOR and oItem.owner == user.id)
 
         parent_id = self._parentid
-        target = _db.get_item(target_id, trans)
+        target = db._db.get_item(target_id, trans)
         if target == None or target._isDeleted:
             raise exceptions.ObjectNotFound, (
                 'The target container "%s" does not exist.' % target_id)
@@ -188,17 +187,17 @@ class Movable(object):
             self._parentid = target._id
             self.inheritRoles = False
             self.modified = time.time()
-            _db.check_unique(self, None, trans)
-            _db.put_item(self, trans)
+            db._db.check_unique(self, None, trans)
+            db._db.put_item(self, trans)
 
             # update target
             target.modified = time.time()
-            _db.put_item(target, trans)
+            db._db.put_item(target, trans)
 
             # update parent
-            parent = _db.get_item(parent_id, trans)
+            parent = db._db.get_item(parent_id, trans)
             parent.modified = time.time()
-            _db.put_item(parent, trans)
+            db._db.put_item(parent, trans)
         else:
             raise exceptions.PermissionDenied, \
                 'The object was not moved.\n' + \
@@ -222,11 +221,11 @@ class Removable(object):
         @param trans: A valid transaction handle
         @return: None
         """
-        _db.handle_delete(self, trans, True)
-        _db.delete_item(self, trans)
+        db._db.handle_delete(self, trans, True)
+        db._db.delete_item(self, trans)
         
         if self.isCollection:
-            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor = db._db.query_index('_parentid', self._id, trans)
             cursor.fetch_all = True
             [child._delete(trans) for child in cursor]
             cursor.close()
@@ -239,7 +238,7 @@ class Removable(object):
         @return: None
         """
         user = context.user
-        self = _db.get_item(self._id, trans)
+        self = db._db.get_item(self._id, trans)
 
         user_role = permsresolver.get_access(self, user)
         can_delete = (user_role > permsresolver.AUTHOR) or \
@@ -249,9 +248,9 @@ class Removable(object):
             # delete item physically
             self._delete(trans)
             # update container
-            parent = _db.get_item(self._parentid, trans)
+            parent = db._db.get_item(self._parentid, trans)
             parent.modified = time.time()
-            _db.put_item(parent, trans)
+            db._db.put_item(parent, trans)
         else:
             raise exceptions.PermissionDenied, \
                 'The object was not deleted.\n' + \
@@ -265,17 +264,17 @@ class Removable(object):
         @return: None
         """
         if not self._isDeleted:
-            _db.handle_delete(self, trans, False)
+            db._db.handle_delete(self, trans, False)
         
         self._isDeleted = int(self._isDeleted) + 1
         
         if self.isCollection:
-            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor = db._db.query_index('_parentid', self._id, trans)
             cursor.fetch_all = True
             [child._recycle(trans) for child in cursor]
             cursor.close()
         
-        _db.put_item(self, trans)
+        db._db.put_item(self, trans)
         
     def _undelete(self, trans):
         """
@@ -285,17 +284,17 @@ class Removable(object):
         @return: None
         """
         if int(self._isDeleted) == 1:
-            _db.handle_undelete(self, trans)
+            db._db.handle_undelete(self, trans)
         
         self._isDeleted = int(self._isDeleted) - 1
         
         if self.isCollection:
-            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor = db._db.query_index('_parentid', self._id, trans)
             cursor.fetch_all = True
             [child._undelete(trans) for child in cursor]
             cursor.close()
         
-        _db.put_item(self, trans)
+        db._db.put_item(self, trans)
 
     def recycle(self, rb_id, trans):
         """
@@ -309,7 +308,7 @@ class Removable(object):
         @return: None
         """
         user = context.user
-        self = _db.get_item(self._id, trans)
+        self = db._db.get_item(self._id, trans)
         
         user_role = permsresolver.get_access(self, user)
         can_delete = (user_role > permsresolver.AUTHOR) or \
@@ -325,22 +324,22 @@ class Removable(object):
             deleted._parentid = rb_id
             
             # check recycle bin's containment
-            recycle_bin = _db.get_item(rb_id, trans)
+            recycle_bin = db._db.get_item(rb_id, trans)
             if not(deleted.get_contentclass() in recycle_bin.containment):
                 raise exceptions.ContainmentError, \
                     'The target container does not accept ' + \
                     'objects of type\n"%s".' % deleted.get_contentclass()
             
-            _db.handle_update(deleted, None, trans)
-            _db.put_item(deleted, trans)
+            db._db.handle_update(deleted, None, trans)
+            db._db.put_item(deleted, trans)
             
             # delete item logically
             self._recycle(trans)
             
             # update container
-            parent = _db.get_item(self._parentid, trans)
+            parent = db._db.get_item(self._parentid, trans)
             parent.modified = time.time()
-            _db.put_item(parent, trans)
+            db._db.put_item(parent, trans)
         else:
             raise exceptions.PermissionDenied, \
                 'The object was not deleted.\n' + \
@@ -380,7 +379,7 @@ class Composite(object):
         
         @rtype: dict
         """
-        return(_db.get_item(self._containerid).security)
+        return(db._db.get_item(self._containerid).security)
     security = property(get_security)
 
     def get_id(self):
@@ -456,11 +455,11 @@ class GenericItem(object):
         if self.inheritRoles:
             self.security = parent.security
         if self.isCollection and not is_new:
-            cursor = _db.query_index('_parentid', self._id, trans)
+            cursor = db._db.query_index('_parentid', self._id, trans)
             cursor.fetch_all = True
             for child in cursor:
                 child._apply_security(self, is_new, trans)
-                _db.put_item(child, trans)
+                db._db.put_item(child, trans)
             cursor.close()
 
     def append_to(self, parent, trans):
@@ -474,7 +473,7 @@ class GenericItem(object):
         @return: None
         """
         if type(parent) == str:
-            parent = _db.get_item(parent, trans)
+            parent = db._db.get_item(parent, trans)
         
         if isinstance(self, Shortcut):
             contentclass = self.get_target_contentclass(trans)
@@ -506,10 +505,10 @@ class GenericItem(object):
         self.modifiedBy = user.displayName.value
         self.modified = time.time()
         self._parentid = parent._id
-        _db.handle_update(self, None, trans)
+        db._db.handle_update(self, None, trans)
         parent.modified = self.modified
-        _db.put_item(self, trans)
-        _db.put_item(parent, trans)
+        db._db.put_item(self, trans)
+        db._db.put_item(parent, trans)
     appendTo = deprecated(append_to)
     
     def is_contained_in(self, item_id, trans=None):
@@ -524,7 +523,7 @@ class GenericItem(object):
         while item._id != '':
             if item._id == item_id:
                 return True
-            item = _db.get_item(item.parentid, trans)
+            item = db._db.get_item(item.parentid, trans)
         return False
     isContainedIn = deprecated(is_contained_in)
     
@@ -669,7 +668,7 @@ class DeletedItem(GenericItem, Removable):
         @return: the deleted item
         @rtype: L{GenericItem}
         """
-        return _db.get_item(self._deletedId)
+        return db._db.get_item(self._deletedId)
     getDeletedItem = deprecated(get_deleted_item)
 
     def append_to(self, *args, **kwargs):
@@ -712,14 +711,14 @@ class DeletedItem(GenericItem, Removable):
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the original location or the original item no longer exists.
         """
-        deleted = _db.get_item(self._deletedId, trans)
+        deleted = db._db.get_item(self._deletedId, trans)
         if deleted == None:
             raise exceptions.ObjectNotFound, (
                 'Cannot locate original item.\n' +
                 'It seems that this item resided in a container\n' +
                 'that has been permanently deleted or it is shortcut\n' +
                 'having its target permanently deleted.')
-        parent = _db.get_item(parent_id or deleted._parentid, trans)
+        parent = db._db.get_item(parent_id or deleted._parentid, trans)
         if parent == None or parent._isDeleted:
             raise exceptions.ObjectNotFound, (
                 'Cannot locate target container.\n' +
@@ -739,7 +738,7 @@ class DeletedItem(GenericItem, Removable):
         self._restore(deleted, parent, trans)
         # update parent
         parent.modified = time.time()
-        _db.put_item(parent, trans)
+        db._db.put_item(parent, trans)
         # delete self
         self.delete(trans, _remove_deleted=False)
     restoreTo = deprecated(restore_to)
@@ -755,7 +754,7 @@ class DeletedItem(GenericItem, Removable):
         Removable.delete(self, trans)
         if _remove_deleted:
             # we got a direct call. remove deleted item
-            deleted = _db.get_item(self._deletedId, trans)
+            deleted = db._db.get_item(self._deletedId, trans)
             if deleted != None:
                 deleted._delete(trans)
 
@@ -781,8 +780,8 @@ class Item(GenericItem, Cloneable, Movable, Removable):
         @param trans: A valid transaction handle
         @return: None
         """
-        old_item = _db.get_item(self._id, trans)
-        parent = _db.get_item(self._parentid, trans)
+        old_item = db._db.get_item(self._id, trans)
+        parent = db._db.get_item(self._parentid, trans)
         
         user = context.user
         user_role = permsresolver.get_access(old_item, user)
@@ -800,12 +799,12 @@ class Item(GenericItem, Cloneable, Movable, Removable):
                 self.security = old_item.security
                 self.inheritRoles = old_item.inheritRoles
 
-            _db.handle_update(self, old_item, trans)
+            db._db.handle_update(self, old_item, trans)
             self.modifiedBy = user.displayName.value
             self.modified = time.time()
             parent.modified = self.modified
-            _db.put_item(self, trans)
-            _db.put_item(parent, trans)
+            db._db.put_item(self, trans)
+            db._db.put_item(parent, trans)
         else:
             raise exceptions.PermissionDenied, \
                     'The user does not have update permissions.'
@@ -842,7 +841,7 @@ class Shortcut(Item):
         @return: L{Shortcut}
         """
         if type(target) == str:
-            target = _db.get_item(target, trans)
+            target = db._db.get_item(target, trans)
         shortcut = Shortcut()
         shortcut.displayName.value = target.displayName.value
         shortcut.target.value = target._id
@@ -872,9 +871,9 @@ class Shortcut(Item):
         @rtype: str
         """
         if self.target.value:
-            target = _db.get_item(self.target.value, trans)
+            target = db._db.get_item(self.target.value, trans)
             while isinstance(target, Shortcut):
-                target = _db.get_item(target.target.value, trans)
+                target = db._db.get_item(target.target.value, trans)
             return target.get_contentclass()
 
 class Container(Item):
@@ -905,7 +904,7 @@ class Container(Item):
         @rtype: bool
         """
         conditions = (('_parentid', self._id), ('displayName', name))
-        return _db.test_join(conditions, trans)
+        return db._db.test_join(conditions, trans)
     childExists = deprecated(child_exists)
     
     def get_child_id(self, name, trans=None):
@@ -920,7 +919,7 @@ class Container(Item):
         @rtype: str
         """
         conditions = (('_parentid', self._id), ('displayName', name))
-        cursor = _db.join(conditions, trans)
+        cursor = db._db.join(conditions, trans)
         cursor.fetch_mode = 0
         iterator = iter(cursor)
         try:
@@ -943,7 +942,7 @@ class Container(Item):
         @rtype: L{GenericItem}
         """
         conditions = (('_parentid', self._id), ('displayName', name))
-        cursor = _db.join(conditions, trans)
+        cursor = db._db.join(conditions, trans)
         iterator = iter(cursor)
         try:
             child = iterator.next()
@@ -960,7 +959,7 @@ class Container(Item):
         @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
-        cursor = _db.query_index('_parentid', self._id, trans)
+        cursor = db._db.query_index('_parentid', self._id, trans)
         cursor.resolve_shortcuts = resolve_shortcuts
         children = ObjectSet([c for c in cursor])
         cursor.close()
@@ -975,7 +974,7 @@ class Container(Item):
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('_parentid', self._id), ('isCollection', False))
-        cursor = _db.join(conditions, trans)
+        cursor = db._db.join(conditions, trans)
         cursor.resolve_shortcuts = resolve_shortcuts
         items = ObjectSet([i for i in cursor])
         cursor.close()
@@ -990,7 +989,7 @@ class Container(Item):
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('_parentid', self._id), ('isCollection', True))
-        cursor = _db.join(conditions, trans)
+        cursor = db._db.join(conditions, trans)
         cursor.resolve_shortcuts = resolve_shortcuts
         subfolders = ObjectSet([f for f in cursor])
         cursor.close()
@@ -1005,7 +1004,7 @@ class Container(Item):
         @rtype: bool
         """
         conditions = (('_parentid', self._id), ('isCollection', False))
-        return _db.test_join(conditions, trans)
+        return db._db.test_join(conditions, trans)
     hasChildren = deprecated(has_children)
     
     def has_subfolders(self, trans=None):
@@ -1016,7 +1015,7 @@ class Container(Item):
         @rtype: bool
         """
         conditions = (('_parentid', self._id), ('isCollection', True))
-        return _db.test_join(conditions, trans)
+        return db._db.test_join(conditions, trans)
     hasSubfolders = deprecated(has_subfolders)
 
 class RecycleBin(Container):

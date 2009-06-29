@@ -22,7 +22,8 @@ class Context(local):
     server = Server()
     def __init__(self):
         self.user = None
-        self.trans = None
+        # transaction
+        self._trans = None
         # thread local storage of open cursors
         # used for duplicating cursors in order not avoid
         # lockers starvation

@@ -52,10 +52,10 @@ def get_transaction():
     
     @rtype: L{BaseTransaction<porcupine.db.basetransaction.BaseTransaction>}
     """
-    txn = context.trans
+    txn = context._trans
     if txn == None:
         raise exceptions.InternalServerError, \
-            "Not in a transactional context. Use @db.transactional."
+            "Not in a transactional context. Use @db.transactional()."
     return txn
 getTransaction = deprecated(get_transaction)
 
@@ -68,12 +68,12 @@ def transactional(auto_commit=False, nosync=False):
         transactional.
         """
         def transactional_wrapper(*args):
-            if context.trans == None:
+            if context._trans == None:
                 txn = _db.get_transaction(nosync)
-                context.trans = txn
+                context._trans = txn
                 is_top_level = True
             else:
-                txn = context.trans
+                txn = context._trans
                 is_top_level = False
             retries = 0
             sleep_time = _min_sleep_time
@@ -109,7 +109,7 @@ def transactional(auto_commit=False, nosync=False):
                 raise exceptions.DBDeadlockError
             finally:
                 if is_top_level:
-                    context.trans = None
+                    context._trans = None
         transactional_wrapper.func_name = function.func_name
         transactional_wrapper.func_doc = function.func_doc
         transactional_wrapper.__module__ = function.__module__
