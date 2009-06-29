@@ -260,6 +260,7 @@ class Join(BaseCursor):
             self._join.close()
 
     def close(self):
+        [cur.close() for cur in self._cur_list]
         if self._trans:
             self._trans._cursors.remove(self)
         try:
@@ -267,4 +268,3 @@ class Join(BaseCursor):
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             self._trans.abort()
             raise exceptions.DBRetryTransaction
-        [cur.close() for cur in self._cur_list]

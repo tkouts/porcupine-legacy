@@ -17,17 +17,22 @@
 """
 Porcupine Server Base Transaction class
 """
+from threading import Semaphore
+
 from porcupine.db import _db
 from porcupine.config.settings import settings
 
 class BaseTransaction(object):
     "The base type of a Porcupine transaction."
     txn_max_retries = settings['store'].get('trans_max_retries', 12)
+    max_trans = Semaphore(settings['store'].get('max_tx_per_process', 20))
     
     def __init__(self):
+        self.max_trans.acquire()
         _db._activeTxns += 1
 
     def _retry(self):
+        self.max_trans.acquire()
         _db._activeTxns += 1
 
     def commit(self):
@@ -36,6 +41,7 @@ class BaseTransaction(object):
 
         @return: None
         """
+        self.max_trans.release()
         _db._activeTxns -= 1
 
     def abort(self):
@@ -44,4 +50,5 @@ class BaseTransaction(object):
 
         @return: None
         """
+        self.max_trans.release()
         _db._activeTxns -= 1

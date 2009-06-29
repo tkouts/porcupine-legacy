@@ -61,7 +61,7 @@ getTransaction = deprecated(get_transaction)
 
 def transactional(auto_commit=False, nosync=False):
     _min_sleep_time = 0.072
-    _max_sleep_time = 0.576
+    _max_sleep_time = 0.288
     def transactional_decorator(function):
         """
         This is the descriptor for making a function or a web method
@@ -88,7 +88,7 @@ def transactional(auto_commit=False, nosync=False):
                                 sleep_time *= 2
                                 if sleep_time > _max_sleep_time:
                                     sleep_time = _max_sleep_time + \
-                                                 (retries * _min_sleep_time)
+                                                 (retries * 0.01)
                                 txn._retry()
                         else:
                             cargs = args
