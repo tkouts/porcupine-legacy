@@ -70,12 +70,13 @@ class Session(GenericItem, GenericSession):
         return self._id
     sessionid = property(get_sessionid)
 
-    def append_to(self, parent, trans):
+    @db.requires_transactional_context
+    def append_to(self, parent, trans=None):
         """
         A lighter append_to
         """
         if type(parent) == str:
-            parent = db._db.get_item(parent, trans)
+            parent = db._db.get_item(parent)
         
         if not(self.get_contentclass() in parent.containment):
             raise exceptions.ContainmentError, \
@@ -87,20 +88,22 @@ class Session(GenericItem, GenericSession):
         self.modifiedBy = 'SYSTEM'
         self.modified = time.time()
         self._parentid = parent._id
-        db._db.put_item(self, trans)
+        db._db.put_item(self)
 
-    def update(self, trans):
+    @db.requires_transactional_context
+    def update(self, trans=None):
         """
         A lighter update
         """
         self.modified = time.time()
-        db._db.put_item(self, trans)
+        db._db.put_item(self)
 
-    def delete(self, trans):
+    @db.requires_transactional_context
+    def delete(self, trans=None):
         """
         A lighter delete
         """
-        db._db.delete_item(self, trans)
+        db._db.delete_item(self)
 
     def get_last_accessed(self):
         return self.modified

@@ -27,6 +27,7 @@ except ImportError:
     from bsddb import db
 from threading import Thread
 
+from porcupine import context
 from porcupine import exceptions
 from porcupine.core import persist
 from porcupine.config.settings import settings
@@ -117,18 +118,19 @@ class DB(object):
         return self._running
 
     # item operations
-    def get_item(self, oid, trans=None):
+    def get_item(self, oid):
         try:
-            return self._itemdb.get(oid, txn=trans and trans.txn)
+            return self._itemdb.get(oid,
+                                    txn=context._trans and context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
 
-    def put_item(self, item, trans=None):
+    def put_item(self, item):
         try:
-            self._itemdb.put(item._id, persist.dumps(item), trans and trans.txn)
+            self._itemdb.put(item._id, persist.dumps(item), context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
         except db.DBError, e:
             if e[0] == _err_unsupported_type:
@@ -136,40 +138,41 @@ class DB(object):
             else:
                 raise
 
-    def delete_item(self, oid, trans):
+    def delete_item(self, oid):
         try:
-            self._itemdb.delete(oid, trans and trans.txn)
+            self._itemdb.delete(oid, context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
 
     # external attributes
-    def get_external(self, id, trans):
+    def get_external(self, id):
         try:
-            return self._docdb.get(id, txn=trans and trans.txn)
+            return self._docdb.get(id,
+                                   txn=context._trans and context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
 
-    def put_external(self, id, stream, trans):
+    def put_external(self, id, stream):
         try:
-            self._docdb.put(id, stream, trans and trans.txn)
+            self._docdb.put(id, stream, context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
 
-    def delete_external(self, id, trans):
+    def delete_external(self, id):
         try:
-            self._docdb.delete(id, trans and trans.txn)
+            self._docdb.delete(id, context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
 
     # indices
-    def get_cursor_list(self, conditions, trans):
+    def get_cursor_list(self, conditions):
         cur_list = []
         for index, value in conditions:
-            cursor = Cursor(self._indices[index], trans)
+            cursor = Cursor(self._indices[index])
             if type(value) == tuple:
                 cursor.set_range(value[0], value[1])
             else:
@@ -177,13 +180,13 @@ class DB(object):
             cur_list.append(cursor)
         return cur_list
 
-    def query_index(self, index, value, trans):
-        cursor = self.get_cursor_list(((index, value),), trans)[0]
+    def query_index(self, index, value):
+        cursor = self.get_cursor_list(((index, value),))[0]
         return cursor
 
-    def join(self, conditions, trans):
-        cur_list = self.get_cursor_list(conditions, trans)
-        c_join = Join(self._itemdb, cur_list, trans)
+    def join(self, conditions):
+        cur_list = self.get_cursor_list(conditions)
+        c_join = Join(self._itemdb, cur_list)
         return c_join
 
     def switch_cursor_scope(self, cursor, scope):
@@ -193,9 +196,9 @@ class DB(object):
         else:
             cursor.set(scope)
 
-    def test_join(self, conditions, trans):
-        cur_list = self.get_cursor_list(conditions, trans)
-        c_join = Join(self._itemdb, cur_list, trans)
+    def test_join(self, conditions):
+        cur_list = self.get_cursor_list(conditions)
+        c_join = Join(self._itemdb, cur_list)
         iterator = iter(c_join)
         try:
             result = bool(iterator.next())

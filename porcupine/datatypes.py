@@ -366,7 +366,7 @@ class Composition(DataType):
         
         @rtype: list
         """
-        return [db._db.get_item(id, trans) for id in self.value]
+        return [db._db.get_item(id) for id in self.value]
     getItems = deprecated(get_items)
 
 class RequiredComposition(Composition):

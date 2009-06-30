@@ -38,7 +38,7 @@ def get_item(oid, trans=None):
     
     @rtype: L{GenericItem<porcupine.systemObjects.GenericItem>}
     """
-    item = _db.get_item(oid, trans)
+    item = _db.get_item(oid)
     if item != None and not item._isDeleted and \
             permsresolver.get_access(item, context.user) != 0:
         return item
@@ -59,12 +59,28 @@ def get_transaction():
     return txn
 getTransaction = deprecated(get_transaction)
 
+def requires_transactional_context(function):
+    """
+    Use this descriptor to ensure that a function or method is
+    run in a transactional context. Required for functions/methods that perform
+    database updates.
+    """
+    def rtc_wrapper(*args, **kwargs):
+        if context._trans == None:
+            raise exceptions.InternalServerError, \
+                "Not in a transactional context. Use @db.transactional()."
+        return function(*args, **kwargs)
+    rtc_wrapper.func_name = function.func_name
+    rtc_wrapper.func_doc = function.func_doc
+    rtc_wrapper.__module__ = function.__module__
+    return rtc_wrapper
+
 def transactional(auto_commit=False, nosync=False):
     _min_sleep_time = 0.072
     _max_sleep_time = 0.288
     def transactional_decorator(function):
         """
-        This is the descriptor for making a function or a web method
+        This is the descriptor for making a function or a Web method
         transactional.
         """
         def transactional_wrapper(*args):
@@ -88,7 +104,7 @@ def transactional(auto_commit=False, nosync=False):
                                 sleep_time *= 2
                                 if sleep_time > _max_sleep_time:
                                     sleep_time = _max_sleep_time + \
-                                                 (retries * 0.01)
+                                                 (retries * _min_sleep_time)
                                 txn._retry()
                         else:
                             cargs = args

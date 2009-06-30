@@ -18,6 +18,7 @@
 import os
 import time
 
+from porcupine import context
 from porcupine.core import persist
 from porcupine import exceptions
 from porcupine.utils import misc
@@ -42,59 +43,59 @@ def open(**kwargs):
     else:
         return False
     
-def _get_item_by_path(lstPath, trans=None):
-    child = get_item('', trans)
+def _get_item_by_path(lstPath):
+    child = get_item('')
     for name in lstPath[1:len(lstPath)]:
         if name:
-            child_id = child.get_child_id(name, trans)
+            child_id = child.get_child_id(name)
             if child_id == None:
                 return None
             else:
-                child = get_item(child_id, trans)
+                child = get_item(child_id)
     return child
 
-def get_item(oid, trans=None):
-    item = _db_handle.get_item(oid, trans)
+def get_item(oid):
+    item = _db_handle.get_item(oid)
     if item == None:
         path_tokens = oid.split('/')
         path_depth = len(path_tokens)
         if path_depth > 1:
             # /[itemID]
             if path_depth == 2:
-                item = _db_handle.get_item(path_tokens[1], trans)
+                item = _db_handle.get_item(path_tokens[1])
             # /folder1/folder2/item
             if item == None:
-                return _get_item_by_path(path_tokens, trans)
+                return _get_item_by_path(path_tokens)
     if item != None:
         item = persist.loads(item)
         return item
 
-def put_item(item, trans=None):
-    _db_handle.put_item(item, trans)
+def put_item(item):
+    _db_handle.put_item(item)
     
-def delete_item(item, trans):
-    _db_handle.delete_item(item._id, trans)
+def delete_item(item):
+    _db_handle.delete_item(item._id)
 
-def get_external(id, trans):
-    return _db_handle.get_external(id, trans)
+def get_external(id):
+    return _db_handle.get_external(id)
 
-def put_external(id, stream, trans):
-    _db_handle.put_external(id, stream, trans)
+def put_external(id, stream):
+    _db_handle.put_external(id, stream)
     
-def delete_external(id, trans):
-    _db_handle.delete_external(id, trans)
+def delete_external(id):
+    _db_handle.delete_external(id)
 
-def handle_update(item, old_item, trans):
+def handle_update(item, old_item):
     if item._eventHandlers:
         if old_item:
             # update
-            [handler.on_update(item, old_item, trans)
+            [handler.on_update(item, old_item, context._trans)
              for handler in item._eventHandlers]
         else:
             # create
-            [handler.on_create(item, trans)
+            [handler.on_create(item, context._trans)
              for handler in item._eventHandlers]
-    check_unique(item, old_item, trans)
+    check_unique(item, old_item)
     for attr_name in item.__props__:
         try:
             attr = getattr(item, attr_name)
@@ -105,28 +106,28 @@ def handle_update(item, old_item, trans):
             if old_item:
                 # it is an update
                 old_attr = getattr(old_item, attr_name)
-                attr._eventHandler.on_update(item, attr, old_attr, trans)
+                attr._eventHandler.on_update(item, attr, old_attr)
             else:
                 # it is a new object
-                attr._eventHandler.on_create(item, attr, trans)
+                attr._eventHandler.on_create(item, attr)
 
-def handle_delete(item, trans, is_permanent):
+def handle_delete(item, is_permanent):
     if item._eventHandlers:
-        [handler.on_delete(item, trans, is_permanent) 
+        [handler.on_delete(item, context._trans, is_permanent)
          for handler in item._eventHandlers]
     attrs = [getattr(item, attr_name)
              for attr_name in item.__props__
              if hasattr(item, attr_name)]
-    [attr._eventHandler.on_delete(item, attr, trans, is_permanent)
+    [attr._eventHandler.on_delete(item, attr, is_permanent)
      for attr in attrs
      if attr._eventHandler]
 
-def handle_undelete(item, trans):
-    check_unique(item, None, trans)
+def handle_undelete(item):
+    check_unique(item, None)
     attrs = [getattr(item, attr_name)
              for attr_name in item.__props__
              if hasattr(item, attr_name)]
-    [attr._eventHandler.on_undelete(item, attr, trans)
+    [attr._eventHandler.on_undelete(item, attr)
      for attr in attrs
      if attr._eventHandler]
     
@@ -134,19 +135,19 @@ def handle_undelete(item, trans):
 def has_index(name):
     return name in _indices
 
-def query_index(index, value, trans=None):
-    return _db_handle.query_index(index, value, trans)
+def query_index(index, value):
+    return _db_handle.query_index(index, value)
 
-def join(conditions, trans=None):
-    return _db_handle.join(conditions, trans)
+def join(conditions):
+    return _db_handle.join(conditions)
 
 def switch_cursor_scope(cursor, scope):
     _db_handle.switch_cursor_scope(cursor, scope)
 
-def test_join(conditions, trans):
-    return _db_handle.test_join(conditions, trans)
+def test_join(conditions):
+    return _db_handle.test_join(conditions)
 
-def check_unique(item, old_item, trans):
+def check_unique(item, old_item):
     # check index uniqueness
     for index_name in [x[0] for x in settings['store']['indices'] if x[1]]:
         if hasattr(item, index_name) and hasattr(item, '_parentid'):
@@ -157,7 +158,7 @@ def check_unique(item, old_item, trans):
                 old_value = None
             if value != old_value:
                 join = (('_parentid', item._parentid), (index_name, value))
-                if test_join(join, trans):
+                if test_join(join):
                     raise exceptions.ContainmentError, (
                         'The container already ' +
                         'has an item with the same "%s" value.' % index_name)

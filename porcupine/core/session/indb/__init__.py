@@ -67,8 +67,8 @@ class SessionManager(GenericSessionManager):
                 # get inactive sessions
                 cursor = db._db.join((
                         ('_parentid', '_sessions'),
-                        ('modified', (None, (expire_threshold, False))
-                    )), None)
+                        ('modified', (None, (expire_threshold, False)))
+                    ))
                 cursor.fetch_all = True
                 sessions = [session for session in cursor]
                 cursor.close()
@@ -81,9 +81,8 @@ class SessionManager(GenericSessionManager):
 
     @db.transactional(auto_commit=True, nosync=True)
     def create_session(self, userid):
-        trans = db.get_transaction()
         session = schema.Session(userid, {})
-        session.append_to('_sessions', trans)
+        session.append_to('_sessions')
         return session
 
     def get_session(self, sessionid):
@@ -92,14 +91,12 @@ class SessionManager(GenericSessionManager):
 
     @db.transactional(auto_commit=True, nosync=True)
     def remove_session(self, sessionid):
-        trans = db.get_transaction()
-        session = db._db.get_item(sessionid, trans)
-        session.delete(trans)
+        session = db._db.get_item(sessionid)
+        session.delete()
 
     @db.transactional(auto_commit=True, nosync=True)
     def revive_session(self, session):
-        trans = db.get_transaction()
-        session.update(trans)
+        session.update()
 
     def close(self):
         self._is_active = False

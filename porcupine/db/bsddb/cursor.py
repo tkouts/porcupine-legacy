@@ -28,16 +28,16 @@ from porcupine.utils.db import pack_value
 
 class Cursor(BaseCursor):
     "BerkeleyDB cursor class"
-    def __init__(self, index, trans=None):
-        BaseCursor.__init__(self, index, trans)
+    def __init__(self, index):
+        BaseCursor.__init__(self, index)
         self._get_cursor()
-        if trans != None:
-            trans._cursors.append(self)
+        if context._trans != None:
+            context._trans._cursors.append(self)
         self._get_flag = db.DB_NEXT
 
     def _get_cursor(self):
-        if self._trans != None:
-            self._cursor = self._index.db.cursor(self._trans.txn)
+        if context._trans != None:
+            self._cursor = self._index.db.cursor(context._trans.txn)
         else:
             if context._cursors.has_key(self._index.name):
                 self._cursor = context._cursors[self._index.name].dup()
@@ -90,7 +90,7 @@ class Cursor(BaseCursor):
                         is_set = bool(self._cursor.get(db.DB_FIRST))
             return is_set
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            self._trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
 
     def _eval(self, item):
@@ -135,7 +135,7 @@ class Cursor(BaseCursor):
                         break
                     key, value = next
             except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                self._trans.abort()
+                context._trans.abort()
                 raise exceptions.DBRetryTransaction
 
     def _close(self):
@@ -143,26 +143,26 @@ class Cursor(BaseCursor):
 
     def close(self):
         if not self._closed:
-            if self._trans != None:
-                self._trans._cursors.remove(self)
+            if context._trans != None:
+                context._trans._cursors.remove(self)
             elif context._cursors[self._index.name] == self._cursor:
                 del context._cursors[self._index.name]
             self._closed = True
             try:
                 self._close()
             except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                self._trans.abort()
+                context._trans.abort()
                 raise exceptions.DBRetryTransaction
 
 class Join(BaseCursor):
     "Helper cursor for performing joins"
-    def __init__(self, primary_db, cursor_list, trans=None):
-        BaseCursor.__init__(self, None, trans)
+    def __init__(self, primary_db, cursor_list):
+        BaseCursor.__init__(self, None)
         self._cur_list = cursor_list
         self._join = None
         self._db = primary_db
-        if trans != None:
-            trans._cursors.append(self)
+        if context._trans != None:
+            context._trans._cursors.append(self)
 
     def duplicate(self):
         clone = copy.copy(self)
@@ -239,7 +239,7 @@ class Join(BaseCursor):
                                 yield item
                         next = self._join.get(0)
                 except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                    self._trans.abort()
+                    context._trans.abort()
                     raise exceptions.DBRetryTransaction
             else:
                 # not a natural join
@@ -261,10 +261,10 @@ class Join(BaseCursor):
 
     def close(self):
         [cur.close() for cur in self._cur_list]
-        if self._trans:
-            self._trans._cursors.remove(self)
+        if context._trans:
+            context._trans._cursors.remove(self)
         try:
             self._close()
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            self._trans.abort()
+            context._trans.abort()
             raise exceptions.DBRetryTransaction

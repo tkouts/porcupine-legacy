@@ -111,7 +111,7 @@ class Package(object):
                          if hasattr(oItem, x)]:
                 if isinstance(prop, datatypes.ExternalAttribute):
                     prop._isDirty = True
-                    prop._eventHandler.on_create(oItem, prop, txn)
+                    prop._eventHandler.on_create(oItem, prop)
             self.db.put_item(oItem, txn)
         else:
             print 'WARNING: Item "%s" already exists. Upgrading object...' % \

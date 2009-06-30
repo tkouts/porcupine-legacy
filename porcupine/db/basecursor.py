@@ -25,12 +25,11 @@ from porcupine.systemObjects import Shortcut
 class BaseCursor(object):
     "Base cursor class"
 
-    def __init__(self, index, trans):
+    def __init__(self, index):
         self._index = index
         self._value = None
         self._range = None
         self._reversed = False
-        self._trans = trans
 
         # fetch_mode possible values are
         # 0: return primary key only
@@ -44,14 +43,14 @@ class BaseCursor(object):
         if self.fetch_all:
             if self.resolve_shortcuts:
                 while item != None and isinstance(item, Shortcut):
-                    item = _db.get_item(item.target.value, self._trans)
+                    item = _db.get_item(item.target.value)
         else:
             # check read permissions
             access = permsresolver.get_access(item, context.user)
             if item._isDeleted or access == 0:
                 item = None
             elif self.resolve_shortcuts and isinstance(item, Shortcut):
-                item = item.get_target(self._trans)
+                item = item.get_target()
         return item
 
     def set(self, v):

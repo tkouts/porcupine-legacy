@@ -23,11 +23,12 @@ from porcupine.db import _db
 from porcupine.core.decorators import deprecated
 
 def get_handle(identity=None, recover=0):
-    # open database
-    _db.open(recover=recover, maintain=False)
-    if identity == None:
-        identity = _db.get_item('system')
-    context.user = identity
+    if _db._db_handle == None:
+        # open database
+        _db.open(recover=recover, maintain=False)
+        if identity == None:
+            identity = _db.get_item('system')
+        context.user = identity
     return _db
 getHandle = deprecated(get_handle)
 
