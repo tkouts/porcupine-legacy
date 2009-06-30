@@ -24,9 +24,10 @@ import tarfile
 import ConfigParser
 from xml.dom import minidom
 
+from porcupine import db
+from porcupine import datatypes
 from porcupine.core import persist
 from porcupine.utils.misc import freeze_support
-from porcupine import datatypes
 from porcupine.administration import offlinedb
 from porcupine.administration import configfiles
 from porcupine.config.settings import settings
@@ -47,6 +48,7 @@ Create package:
 
 class Package(object):
     tmp_folder = settings['global']['temp_folder']
+
     def __init__(self, package_file=None, ini_file=None):
         self.package_files = []
         self.db = None
@@ -73,7 +75,7 @@ class Package(object):
         if self.package_file:
             self.package_file.close()
     
-    def _exportItem(self, id, clearRolesInherited=True):
+    def _export_item(self, id, clearRolesInherited=True):
         it_file = file(self.tmp_folder + '/' + id, 'wb')
         item = self.db.get_item(id)
         if clearRolesInherited:
@@ -86,45 +88,42 @@ class Package(object):
         
         it_file.write(persist.dumps(item))
         it_file.close()
-        self.package_files.append(
-            (
+        self.package_files.append((
                 self.package_file.gettarinfo(
                     it_file.name,
-                    '_db/' + os.path.basename(it_file.name)
-                ), it_file.name
-            )
-        ) 
+                    '_db/' + os.path.basename(it_file.name)),
+                it_file.name))
         if item.isCollection:
             dummy = [
-                self._exportItem(childid, False)
+                self._export_item(childid, False)
                 for childid in item._subfolders.values() + item._items.values()
             ]
     
-    def _importItem(self, fileobj, txn):
-        sItem = fileobj.read()
-        oItem = persist.loads(sItem)
+    def _import_item(self, fileobj):
+        stream = fileobj.read()
+        item = persist.loads(stream)
         #check if the item already exists
-        oOldItem = self.db.get_item(oItem.id, txn)
-        if oOldItem == None:
+        old_item = self.db.get_item(item.id)
+        if old_item == None:
             # write external attributes
-            for prop in [getattr(oItem, x) for x in oItem.__props__
-                         if hasattr(oItem, x)]:
+            for prop in [getattr(item, x) for x in item.__props__
+                         if hasattr(item, x)]:
                 if isinstance(prop, datatypes.ExternalAttribute):
                     prop._isDirty = True
-                    prop._eventHandler.on_create(oItem, prop)
-            self.db.put_item(oItem, txn)
+                    prop._eventHandler.on_create(item, prop)
+            self.db.put_item(item)
         else:
             print 'WARNING: Item "%s" already exists. Upgrading object...' % \
-                oItem.displayName.value
-            oItem.displayName.value = oOldItem.displayName.value
-            oItem.description.value = oOldItem.description.value
-            oItem.inheritRoles = oOldItem.inheritRoles
-            oItem.modifiedBy = oOldItem.modifiedBy
-            oItem.modified = oOldItem.modified
-            oItem._created = oOldItem._created
-            oItem.security = oOldItem.security
-            self.db.put_item(oItem, txn)
-        
+                item.displayName.value
+            item.displayName.value = old_item.displayName.value
+            item.description.value = old_item.description.value
+            item.inheritRoles = old_item.inheritRoles
+            item.modifiedBy = old_item.modifiedBy
+            item.modified = old_item.modified
+            item._created = old_item._created
+            item.security = old_item.security
+            self.db.put_item(item)
+
     def _deltree(self, top):
         for root, dirs, files in os.walk(top, topdown=False):
             for name in files:
@@ -134,9 +133,8 @@ class Package(object):
         os.rmdir(top)
         
     def _addtree(self, path):
-        self.package_files.append(
-            (self.package_file.gettarinfo(path, path), path)
-        )
+        self.package_files.append((
+            self.package_file.gettarinfo(path, path), path))
 
     def install(self):
         print 'INFO: installing [%s-%s] package...' % (self.name, self.version)
@@ -177,31 +175,32 @@ class Package(object):
         dbfiles = [x for x in contents if x[:4] == '_db/']
         if dbfiles:
             self.db = offlinedb.get_handle()
-            txn = self.db.get_transaction()
-            try:
+
+            @db.transactional(auto_commit=True)
+            def _import_items():
                 for dbfile in dbfiles:
                     print 'INFO: importing object ' + os.path.basename(dbfile)
-                    actual_fn = self.tmp_folder + '/' + dbfile
+                    fn = '%s/%s' % (self.tmp_folder, dbfile)
+                    self.package_file.extract(dbfile, self.tmp_folder)
                     objfile = None
                     try:
                         try:
-                            self.package_file.extract(dbfile, self.tmp_folder)
-                            objfile = file(actual_fn, 'rb')
-                            self._importItem(objfile, txn)
+                            objfile = file(fn, 'rb')
+                            self._import_item(objfile)
                         except Exception, e:
-                            txn.abort()
                             raise e
                             sys.exit(2)
                     finally:
                         if objfile:
                             objfile.close()
-                        if os.path.exists(actual_fn):
-                            os.remove(actual_fn)
-                txn.commit()
+
+            # import objects
+            try:
+                _import_items()
             finally:
                 offlinedb.close()
                 if os.path.exists(self.tmp_folder + '/_db'):
-                    os.rmdir(self.tmp_folder + '/_db')
+                    self._deltree(self.tmp_folder + '/_db')
             
         # post-install script
         if '_post.py' in contents:
@@ -216,26 +215,30 @@ class Package(object):
         # database items
         items = self.config_file.options('items')
         itemids = [self.config_file.get('items', x) for x in items]
-        self.db = offlinedb.get_handle()
-        txn = self.db.get_transaction()
-        try:
+        
+        if itemids:
+            self.db = offlinedb.get_handle()
+        
+            @db.transactional(auto_commit=True)
+            def _remove_items():
+                try:
+                    for itemid in itemids:
+                        print 'INFO: removing object %s' % itemid
+                        try:
+                            item = self.db.get_item(itemid)
+                        except:
+                            pass
+                        else:
+                            item.delete()
+                except Exception, e:
+                    raise e
+                    sys.exit(2)
+
             try:
-                for itemid in itemids:
-                    print 'INFO: removing object %s' % itemid
-                    try:
-                        oItem = self.db.get_item(itemid, txn)
-                    except:
-                        pass
-                    else:
-                        oItem.delete(txn)
-                txn.commit()
-            except Exception, e:
-                txn.abort()
-                raise e
-                sys.exit(2)
-        finally:
-            offlinedb.close()
-            
+                _remove_items()
+            finally:
+                offlinedb.close()
+
         # uninstall script
         contents = self.package_file.getnames()
         if '_uninstall.py' in contents:
@@ -253,11 +256,9 @@ class Package(object):
                 os.remove(fname)
             # check if it is a python file
             if fname[-3:] == '.py':
-                dummy = [
-                    os.remove(fname + x)
-                    for x in ('c', 'o')
-                    if os.path.exists(fname + x)
-                ]
+                [os.remove(fname + x)
+                 for x in ('c', 'o')
+                 if os.path.exists(fname + x)]
     
         # directories
         dirs = self.config_file.options('dirs')
@@ -347,7 +348,7 @@ class Package(object):
         self.db = offlinedb.get_handle()
         try:
             for itemid in itemids:
-                self._exportItem(itemid)
+                self._export_item(itemid)
         finally:
             offlinedb.close()
                 
