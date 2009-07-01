@@ -117,9 +117,8 @@ def create(self, data):
             oAttr.value = int(data[prop])
         else:
             oAttr.value = data[prop]
-            
-    txn = db.get_transaction()
-    oNewItem.append_to(self, txn)
+    
+    oNewItem.append_to(self)
     return oNewItem.id
 
 @filters.etag()

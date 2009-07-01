@@ -48,22 +48,19 @@ def properties(self):
 @db.transactional(auto_commit=True)
 def restore(self):
     "Restores the deleted item to its orginal location"
-    txn = db.get_transaction()
-    self.restore(txn)
+    self.restore()
     return True
 
 @webmethods.remotemethod(of_type=DeletedItem)
 @db.transactional(auto_commit=True)
 def restoreTo(self, targetid):
     "Restores the deleted item to the designated target container"
-    txn = db.get_transaction()
-    self.restore_to(targetid, txn)
+    self.restore_to(targetid)
     return True
 
 @webmethods.remotemethod(of_type=DeletedItem)
 @db.transactional(auto_commit=True)
 def delete(self):
     "Removes the deleted item"
-    txn = db.get_transaction()
-    self.delete(txn)
+    self.delete()
     return True

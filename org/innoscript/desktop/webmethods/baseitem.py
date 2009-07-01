@@ -275,17 +275,15 @@ def update(self, data):
             oAttr.value = int(data[prop])
         else:
             oAttr.value = data[prop]
-    txn = db.get_transaction()
-    self.update(txn)
+    self.update()
     return True
 
 @webmethods.remotemethod(of_type=Item)
 @db.transactional(auto_commit=True)
 def rename(self, newName):
     "Changes the display name of an object"
-    txn = db.get_transaction()
     self.displayName.value = newName
-    self.update(txn)
+    self.update()
     return True
 
 @filters.etag()
@@ -309,27 +307,23 @@ def getSecurity(self):
 @webmethods.remotemethod(of_type=Item)
 @db.transactional(auto_commit=True)
 def copyTo(self, targetid):
-    txn = db.get_transaction()
-    self.copy_to(targetid, txn)
+    self.copy_to(targetid)
     return True
 
 @webmethods.remotemethod(of_type=Item)
 @db.transactional(auto_commit=True)
 def moveTo(self, targetid):
-    txn = db.get_transaction()
-    self.move_to(targetid, txn)
+    self.move_to(targetid)
     return True
 
 @webmethods.remotemethod(of_type=GenericItem)
 @db.transactional(auto_commit=True)
 def delete(self):
-    txn = db.get_transaction()
-    self.recycle('rb', txn)
+    self.recycle('rb')
     return True
 
 @webmethods.remotemethod(of_type=GenericItem)
 @db.transactional(auto_commit=True)
 def deletePermanent(self):
-    txn = db.get_transaction()
-    self.delete(txn)
+    self.delete()
     return True

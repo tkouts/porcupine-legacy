@@ -133,8 +133,7 @@ def applySettings(self, data):
     activeUser = context.original_user
     for key in data:
         activeUser.settings.value[key] = data[key]
-    txn = db.get_transaction()
-    activeUser.update(txn)
+    activeUser.update()
     return True
 
 @webmethods.webmethod(of_type=RootFolder,

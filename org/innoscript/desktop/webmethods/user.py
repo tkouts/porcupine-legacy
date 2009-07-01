@@ -88,7 +88,6 @@ def resetpsw(self):
 @db.transactional(auto_commit=True)
 def resetPassword(self, new_password):
     "Resets the user's password"
-    txn = db.get_transaction()
     self.password.value = new_password
-    self.update(txn)
+    self.update()
     return True
