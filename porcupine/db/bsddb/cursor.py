@@ -205,8 +205,11 @@ class Join(BaseCursor):
                 else:
                     end_value = last_value
 
-                size = int(((end_value - start_value) / cursor_range) *
-                           len(cursor._index.db))
+                if cursor_range == 0:
+                    size = 0
+                else:
+                    size = int(((end_value - start_value) / cursor_range) *
+                               len(cursor._index.db))
                 sizes.append(size)
                 # reset cursor position
                 cursor._set()
