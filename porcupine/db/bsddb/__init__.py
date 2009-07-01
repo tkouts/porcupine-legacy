@@ -243,10 +243,8 @@ class DB(object):
         # force checkpoint
         self._env.txn_checkpoint(0, 0, db.DB_FORCE)
         logs = self._env.log_archive(db.DB_ARCH_LOG)
-        logs.sort()
-        backfiles = (self.dir + 'porcupine.db',
-                     self.dir + 'porcupine.idx',
-                     self.log_dir + logs[-1])
+        backfiles = [self.dir + 'porcupine.db', self.dir + 'porcupine.idx'] + \
+                    [self.log_dir + log for log in logs]
         # compact backup....
         backup = BackupFile(output_file)
         backup.add_files(backfiles)
