@@ -39,6 +39,7 @@ class SessionManager(GenericSessionManager):
             self._create_container()
         self._is_active = True
 
+    @db.transactional(auto_commit=True)
     def _create_container(self):
         ftime = time.time()
         session_container = schema.SessionsContainer()
@@ -51,7 +52,7 @@ class SessionManager(GenericSessionManager):
         session_container.modified = ftime
         session_container.inheritRoles = False
         session_container.security = {'administrators' : 8}
-        db._db.put_item(session_container, None)
+        db._db.put_item(session_container)
 
     def init_expiration_mechanism(self):
         if not self._expire_thread.isAlive():
