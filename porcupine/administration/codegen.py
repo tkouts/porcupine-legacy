@@ -23,6 +23,7 @@ import sys
 import types
 import time
 
+from porcupine import db
 from porcupine import datatypes
 from porcupine import systemObjects
 from porcupine.utils import misc
@@ -205,15 +206,15 @@ class ItemEditor(GenericSchemaEditor):
                 oMod = misc.get_rto_by_name(self._class.__module__)
                 reload(oMod)
             
-            db = offlinedb.get_handle()
+            db_handle = offlinedb.get_handle()
             oql_command = OqlCommand()
             rs = oql_command.execute(
                 "select * from deep('/') where instanceof('%s')" %
                 self._instance.contentclass)
             try:
                 if len(rs):
-                    txn = db.get_transaction()
-                    try:
+                    @db.transactional(auto_commit=True)
+                    def _update_db():
                         for item in rs:
                             for name in self._removedProps:
                                 if hasattr(item, name):
@@ -232,13 +233,9 @@ class ItemEditor(GenericSchemaEditor):
                                     else:
                                         new_attr.value = old_value
                             if self.xform:
-                                item = self.xform(item, txn)
-                            db.put_item(item, txn)
-                        txn.commit()
-                    except Exception, e:
-                        txn.abort()
-                        raise e
-                        sys.exit(2)
+                                item = self.xform(item)
+                            db_handle.put_item(item)
+                    _update_db()
             finally:
                 offlinedb.close()
     # backwards compatibility
@@ -265,7 +262,7 @@ class ItemEditor(GenericSchemaEditor):
             code.append('    __props__ = ')
             if ccbases:
                 code.append(' + '.join([x + '.__props__' for x in ccbases]) + ' + ')
-            code.append('(' + ', '.join(dts) + ')\n')
+            code.append('(' + ', '.join(dts) + ', )\n')
             
         # isCollection
         if (self.isCollection != None):

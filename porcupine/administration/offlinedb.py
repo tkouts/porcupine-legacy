@@ -23,7 +23,7 @@ from porcupine.db import _db
 from porcupine.core.decorators import deprecated
 
 def get_handle(identity=None, recover=0):
-    if _db._db_handle == None:
+    if _db._db_handle == None or not _db._db_handle.is_open():
         # open database
         _db.open(recover=recover, maintain=False)
         if identity == None:

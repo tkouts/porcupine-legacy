@@ -223,12 +223,9 @@ class Package(object):
             def _remove_items():
                 try:
                     for itemid in itemids:
-                        print 'INFO: removing object %s' % itemid
-                        try:
-                            item = self.db.get_item(itemid)
-                        except:
-                            pass
-                        else:
+                        item = self.db.get_item(itemid)
+                        if item != None:
+                            print 'INFO: removing object %s' % itemid
                             item.delete()
                 except Exception, e:
                     raise e
