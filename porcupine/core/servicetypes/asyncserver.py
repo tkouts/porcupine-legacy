@@ -24,6 +24,7 @@ import select
 from threading import Thread, currentThread
 
 from porcupine.core import asyncore
+from porcupine.db.basetransaction import BaseTransaction
 from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
 
@@ -158,12 +159,16 @@ class BaseServer(BaseService, Dispatcher):
                                         self.done_queue.item_popped)
                 kwargs['sentinel'] = self.sentinel
 
+            # create max_tx multiprocessing semaphore
+            BaseTransaction._txn_max_s = \
+                multiprocessing.Semaphore(BaseTransaction.txn_max)
+
             # start worker processes
             for i in range(self.worker_processes):
                 pname = '%s server process %d' % (self.name, i+1)
                 pconn, cconn = multiprocessing.Pipe()
                 p = SubProcess(pname, self.worker_threads, self.thread_class,
-                               cconn, **kwargs)
+                               cconn, BaseTransaction._txn_max_s, **kwargs)
                 p.start()
                 self.pipes.append(pconn)
                 self.worker_pool.append(p)
@@ -428,13 +433,14 @@ if multiprocessing:
                             ('session_manager', (), {'init_expiration':False})]
 
         def __init__(self, name, worker_threads, thread_class, connection,
-                     request_queue = None, done_queue = None, sentinel=None,
-                     socket = None):
+                     txn_max_s, request_queue = None, done_queue = None,
+                     sentinel=None, socket = None):
             BaseService.__init__(self, name)
             multiprocessing.Process.__init__(self, name=name)
             self.worker_threads = worker_threads
             self.thread_class = thread_class
             self.connection = connection
+            self.txn_max_s = txn_max_s
             self.request_queue = request_queue
             self.done_queue = done_queue
             self.sentinel = sentinel
@@ -476,6 +482,8 @@ if multiprocessing:
         def run(self):
             # start runtime services
             BaseService.start(self)
+            # set tx_max multiprocessing semaphore
+            BaseTransaction._txn_max_s = self.txn_max_s
 
             # start server
             if self.socket != None:
