@@ -34,7 +34,7 @@ from porcupine.config.settings import settings
 from porcupine.db.bsddb.transaction import Transaction
 from porcupine.db.bsddb.index import DbIndex
 from porcupine.db.bsddb.cursor import Cursor, Join
-from porcupine.utils.db import _err_unsupported_type
+from porcupine.utils.db import _err_unsupported_index_type
 from porcupine.utils.db.backup import BackupFile
 
 class DB(object):
@@ -133,7 +133,7 @@ class DB(object):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
         except db.DBError, e:
-            if e[0] == _err_unsupported_type:
+            if e[0] == _err_unsupported_index_type:
                 raise db.DBError, "Unsupported indexed data type"
             else:
                 raise

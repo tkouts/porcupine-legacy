@@ -17,7 +17,7 @@
 "Porcupine server Berkeley DB index"
 from porcupine import exceptions
 from porcupine.db.bsddb import db
-from porcupine.utils.db import _err_unsupported_type
+from porcupine.utils.db import _err_unsupported_index_type
 from porcupine.db.baseindex import BaseIndex
 
 class DbIndex(BaseIndex):
@@ -46,7 +46,7 @@ class DbIndex(BaseIndex):
                                  self.callback,
                                  flags=flags)
         except db.DBError, e:
-            if e[0] == _err_unsupported_type:
+            if e[0] == _err_unsupported_index_type:
                 # remove index
                 self.close()
                 _db = db.DB(env)

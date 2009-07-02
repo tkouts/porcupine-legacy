@@ -23,7 +23,7 @@ from porcupine import db
 from porcupine import context
 from porcupine.administration import offlinedb
 
-_err_unsupported_type = -2334
+_err_unsupported_index_type = -2334
 
 def pack_value(value):
     """
@@ -43,7 +43,7 @@ def pack_value(value):
         packed = struct.pack('c', chr(0))
     else:
         # unsupported data type
-        packed = _err_unsupported_type
+        packed = _err_unsupported_index_type
     return packed
 
 @db.transactional(auto_commit=True)
