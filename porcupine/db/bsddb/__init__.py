@@ -47,10 +47,16 @@ class DB(object):
     log_dir = os.path.abspath(settings['store'].get('bdb_log_dir', dir))
     if log_dir[-1] != '/':
         log_dir += '/'
+    # temporary directory
+    tmp_dir = os.path.abspath(settings['global']['temp_folder'])
+    if tmp_dir[-1] != '/':
+        tmp_dir += '/'
     # checkpoint interval
     checkpoint_interval = settings['store'].get('checkpoint_interval', 10)
     # cache size
     cache_size = settings['store'].get('cache_size', None)
+    # shared memory key
+    shm_key = settings['store'].get('shm_key', 35)
     # maintenance (checkpoint) thread
     _maintenance_thread = None
 
@@ -72,7 +78,11 @@ class DB(object):
         if self.cache_size != None:
             self._env.set_cachesize(*self.cache_size)
 
-        self._env.open(self.dir,
+        if os.name != 'nt':
+            self._env.set_shm_key(self.shm_key)
+            additional_flags |= db.DB_SYSTEM_MEM
+
+        self._env.open(self.tmp_dir,
                        db.DB_THREAD | db.DB_INIT_MPOOL | db.DB_INIT_LOCK |
                        db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
                        additional_flags)
@@ -211,12 +221,20 @@ class DB(object):
     def get_transaction(self, nosync):
         return Transaction(self._env, nosync)
 
-    # administrative
-    def __removeFiles(self):
-        # environment files
-        files = glob.glob(self.dir + '__db.*')
+    def __remove_env(self):
+        #if os.name == 'nt':
+        files = glob.glob(self.tmp_dir + '__db.???')
         for file in files:
             os.remove(file)
+        #else:
+        #    env = db.DBEnv()
+        #    env = env.remove(self.tmp_dir)
+        #    env.close()
+
+    # administrative
+    def __remove_files(self):
+        # environment files
+        self.__remove_env()
         # log files
         files = glob.glob(self.log_dir + 'log.*')
         for file in files:
@@ -235,7 +253,7 @@ class DB(object):
             # close database
             self.close()
             # remove old database files
-            self.__removeFiles()
+            self.__remove_files()
             # open db
             self.__init__()
     
@@ -250,7 +268,7 @@ class DB(object):
         backup.add_files(backfiles)
         
     def restore(self, bset):
-        self.__removeFiles()
+        self.__remove_files()
         backup = BackupFile(bset)
         backup.extract(self.dir, self.log_dir)
 
@@ -312,3 +330,6 @@ class DB(object):
             # close indexes
             [index.close() for index in self._indices.values()]
             self._env.close()
+            # clean-up environment files
+            #if self._maintenance_thread != None:
+            #    self.__remove_env()
