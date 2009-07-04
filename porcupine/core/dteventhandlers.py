@@ -46,7 +46,7 @@ class CompositionEventHandler(DatatypeEventHandler):
         CompositionEventHandler.on_update(item, attr, None)
     
     @staticmethod
-    def on_update(item, new_attr, old_attr, trans):
+    def on_update(item, new_attr, old_attr):
         from porcupine.systemObjects import Composite
         # load objects
         dctObjects = {}
