@@ -406,7 +406,7 @@ class ExternalAttribute(DataType):
     def get_value(self, txn=None):
         "L{value} property getter"
         if self._value == None:
-            self._value = db._db.get_external(self._id, txn) or ''
+            self._value = db._db.get_external(self._id) or ''
         return(self._value)
 
     def set_value(self, value):
