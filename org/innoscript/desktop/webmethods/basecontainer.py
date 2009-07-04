@@ -146,7 +146,7 @@ def getInfo(self):
         image = misc.get_rto_by_name(contained).__image__
         if not type(image) == str:
             image = ''
-        localestring = resources.getResource(contained, sLang)
+        localestring = resources.get_resource(contained, sLang)
         containment.append( [localestring, contained, image] )
         
     return {

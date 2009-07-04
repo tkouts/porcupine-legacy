@@ -129,16 +129,16 @@ class Date(object):
         iHours = tupTime[3]
         if iHours>12:
             iHours12 = iHours - 12
-            ampm = self.resources.getResource('PM', locale)
+            ampm = self.resources.get_resource('PM', locale)
         else:
             iHours12 = iHours
-            ampm = self.resources.getResource('AM', locale)
+            ampm = self.resources.get_resource('AM', locale)
         iMins = tupTime[4]
         iSecs = tupTime[5]
         iWeekday = tupTime[6]
 
-        months = self.resources.getResource('MONTHS', locale)
-        days = self.resources.getResource('DAYS', locale)
+        months = self.resources.get_resource('MONTHS', locale)
+        days = self.resources.get_resource('DAYS', locale)
         
         format = format.replace('yyyy', sYear)
         format = format.replace('yy', sYear[2:4])

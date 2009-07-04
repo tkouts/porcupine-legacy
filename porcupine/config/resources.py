@@ -15,6 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Server string localization classes"
+from porcupine.core.decorators import deprecated
 
 class Locale(dict):
     """This is a special dict type.
@@ -38,7 +39,7 @@ class ResourceStrings(object):
         """
         self.__resources = dctResources
 
-    def getResource(self, sName, sLocale):
+    def get_resource(self, sName, sLocale):
         """Returns the string with the specified name in the
         given locale.
         
@@ -52,8 +53,9 @@ class ResourceStrings(object):
         """
         dctLocale = self.__resources.setdefault(sLocale, self.__resources['*'])
         return dctLocale[sName]
+    getResource = deprecated(get_resource)
         
-    def getLocale(self, sLocale):
+    def get_locale(self, sLocale):
         """Returns the requested locale object. If the
         locale does not exist then the "*" locale is
         returned.
@@ -64,4 +66,4 @@ class ResourceStrings(object):
         @return: L{Locale}
         """
         return self.__resources.setdefault(sLocale, self.__resources['*'])
-
+    getLocale = deprecated(get_locale)

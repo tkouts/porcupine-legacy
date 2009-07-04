@@ -102,7 +102,7 @@ class I18n(PostProcessFilter):
         tokens = frozenset(re.findall(I18n._tokens, output))
         for token, key in tokens:
             for bundle in bundles:
-                res = bundle.getResource(key, language)
+                res = bundle.get_resource(key, language)
                 if res != key:
                     break
             output = output.replace(token, res)
