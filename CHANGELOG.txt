@@ -3,7 +3,7 @@ Version 0.6
 -----------
 NEW: Object indexing support including unique indexes per container. Currently,
      the indexes are used for common database usage patterns such as getting the
-     children of a container, but not yet leveraged by OQL.
+     children of a container, but not yet fully leveraged by OQL.
 NEW: Added multi-processing support for the asynchrounous TCP-IP services
      (requires Python 2.6).
 NEW: Added conditional Etag support by using the provided
