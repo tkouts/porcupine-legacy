@@ -58,6 +58,5 @@ def getInfo(self):
 @db.transactional(auto_commit=True)
 def empty(self):
     "Empties the bin"
-    txn = db.get_transaction()
-    self.empty(txn)
+    self.empty()
     return True
