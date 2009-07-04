@@ -170,8 +170,16 @@ class Date(DataType, date.Date):
     def __init__(self, **kwargs):
         date.Date.__init__(self)
 
+class RequiredDate(Date):
+    "Mandatory L{Date} data type."
+    isRequired = True
+
 class DateTime(Date):
     "Datetime data type"
+
+class RequiredDateTime(DateTime):
+    "Mandatory L{DateTime} data type."
+    isRequired = True
 
 class Password(DataType):
     """
