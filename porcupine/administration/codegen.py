@@ -22,6 +22,7 @@ import inspect
 import sys
 import types
 import time
+import re
 
 from porcupine import db
 from porcupine import datatypes
@@ -128,7 +129,11 @@ class GenericSchemaEditor(object):
         return min(import_lines)
         
     def _cleanup_imports(self, sourcelines):
-        source = ''.join(sourcelines)
+        source = '\n'.join(sourcelines)
+        # remove strings/comments from source
+        strings = re.compile("'{1,3}.+?'{1,3}|\"{1,3}.+?\"{1,3}", re.DOTALL)
+        source = re.sub(strings, '', source)
+        # TODO: remove comments too
         unused = []
         for module in self._imports:
             if self._imports[module] not in source:
