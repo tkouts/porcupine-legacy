@@ -74,8 +74,8 @@ class GenericSchemaEditor(object):
             elif callable(moduledict[x]) and \
                     (sys.modules[moduledict[x].__module__] != self._module):
                 imported = misc.get_rto_by_name(moduledict[x].__module__ +
-                                                  '.' + x)
-                self._imports[imported] = x
+                                                '.' + moduledict[x].__name__)
+                self._imports[imported] = moduledict[x].__name__
     
     def generate_code(self):
         raise NotImplementedError

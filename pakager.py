@@ -75,10 +75,9 @@ class Package(object):
         if self.package_file:
             self.package_file.close()
     
-    def _export_item(self, id, clearRolesInherited=True):
-        it_file = file(self.tmp_folder + '/' + id, 'wb')
-        item = self.db.get_item(id)
-        if clearRolesInherited:
+    def _export_item(self, item, clear_roles_inherited=True):
+        it_file = file(self.tmp_folder + '/' + item._id, 'wb')
+        if clear_roles_inherited:
             item.inheritRoles = False
         
         # load external attributes
@@ -94,10 +93,8 @@ class Package(object):
                     '_db/' + os.path.basename(it_file.name)),
                 it_file.name))
         if item.isCollection:
-            dummy = [
-                self._export_item(childid, False)
-                for childid in item._subfolders.values() + item._items.values()
-            ]
+            [self._export_item(child, False)
+             for child in item.get_children()]
     
     def _import_item(self, fileobj):
         stream = fileobj.read()
@@ -345,7 +342,8 @@ class Package(object):
         self.db = offlinedb.get_handle()
         try:
             for itemid in itemids:
-                self._export_item(itemid)
+                item = self.db.get_item(itemid)
+                self._export_item(item)
         finally:
             offlinedb.close()
                 
