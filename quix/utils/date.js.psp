@@ -19,13 +19,13 @@
 	resources = Date.resources
 
 	sLang = Request.get_lang()
-	lstMonths = resources.getResource("MONTHS", sLang)
-	lstDays = resources.getResource("DAYS", sLang)
+	lstMonths = resources.get_resource("MONTHS", sLang)
+	lstDays = resources.get_resource("DAYS", sLang)
 	sMonths = ','.join(['"' + x + '"' for x in lstMonths])
 	sDays = ','.join(['"' + x + '"' for x in lstDays[-1:] + lstDays[:-1]])
 
-	sAM = resources.getResource("AM", sLang)
-	sPM = resources.getResource("PM", sLang)
+	sAM = resources.get_resource("AM", sLang)
+	sPM = resources.get_resource("PM", sLang)
 
 	Response.content_type = 'application/x-javascript'
 %>
