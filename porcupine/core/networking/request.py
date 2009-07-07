@@ -70,7 +70,7 @@ class BaseRequest(object):
                 while rdata:
                     response.append(rdata)
                     rdata = s.recv(8192)
-            except socket.error, v:
+            except socket.error:
                 import traceback
                 import sys
                 output = traceback.format_exception(*sys.exc_info())

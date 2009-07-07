@@ -64,7 +64,7 @@ class Gzip(PostProcessFilter):
             if not(os.path.exists(compfn)):
                 # remove old compressed files
                 oldFiles = glob.glob(glob_f + '*.gzip')
-                res = [os.remove(oldFile) for oldFile in oldFiles]
+                [os.remove(oldFile) for oldFile in oldFiles]
 
                 zBuf = cStringIO.StringIO()
                 Gzip.compress(zBuf, context.response._get_body(), Gzip.staticLevel)

@@ -32,7 +32,7 @@ class PorcupineServerService(win32serviceutil.ServiceFramework):
             self.controller = Controller()
             self.controller.start()
             self.controller.shutdown_evt.wait()
-        except Exception, e:
+        except Exception:
             if self.controller:
                 self.controller.initiateShutdown()
             raise
