@@ -51,8 +51,6 @@ class DB(object):
     tmp_dir = os.path.abspath(settings['global']['temp_folder'])
     if tmp_dir[-1] != '/':
         tmp_dir += '/'
-    # checkpoint interval
-    # checkpoint_interval = settings['store'].get('checkpoint_interval', 10)
     # cache size
     cache_size = settings['store'].get('cache_size', None)
     # transaction timeout
@@ -281,7 +279,6 @@ class DB(object):
 
     def __maintain(self):
         "deadlock detection thread"
-        #timer = 0
         from porcupine.core.runtime import logger
         while self._running:
             time.sleep(0.05)
@@ -295,11 +292,6 @@ class DB(object):
                         % aborted)
             except db.DBError:
                  pass
-            #timer += 8
-            #if timer > self.checkpoint_interval * 60:
-            #    # checkpoint
-            #    self._env.txn_checkpoint(0, self.checkpoint_interval, 0)
-            #    timer = 0
             #stats = self._env.txn_stat()
             #print 'txns: %d' % stats['nactive']
             #print 'max txns: %d' % stats['maxnactive']
