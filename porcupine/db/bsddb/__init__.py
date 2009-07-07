@@ -52,11 +52,13 @@ class DB(object):
     if tmp_dir[-1] != '/':
         tmp_dir += '/'
     # checkpoint interval
-    checkpoint_interval = settings['store'].get('checkpoint_interval', 10)
+    # checkpoint_interval = settings['store'].get('checkpoint_interval', 10)
     # cache size
     cache_size = settings['store'].get('cache_size', None)
+    # transaction timeout
+    txn_timeout = settings['store'].get('tx_timeout', 0)
     # shared memory key
-    shm_key = settings['store'].get('shm_key', 35)
+    shm_key = settings['store'].get('shm_key', None)
     # maintenance (checkpoint) thread
     _maintenance_thread = None
 
@@ -74,11 +76,15 @@ class DB(object):
         self._env = db.DBEnv()
         self._env.set_data_dir(self.dir)
         self._env.set_lg_dir(self.log_dir)
+        if self.txn_timeout > 0:
+            self._env.set_timeout(self.txn_timeout, db.DB_SET_TXN_TIMEOUT)
+        else:
+            self._env.set_flags(db.DB_TXN_NOWAIT, 1)
 
         if self.cache_size != None:
             self._env.set_cachesize(*self.cache_size)
 
-        if os.name != 'nt':
+        if os.name != 'nt' and self.shm_key:
             self._env.set_shm_key(self.shm_key)
             additional_flags |= db.DB_SYSTEM_MEM
 
@@ -222,14 +228,9 @@ class DB(object):
         return Transaction(self._env, nosync)
 
     def __remove_env(self):
-        #if os.name == 'nt':
         files = glob.glob(self.tmp_dir + '__db.???')
         for file in files:
             os.remove(file)
-        #else:
-        #    env = db.DBEnv()
-        #    env = env.remove(self.tmp_dir)
-        #    env.close()
 
     # administrative
     def __remove_files(self):
@@ -279,15 +280,26 @@ class DB(object):
         return len(logs)
 
     def __maintain(self):
-        "checkpoint thread"
-        timer = 0
+        "deadlock detection thread"
+        #timer = 0
+        from porcupine.core.runtime import logger
         while self._running:
-            time.sleep(8.0)
-            timer += 8
-            if timer > self.checkpoint_interval * 60:
-                # checkpoint
-                self._env.txn_checkpoint(0, self.checkpoint_interval, 0)
-                timer = 0
+            time.sleep(0.05)
+            # deadlock detection
+            try:
+                aborted = self._env.lock_detect(db.DB_LOCK_RANDOM,
+                                                db.DB_LOCK_CONFLICT)
+                if aborted:
+                    logger.critical(
+                        "Deadlock: Aborted %d deadlocked transaction(s)"
+                        % aborted)
+            except db.DBError:
+                 pass
+            #timer += 8
+            #if timer > self.checkpoint_interval * 60:
+            #    # checkpoint
+            #    self._env.txn_checkpoint(0, self.checkpoint_interval, 0)
+            #    timer = 0
             #stats = self._env.txn_stat()
             #print 'txns: %d' % stats['nactive']
             #print 'max txns: %d' % stats['maxnactive']
@@ -309,16 +321,6 @@ class DB(object):
             #print 'Requested: %d' % stats['nrequests']
             #print 'Released: %d' % stats['nreleases']
             #print '-' * 80
-            # deadlock detection
-            #try:
-            #     aborted = self._env.lock_detect(db.DB_LOCK_RANDOM,
-            #                                     db.DB_LOCK_CONFLICT)
-            #     if aborted:
-            #          logger.critical(
-            #              "Deadlock: Aborted %d deadlocked transaction(s)"
-            #             % aborted)
-            #except db.DBError:
-            #     pass
 
     def close(self):
         if self._running:

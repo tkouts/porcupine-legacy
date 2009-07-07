@@ -24,7 +24,7 @@ from porcupine.db.basetransaction import BaseTransaction
 class Transaction(BaseTransaction):
     def __init__(self, env, nosync):
         self.env = env
-        self._flags = db.DB_READ_COMMITTED | db.DB_TXN_NOWAIT
+        self._flags = db.DB_READ_COMMITTED
         if nosync:
             self._flags |= db.DB_TXN_NOSYNC
         self._cursors = []
@@ -57,11 +57,11 @@ class Transaction(BaseTransaction):
             if not self._close_cursors():
                 self.abort()
                 raise exceptions.DBRetryTransaction
-        try:
-            self.txn.commit()
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            self.abort()
-            raise exceptions.DBRetryTransaction
+        #try:
+        self.txn.commit()
+        #except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+        #    self.abort()
+        #    raise exceptions.DBRetryTransaction
         BaseTransaction.commit(self)
 
     def abort(self):
