@@ -6,3 +6,12 @@ Contributors:
 
     * Stanislav Ievlev
     * Thomas Bellos
+
+3rd party libraries:
+
+    * The OQL parser is using PLY by David M. Beazley
+    * QuiX's persistence library is based on PersistJS by Paul Duncan
+    * QuiX's lightweight rich text editor is based on Cameron Adams'
+      work (http://www.themaninblue.com/)
+    * QuiX also includes swfobject by Geoff Stearns, Michael Williams,
+      and Bobby van der Sluis
