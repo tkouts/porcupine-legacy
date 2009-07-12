@@ -65,6 +65,8 @@ FIX: Fixed internal redirection.
 FIX: "padding" is now a valid parameter for QuiX windows.
 FIX: Fixed hidden buttons.
 
+DEP: "HttpContext.current()" is deprecated. Use "from porcupine import context"
+     instead.
 DEP: Containers no longer have the "_subfolders" and "_items" attributes. This
      kind of info is now derived from indexes allowing hundrends of thousands
      descendants with no perfomance penalty.
