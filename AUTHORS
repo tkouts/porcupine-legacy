@@ -13,5 +13,7 @@ Contributors:
     * QuiX's persistence library is based on PersistJS by Paul Duncan
     * QuiX's lightweight rich text editor is based on Cameron Adams'
       work (http://www.themaninblue.com/)
+    * QuiX's XMLRPC parser and request objects are based on Virtual
+      Cowboys' work
     * QuiX also includes swfobject by Geoff Stearns, Michael Williams,
       and Bobby van der Sluis
