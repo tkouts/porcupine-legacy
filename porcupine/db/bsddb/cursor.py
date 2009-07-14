@@ -52,6 +52,50 @@ class Cursor(BaseCursor):
         clone._get_cursor()
         return clone
 
+    def get_size(self):
+        clone = self._cursor.dup(db.DB_POSITION)
+        if self._value != None:
+            # equality
+            size = clone.count()
+        else:
+            # range cursor - approximate sizing
+            # assuming even distribution of keys
+            first_value = struct.unpack('>L',
+                (clone.first()[0] + '\x00' * 4)[:4])[0]
+            last_value = struct.unpack('>L',
+                (clone.last()[0] + '\x00' * 4)[:4])[0]
+
+            cursor_range = float(last_value - first_value)
+
+            if self._range._lower_value != None:
+                start_value = struct.unpack('>L',
+                    (self._range._lower_value + '\x00' * 4)[:4])[0]
+                if start_value < first_value:
+                    start_value = first_value
+            else:
+                start_value = first_value
+
+            if self._range._upper_value != None:
+                end_value = struct.unpack('>L',
+                    (self._range._upper_value + '\x00' * 4)[:4])[0]
+                if end_value > last_value:
+                    end_value = last_value
+            else:
+                end_value = last_value
+
+            if cursor_range == 0:
+                size = 0
+            else:
+                size = int(((end_value - start_value) / cursor_range) *
+                           len(self._index.db))
+        # close clone
+        try:
+            clone.close()
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            raise exceptions.DBRetryTransaction
+
+        return size
+
     def _set(self):
         try:
             is_set = False
@@ -175,60 +219,9 @@ class Join(BaseCursor):
         [c.reverse() for c in self._cur_list]
 
     def _optimize(self):
-        sizes = []
-        clones = [c._cursor.dup(db.DB_POSITION) for c in self._cur_list]
-        for cursor, clone in zip(self._cur_list, clones):
-            if cursor._value != None:
-                # equality
-                sizes.append(clone.count())
-            else:
-                # range cursor - approximate sizing
-                # assuming even distribution of keys
-                first_value = struct.unpack('>L',
-                    (clone.first()[0] + '\x00' * 4)[:4])[0]
-                last_value = struct.unpack('>L',
-                    (clone.last()[0] + '\x00' * 4)[:4])[0]
-
-                cursor_range = float(last_value - first_value)
-
-                if cursor._range._lower_value != None:
-                    start_value = struct.unpack('>L',
-                        (cursor._range._lower_value + '\x00' * 4)[:4])[0]
-                    if start_value < first_value:
-                        start_value = first_value
-                else:
-                    start_value = first_value
-
-                if cursor._range._upper_value != None:
-                    end_value = struct.unpack('>L',
-                        (cursor._range._upper_value + '\x00' * 4)[:4])[0]
-                    if end_value > last_value:
-                        end_value = last_value
-                else:
-                    end_value = last_value
-
-                if cursor_range == 0:
-                    size = 0
-                else:
-                    size = int(((end_value - start_value) / cursor_range) *
-                               len(cursor._index.db))
-                sizes.append(size)
-            # close clone
-            try:
-                clone.close()
-            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                # close remaining clones
-                for c in clones[clones.index(clone) + 1:]:
-                    try:
-                        c.close()
-                    except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                        pass
-                context._trans.abort()
-                raise exceptions.DBRetryTransaction
-
+        sizes = [c.get_size() for c in self._cur_list]
         cursors = zip(sizes, self._cur_list)
         cursors.sort()
-
         rte_cursors = [c[1] for c in cursors[1:]]
         # close run-time evaluated cursors
         [c.close() for c in rte_cursors]
