@@ -93,7 +93,10 @@ class Date(object):
         self.value = fTime or time.time()
 
     def __cmp__(self, other):
-        return cmp(self.value, other.value)
+        if isinstance(other, Date):
+            return cmp(self.value, other.value)
+        else:
+            return cmp(self.value, other)
 
     def format(self, format, locale='*'):
         """
