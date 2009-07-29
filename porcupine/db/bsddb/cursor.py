@@ -190,7 +190,7 @@ class Cursor(BaseCursor):
         if not self._closed:
             if context._trans != None:
                 context._trans._cursors.remove(self)
-            elif context._cursors[self._index.name] == self._cursor:
+            elif context._cursors.get(self._index.name) == self._cursor:
                 del context._cursors[self._index.name]
             self._closed = True
             try:

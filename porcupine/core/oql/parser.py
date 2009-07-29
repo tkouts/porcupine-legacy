@@ -76,7 +76,7 @@ functions = (
     'getattr'
 )
 
-reserved_map = { }
+reserved_map = {}
 for r in reserved:
     reserved_map[r.lower()] = r
 
@@ -301,7 +301,8 @@ class OqlParser:
         
     def p_fieldspec_3(self, p):
         'fieldspec : LPAREN IF expression THEN expression ELSE expression RPAREN'
-        p[0] = [ [ [core.IF, [p[3], p[5], p[7]] ] ], 'expr' + str(self.expr_index), '' ]
+        p[0] = [ [ [core.IF, [p[3], p[5], p[7]] ] ],
+                    'expr' + str(self.expr_index), '' ]
         self.expr_index += 1
 
     def p_fieldspec_4(self, p):

@@ -17,56 +17,46 @@
 """
 Porcupine Object Set
 """
+from collections import Set, Hashable
 
-class ObjectSet(object):
+class ObjectSet(Set, Hashable):
     """
     Porcupine Object Set
     ====================
     The Porcupine object set is a versatile type for keeping a large collection
-    of objects or rows with a specified schema.
+    of objects or rows of named values in the form of dictionaries.
     """
-    __slots__ = ('_list', 'schema')
-    
-    def __init__(self, data, schema=None):
-        self._list = data
-        self.schema = schema
+    def __init__(self, iterable):
+        self._elements = []
+        self._keys = {}
+        self.schema = None
+
+        for item in iterable:
+            if hasattr(item, '_id'):
+                id = item._id
+            else:
+                id = item
+            if id not in self._keys:
+                self._keys[id] = True
+                self._elements.append(item)
+
+    def to_list(self):
+        return self._elements
+
+    def __hash__(self):
+        return hash(tuple(self._keys.keys()))
 
     def __iter__(self):
-        if len(self._list) > 0:
-            if self.schema == None:
-                for item in self._list:
-                    yield item
-            else:
-                for x in self._list:
-                    yield dict(zip(self.schema, x))
-                
-    def __nonzero__(self):
-        return len(self._list)
-    
-    def __len__(self):
-        """Returns the size of the objects set.
-        Valid only for resolved object sets.
-        
-        @raise TypeError: if the object set is unresolved
-        """
-        return len(self._list)
-        
-    def __add__(self, objectset):
-        """Implements the '+' operator.
-        In order to add two object sets successfully one of the following
-        conditions must be met:
-            1. Both of the object sets must contain objects
-            2. Object sets must have identical schema
-        """
-        if self.schema == objectset.schema:
-            return ObjectSet(self._list + objectset._list,
-                             schema = self.schema)
+        if self.schema != None:
+            for item in self._elements:
+                yield dict(zip(self.schema, item))
         else:
-            raise TypeError, 'Unsupported operand (+). Object sets do not ' + \
-                             'have the same schema'
-        
+            for item in self._elements:
+                yield item
+
     def __contains__(self, value):
-        """Implements membership tests.
+        """
+        Implements membership tests.
         If the object set contains objects then legal tests are:
             1. C{object_id in objectset}
             2. C{object in objectset}
@@ -74,25 +64,59 @@ class ObjectSet(object):
             1. C{row_tuple in objectset}
             2. C{value in objectset} if the object set contains one field
         """
-        if self.schema:
-            if len(self.schema) != 1:
-                return value in self._list
-            else:
-                return value in [z[0] for z in self._list]
+        if hasattr(value, '_id'):
+            id = value._id
         else:
-            if not isinstance(value, str):
-                try:
-                    value = value._id
-                except AttributeError:
-                    raise TypeError, 'Invalid argument type'
-            return value in [z._id for z in self._list]
+            id = value
+        if schema != None and len(schema) == 1 and not isinstance(id, tuple):
+            id = (id, )
+        return id in self._keys
+
+    def __len__(self):
+        "Returns the size of the object set."
+        return len(self._elements)
+
+    def __nonzero__(self):
+        return len(self._elements)
 
     def __getitem__(self, key):
         "Implements slicing. Useful for paging."
         if self.schema == None:
-            return self._list[key] 
+            return self.elements[key]
         else:
             if type(key) == int:
-                return dict(zip(self.schema, self._list[key]))
+                return dict(zip(self.schema, self.elements[key]))
             else:
-                return [dict(zip(self.schema, x)) for x in self._list[key]]
+                return [dict(zip(self.schema, x)) for x in self.elemnts[key]]
+
+    def __or__(self, other):
+        """
+        Implements the '|' operator.
+        In order to unite two object sets successfully one of the following
+        conditions must be met:
+            1. Both of the object sets must contain objects
+            2. Object sets must have identical schema
+        """
+        if self.schema == other.schema:
+            union = Set.__or__(self, other)
+            union.schema = self.schema
+            return union
+        else:
+            raise TypeError, 'Unsupported operand (|). Object sets do not ' + \
+                             'have the same schema'
+
+    def __and__(self, other):
+        """
+        Implements the '&' operator.
+        In order to intersect two object sets successfully one of the following
+        conditions must be met:
+            1. Both of the object sets must contain objects
+            2. Object sets must have identical schema
+        """
+        if self.schema == other.schema:
+            intersection = Set.__and__(self, other)
+            intersection.schema = self.schema
+            return intersection
+        else:
+            raise TypeError, 'Unsupported operand (&). Object sets do not ' + \
+                             'have the same schema'
