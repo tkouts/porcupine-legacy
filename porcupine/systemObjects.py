@@ -456,7 +456,7 @@ class GenericItem(object):
         self.description = datatypes.String()
 
     def _apply_security(self, parent, is_new):
-        if self.inheritRoles:
+        if parent is not None and self.inheritRoles:
             self.security = parent.security
         if self.isCollection and not is_new:
             cursor = db._db.query_index('_parentid', self._id)
@@ -790,7 +790,10 @@ class Item(GenericItem, Cloneable, Movable, Removable):
         @return: None
         """
         old_item = db._db.get_item(self._id)
-        parent = db._db.get_item(self._parentid)
+        if self._parentid is not None:
+            parent = db._db.get_item(self._parentid)
+        else:
+            parent = None
         
         user = context.user
         user_role = permsresolver.get_access(old_item, user)
@@ -811,9 +814,10 @@ class Item(GenericItem, Cloneable, Movable, Removable):
             db._db.handle_update(self, old_item)
             self.modifiedBy = user.displayName.value
             self.modified = time.time()
-            parent.modified = self.modified
             db._db.put_item(self)
-            db._db.put_item(parent)
+            if parent is not None:
+                parent.modified = self.modified
+                db._db.put_item(parent)
         else:
             raise exceptions.PermissionDenied, \
                     'The user does not have update permissions.'
