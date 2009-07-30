@@ -101,7 +101,7 @@ class Package(object):
         item = persist.loads(stream)
         #check if the item already exists
         old_item = self.db.get_item(item.id)
-        if old_item == None:
+        if old_item is None:
             # write external attributes
             for prop in [getattr(item, x) for x in item.__props__
                          if hasattr(item, x)]:
@@ -221,7 +221,7 @@ class Package(object):
                 try:
                     for itemid in itemids:
                         item = self.db.get_item(itemid)
-                        if item != None:
+                        if item is not None:
                             print 'INFO: removing object %s' % itemid
                             item.delete()
                 except Exception, e:
@@ -451,5 +451,5 @@ if __name__ == '__main__':
             my_pkg = Package(ini_file = definition)
             my_pkg.create()
     finally:
-        if my_pkg != None:
+        if my_pkg is not None:
             my_pkg.close()

@@ -27,7 +27,7 @@ class RequiresLogin(PreProcessFilter):
         user = context.user
         redirect_url = kwargs['redirect']
         if not hasattr(user, 'authenticate'):
-            if redirect_url != None:
+            if redirect_url is not None:
                 if redirect_url[0:4] == 'http':
                     context.response.redirect(redirect_url)
                 else:
@@ -64,6 +64,6 @@ class RequiresPolicy(PreProcessFilter):
             if groupid in policyGrantedTo:
                 return
         
-        raise exceptions.PermissionDenied, \
-            "This action is restricted due to policy '%s'" \
-            % policy.displayName.value
+        raise exceptions.PermissionDenied(
+            "This action is restricted due to policy '%s'" %
+            policy.displayName.value)

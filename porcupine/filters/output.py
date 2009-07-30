@@ -41,14 +41,14 @@ class Gzip(PostProcessFilter):
 
     @staticmethod
     def apply(context, item, registration, **kwargs):
-        if Gzip.cacheFolder == None:
+        if Gzip.cacheFolder is None:
             config = Gzip.loadConfig()
             Gzip.cacheFolder = config['cache']
             Gzip.staticLevel = int(config['static_compress_level'])
             Gzip.dynamicLevel = int(config['dynamic_compress_level'])
         
         context.response.set_header('Content-Encoding', 'gzip')
-        isStatic = (registration != None and registration.type == 0)
+        isStatic = (registration is not None and registration.type == 0)
                 
         if isStatic:
             fileName = registration.context

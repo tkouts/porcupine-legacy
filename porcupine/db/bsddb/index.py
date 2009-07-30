@@ -51,8 +51,8 @@ class DbIndex(BaseIndex):
                 self.close()
                 _db = db.DB(env)
                 _db.remove('porcupine.idx', dbname=name)
-                raise exceptions.ConfigurationError, \
-                    'Unsupported data type for index "%s".' % name
+                raise exceptions.ConfigurationError(
+                    'Unsupported data type for index "%s".' % name)
             else:
                 raise
 

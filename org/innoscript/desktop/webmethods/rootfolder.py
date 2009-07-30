@@ -227,7 +227,7 @@ def __blank__(self):
 def executeOqlCommand(self, command, range=None):
     oCmd = OqlCommand()
     oRes = oCmd.execute(command)
-    if range == None:
+    if range is None:
         return [rec for rec in oRes]
     else:
         return [oRes[range[0]:range[1]], len(oRes)]

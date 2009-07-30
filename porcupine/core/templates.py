@@ -26,8 +26,7 @@ def string_template(context, filename, vars):
     try:
         f = file(filename)
     except IOError:
-        raise exceptions.NotFound, \
-            'Template file "%s" is missing' % filename
+        raise exceptions.NotFound('Template file "%s" is missing' % filename)
     try:
         template = Template(f.read())
         context.response.write(template.substitute(vars))

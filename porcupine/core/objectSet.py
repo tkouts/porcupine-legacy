@@ -47,7 +47,7 @@ class ObjectSet(Set, Hashable):
         return hash(tuple(self._keys.keys()))
 
     def __iter__(self):
-        if self.schema != None:
+        if self.schema is not None:
             for item in self._elements:
                 yield dict(zip(self.schema, item))
         else:
@@ -68,7 +68,7 @@ class ObjectSet(Set, Hashable):
             id = value._id
         else:
             id = value
-        if schema != None and len(schema) == 1 and not isinstance(id, tuple):
+        if schema is not None and len(schema) == 1 and not isinstance(id, tuple):
             id = (id, )
         return id in self._keys
 
@@ -81,7 +81,7 @@ class ObjectSet(Set, Hashable):
 
     def __getitem__(self, key):
         "Implements slicing. Useful for paging."
-        if self.schema == None:
+        if self.schema is None:
             return self.elements[key]
         else:
             if type(key) == int:
@@ -102,8 +102,8 @@ class ObjectSet(Set, Hashable):
             union.schema = self.schema
             return union
         else:
-            raise TypeError, 'Unsupported operand (|). Object sets do not ' + \
-                             'have the same schema'
+            raise TypeError('Unsupported operand (|). Object sets do not ' +
+                            'have the same schema')
 
     def __and__(self, other):
         """
@@ -118,5 +118,5 @@ class ObjectSet(Set, Hashable):
             intersection.schema = self.schema
             return intersection
         else:
-            raise TypeError, 'Unsupported operand (&). Object sets do not ' + \
-                             'have the same schema'
+            raise TypeError('Unsupported operand (&). Object sets do not ' +
+                            'have the same schema')

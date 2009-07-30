@@ -61,7 +61,7 @@ class Dispatcher(asyncore.dispatcher):
             client = self.accept()
         except socket.error:
             pass
-        if client != None:
+        if client is not None:
             client_socket, addr = client
             try:
                 # get inactive requestHandler from queue
@@ -135,7 +135,7 @@ class BaseServer(BaseService, Dispatcher):
             raise v
         self._socket.listen(64)
 
-        if self.request_queue != None:
+        if self.request_queue is not None:
             # activate server socket
             self.set_socket(self._socket)
 
@@ -146,7 +146,7 @@ class BaseServer(BaseService, Dispatcher):
     def _start_workers(self):
         if self.is_multiprocess:
             kwargs = {}
-            if self.request_queue == None:
+            if self.request_queue is None:
                 kwargs['socket'] = self._socket
             else:
                 kwargs['request_queue'] = (self.request_queue,
@@ -173,7 +173,7 @@ class BaseServer(BaseService, Dispatcher):
                 self.pipes.append(pconn)
                 self.worker_pool.append(p)
 
-            if self.request_queue != None:
+            if self.request_queue is not None:
                 # start task dispatcher thread(s)
                 for i in range(8):
                     t = Thread(target=self._task_dispatch,
@@ -308,7 +308,7 @@ class RequestHandler(asyncore.dispatcher):
             self.input_buffer = ''.join(self.input_buffer)
             self.has_request = True
             if self.input_buffer:
-                if self.server.done_queue != None:
+                if self.server.done_queue is not None:
                     self.server.request_queue.put((self._fileno,
                                                    self.input_buffer))
                 else:
@@ -331,13 +331,13 @@ class RequestHandler(asyncore.dispatcher):
 
     def close(self):
         asyncore.dispatcher.close(self)
-        if self.server.socket_map != None:
+        if self.server.socket_map is not None:
             self.del_channel(self.server.socket_map)
         self.has_request = False
         self.has_response = False
         self.input_buffer = []
         self.output_buffer = ''
-        if self.server != None:
+        if self.server is not None:
             # put it in inactive request handlers queue
             self.server.rh_queue.put(self)
             self.server.active_connections -= 1
@@ -486,7 +486,7 @@ if multiprocessing:
             BaseTransaction._txn_max_s = self.txn_max_s
 
             # start server
-            if self.socket != None:
+            if self.socket is not None:
                 socket_map = {}
                 
                 # start server
@@ -531,7 +531,7 @@ if multiprocessing:
             except IOError:
                 pass
 
-            if self.socket != None:
+            if self.socket is not None:
                 for i in range(self.worker_threads):
                     self.request_queue.put(self.sentinel)
 
@@ -539,7 +539,7 @@ if multiprocessing:
             for t in thread_pool:
                 t.join()
 
-            if self.socket != None:
+            if self.socket is not None:
                 # join asyncore thread
                 asyncore.close_all(socket_map)
                 asyn_thread.join()
@@ -556,7 +556,7 @@ if multiprocessing:
                 if request_handler == self.sentinel:
                     break
                 else:
-                    if self.done_queue == None:
+                    if self.done_queue is None:
                         # we have a RequestHandler
                         thread.handle_request(request_handler)
                         request_handler.has_response = True

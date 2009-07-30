@@ -22,7 +22,7 @@ from porcupine.filters.filter import PreProcessFilter
 class ETag(PreProcessFilter):
     @staticmethod
     def generate_item_etag(context, item, registration):
-        if item != None:
+        if item is not None:
             return '%s%s' % (context.user._id, item.modified)
     
     @staticmethod
@@ -31,7 +31,7 @@ class ETag(PreProcessFilter):
         if etag:
             response = context.response
             if_none_match = context.request.HTTP_IF_NONE_MATCH
-            if if_none_match != None and if_none_match == '"%s"' % etag:
+            if if_none_match is not None and if_none_match == '"%s"' % etag:
                 response._code = 304
                 response.end()
             else: 

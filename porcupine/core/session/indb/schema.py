@@ -77,9 +77,9 @@ class Session(GenericItem, GenericSession):
             parent = db._db.get_item(parent)
         
         if not(self.get_contentclass() in parent.containment):
-            raise exceptions.ContainmentError, \
-                'The target container does not accept ' + \
-                'objects of type\n"%s".' % contentclass
+            raise exceptions.ContainmentError(
+                'The target container does not accept ' +
+                'objects of type\n"%s".' % contentclass)
         
         self._owner = 'system'
         self._created = time.time()

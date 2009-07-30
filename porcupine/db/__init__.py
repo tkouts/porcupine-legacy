@@ -39,7 +39,7 @@ def get_item(oid, trans=None):
     @rtype: L{GenericItem<porcupine.systemObjects.GenericItem>}
     """
     item = _db.get_item(oid)
-    if item != None and not item._isDeleted and \
+    if item is not None and not item._isDeleted and \
             permsresolver.get_access(item, context.user) != 0:
         return item
 getItem = deprecated(get_item)
@@ -53,9 +53,9 @@ def get_transaction():
     @rtype: L{BaseTransaction<porcupine.db.basetransaction.BaseTransaction>}
     """
     txn = context._trans
-    if txn == None:
-        raise exceptions.InternalServerError, \
-            "Not in a transactional context. Use @db.transactional()."
+    if txn is None:
+        raise exceptions.InternalServerError(
+            "Not in a transactional context. Use @db.transactional().")
     return txn
 getTransaction = deprecated(get_transaction)
 
@@ -66,9 +66,9 @@ def requires_transactional_context(function):
     database updates.
     """
     def rtc_wrapper(*args, **kwargs):
-        if context._trans == None:
-            raise exceptions.InternalServerError, \
-                "Not in a transactional context. Use @db.transactional()."
+        if context._trans is None:
+            raise exceptions.InternalServerError(
+                "Not in a transactional context. Use @db.transactional().")
         return function(*args, **kwargs)
     rtc_wrapper.func_name = function.func_name
     rtc_wrapper.func_doc = function.func_doc
@@ -84,7 +84,7 @@ def transactional(auto_commit=False, nosync=False):
         transactional.
         """
         def transactional_wrapper(*args):
-            if context._trans == None:
+            if context._trans is None:
                 txn = _db.get_transaction(nosync)
                 context._trans = txn
                 is_top_level = True

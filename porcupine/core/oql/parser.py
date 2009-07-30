@@ -182,7 +182,7 @@ def t_newline(t):
     t.lineno += t.value.count("\n")
 
 def t_error(t):
-    raise SyntaxError, ('', t.lineno, t.value[0])#, hex(ord(t.value[0])),)
+    raise SyntaxError('', t.lineno, t.value[0])#, hex(ord(t.value[0])),)
 
 
 class OqlParser:
@@ -541,7 +541,7 @@ class OqlParser:
         p[0] = [p[1]]
 
     def p_error(self, p):
-        if p != None:
-            raise SyntaxError, ('', p.lineno, p.value)
+        if p is not None:
+            raise SyntaxError('', p.lineno, p.value)
         else:
-            raise SyntaxError, ('', 0, '')
+            raise SyntaxError('', 0, '')

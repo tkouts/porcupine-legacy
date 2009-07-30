@@ -35,7 +35,7 @@ class SessionManager(GenericSessionManager):
     def __init__(self, timeout, **kwargs):
         GenericSessionManager.__init__(self, timeout)
         session_container = db._db.get_item('_sessions')
-        if session_container == None:
+        if session_container is None:
             self._create_container()
         self._is_active = True
 

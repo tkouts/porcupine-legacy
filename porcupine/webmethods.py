@@ -111,6 +111,7 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
                     response.serialize())
                 return v
             else:
-                raise exceptions.InternalServerError, \
-                    'Remote method "%s" returns no value' % context.request.method
+                raise exceptions.InternalServerError(
+                    'Remote method "%s" returns no value' %
+                    context.request.method)
     return WebMethod

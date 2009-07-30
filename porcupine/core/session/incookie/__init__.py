@@ -37,8 +37,9 @@ class SessionManager(GenericSessionManager):
         GenericSessionManager.__init__(self, timeout)
         secret = kwargs.get('secret', None)
         if not secret:
-            raise exceptions.ConfigurationError, \
-                'The cookie based session manager should define a secret phrase.'
+            raise exceptions.ConfigurationError(
+                'The cookie based session manager '
+                'should define a secret phrase.')
         Session.secret = secret
 
     def init_expiration_mechanism(self):
@@ -61,7 +62,7 @@ class SessionManager(GenericSessionManager):
         response.cookies['_sid'] = \
                 context.request.serverVariables['SCRIPT_NAME'] + '/'
         session = request.cookies.get('_s%d' % i, None)
-        while session != None:
+        while session is not None:
             response.cookies['_s%d' % i] = ''
             response.cookies['_s%d' % i]['path'] = \
                 context.request.serverVariables['SCRIPT_NAME'] + '/'
@@ -91,7 +92,7 @@ class Session(GenericSession):
         i = 0
         chunks = []
         session = request.cookies.get('_s%d' % i, None)
-        while session != None and session.value:
+        while session is not None and session.value:
             chunks.append(session.value)
             i += 1
             session = request.cookies.get('_s%d' % i, None)

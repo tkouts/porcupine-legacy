@@ -34,6 +34,7 @@ class DBRetryTransaction(Exception):
     pass
 
 class PorcupineException(Exception):
+    """Base class of all server related exceptions"""
     code = 0
     severity = 0
     description = ''
@@ -49,7 +50,7 @@ class PorcupineException(Exception):
             self.description,
             exc_info=True
         )
-        if context != None:
+        if context is not None:
             context.response._reset()
             context.response._code = self.code
             context.response.set_header('Cache-Control', 'no-cache')
@@ -69,7 +70,7 @@ class PorcupineException(Exception):
             lang = context.request.HTTP_ACCEPT_LANGUAGE
             method = context.request.method
             
-            if item != None:
+            if item is not None:
                 contentclass = item.contentclass
             else:
                 contentclass = '-'

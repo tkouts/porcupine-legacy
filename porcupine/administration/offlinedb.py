@@ -23,10 +23,10 @@ from porcupine.db import _db
 from porcupine.core.decorators import deprecated
 
 def get_handle(identity=None, recover=0):
-    if _db._db_handle == None or not _db._db_handle.is_open():
+    if _db._db_handle is None or not _db._db_handle.is_open():
         # open database
         _db.open(recover=recover, maintain=False)
-        if identity == None:
+        if identity is None:
             identity = _db.get_item('system')
         context.user = identity
     return _db

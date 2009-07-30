@@ -79,7 +79,7 @@ class DB(object):
         else:
             self._env.set_flags(db.DB_TXN_NOWAIT, 1)
 
-        if self.cache_size != None:
+        if self.cache_size is not None:
             self._env.set_cachesize(*self.cache_size)
 
         if os.name != 'nt' and self.shm_key:
@@ -123,7 +123,7 @@ class DB(object):
         self._running = True
 
         maintain = kwargs.get('maintain', True)
-        if maintain and self._maintenance_thread == None:
+        if maintain and self._maintenance_thread is None:
             self._maintenance_thread = Thread(target=self.__maintain,
                                               name='DB maintenance thread')
             self._maintenance_thread.start()
@@ -148,7 +148,7 @@ class DB(object):
             raise exceptions.DBRetryTransaction
         except db.DBError, e:
             if e[0] == _err_unsupported_index_type:
-                raise db.DBError, "Unsupported indexed data type"
+                raise db.DBError("Unsupported indexed data type")
             else:
                 raise
 
@@ -317,7 +317,7 @@ class DB(object):
     def close(self):
         if self._running:
             self._running = False
-            if self._maintenance_thread != None:
+            if self._maintenance_thread is not None:
                 self._maintenance_thread.join()
             self._itemdb.close()
             self._docdb.close()
@@ -325,5 +325,5 @@ class DB(object):
             [index.close() for index in self._indices.values()]
             self._env.close()
             # clean-up environment files
-            #if self._maintenance_thread != None:
+            #if self._maintenance_thread is not None:
             #    self.__remove_env()

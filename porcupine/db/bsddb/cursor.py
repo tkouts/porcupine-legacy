@@ -31,12 +31,12 @@ class Cursor(BaseCursor):
     def __init__(self, index):
         BaseCursor.__init__(self, index)
         self._get_cursor()
-        if context._trans != None:
+        if context._trans is not None:
             context._trans._cursors.append(self)
         self._get_flag = db.DB_NEXT
 
     def _get_cursor(self):
-        if context._trans != None:
+        if context._trans is not None:
             self._cursor = self._index.db.cursor(context._trans.txn,
                                                  db.DB_READ_COMMITTED)
         else:
@@ -54,7 +54,7 @@ class Cursor(BaseCursor):
 
     def get_size(self):
         clone = self._cursor.dup(db.DB_POSITION)
-        if self._value != None:
+        if self._value is not None:
             # equality
             size = clone.count()
         else:
@@ -67,7 +67,7 @@ class Cursor(BaseCursor):
 
             cursor_range = float(last_value - first_value)
 
-            if self._range._lower_value != None:
+            if self._range._lower_value is not None:
                 start_value = struct.unpack('>L',
                     (self._range._lower_value + '\x00' * 4)[:4])[0]
                 if start_value < first_value:
@@ -75,7 +75,7 @@ class Cursor(BaseCursor):
             else:
                 start_value = first_value
 
-            if self._range._upper_value != None:
+            if self._range._upper_value is not None:
                 end_value = struct.unpack('>L',
                     (self._range._upper_value + '\x00' * 4)[:4])[0]
                 if end_value > last_value:
@@ -100,14 +100,14 @@ class Cursor(BaseCursor):
         try:
             is_set = False
             if self._reversed:
-                if self._value != None:
+                if self._value is not None:
                     # equality
                     self._cursor.set(self._value)
                     self._cursor.get(db.DB_NEXT_NODUP)
                     is_set = bool(self._cursor.get(db.DB_PREV))
-                elif self._range != None:
+                elif self._range is not None:
                     # range
-                    if self._range._upper_value != None:
+                    if self._range._upper_value is not None:
                         if self._range._upper_inclusive:
                             is_set = bool(
                                 self._cursor.set(self._range._upper_value))
@@ -118,12 +118,12 @@ class Cursor(BaseCursor):
                         # move to last
                         is_set = bool(self._cursor.get(db.DB_LAST))
             else:
-                if self._value != None:
+                if self._value is not None:
                     # equality
                     is_set = bool(self._cursor.set(self._value))
-                elif self._range != None:
+                elif self._range is not None:
                     # range
-                    if self._range._lower_value != None:
+                    if self._range._lower_value is not None:
                         if self._range._lower_inclusive:
                             is_set = bool(
                                 self._cursor.set(self._range._lower_value))
@@ -144,7 +144,7 @@ class Cursor(BaseCursor):
             if attr.__class__.__module__ != '__builtin__':
                 attr = attr.value
             packed = pack_value(attr)
-            if self._value != None:
+            if self._value is not None:
                 return self._value == packed
             else:
                 return packed in self._range
@@ -159,7 +159,7 @@ class Cursor(BaseCursor):
 
     def __iter__(self):
         if self._set():
-            if self._value != None:
+            if self._value is not None:
                 # equality
                 cmp_func = lambda x: x == self._value
             else:
@@ -170,7 +170,7 @@ class Cursor(BaseCursor):
                 key, value = self._cursor.get(db.DB_CURRENT)
                 while cmp_func(key):
                     item = self._get_item(value)
-                    if item != None:
+                    if item is not None:
                         if self.fetch_mode == 0:
                             yield item._id
                         elif self.fetch_mode == 1:
@@ -188,7 +188,7 @@ class Cursor(BaseCursor):
 
     def close(self):
         if not self._closed:
-            if context._trans != None:
+            if context._trans is not None:
                 context._trans._cursors.remove(self)
             elif context._cursors.get(self._index.name) == self._cursor:
                 del context._cursors[self._index.name]
@@ -206,7 +206,7 @@ class Join(BaseCursor):
         self._cur_list = cursor_list
         self._join = None
         self._db = primary_db
-        if context._trans != None:
+        if context._trans is not None:
             context._trans._cursors.append(self)
 
     def duplicate(self):
@@ -231,7 +231,7 @@ class Join(BaseCursor):
         is_natural = True
         is_set = True
 
-        is_natural = all([cur._value != None for cur in self._cur_list])
+        is_natural = all([cur._value is not None for cur in self._cur_list])
         is_set = all([cur._set() for cur in self._cur_list])
         if is_set:
             if is_natural and not self._reversed:
@@ -239,9 +239,9 @@ class Join(BaseCursor):
                 self._join = self._db.join([c._cursor for c in self._cur_list])
                 try:
                     next = self._join.get(0)
-                    while next != None:
+                    while next is not None:
                         item = self._get_item(next[1])
-                        if item != None:
+                        if item is not None:
                             if self.fetch_mode == 0:
                                 yield item._id
                             elif self.fetch_mode == 1:
@@ -265,7 +265,7 @@ class Join(BaseCursor):
                             yield item
 
     def _close(self):
-        if self._join != None:
+        if self._join is not None:
             self._join.close()
 
     def close(self):

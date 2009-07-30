@@ -38,7 +38,7 @@ class PorcupineThread(BaseServerThread):
     _method_cache = {}
 
     def handle_request(self, rh, raw_request=None):
-        if raw_request == None:
+        if raw_request is None:
             raw_request = loads(rh.input_buffer)
         response = context.response = HttpResponse()
         request = context.request = HttpRequest(raw_request)
@@ -71,15 +71,15 @@ class PorcupineThread(BaseServerThread):
                     web_app = pubdirs.dirs.get(dir_name, None)
                 else:
                     web_app = None
-                if web_app == None:
+                if web_app is None:
                     # try to get the requested object from the db
                     item = _db.get_item(path_info)
-                    if item != None and not item._isDeleted:
+                    if item is not None and not item._isDeleted:
                         self._fetch_session(session_id, cookies_enabled)
                         self._dispatch_method(item)
                     else:
-                        raise exceptions.NotFound, \
-                            'The resource "%s" does not exist' % path_info
+                        raise exceptions.NotFound(
+                            'The resource "%s" does not exist' % path_info)
                 else:
                     # request to a published directory
                     # remove blank entry & app name to get the requested path
@@ -90,8 +90,8 @@ class PorcupineThread(BaseServerThread):
                         request.serverVariables['HTTP_USER_AGENT'],
                         request.get_lang())
                     if not registration:
-                        raise exceptions.NotFound, \
-                            'The resource "%s" does not exist' % path_info
+                        raise exceptions.NotFound(
+                            'The resource "%s" does not exist' % path_info)
                     
                     rtype = registration.type
                     if rtype == 1: # in case of psp fetch session
@@ -107,7 +107,7 @@ class PorcupineThread(BaseServerThread):
                     elif rtype == 0: # static file
                         f_name = registration.context
                         if_none_match = request.HTTP_IF_NONE_MATCH
-                        if if_none_match != None and if_none_match == \
+                        if if_none_match is not None and if_none_match == \
                                 '"%s"' % misc.generate_file_etag(f_name):
                             response._code = 304
                         else: 
@@ -120,7 +120,7 @@ class PorcupineThread(BaseServerThread):
             except exceptions.ResponseEnd, e:
                 pass
             
-            if registration != None and response._code == 200:
+            if registration is not None and response._code == 200:
                 # do we have caching directive?
                 if registration.max_age:
                     response.set_expiration(registration.max_age)
@@ -162,7 +162,7 @@ class PorcupineThread(BaseServerThread):
                                  r_qs, r_browser, r_lang))).digest()
         
         method = self._method_cache.get(method_key, None)
-        if method == None:
+        if method is None:
             candidate_methods = [meth for meth in dir(item)
                                  if meth[:4+len(method_name)] == \
                                  'WM_%s_' % method_name]
@@ -188,9 +188,9 @@ class PorcupineThread(BaseServerThread):
         
             self._method_cache[method_key] = method
     
-        if method == None:
-            raise exceptions.NotImplemented, \
-                'Unknown method call "%s"' % method_name
+        if method is None:
+            raise exceptions.NotImplemented(
+                'Unknown method call "%s"' % method_name)
         else:
             # execute method
             getattr(item, method)(context)
@@ -199,7 +199,7 @@ class PorcupineThread(BaseServerThread):
         session = None
         if session_id:
             session = SessionManager.fetch_session(session_id)
-        if session != None:
+        if session is not None:
             context.session = session
             context.user = _db.get_item(context.session.userid)
             context.request.serverVariables["AUTH_USER"] = \

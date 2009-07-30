@@ -39,7 +39,7 @@ def pack_value(value):
         packed = struct.pack('>l', value)
     elif type(value) == float:
         packed = struct.pack('>f', value)
-    elif value == None:
+    elif value is None:
         packed = struct.pack('c', chr(0))
     else:
         # unsupported data type

@@ -38,7 +38,7 @@ class OqlCommand(object):
             cmd_code, args = cmd
             cmd_handler = getattr(core, 'h_%s' % cmd_code)
             ret = cmd_handler(args, self.oql_vars)
-            if ret != None:
+            if ret is not None:
                 result.append(ret)
         return result
 
@@ -62,9 +62,9 @@ class OqlCommand(object):
             error_string = '%s\n\n%s' % (helper_string,
                                          "OQL syntax error at line %d: '%s'" % \
                                          (lineno, errvalue))
-            raise exceptions.OQLError, error_string
+            raise exceptions.OQLError(error_string)
         except TypeError, e:
-            raise exceptions.InternalServerError, e[0]
+            raise exceptions.InternalServerError(e[0])
         
         if len(ret) == 1:
            ret = ret[0]

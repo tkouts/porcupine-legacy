@@ -104,8 +104,8 @@ class Cloneable(object):
             If the target container does not exist.
         """
         target = db._db.get_item(target_id)
-        if target == None or target._isDeleted:
-            raise exceptions.ObjectNotFound, (
+        if target is None or target._isDeleted:
+            raise exceptions.ObjectNotFound(
                 'The target container "%s" does not exist.' % target_id)
         
         if isinstance(self, Shortcut):
@@ -114,27 +114,27 @@ class Cloneable(object):
             contentclass = self.get_contentclass()
         
         if self.isCollection and target.is_contained_in(self._id):
-            raise exceptions.ContainmentError, \
-                'Cannot copy item to destination.\n' + \
-                'The destination is contained in the source.'
+            raise exceptions.ContainmentError(
+                'Cannot copy item to destination.\n'
+                'The destination is contained in the source.')
         
         # check permissions on target folder
         user = context.user
         user_role = permsresolver.get_access(target, user)
         if not(self._isSystem) and user_role > permsresolver.READER:
             if not(contentclass in target.containment):
-                raise exceptions.ContainmentError, \
-                    'The target container does not accept ' + \
-                    'objects of type\n"%s".' % contentclass
+                raise exceptions.ContainmentError(
+                    'The target container does not accept '
+                    'objects of type\n"%s".' % contentclass)
             
             self._copy(target, clear_inherited=True)
             # update parent
             target.modified = time.time()
             db._db.put_item(target)
         else:
-            raise exceptions.PermissionDenied, \
-                'The object was not copied.\n' + \
-                'The user has insufficient permissions.'
+            raise exceptions.PermissionDenied(
+                'The object was not copied.\n'
+                'The user has insufficient permissions.')
     copyTo = deprecated(copy_to)
 
 class Movable(object):
@@ -163,7 +163,7 @@ class Movable(object):
 
         parent_id = self._parentid
         target = db._db.get_item(target_id)
-        if target == None or target._isDeleted:
+        if target is None or target._isDeleted:
             raise exceptions.ObjectNotFound, (
                 'The target container "%s" does not exist.' % target_id)
         
@@ -175,16 +175,16 @@ class Movable(object):
         user_role2 = permsresolver.get_access(target, user)
         
         if self.isCollection and target.is_contained_in(self._id):
-            raise exceptions.ContainmentError, \
-                'Cannot move item to destination.\n' + \
-                'The destination is contained in the source.'
+            raise exceptions.ContainmentError(
+                'Cannot move item to destination.\n'
+                'The destination is contained in the source.')
         
         if (not(self._isSystem) and can_move and
                 user_role2 > permsresolver.READER):
             if not(contentclass in target.containment):
-                raise exceptions.ContainmentError, \
-                    'The target container does not accept ' + \
-                    'objects of type\n"%s".' % contentclass
+                raise exceptions.ContainmentError(
+                    'The target container does not accept '
+                    'objects of type\n"%s".' % contentclass)
             
             self._parentid = target._id
             self.inheritRoles = False
@@ -201,9 +201,9 @@ class Movable(object):
             parent.modified = time.time()
             db._db.put_item(parent)
         else:
-            raise exceptions.PermissionDenied, \
-                'The object was not moved.\n' + \
-                'The user has insufficient permissions.'
+            raise exceptions.PermissionDenied(
+                'The object was not moved.\n'
+                'The user has insufficient permissions.')
     moveTo = deprecated(move_to)
 
 class Removable(object):
@@ -255,9 +255,9 @@ class Removable(object):
             parent.modified = time.time()
             db._db.put_item(parent)
         else:
-            raise exceptions.PermissionDenied, \
-                'The object was not deleted.\n' + \
-                'The user has insufficient permissions.'
+            raise exceptions.PermissionDenied(
+                'The object was not deleted.\n'
+                'The user has insufficient permissions.')
     
     def _recycle(self):
         """
@@ -330,9 +330,9 @@ class Removable(object):
             # check recycle bin's containment
             recycle_bin = db._db.get_item(rb_id)
             if not(deleted.get_contentclass() in recycle_bin.containment):
-                raise exceptions.ContainmentError, \
-                    'The target container does not accept ' + \
-                    'objects of type\n"%s".' % deleted.get_contentclass()
+                raise exceptions.ContainmentError(
+                    'The target container does not accept '
+                    'objects of type\n"%s".' % deleted.get_contentclass())
             
             db._db.handle_update(deleted, None)
             db._db.put_item(deleted)
@@ -345,9 +345,9 @@ class Removable(object):
             parent.modified = time.time()
             db._db.put_item(parent)
         else:
-            raise exceptions.PermissionDenied, \
-                'The object was not deleted.\n' + \
-                'The user has insufficient permissions.'
+            raise exceptions.PermissionDenied(
+                'The object was not deleted.\n'
+                'The user has insufficient permissions.')
 
 class Composite(object):
     """Objects within Objects...
@@ -488,13 +488,13 @@ class GenericItem(object):
         user = context.user
         user_role = permsresolver.get_access(parent, user)
         if user_role == permsresolver.READER:
-            raise exceptions.PermissionDenied, \
-                'The user does not have write permissions ' + \
-                'on the parent folder.'
+            raise exceptions.PermissionDenied(
+                'The user does not have write permissions '
+                'on the parent folder.')
         if not(contentclass in parent.containment):
-            raise exceptions.ContainmentError, \
-                'The target container does not accept ' + \
-                'objects of type\n"%s".' % contentclass
+            raise exceptions.ContainmentError(
+                'The target container does not accept '
+                'objects of type\n"%s".' % contentclass)
 
         # set security to new item
         if user_role == permsresolver.COORDINATOR:
@@ -662,9 +662,9 @@ class DeletedItem(GenericItem, Removable):
             deleted.inheritRoles = False
             deleted._undelete()
         else:
-            raise exceptions.PermissionDenied, \
-                    'The user does not have write permissions on the ' + \
-                    'destination folder.'
+            raise exceptions.PermissionDenied(
+                    'The user does not have write permissions on the '
+                    'destination folder.')
 
     def get_deleted_item(self):
         """
@@ -687,9 +687,9 @@ class DeletedItem(GenericItem, Removable):
         @warning: DO NOT USE.
         @raise L{porcupine.exceptions.ContainmentError}: Always
         """
-        raise exceptions.ContainmentError, \
-            'Cannot directly add this item to the store.\n' + \
-            'Use the "recycle" method instead.'
+        raise exceptions.ContainmentError(
+            'Cannot directly add this item to the store.\n'
+            'Use the "recycle" method instead.')
     appendTo = deprecated(append_to)
 
     @db.requires_transactional_context
@@ -719,16 +719,16 @@ class DeletedItem(GenericItem, Removable):
             If the original location or the original item no longer exists.
         """
         deleted = db._db.get_item(self._deletedId)
-        if deleted == None:
-            raise exceptions.ObjectNotFound, (
-                'Cannot locate original item.\n' +
-                'It seems that this item resided in a container\n' +
-                'that has been permanently deleted or it is shortcut\n' +
+        if deleted is None:
+            raise exceptions.ObjectNotFound(
+                'Cannot locate original item.\n'
+                'It seems that this item resided in a container\n'
+                'that has been permanently deleted or it is shortcut\n'
                 'having its target permanently deleted.')
         parent = db._db.get_item(parent_id or deleted._parentid)
-        if parent == None or parent._isDeleted:
-            raise exceptions.ObjectNotFound, (
-                'Cannot locate target container.\n' +
+        if parent is None or parent._isDeleted:
+            raise exceptions.ObjectNotFound(
+                'Cannot locate target container.\n'
                 'It seems that this container is deleted.')
         
         if isinstance(deleted, Shortcut):
@@ -737,9 +737,9 @@ class DeletedItem(GenericItem, Removable):
             contentclass = deleted.get_contentclass()
         
         if contentclass and not(contentclass in parent.containment):
-            raise exceptions.ContainmentError, \
-                'The target container does not accept ' + \
-                'objects of type\n"%s".' % contentclass
+            raise exceptions.ContainmentError(
+                'The target container does not accept '
+                'objects of type\n"%s".' % contentclass)
         
         # try to restore original item
         self._restore(deleted, parent)
@@ -763,7 +763,7 @@ class DeletedItem(GenericItem, Removable):
         if _remove_deleted:
             # we got a direct call. remove deleted item
             deleted = db._db.get_item(self._deletedId)
-            if deleted != None:
+            if deleted is not None:
                 deleted._delete()
 
 class Item(GenericItem, Cloneable, Movable, Removable):
@@ -819,8 +819,8 @@ class Item(GenericItem, Cloneable, Movable, Removable):
                 parent.modified = self.modified
                 db._db.put_item(parent)
         else:
-            raise exceptions.PermissionDenied, \
-                    'The user does not have update permissions.'
+            raise exceptions.PermissionDenied(
+                    'The user does not have update permissions.')
 
 class Shortcut(Item):
     """

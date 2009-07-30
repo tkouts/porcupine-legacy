@@ -36,6 +36,6 @@ class PorcupineServer(asyncserver.BaseServer):
             sm_class = misc.get_rto_by_name(
                 settings['sessionmanager']['interface'])
             if not sm_class.supports_multiple_processes:
-                raise exceptions.ConfigurationError, \
-                    'The session manager class does not support ' \
-                    'multiple processes.'
+                raise exceptions.ConfigurationError(
+                    'The session manager class does not support '
+                    'multiple processes.')

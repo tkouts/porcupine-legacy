@@ -293,7 +293,7 @@ def getSecurity(self):
     l = []
     for sID in self.security:
         oUser = db.get_item(sID)
-        if oUser != None:
+        if oUser is not None:
             dn = oUser.displayName.value
         else:
             dn = sID

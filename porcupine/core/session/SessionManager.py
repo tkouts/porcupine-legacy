@@ -21,7 +21,7 @@ _sm = None
 
 def open(sm_type, session_timeout, init_expiration, **kwargs):
     global _sm
-    if _sm == None:
+    if _sm is None:
         _sm = sm_type(session_timeout, **kwargs)
         if init_expiration:
             _sm.init_expiration_mechanism()
@@ -36,7 +36,7 @@ def create(userid):
    
 def fetch_session(sessionid):
     session = _sm.get_session(sessionid)
-    if session != None and \
+    if session is not None and \
             time.time() - session.get_last_accessed() > _sm.revive_threshold:
         _sm.revive_session(session)
     return session
@@ -47,6 +47,6 @@ def terminate_session(session):
     
 def close():
     global _sm
-    if _sm != None:
+    if _sm is not None:
         _sm.close()
         _sm = None

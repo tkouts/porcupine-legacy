@@ -147,7 +147,7 @@ class XMLRPCParams(list):
                 elif isinstance(oAttr, datatypes.Reference1):
                     item_ref = oAttr.get_item()
                     xmlrpc_object[attr] = {'id': oAttr.value}
-                    if item_ref != None:
+                    if item_ref is not None:
                         xmlrpc_object[attr]['displayName'] = \
                             item_ref.displayName.value
                 elif isinstance(oAttr, datatypes.Date):

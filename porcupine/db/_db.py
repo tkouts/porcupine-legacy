@@ -48,7 +48,7 @@ def _get_item_by_path(lstPath):
     for name in lstPath[1:len(lstPath)]:
         if name:
             child_id = child.get_child_id(name)
-            if child_id == None:
+            if child_id is None:
                 return None
             else:
                 child = get_item(child_id)
@@ -56,7 +56,7 @@ def _get_item_by_path(lstPath):
 
 def get_item(oid):
     item = _db_handle.get_item(oid)
-    if item == None:
+    if item is None:
         path_tokens = oid.split('/')
         path_depth = len(path_tokens)
         if path_depth > 1:
@@ -64,9 +64,9 @@ def get_item(oid):
             if path_depth == 2:
                 item = _db_handle.get_item(path_tokens[1])
             # /folder1/folder2/item
-            if item == None:
+            if item is None:
                 return _get_item_by_path(path_tokens)
-    if item != None:
+    if item is not None:
         item = persist.loads(item)
         return item
 
@@ -152,14 +152,14 @@ def check_unique(item, old_item):
     for index_name in [x[0] for x in settings['store']['indices'] if x[1]]:
         if hasattr(item, index_name) and hasattr(item, '_parentid'):
             value = getattr(item, index_name).value
-            if old_item != None and hasattr(old_item, index_name):
+            if old_item is not None and hasattr(old_item, index_name):
                 old_value = getattr(old_item, index_name).value
             else:
                 old_value = None
             if value != old_value:
                 join = (('_parentid', item._parentid), (index_name, value))
                 if test_join(join):
-                    raise exceptions.ContainmentError, (
+                    raise exceptions.ContainmentError(
                         'The container already ' +
                         'has an item with the same "%s" value.' % index_name)
 

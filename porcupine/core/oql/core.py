@@ -131,7 +131,7 @@ def evaluate_stack(stack, variables, for_object=None):
             if variables.has_key(op) and type(variables[op]) == tuple:
                 # an alias or optimized attribute
                 alias_stack, objectid, alias_value = variables[op]
-                if for_object != None and objectid != for_object._id:
+                if for_object is not None and objectid != for_object._id:
                     # compute alias
                     alias_value = evaluate_stack(alias_stack[:],
                                                  variables,
@@ -149,7 +149,7 @@ def evaluate_stack(stack, variables, for_object=None):
                 if op == '**':
                     return for_object
                 else:
-                    if for_object != None:
+                    if for_object is not None:
                         return get_attribute(for_object, op.split('.'))
     else:
         return op
@@ -208,8 +208,8 @@ def compute_aggregate(aggr, lst):
         # check if list has constant values
         if lst:
             if lst != [lst[0]] * len(lst):
-                raise TypeError, ('Non aggregate expressions should be ' +
-                                  'constants or included in a GROUP BY clause')
+                raise TypeError('Non aggregate expressions should be ' +
+                                'constants or included in a GROUP BY clause')
             else:
                 return(lst[0])
         return None
@@ -385,11 +385,11 @@ def optimize_query(conditions, variables, parent_op=None):
                                    if l[0] == new_lookup[0]]
                         for lookup in lookups:
                             if type(lookup[1]) == tuple:
-                                if lookup[1][0] == None and new_lookup[1][0]:
+                                if lookup[1][0] is None and new_lookup[1][0]:
                                     lookup[1] = (new_lookup[1][0], lookup[1][1])
                                     is_optimized = True
                                     break
-                                elif lookup[1][1] == None and new_lookup[1][1]:
+                                elif lookup[1][1] is None and new_lookup[1][1]:
                                     lookup[1] = (lookup[1][0], new_lookup[1][1])
                                     is_optimized = True
                                     break
@@ -416,14 +416,14 @@ def optimize_query(conditions, variables, parent_op=None):
             if type(index) == str and db._db.has_index(index):
                 conditions.pop()
                 index_value = evaluate_stack(conditions, variables)
-                if index_value != None:
+                if index_value is not None:
                     if op == '=':
                         lookup = [index, index_value]
                     elif op in ['<', '<=']:
                         lookup = [index, (None, (index_value, '=' in op))]
                     elif op in ['>', '>=']:
                         lookup = [index, ((index_value, '=' in op), None)]
-            if lookup != None:
+            if lookup is not None:
                 optimized[0][0].append(lookup)
             else:
                 # remove operands
@@ -518,7 +518,7 @@ def h_200(params, variables, for_object=None):
     #print 'where: %s' % where_condition
 
     uses_indexes = False
-    if for_object == None and where_condition:
+    if for_object is None and where_condition:
         # in case of not being a subquery, optimize query
         optimized = optimize_query(where_condition[:], variables)
         uses_indexes = all([l[0] for l in optimized])
@@ -533,8 +533,8 @@ def h_200(params, variables, for_object=None):
         if deep==2:
             # this:attr
             if not for_object:
-                raise TypeError, \
-                    'Inner scopes using "this:" are valid only in sub-queries'
+                raise TypeError(
+                    'Inner scopes using "this:" are valid only in sub-queries')
             if hasattr(for_object, object_id):
                 attr = getattr(for_object, object_id)
                 if isinstance(attr, (datatypes.ReferenceN,
@@ -543,9 +543,9 @@ def h_200(params, variables, for_object=None):
                 elif isinstance(attr, datatypes.Reference1):
                     ref_objects = [attr.get_item()]
                 else:
-                    raise TypeError, ('Inner scopes using "this:" are ' +
-                                      'valid only ReferenceN, Reference1 ' +
-                                      'and Composition data types')
+                    raise TypeError('Inner scopes using "this:" are ' +
+                                    'valid only ReferenceN, Reference1 ' +
+                                    'and Composition data types')
                 r = select(for_object._id, False,
                            [[ref_objects, where_condition]],
                            all_fields, variables)
@@ -553,7 +553,7 @@ def h_200(params, variables, for_object=None):
         else:
             # swallow-deep
             obj = db.get_item(object_id)
-            if obj != None and obj.isCollection:
+            if obj is not None and obj.isCollection:
                 cp_optimized = copy.deepcopy(optimized)
                 if deep and obj._id == '':
                     deep = False
@@ -562,13 +562,13 @@ def h_200(params, variables, for_object=None):
                     scope_condition = ['_parentid', obj._id]
                 
                 if not uses_indexes:
-                    if scope_condition == None:
+                    if scope_condition is None:
                         # deep traversal of root without index
                         scope_condition = ['displayName', (None, None)]
                     cp_optimized[0][0] = db._db.query_index(*scope_condition)
                 else:
                     # define scope
-                    if scope_condition != None:
+                    if scope_condition is not None:
                         for l in cp_optimized:
                             l[0].append(scope_condition)
                     # create cursors
@@ -600,8 +600,7 @@ def h_200(params, variables, for_object=None):
                     group_dict[group_value].append(rec)
                 groups = [tuple(g) for g in group_dict.values()]
             else:
-                raise TypeError, \
-                    'GROUP BY clause is incompatible with SELECT *'
+                raise TypeError('GROUP BY clause is incompatible with SELECT *')
         else:
             groups = [results]
         
@@ -611,13 +610,13 @@ def h_200(params, variables, for_object=None):
             for ind, group in enumerate(groups):
                 group_sum = []
                 for aggr_index, aggr_type in enumerate(aggregates):
-                    if aggr_type != None:
+                    if aggr_type is not None:
                         # aggregates exclude None values
                         group_sum.append(compute_aggregate(
                             aggr_type,
                             [x[aggr_index]
                              for x in group
-                             if x[aggr_index] != None]))
+                             if x[aggr_index] is not None]))
                 groups[ind] = (tuple(group_sum),)
         
         for group in groups:

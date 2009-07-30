@@ -80,7 +80,7 @@ class WebMethodDescriptor(object):
     
     def execute(self, item, context):
         v = self.func(item)
-        if self.template != None:
+        if self.template is not None:
             func_dir = os.path.dirname(sys.modules[self.func.__module__].__file__)
             template_processor = settings['templatelanguages'][self.t_engine]
             template_processor(context,

@@ -118,7 +118,7 @@ class HttpResponse(object):
         
         @return: None
         """
-        raise exceptions.InternalRedirect, location
+        raise exceptions.InternalRedirect(location)
 
     def write(self, s):
         """Appends a string to the response sent to the client.
@@ -172,8 +172,8 @@ class HttpResponse(object):
         try:
             oFile = file(fileName, 'rb')
         except IOError:
-            raise exceptions.NotFound, \
-                    'The file "%s" can not be found' % fileName
+            raise exceptions.NotFound(
+                'The file "%s" can not be found' % fileName)
         
         self.content_type = mimetypes.guess_type(fileName, False)[0] or 'text/plain'
         self._body.truncate(0)

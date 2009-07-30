@@ -142,7 +142,7 @@ class GenericSchemaEditor(object):
             del self._imports[module]        
             
     def commit_changes(self):
-        if self.boundaries != None:
+        if self.boundaries is not None:
             module_source = inspect.getsourcelines(self._module)[0]
             new_source = module_source[:self.boundaries[0] - 1]
             new_source.extend(self.generate_code())
@@ -185,8 +185,8 @@ class ItemEditor(GenericSchemaEditor):
             else:
                 self.containment = None
         else:
-            raise TypeError, 'Invalid argument. ' + \
-                'ItemEditor accepts only subclasses of GenericItem'
+            raise TypeError('Invalid argument. '
+                'ItemEditor accepts only subclasses of GenericItem')
     
     def set_property(self, name, value):
         self._attrs[name] = value
@@ -270,7 +270,7 @@ class ItemEditor(GenericSchemaEditor):
             code.append('(' + ', '.join(dts) + ', )\n')
             
         # isCollection
-        if (self.isCollection != None):
+        if (self.isCollection is not None):
             code.append('    isCollection = %s\n' % self.isCollection)
         
         # _eventHandlers
@@ -343,8 +343,8 @@ class DatatypeEditor(GenericSchemaEditor):
             if hasattr(self._class, 'compositeClass'):
                 self.compositeClass = self._class.compositeClass
         else:
-            raise TypeError, 'Invalid argument. ' + \
-                'DatatypeEditor accepts only subclasses of DataType'
+            raise TypeError('Invalid argument. '
+                'DatatypeEditor accepts only subclasses of DataType')
 
     def generate_code(self):
         bases = [self._get_full_name(x) for x in self._bases]

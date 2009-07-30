@@ -63,7 +63,7 @@ def execute(context, filename):
         for codeFragment in pspCode:
             if codeFragment!='':
                 codeMatch = re.match(PSP_TAGS, codeFragment)
-                if codeMatch == None:
+                if codeMatch is None:
                     # pure HTML
                     # remove whitespaces
                     #codeFragment = codeFragment.strip() + '\n'
@@ -82,7 +82,7 @@ def execute(context, filename):
                         # set intendation
                         if line!='':
                             if line!='end':
-                                if re.match(PSP_DECREASE_INDENT, line) != None:
+                                if re.match(PSP_DECREASE_INDENT, line) is not None:
                                     intend = intend[0:len(intend)-1]
                                 formattedCode += intend + line + '\n'
                                 if line[-1] == ':':
