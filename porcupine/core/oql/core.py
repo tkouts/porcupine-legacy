@@ -82,6 +82,15 @@ fn  = {
     'getattr' : lambda a,b: get_attribute(a, [b])
 }
 
+def pop_stack(stack):
+    op = stack.pop()
+    if type(op) == str:
+        if op in operators2:
+            pop_stack(stack)
+            pop_stack(stack)
+        elif op in operators1:
+            pop_stack(stack)
+
 def evaluate_stack(stack, variables, for_object=None):
     try:
         op = stack.pop()
@@ -89,9 +98,9 @@ def evaluate_stack(stack, variables, for_object=None):
         op = stack
 
     if type(op) == list:
-        cmd_code = op[0]
+        cmd_code, params = op
         handler = globals()['h_%s' % cmd_code]
-        return handler(op[1], variables, for_object)
+        return handler(params, variables, for_object)
 
     elif type(op) == types.FunctionType:
         return op(for_object)
@@ -238,7 +247,14 @@ def h_60(params, variables, for_object):
 def h_61(params, variables, for_object):
     value, low, high = [evaluate_stack(expr[:], variables, for_object)
                         for expr in params]
-    return(low < value < high)
+    return low < value < high
+
+def h_61_opt(params, variables):
+    if len(params[0]) == 1 and db._db.has_index(params[0][0]):
+        bounds = [evaluate_stack(expr[:], variables)
+                  for expr in params[1:]]
+        if all(bounds):
+            return [params[0][0], ((bounds[0], False), (bounds[1], False))]
 
 #===============================================================================
 # IN command handler
@@ -346,7 +362,7 @@ def select(container_id, deep, specifier, fields, variables):
 def optimize_query(conditions, variables, parent_op=None):
     op2 = None
     op = conditions[-1]
-    # [[[indexed_lookups], [rte conditions]]]
+    # list of [[indexed_lookups], [rte conditions]]
     optimized = [[[], []]]
     # keep a copy of conditions
     cp_conditions = conditions[:]
@@ -387,8 +403,8 @@ def optimize_query(conditions, variables, parent_op=None):
         elif op == 'or':
             if parent_op == 'and':
                 # remove operands
-                evaluate_stack(conditions, variables)
-                evaluate_stack(conditions, variables)
+                pop_stack(conditions)
+                pop_stack(conditions)
                 optimized[0][1] += cp_conditions[len(conditions):]
             else:
                 op1 = optimize_query(conditions, variables, op)
@@ -411,16 +427,26 @@ def optimize_query(conditions, variables, parent_op=None):
                 optimized[0][0].append(lookup)
             else:
                 # remove operands
-                evaluate_stack(conditions, variables)
-                evaluate_stack(conditions, variables)
+                pop_stack(conditions)
+                pop_stack(conditions)
                 optimized[0][1] = cp_conditions[len(conditions):] + \
                                   optimized[0][1]
+    # functions
+    elif type(op) == list:
+        lookup = None
+        cmd_code, params = op
+        optimizer = globals().get('h_%s_opt' % cmd_code)
+        if optimizer is not None:
+            lookup = optimizer(params, variables)
+        if lookup is None:
+            optimized[0][1] = [op] + optimized[0][1]
+        else:
+            optimized[0][0].append(lookup)
     else:
-        evaluate_stack(conditions, variables)
-        optimized[0][1] += cp_conditions[len(conditions):] + optimized[0][1]
+        pop_stack(conditions)
+        optimized[0][1] = cp_conditions[len(conditions):] + optimized[0][1]
 
     return optimized
-
 
 def h_200(params, variables, for_object=None):
     select_fields = params[0][:]
@@ -489,7 +515,8 @@ def h_200(params, variables, for_object=None):
     
     aggregates = [x[2] for x in all_fields]
 
-    #print where_condition
+    #print 'where: %s' % where_condition
+
     uses_indexes = False
     if for_object == None and where_condition:
         # in case of not being a subquery, optimize query
@@ -499,7 +526,7 @@ def h_200(params, variables, for_object=None):
     if not uses_indexes:
         optimized = [[[], where_condition]]
 
-    #print optimized
+    #print 'opt: %s' % optimized
 
     results = ObjectSet([])
     for deep, object_id in select_from:
