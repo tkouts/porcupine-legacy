@@ -82,12 +82,12 @@ class ObjectSet(Set, Hashable):
     def __getitem__(self, key):
         "Implements slicing. Useful for paging."
         if self.schema is None:
-            return self.elements[key]
+            return self._elements[key]
         else:
             if type(key) == int:
-                return dict(zip(self.schema, self.elements[key]))
+                return dict(zip(self.schema, self._elements[key]))
             else:
-                return [dict(zip(self.schema, x)) for x in self.elemnts[key]]
+                return [dict(zip(self.schema, x)) for x in self._elements[key]]
 
     def __or__(self, other):
         """
