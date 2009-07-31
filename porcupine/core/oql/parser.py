@@ -257,8 +257,7 @@ class OqlParser:
         select_statement : SELECT TIMES FROM object_list
                         | SELECT select_list FROM object_list
         '''
-#        print 'found select'
-#        print [p[i] for i in range(len(p))]
+        # [select_fields, scopes, where_condition, order_by, group_by]
         if p[2]=='*':
             p[0] = [ core.OQL_SELECT, [ [], p[4], [], [], [] ] ]
         else:
@@ -266,8 +265,6 @@ class OqlParser:
 
     def p_select_statement_2(self, p):
         'select_statement : select_statement WHERE expression'
-#        print 'found WHERE'
-#        print [p[i] for i in range(len(p))]
         p[1][1][2] = p[3]
         p[0] = p[1]
 
@@ -276,8 +273,6 @@ class OqlParser:
         select_statement : select_statement ORDER BY field_list ASC
                         | select_statement ORDER BY field_list DESC
         '''
-#        print 'found ORDER BY'
-#        print [p[i] for i in range(len(p))]
         p[1][1][3] = (p[5].upper()=='ASC', p[4])
         p[0] = p[1]
     
