@@ -253,7 +253,7 @@ class Join(BaseCursor):
             else:
                 # not a natural join
                 cursor, rte_cursors = self._optimize()
-                cursor.fetch_all = self.fetch_all
+                cursor.enforce_permissions = self.enforce_permissions
                 cursor.fetch_mode = 1
                 for item in cursor:
                     is_valid = all([c._eval(item)

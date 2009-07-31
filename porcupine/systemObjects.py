@@ -228,7 +228,7 @@ class Removable(object):
         
         if self.isCollection:
             cursor = db._db.query_index('_parentid', self._id)
-            cursor.fetch_all = True
+            cursor.enforce_permissions = False
             [child._delete() for child in cursor]
             cursor.close()
 
@@ -273,7 +273,7 @@ class Removable(object):
         
         if self.isCollection:
             cursor = db._db.query_index('_parentid', self._id)
-            cursor.fetch_all = True
+            cursor.enforce_permissions = False
             [child._recycle() for child in cursor]
             cursor.close()
         
@@ -293,7 +293,7 @@ class Removable(object):
         
         if self.isCollection:
             cursor = db._db.query_index('_parentid', self._id)
-            cursor.fetch_all = True
+            cursor.enforce_permissions = False
             [child._undelete() for child in cursor]
             cursor.close()
         
@@ -460,7 +460,7 @@ class GenericItem(object):
             self.security = parent.security
         if self.isCollection and not is_new:
             cursor = db._db.query_index('_parentid', self._id)
-            cursor.fetch_all = True
+            cursor.enforce_permissions = False
             for child in cursor:
                 child._apply_security(self, is_new)
                 db._db.put_item(child)

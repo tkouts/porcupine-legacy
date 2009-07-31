@@ -70,7 +70,7 @@ class SessionManager(GenericSessionManager):
                         ('_parentid', '_sessions'),
                         ('modified', (None, (expire_threshold, False)))
                     ))
-                cursor.fetch_all = True
+                cursor.enforce_permissions = False
                 sessions = [session for session in cursor]
                 cursor.close()
                 for session in sessions:

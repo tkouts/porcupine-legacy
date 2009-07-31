@@ -35,12 +35,12 @@ class BaseCursor(object):
         # 0: return primary key only
         # 1: return objects
         self.fetch_mode = 1
-        self.fetch_all = False
+        self.enforce_permissions = True
         self.resolve_shortcuts = False
 
     def _get_item(self, s):
         item = persist.loads(s)
-        if self.fetch_all:
+        if not self.enforce_permissions:
             if self.resolve_shortcuts:
                 while item is not None and isinstance(item, Shortcut):
                     item = _db.get_item(item.target.value)
