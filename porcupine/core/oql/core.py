@@ -343,18 +343,17 @@ def select(container_id, deep, specifier, fields, variables):
         results |= ObjectSet(results1)
 
     if deep:
-        subfolders = db._db.join((('_parentid', container_id),
-                                  ('isCollection', True)))
+        subfolders = db._db.query((('isCollection', True), ))
+        subfolders.set_scope(container_id)
         for folder in subfolders:
             c_specifier = [[c.duplicate(), conditions]
                            for c, conditions in specifier]
-            [db._db.switch_cursor_scope(l[0], folder._id)
+            [l[0].set_scope(folder._id)
              for l in c_specifier]
             results1 = select(folder._id, deep, c_specifier, fields, variables)
             c_specifier.reverse()
             [l[0].close() for l in c_specifier]
             results |= results1
-
         subfolders.close()
     
     return results
@@ -523,8 +522,8 @@ def h_200(params, variables, for_object=None):
         optimized = optimize_query(where_condition[:], variables)
         uses_indexes = all([l[0] for l in optimized])
 
-    if not uses_indexes:
-        optimized = [[[], where_condition]]
+    if for_object is None and not uses_indexes:
+        optimized = [[[('displayName', (None, None))], where_condition]]
 
     #print 'opt: %s' % optimized
 
@@ -555,29 +554,10 @@ def h_200(params, variables, for_object=None):
             obj = db.get_item(object_id)
             if obj is not None and obj.isCollection:
                 cp_optimized = copy.deepcopy(optimized)
-                if deep and obj._id == '':
-                    deep = False
-                    scope_condition = None
-                else:
-                    scope_condition = ['_parentid', obj._id]
-                
-                if not uses_indexes:
-                    if scope_condition is None:
-                        # deep traversal of root without index
-                        scope_condition = ['displayName', (None, None)]
-                    cp_optimized[0][0] = db._db.query_index(*scope_condition)
-                else:
-                    # define scope
-                    if scope_condition is not None:
-                        for l in cp_optimized:
-                            l[0].append(scope_condition)
-                    # create cursors
-                    for l in cp_optimized:
-                        if len(l[0]) == 1:
-                            l[0] = db._db.query_index(*l[0][0])
-                        else:
-                            l[0] = db._db.join(l[0])
-
+                # create cursors
+                for l in cp_optimized:
+                    l[0] = db._db.query(l[0])
+                    l[0].set_scope(obj._id)
                 r = select(obj._id, deep, cp_optimized, all_fields, variables)
                 # close cursors
                 cp_optimized.reverse()

@@ -18,13 +18,13 @@
 Porcupine Berkeley DB cursor classes
 """
 import copy
-import struct
 
 from porcupine import context
 from porcupine import exceptions
+from porcupine.db import _db
 from porcupine.db.bsddb import db
 from porcupine.db.basecursor import BaseCursor
-from porcupine.utils.db import pack_value
+from porcupine.utils.db import pack_value, str_long
 
 class Cursor(BaseCursor):
     "BerkeleyDB cursor class"
@@ -52,7 +52,7 @@ class Cursor(BaseCursor):
         clone._get_cursor()
         return clone
 
-    def get_size(self):
+    def _get_size(self):
         clone = self._cursor.dup(db.DB_POSITION)
         if self._value is not None:
             # equality
@@ -60,24 +60,28 @@ class Cursor(BaseCursor):
         else:
             # range cursor - approximate sizing
             # assuming even distribution of keys
-            first_value = struct.unpack('>L',
-                (clone.first()[0] + '\x00' * 4)[:4])[0]
-            last_value = struct.unpack('>L',
-                (clone.last()[0] + '\x00' * 4)[:4])[0]
 
+            # get scope's first value
+            first_value = str_long(clone.set_range(self._scope + '_')[0])
+            # get scope's last value
+            last = clone.set_range(self._scope + 'a')
+            if last is not None:
+                last_value = str_long(clone.get(db.DB_PREV)[0])
+            else:
+                last_value = str_long(clone.last()[0])
             cursor_range = float(last_value - first_value)
 
             if self._range._lower_value is not None:
-                start_value = struct.unpack('>L',
-                    (self._range._lower_value + '\x00' * 4)[:4])[0]
+                start_value = str_long(self._scope + '_' +
+                                       self._range._lower_value)
                 if start_value < first_value:
                     start_value = first_value
             else:
                 start_value = first_value
 
             if self._range._upper_value is not None:
-                end_value = struct.unpack('>L',
-                    (self._range._upper_value + '\x00' * 4)[:4])[0]
+                end_value = str_long(self._scope + '_' +
+                                     self._range._upper_value)
                 if end_value > last_value:
                     end_value = last_value
             else:
@@ -86,12 +90,22 @@ class Cursor(BaseCursor):
             if cursor_range == 0:
                 size = 0
             else:
-                size = int(((end_value - start_value) / cursor_range) *
-                           len(self._index.db))
+                # get number of children
+                cursor = _db.query((('_parentid', self._scope), ))
+                cursor.set_scope(self._scope)
+                if cursor._set():
+                    children_count = cursor._get_size()
+                    size = int(((end_value - start_value) / cursor_range) *
+                               children_count)
+                else:
+                    size = 0
+                cursor.close()
+
         # close clone
         try:
             clone.close()
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            context._trans.abort()
             raise exceptions.DBRetryTransaction
 
         return size
@@ -102,37 +116,56 @@ class Cursor(BaseCursor):
             if self._reversed:
                 if self._value is not None:
                     # equality
-                    self._cursor.set(self._value)
-                    self._cursor.get(db.DB_NEXT_NODUP)
-                    is_set = bool(self._cursor.get(db.DB_PREV))
+                    is_set = bool(self._cursor.set(self._scope + '_' +
+                                                   self._value))
+                    if is_set:
+                        next_nodup = self._cursor.get(db.DB_NEXT_NODUP)
+                        if next_nodup is not None:
+                            self._cursor.get(db.DB_PREV)
+                        else:
+                            self._cursor.get(db.DB_LAST)
+
                 elif self._range is not None:
                     # range
                     if self._range._upper_value is not None:
-                        if self._range._upper_inclusive:
-                            is_set = bool(
-                                self._cursor.set(self._range._upper_value))
-                        if not is_set:
-                            self._cursor.set_range(self._range._upper_value)
-                            is_set = bool(self._cursor.get(db.DB_PREV))
+                        first = self._cursor.set_range(
+                                    self._scope + '_' +
+                                    self._range._upper_value)
+                        if first is not None \
+                                and not self._range._upper_inclusive:
+                            key = first[0].split('_', 1)[1]
+                            if key == self._range._upper_value:
+                                first = self._cursor.get(db.DB_PREV_NODUP)
+                        is_set = bool(first)
                     else:
                         # move to last
-                        is_set = bool(self._cursor.get(db.DB_LAST))
+                        next_container = self._cursor.set_range(
+                                    self._scope + 'a')
+                        if next_container is not None:
+                            is_set = bool(self._cursor.get(db.DB_PREV))
+                        else:
+                            is_set = bool(self._cursor.get(db.DB_LAST))
             else:
                 if self._value is not None:
                     # equality
-                    is_set = bool(self._cursor.set(self._value))
+                    is_set = bool(self._cursor.set(self._scope + '_' +
+                                                   self._value))
+
                 elif self._range is not None:
                     # range
                     if self._range._lower_value is not None:
-                        if self._range._lower_inclusive:
-                            is_set = bool(
-                                self._cursor.set(self._range._lower_value))
-                        if not is_set:
-                            is_set = bool(
-                                self._cursor.set_range(self._range._lower_value))
+                        first = self._cursor.set_range(
+                                    self._scope + '_' +
+                                    self._range._lower_value)
+                        if first is not None \
+                                and not self._range._lower_inclusive:
+                            key = first[0].split('_', 1)[1]
+                            if key == self._range._lower_value:
+                                first = self._cursor.get(db.DB_NEXT_NODUP)
+                        is_set = bool(first)
                     else:
                         # move to first
-                        is_set = bool(self._cursor.get(db.DB_FIRST))
+                        is_set = bool(self._cursor.set_range(self._scope + '_'))
             return is_set
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
@@ -167,8 +200,9 @@ class Cursor(BaseCursor):
                 cmp_func = lambda x: x in self._range
 
             try:
-                key, value = self._cursor.get(db.DB_CURRENT)
-                while cmp_func(key):
+                composite_key, value = self._cursor.get(db.DB_CURRENT)
+                scope, key = composite_key.split('_', 1)
+                while scope == self._scope and cmp_func(key):
                     item = self._get_item(value)
                     if item is not None:
                         if self.fetch_mode == 0:
@@ -178,7 +212,8 @@ class Cursor(BaseCursor):
                     next = self._cursor.get(self._get_flag)
                     if not next:
                         break
-                    key, value = next
+                    composite_key, value = next
+                    scope, key = composite_key.split('_', 1)
             except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
                 context._trans.abort()
                 raise exceptions.DBRetryTransaction
@@ -209,6 +244,10 @@ class Join(BaseCursor):
         if context._trans is not None:
             context._trans._cursors.append(self)
 
+    def set_scope(self, scope):
+        [c.set_scope(scope) for c in self._cur_list]
+        self._scope = scope
+
     def duplicate(self):
         clone = copy.copy(self)
         clone._cur_list = [cur.duplicate() for cur in self._cur_list]
@@ -219,7 +258,7 @@ class Join(BaseCursor):
         [c.reverse() for c in self._cur_list]
 
     def _optimize(self):
-        sizes = [c.get_size() for c in self._cur_list]
+        sizes = [c._get_size() for c in self._cur_list]
         cursors = zip(sizes, self._cur_list)
         cursors.sort()
         rte_cursors = [c[1] for c in cursors[1:]]

@@ -46,6 +46,16 @@ def pack_value(value):
         packed = _err_unsupported_index_type
     return packed
 
+def str_long(s, padding=16):
+    if len(s) < padding:
+        s += '\x00' * (padding - len(s))
+    chars = [c for c in s[:padding]]
+    chars.reverse()
+    long = 0
+    for i, c in enumerate(chars):
+        long += ord(c) * (256 ** i)
+    return long
+
 @db.transactional(auto_commit=True)
 def initialize_db():
     "Initializes the Porcupine database."

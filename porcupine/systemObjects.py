@@ -189,7 +189,6 @@ class Movable(object):
             self._parentid = target._id
             self.inheritRoles = False
             self.modified = time.time()
-            db._db.check_unique(self, None)
             db._db.put_item(self)
 
             # update target
@@ -227,7 +226,9 @@ class Removable(object):
         db._db.delete_item(self)
         
         if self.isCollection:
-            cursor = db._db.query_index('_parentid', self._id)
+            conditions = (('displayName', (None, None)), )
+            cursor = db._db.query(conditions)
+            cursor.set_scope(self._id)
             cursor.enforce_permissions = False
             [child._delete() for child in cursor]
             cursor.close()
@@ -272,7 +273,9 @@ class Removable(object):
         self._isDeleted = int(self._isDeleted) + 1
         
         if self.isCollection:
-            cursor = db._db.query_index('_parentid', self._id)
+            conditions = (('displayName', (None, None)), )
+            cursor = db._db.query(conditions)
+            cursor.set_scope(self._id)
             cursor.enforce_permissions = False
             [child._recycle() for child in cursor]
             cursor.close()
@@ -292,7 +295,9 @@ class Removable(object):
         self._isDeleted = int(self._isDeleted) - 1
         
         if self.isCollection:
-            cursor = db._db.query_index('_parentid', self._id)
+            conditions = (('displayName', (None, None)), )
+            cursor = db._db.query(conditions)
+            cursor.set_scope(self._id)
             cursor.enforce_permissions = False
             [child._undelete() for child in cursor]
             cursor.close()
@@ -459,7 +464,9 @@ class GenericItem(object):
         if parent is not None and self.inheritRoles:
             self.security = parent.security
         if self.isCollection and not is_new:
-            cursor = db._db.query_index('_parentid', self._id)
+            conditions = (('displayName', (None, None)), )
+            cursor = db._db.query(conditions)
+            cursor.set_scope(self._id)
             cursor.enforce_permissions = False
             for child in cursor:
                 child._apply_security(self, is_new)
@@ -916,8 +923,8 @@ class Container(Item):
             
         @rtype: bool
         """
-        conditions = (('_parentid', self._id), ('displayName', name))
-        return db._db.test_join(conditions)
+        conditions = (('displayName', name), )
+        return db._db.test_conditions(self._id, conditions)
     childExists = deprecated(child_exists)
     
     def get_child_id(self, name, trans=None):
@@ -931,16 +938,17 @@ class Container(Item):
                  else None.
         @rtype: str
         """
-        conditions = (('_parentid', self._id), ('displayName', name))
-        cursor = db._db.join(conditions)
+        conditions = (('displayName', name), )
+        cursor = db._db.query(conditions)
+        cursor.set_scope(self._id)
         cursor.fetch_mode = 0
         iterator = iter(cursor)
         try:
-            child = iterator.next()
+            childid = iterator.next()
         except StopIteration:
-            child = None
+            childid = None
         cursor.close()
-        return child
+        return childid
     getChildId = deprecated(get_child_id)
     
     def get_child_by_name(self, name, trans=None):
@@ -954,8 +962,9 @@ class Container(Item):
                  else None.
         @rtype: L{GenericItem}
         """
-        conditions = (('_parentid', self._id), ('displayName', name))
-        cursor = db._db.join(conditions)
+        conditions = (('displayName', name), )
+        cursor = db._db.query(conditions)
+        cursor.set_scope(self._id)
         iterator = iter(cursor)
         try:
             child = iterator.next()
@@ -972,7 +981,9 @@ class Container(Item):
         @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
-        cursor = db._db.query_index('_parentid', self._id)
+        conditions = (('displayName', (None, None)), )
+        cursor = db._db.query(conditions)
+        cursor.set_scope(self._id)
         cursor.resolve_shortcuts = resolve_shortcuts
         children = ObjectSet([c for c in cursor])
         cursor.close()
@@ -986,8 +997,9 @@ class Container(Item):
         @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
-        conditions = (('_parentid', self._id), ('isCollection', False))
-        cursor = db._db.join(conditions)
+        conditions = (('isCollection', False), )
+        cursor = db._db.query(conditions)
+        cursor.set_scope(self._id)
         cursor.resolve_shortcuts = resolve_shortcuts
         items = ObjectSet([i for i in cursor])
         cursor.close()
@@ -1001,8 +1013,9 @@ class Container(Item):
         @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
-        conditions = (('_parentid', self._id), ('isCollection', True))
-        cursor = db._db.join(conditions)
+        conditions = (('isCollection', True), )
+        cursor = db._db.query(conditions)
+        cursor.set_scope(self._id)
         cursor.resolve_shortcuts = resolve_shortcuts
         subfolders = ObjectSet([f for f in cursor])
         cursor.close()
@@ -1016,8 +1029,8 @@ class Container(Item):
         @param trans: A valid transaction handle
         @rtype: bool
         """
-        conditions = (('_parentid', self._id), ('isCollection', False))
-        return db._db.test_join(conditions)
+        conditions = (('isCollection', False), )
+        return db._db.test_conditions(self._id, conditions)
     hasChildren = deprecated(has_children)
     
     def has_subfolders(self, trans=None):
@@ -1027,8 +1040,8 @@ class Container(Item):
         @param trans: A valid transaction handle
         @rtype: bool
         """
-        conditions = (('_parentid', self._id), ('isCollection', True))
-        return db._db.test_join(conditions)
+        conditions = (('isCollection', True), )
+        return db._db.test_conditions(self._id, conditions)
     hasSubfolders = deprecated(has_subfolders)
 
 class RecycleBin(Container):

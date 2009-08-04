@@ -34,7 +34,7 @@ class BaseIndex(object):
                 attr = getattr(item, self.name)
                 if attr.__class__.__module__ != '__builtin__':
                     attr = attr.value
-                index_value = pack_value(attr)
+                index_value = '%s_%s' % (item._parentid, pack_value(attr))
             _cache[value] = item
             return index_value
         return callback

@@ -194,31 +194,27 @@ class DB(object):
             cur_list.append(cursor)
         return cur_list
 
-    def query_index(self, index, value):
-        cursor = self.get_cursor_list(((index, value),))[0]
-        return cursor
-
-    def join(self, conditions):
+    def query(self, conditions):
         cur_list = self.get_cursor_list(conditions)
-        c_join = Join(self._itemdb, cur_list)
-        return c_join
-
-    def switch_cursor_scope(self, cursor, scope):
-        if isinstance(cursor, Join):
-            # assume that the scope cursor is always last
-            cursor._cur_list[-1].set(scope)
+        if len(cur_list) ==  1:
+            return cur_list[0]
         else:
-            cursor.set(scope)
+            c_join = Join(self._itemdb, cur_list)
+            return c_join
 
-    def test_join(self, conditions):
+    def test_conditions(self, scope, conditions):
         cur_list = self.get_cursor_list(conditions)
-        c_join = Join(self._itemdb, cur_list)
-        iterator = iter(c_join)
+        if len(cur_list) == 1:
+            cursor = cur_list[0]
+        else:
+            cursor = Join(self._itemdb, cur_list)
+        cursor.set_scope(scope)
+        iterator = iter(cursor)
         try:
             result = bool(iterator.next())
         except StopIteration:
             result = False
-        c_join.close()
+        cursor.close()
         return result
 
     # transactions

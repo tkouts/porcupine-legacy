@@ -29,12 +29,13 @@ class SessionManager(GenericSessionManager):
     Database session manager implementation class
     """
     supports_multiple_processes = True
+    session_container_id = '+sessions'
     _expire_thread = Thread(name='Session expriration thread',
                             target=None)
     
     def __init__(self, timeout, **kwargs):
         GenericSessionManager.__init__(self, timeout)
-        session_container = db._db.get_item('_sessions')
+        session_container = db._db.get_item(self.session_container_id)
         if session_container is None:
             self._create_container()
         self._is_active = True
@@ -43,7 +44,7 @@ class SessionManager(GenericSessionManager):
     def _create_container(self):
         ftime = time.time()
         session_container = schema.SessionsContainer()
-        session_container._id = '_sessions'
+        session_container._id = self.session_container_id
         session_container.displayName.value = 'Sessions'
         session_container._isSystem = True
         session_container._owner = 'system'
@@ -66,10 +67,10 @@ class SessionManager(GenericSessionManager):
                 expire_threshold = time.time() - self.timeout - \
                                    self.revive_threshold
                 # get inactive sessions
-                cursor = db._db.join((
-                        ('_parentid', '_sessions'),
-                        ('modified', (None, (expire_threshold, False)))
+                cursor = db._db.query((
+                        ('modified', (None, (expire_threshold, False))),
                     ))
+                cursor.set_scope(self.session_container_id)
                 cursor.enforce_permissions = False
                 sessions = [session for session in cursor]
                 cursor.close()
@@ -83,7 +84,7 @@ class SessionManager(GenericSessionManager):
     @db.transactional(auto_commit=True, nosync=True)
     def create_session(self, userid):
         session = schema.Session(userid, {})
-        session.append_to('_sessions')
+        session.append_to(self.session_container_id)
         return session
 
     def get_session(self, sessionid):

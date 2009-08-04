@@ -30,6 +30,7 @@ class BaseCursor(object):
         self._value = None
         self._range = None
         self._reversed = False
+        self._scope = None
 
         # fetch_mode possible values are
         # 0: return primary key only
@@ -37,6 +38,9 @@ class BaseCursor(object):
         self.fetch_mode = 1
         self.enforce_permissions = True
         self.resolve_shortcuts = False
+
+    def set_scope(self, scope):
+        self._scope = scope
 
     def _get_item(self, s):
         item = persist.loads(s)
