@@ -30,12 +30,12 @@ def get_item(oid, trans=None):
     Fetches an object from the database.
     If the user has no read permissions on the object
     or the item has been deleted then C{None} is returned.
-    
+
     @param oid: The object's ID or the object's full path.
     @type oid: str
-    
+
     @param trans: A valid transaction handle.
-    
+
     @rtype: L{GenericItem<porcupine.systemObjects.GenericItem>}
     """
     item = _db.get_item(oid)
@@ -49,7 +49,7 @@ def get_transaction():
     Returns a transaction handle required for database updates.
     Currently, nested transactions are not supported.
     Subsequent calls to C{getTransaction} will return the same handle.
-    
+
     @rtype: L{BaseTransaction<porcupine.db.basetransaction.BaseTransaction>}
     """
     txn = context._trans
@@ -108,7 +108,7 @@ def transactional(auto_commit=False, nosync=False):
                                 txn._retry()
                         else:
                             cargs = args
-                        
+
                         val = function(*cargs)
                         if is_top_level and auto_commit:
                             txn.commit()

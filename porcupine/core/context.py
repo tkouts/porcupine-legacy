@@ -20,11 +20,16 @@ from porcupine.core.serverutility import Server
 
 class Context(local):
     server = Server()
+
     def __init__(self):
         self.user = None
         # transaction
         self._trans = None
-        # thread local storage of open cursors
+        # thread local storage of non-transactional open cursors
         # used for duplicating cursors in order not avoid
         # lockers starvation
         self._cursors = {}
+
+    def _reset(self):
+        # close any opened cursors
+        [c.close() for c in self._cursors.values()]

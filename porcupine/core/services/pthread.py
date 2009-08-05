@@ -145,6 +145,7 @@ class PorcupineThread(BaseServerThread):
             e = exceptions.InternalServerError()
             e.emit(context, item)
 
+        context._reset()
         settings['requestinterfaces'][request.interface](rh, response)
 
     def _dispatch_method(self, item):
