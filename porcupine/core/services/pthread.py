@@ -205,11 +205,11 @@ class PorcupineThread(BaseServerThread):
             context.request.serverVariables["AUTH_USER"] = \
                 context.user.displayName.value
             if not cookies_enabled:
-                if not session.sessionid in self.request.SCRIPT_NAME:
+                if not session.sessionid in context.request.SCRIPT_NAME:
                     context.request.serverVariables['SCRIPT_NAME'] += \
                         '/{%s}' % session.sessionid
                 else:
-                    lstScript = self.request.SCRIPT_NAME.split('/')
+                    lstScript = context.request.SCRIPT_NAME.split('/')
                     context.request.serverVariables['SCRIPT_NAME'] = \
                         '/%s/{%s}' %(lstScript[1], session.sessionid)
         else:
