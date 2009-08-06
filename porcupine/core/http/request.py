@@ -61,7 +61,7 @@ class HttpRequest(object):
             self.queryString = {}
         
         self.cookies = Cookie.SimpleCookie()
-        if self.serverVariables.has_key('HTTP_COOKIE'):
+        if 'HTTP_COOKIE' in self.serverVariables:
             self.cookies.load(self.serverVariables['HTTP_COOKIE'])
         
         self.input = cStringIO.StringIO(rawRequest['inp'])

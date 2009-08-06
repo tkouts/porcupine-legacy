@@ -59,7 +59,7 @@ class PorcupineThread(BaseServerThread):
             session_id = session_match.group(1)
             cookies_enabled = False
         # otherwise check cookie
-        elif request.cookies.has_key('_sid'):
+        elif '_sid' in request.cookies:
             session_id = request.cookies['_sid'].value
             cookies_enabled = True
         

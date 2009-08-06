@@ -38,7 +38,7 @@ def start():
             services[name] = service_class(name, interval)
 
         # add parameters
-        if service.has_key('parameters'):
+        if 'parameters' in service:
             services[name].parameters = service['parameters']
             
         # start service

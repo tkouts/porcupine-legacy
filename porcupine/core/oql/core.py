@@ -128,7 +128,7 @@ def evaluate_stack(stack, variables, for_object=None):
             return opn1[op](op1)
 
         else:
-            if variables.has_key(op) and type(variables[op]) == tuple:
+            if op in variables and type(variables[op]) == tuple:
                 # an alias or optimized attribute
                 alias_stack, objectid, alias_value = variables[op]
                 if for_object is not None and objectid != for_object._id:

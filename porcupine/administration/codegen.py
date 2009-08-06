@@ -85,7 +85,7 @@ class GenericSchemaEditor(object):
         if callable.__module__ == '__builtin__':
             return callable.__name__
         module = misc.get_rto_by_name(callable.__module__)
-        if self._imports.has_key(module):
+        if module in self._imports:
             return self._imports[module] + '.' + callable.__name__
         else:
             if module == self._module:
@@ -196,7 +196,7 @@ class ItemEditor(GenericSchemaEditor):
     setProperty = set_property
     
     def remove_property(self, name):
-        if self._attrs.has_key(name):
+        if name in self._attrs:
             del self._attrs[name]
             self._removedProps.append(name)
     # kept for backwards compatibility

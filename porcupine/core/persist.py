@@ -19,14 +19,17 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-import cPickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 def loads(value):
-    return cPickle.loads(value)
+    return pickle.loads(value)
 
 def dumps(obj):
     f = StringIO()
-    pickler = cPickle.Pickler(f, 2)
+    pickler = pickle.Pickler(f, 2)
     pickler.fast = True
     pickler.dump(obj)
     stream = f.getvalue()

@@ -91,8 +91,7 @@ def create(self, data):
 
     # get user role
     iUserRole = permsresolver.get_access(self, context.user)
-    if data.has_key('__rolesinherited') and \
-            iUserRole == permsresolver.COORDINATOR:
+    if '__rolesinherited' in data and iUserRole == permsresolver.COORDINATOR:
         oNewItem.inheritRoles = data.pop('__rolesinherited')
         if not oNewItem.inheritRoles:
             acl = data.pop('__acl')

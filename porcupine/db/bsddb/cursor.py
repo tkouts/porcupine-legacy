@@ -40,7 +40,7 @@ class Cursor(BaseCursor):
             self._cursor = self._index.db.cursor(context._trans.txn,
                                                  db.DB_READ_COMMITTED)
         else:
-            if context._cursors.has_key(self._index.name):
+            if self._index.name in context._cursors:
                 self._cursor = context._cursors[self._index.name].dup()
             else:
                 self._cursor = self._index.db.cursor(None, db.DB_READ_COMMITTED)

@@ -80,7 +80,7 @@ class Dir(object):
         return tuple(filters)
 
     def getRegistration(self, sPath, sHttpMethod, sBrowser, sLang):
-        if self.__cache.has_key((sPath, sHttpMethod, sBrowser, sLang)):
+        if (sPath, sHttpMethod, sBrowser, sLang) in self.__cache:
             return self.__cache[(sPath, sHttpMethod, sBrowser, sLang)]
         else:
             for paramList in self.__config:
