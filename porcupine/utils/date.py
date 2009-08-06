@@ -98,6 +98,9 @@ class Date(object):
         else:
             return cmp(self.value, other)
 
+    def __hash__(self):
+        return hash(self.value)
+
     def format(self, format, locale='*'):
         """
         Convert the date to a string as specified by the format argument.
