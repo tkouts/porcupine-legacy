@@ -30,7 +30,8 @@ class BaseIndex(object):
         def callback(key, value):
             item = _cache.get(value, persist.loads(value))
             index_value = None
-            if hasattr(item, self.name):
+            # do not index composite objects
+            if hasattr(item, self.name) and hasattr(item, '_parentid'):
                 attr = getattr(item, self.name)
                 if attr.__class__.__module__ != '__builtin__':
                     attr = attr.value
