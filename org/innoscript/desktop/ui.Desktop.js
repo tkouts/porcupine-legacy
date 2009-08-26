@@ -26,7 +26,7 @@ desktop.showSettings = function(evt, w) {
 }
 
 desktop.do_logoff = function() {
-	var xmlrpc = new XMLRPCRequest(QuiX.root);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
 	xmlrpc.oncomplete = function() {
 		window.location.reload();
 	}

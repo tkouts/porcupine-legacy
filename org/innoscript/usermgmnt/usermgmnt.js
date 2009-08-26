@@ -9,7 +9,7 @@ usermgmnt.getUsers = function(w) {
         query += " where contentclass='" + w.attributes.filter + "'";
     if (w.orderby)
         query += " order by " + w.orderby + " " + w.sortorder;
-    var xmlrpc = new XMLRPCRequest(QuiX.root);
+    var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
     xmlrpc.oncomplete = usermgmnt.users_loaded;
     xmlrpc.callback_info = w;
     xmlrpc.callmethod('executeOqlCommand', query);
@@ -53,7 +53,7 @@ usermgmnt.deleteItem = function(evt, w) {
                 var pb = w.getWidgetById("pb");
                 pb.increase(1);
                 pb.widgets[1].setCaption(item.displayName);
-                var xmlrpc = new XMLRPCRequest(QuiX.root + item.id);
+                var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
                 xmlrpc.oncomplete = _startDeleting;
                 xmlrpc.callback_info = w;
                 xmlrpc.onerror = function(req) {
@@ -148,7 +148,7 @@ usermgmnt.resetPassword = function(evt, w) {
     var sPass1 = oDialog.body.getWidgetById('password1').getValue();
     var sPass2 = oDialog.body.getWidgetById('password2').getValue();
     if (sPass1==sPass2) {
-        var xmlrpc = new XMLRPCRequest(user_uri);
+        var xmlrpc = new QuiX.rpc.XMLRPCRequest(user_uri);
         xmlrpc.oncomplete = function(req){
             req.callback_info.close()
         }

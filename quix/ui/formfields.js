@@ -38,7 +38,7 @@ QuiX.ui.Form.prototype.submit = function(f_callback) {
 	}
 	
 	// send data
-	var xmlrpc = new XMLRPCRequest(this.action);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(this.action);
 	xmlrpc.oncomplete = submit_oncomplete;
 	xmlrpc.callback_info = this;
 	xmlrpc.callmethod(this.method, this.getData());

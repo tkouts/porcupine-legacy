@@ -189,7 +189,7 @@ QuiX.ui.File.prototype.upload = function() {
 
 QuiX.ui.File.prototype._upload = function(chunk, fname) {
 	var oFile = this;
-	var xmlrpc = new XMLRPCRequest(QuiX.root);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
     xmlrpc.use_cache = false;
 	xmlrpc.oncomplete = function(req) {
 		if (!oFile.cancelUpload) {

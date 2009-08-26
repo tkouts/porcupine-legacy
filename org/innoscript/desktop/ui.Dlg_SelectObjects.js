@@ -62,7 +62,7 @@ selectObjectsDialog.search = function(evt, w) {
 		sCommand += ' where ' + conditions.join(' and ');
 	}
 
-	var xmlrpc = new XMLRPCRequest(QuiX.root);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
 	xmlrpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
 	xmlrpc.callback_info = w;
 	xmlrpc.callmethod('executeOqlCommand', sCommand);
@@ -70,7 +70,7 @@ selectObjectsDialog.search = function(evt, w) {
 
 selectObjectsDialog.refreshList = function(treeNodeSelected) {
 	var oDialog = treeNodeSelected.tree.getParentByType(Dialog);
-	var xmlrpc = new XMLRPCRequest(QuiX.root);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
 	var cc = oDialog.attributes.CC;
 	var sOql = "select id as value, __image__ as img, displayName as caption " +
 		"from '" + treeNodeSelected.getId() + "'";

@@ -38,7 +38,7 @@ containerList.showProperties = function(evt, w) {
 
 containerList.getContainerInfo = function(w, bAddPath) {
 	var folderUri = QuiX.root + w.attributes.FolderID;
-	var xmlrpc = new XMLRPCRequest(folderUri);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(folderUri);
 	xmlrpc.oncomplete = function(req) {
 		var itemlist, i;
 		w.setTitle(req.response.displayName);
@@ -179,7 +179,7 @@ containerList.paste = function(evt, w) {
 			var pb = w.getWidgetById("pb");
 			pb.increase(1);
 			pb.widgets[1].setCaption(item.displayName);
-			var xmlrpc = new XMLRPCRequest(QuiX.root + item.id);
+			var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
 			xmlrpc.oncomplete = _startPasting;
 			xmlrpc.callback_info = w;
 			xmlrpc.onerror = function(req) {
@@ -212,7 +212,7 @@ containerList.doCopyMove = function(dlg) {
 		var method = (dlg.attributes.method=='copy')?'copyTo':'moveTo';
 		var targetid = dlg.getWidgetById('tree').getSelection().getId();
 		
-		var xmlrpc = new XMLRPCRequest(QuiX.root + dlg.attributes.ID);
+		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + dlg.attributes.ID);
 		xmlrpc.oncomplete = function(req) {
 			if (method!='copyTo') {
 				containerList.getContainerInfo(p_win);
@@ -237,7 +237,7 @@ containerList.doRename = function(dlg) {
 		var p_win = dlg.opener;
 		var new_name = dlg.getWidgetById('new_name').getValue();
 		
-		var xmlrpc = new XMLRPCRequest(QuiX.root + dlg.attributes.ID);
+		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + dlg.attributes.ID);
 		xmlrpc.oncomplete = function() {
 			containerList.getContainerInfo(p_win);
 		}
@@ -262,7 +262,7 @@ containerList.deleteItem = function(evt, w) {
 				var pb = w.getWidgetById("pb");
 				pb.increase(1);
 				pb.widgets[1].setCaption(item.displayName);
-				var xmlrpc = new XMLRPCRequest(QuiX.root + item.id);
+				var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
 				xmlrpc.oncomplete = _start;
 				xmlrpc.callback_info = w;
 				xmlrpc.onerror = function(req) {

@@ -28,7 +28,7 @@ generic.runApp = function(evt,w) {
 generic.getSecurity = function(tabcontrol, itab) {
 	var acl_datagrid = tabcontrol.tabs[itab].getWidgetsByType(DataGrid)[0];
 	var sObjectURI = tabcontrol.getParentByType(Form).action;
-	var xmlrpc = new XMLRPCRequest(sObjectURI);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(sObjectURI);
 	xmlrpc.oncomplete = function(req) {
 		acl_datagrid.dataSet = req.response;
 		acl_datagrid.refresh();

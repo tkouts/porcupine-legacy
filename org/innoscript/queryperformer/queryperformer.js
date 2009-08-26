@@ -20,7 +20,7 @@ queryPerformer.executeQuery = function(evt, w) {
     var oPane = oWin.getWidgetById('resultsarea');
     sQuery = oWin.getWidgetById('oqlquery').getValue();
     
-    var xmlrpc = new XMLRPCRequest(QuiX.root);
+    var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
     xmlrpc.oncomplete = queryPerformer.executeQuery_oncomplete;
     xmlrpc.callback_info = oPane;
     xmlrpc.callmethod('executeOqlCommand', sQuery);

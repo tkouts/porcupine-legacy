@@ -6,7 +6,7 @@ login.login = function (evt, w) {
 	var sPassword = login_dialog.getWidgetById('password').getValue();
 	var sLoginServiceUrl = login_dialog.attributes.ServiceURI;
 
-	var xmlrpc = new XMLRPCRequest(sLoginServiceUrl);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(sLoginServiceUrl);
 	xmlrpc.oncomplete = login.login_oncomplete;
 	xmlrpc.callback_info = w;
 	xmlrpc.onerror = login.login_onerror;

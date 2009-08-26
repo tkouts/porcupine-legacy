@@ -4,7 +4,7 @@ Tab Pane
 
 QuiX.ui.TabPane = function(/*params*/) {
 	var params = arguments[0] || {};
-	this.base = Widget;
+	this.base = QuiX.ui.Widget;
 	params.overflow = 'hidden';
 	this.base(params);
 	this.div.className = 'tabpane';

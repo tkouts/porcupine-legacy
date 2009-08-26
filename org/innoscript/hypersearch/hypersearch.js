@@ -39,9 +39,8 @@ hypersearch.search = function(evt, w)
 	var query = hypersearch.getSearchQuery(w.parent.parent);
 	var results_list = w.getParentByType(Window).getWidgetById('searchresults');
 
-    var xmlrpc = new XMLRPCRequest(QuiX.root);
-    xmlrpc.oncomplete = function(req)
-    {
+    var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
+    xmlrpc.oncomplete = function(req) {
     	results_list.dataSet = req.response;
     	results_list.refresh();
     }

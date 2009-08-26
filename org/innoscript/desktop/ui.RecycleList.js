@@ -24,7 +24,7 @@ recycleBin.listMenu_show = function(menu) {
 
 recycleBin.getContainerInfo = function(w) {
 	var folderUri = QuiX.root + w.attributes.FolderID;
-	var xmlrpc = new XMLRPCRequest(folderUri);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(folderUri);
 	xmlrpc.oncomplete = function(req) {
 		var itemlist;
 		w.setTitle(req.response.displayName);
@@ -80,7 +80,7 @@ recycleBin.doRestoreTo = function(dlg) {
 	if (dlg.buttonIndex == 0) {
 		var targetid = dlg.getWidgetById('tree').getSelection().getId();
 		
-		var xmlrpc = new XMLRPCRequest(QuiX.root + dlg.attributes.ID);
+		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + dlg.attributes.ID);
 		xmlrpc.oncomplete = function(req) {
 			recycleBin.getContainerInfo(dlg.opener);
 		}
@@ -115,7 +115,7 @@ recycleBin.restoreItem = function(evt, w) {
 			var item = items.pop();
 			pb.increase(1);
 			pb.widgets[1].setCaption(item.displayName);
-			var xmlrpc = new XMLRPCRequest(QuiX.root + item.id);
+			var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
 			xmlrpc.oncomplete = _startRestoring;
 			xmlrpc.callback_info = w;
 			xmlrpc.onerror = recycleBin._onerror;
@@ -146,7 +146,7 @@ recycleBin.deleteItem = function(evt, w) {
 				var pb = w.getWidgetById("pb");
 				pb.increase(1);
 				pb.widgets[1].setCaption(item.displayName);
-				var xmlrpc = new XMLRPCRequest(QuiX.root + item.id);
+				var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
 				xmlrpc.oncomplete = _startDeleting;
 				xmlrpc.callback_info = w;
 				xmlrpc.onerror = function(req) {
@@ -179,7 +179,7 @@ recycleBin.empty = function(evt, w) {
 	
 	var _empty = function(evt, w) {
 		w.getParentByType(Dialog).close();
-		var xmlrpc = new XMLRPCRequest(QuiX.root + rbid);
+		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + rbid);
 		xmlrpc.oncomplete = function(req) {
 			recycleBin.getContainerInfo(win);
 		}

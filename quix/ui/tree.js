@@ -260,7 +260,7 @@ var FolderTree = QuiX.ui.FolderTree;
 
 QuiX.ui.FolderTree.prototype.loadSubfolders = function(treeNode) {
 	var sID = treeNode.getId() || '';
-	var xmlrpc = new XMLRPCRequest(QuiX.root + sID);
+	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + sID);
 	xmlrpc.oncomplete = treeNode.tree.load_oncomplete;
 	xmlrpc.callback_info = treeNode;
 	xmlrpc.callmethod(treeNode.tree.method);
