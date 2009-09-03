@@ -189,7 +189,7 @@ def sort_list(list1, list2):
     return res
 
 def compute_aggregate(aggr, lst):
-    #print aggr, list
+    #print(aggr, list)
     if aggr=='COUNT':
         return len(lst)
     elif aggr=='MAX':
@@ -235,7 +235,7 @@ def h_51(params, variables, for_object):
 def h_60(params, variables, for_object):
     func = fn[params[0]]
     args = params[1]
-    #print args
+    #print(args)
     f_args = [evaluate_stack(arg[:], variables, for_object) for arg in args]
     return func(*f_args)
 
@@ -513,7 +513,7 @@ def h_200(params, variables, for_object=None):
     
     aggregates = [x[2] for x in all_fields]
 
-    #print 'where: %s' % where_condition
+    #print('where: %s' % where_condition)
 
     uses_indexes = False
     if for_object is None and where_condition:
@@ -524,7 +524,7 @@ def h_200(params, variables, for_object=None):
     if for_object is None and not uses_indexes:
         optimized = [[[('displayName', (None, None))], where_condition]]
 
-    #print 'opt: %s' % optimized
+    #print('opt: %s' % optimized)
 
     results = ObjectSet([])
     for deep, object_id in select_from:

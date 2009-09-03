@@ -341,7 +341,7 @@ class RequestHandler(asyncore.dispatcher):
             # put it in inactive request handlers queue
             self.server.rh_queue.put(self)
             self.server.active_connections -= 1
-            # print 'Total: ' + str(self.server.active_connections)
+            # print('Total: ' + str(self.server.active_connections))
 
 if multiprocessing:
     if not hasattr(socket, 'fromfd'):
@@ -458,7 +458,7 @@ if multiprocessing:
                 asyncore.loop(16.0, _use_poll, socket_map)
             except select.error, v:
                 if v[0] == EINTR:
-                    print 'Shutdown not completely clean...'
+                    print('Shutdown not completely clean...')
                 else:
                     pass
 

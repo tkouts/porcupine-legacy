@@ -49,7 +49,7 @@ DATABASE COMMANDS
 """
 
 def usage():
-    print __usage__
+    print(__usage__)
     sys.exit(2)
 
 # get arguments
@@ -106,10 +106,10 @@ Are you sure you want proceed(Y/N)?''')
     if (answer.upper() == 'Y'):
         try:
             from porcupine.administration import offlinedb
-            print 'Recovering database. Please wait...'
+            print('Recovering database. Please wait...')
             db = offlinedb.get_handle(recover=2)
             db.close()
-            print 'Database recovery completed successfully.'
+            print('Database recovery completed successfully.')
         except Exception, e:
             sys.exit(e)
     sys.exit()
@@ -124,6 +124,6 @@ except socket.error:
     sys.exit('The host is unreachable...')
 
 if response.header == 0:
-    print response.data
+    print(response.data)
 else:
     sys.exit(response.data)

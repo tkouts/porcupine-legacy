@@ -371,7 +371,6 @@ class OqlParser:
         scope : SHALLOW LPAREN STRING RPAREN
              | DEEP LPAREN STRING RPAREN
         """
-#        print p.type
         p[0] = (int(p[1].upper()=='DEEP'), p[3][1:-1])
         
     def p_scope_3(self, p):
@@ -532,7 +531,6 @@ class OqlParser:
 
     def p_expression_bool(self, p):
         'expression : BOOLEAN'
-#        print p[1]
         p[0] = [p[1]]
 
     def p_error(self, p):

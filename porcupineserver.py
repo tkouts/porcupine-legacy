@@ -78,13 +78,13 @@ class Controller(object):
         pidfile.close()
         
         runtime.logger.info('Porcupine Server started succesfully')
-        print 'Porcupine Server v%s' % __version__
+        print('Porcupine Server v%s' % __version__)
         python_version = 'Python %s' % sys.version
         runtime.logger.info(python_version)
-        print python_version
-        print '''Porcupine comes with ABSOLUTELY NO WARRANTY.
+        print(python_version)
+        print('''Porcupine comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it under
-certain conditions; See COPYING for more details.'''
+certain conditions; See COPYING for more details.''')
 
     def _async_loop(self):
         _use_poll = False
@@ -94,7 +94,7 @@ certain conditions; See COPYING for more details.'''
             asyncore.loop(16.0, _use_poll)
         except select.error, v:
             if v[0] == EINTR:
-                print 'Shutdown not completely clean...'
+                print('Shutdown not completely clean...')
             else:
                 pass
 
@@ -120,7 +120,7 @@ certain conditions; See COPYING for more details.'''
         
     def shutdown(self):
         self.shutdown_evt.wait()
-        print 'Initiating shutdown...'
+        print('Initiating shutdown...')
         runtime.logger.info('Initiating shutdown...')
         self.running = False
 
@@ -145,7 +145,7 @@ def main(args):
                 if pid:
                     sys.exit()
             else:
-                print 'Your operating system does not support daemon mode.'
+                print('Your operating system does not support daemon mode.')
         elif arg == 'stop':
             pidfile = open(PID_FILE, 'r')
             pid = int(pidfile.read())
@@ -153,7 +153,7 @@ def main(args):
             if os.name == 'posix':
                 os.killpg(pid, signal.SIGINT)
             else:
-                print 'Your operating system does not support this command.'
+                print('Your operating system does not support this command.')
             sys.exit()
 
     try:

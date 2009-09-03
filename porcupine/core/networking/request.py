@@ -75,7 +75,7 @@ class BaseRequest(object):
                 import sys
                 output = traceback.format_exception(*sys.exc_info())
                 output = ''.join(output)
-                print output
+                print(output)
                 raise
 
         finally:

@@ -292,26 +292,26 @@ class DB(object):
             except db.DBError:
                  pass
             #stats = self._env.txn_stat()
-            #print 'txns: %d' % stats['nactive']
-            #print 'max txns: %d' % stats['maxnactive']
-            #print
+            #print('txns: %d' % stats['nactive'])
+            #print('max txns: %d' % stats['maxnactive'])
+            #print()
             #stats = self._env.lock_stat()
-            #print 'Lockers: %d' % stats['nlockers']
-            #print 'Max Lockers: %d' % stats['maxnlockers']
-            #print 'Lockers wait: %d' % stats['lockers_wait']
-            #print
-            #print 'Locks: %d' % stats['nlocks']
-            #print 'Max Locks: %d' % stats['maxnlocks']
-            #print 'Locks wait: %d' % stats['lock_wait']
-            #print 'Locks no-wait: %d' % stats['lock_nowait']
-            #print
-            #print 'Lock objects: %d' % stats['nobjects']
-            #print 'Max objects: %d' % stats['maxnobjects']
-            #print 'Objects wait: %d' % stats['objs_wait']
-            #print
-            #print 'Requested: %d' % stats['nrequests']
-            #print 'Released: %d' % stats['nreleases']
-            #print '-' * 80
+            #print('Lockers: %d' % stats['nlockers'])
+            #print('Max Lockers: %d' % stats['maxnlockers'])
+            #print('Lockers wait: %d' % stats['lockers_wait'])
+            #print()
+            #print('Locks: %d' % stats['nlocks'])
+            #print('Max Locks: %d' % stats['maxnlocks'])
+            #print('Locks wait: %d' % stats['lock_wait'])
+            #print('Locks no-wait: %d' % stats['lock_nowait'])
+            #print()
+            #print('Lock objects: %d' % stats['nobjects'])
+            #print('Max objects: %d' % stats['maxnobjects'])
+            #print('Objects wait: %d' % stats['objs_wait'])
+            #print()
+            #print('Requested: %d' % stats['nrequests'])
+            #print('Released: %d' % stats['nreleases'])
+            #print('-' * 80)
 
     def close(self):
         if self._running:

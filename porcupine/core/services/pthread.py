@@ -51,7 +51,7 @@ class PorcupineThread(BaseServerThread):
         cookies_enabled = True
         path_info = request.serverVariables['PATH_INFO']
 
-        #print path_info
+        #print(path_info)
         
         # detect if sessionid is injected in the URL
         session_match = re.match(self._sid_pattern, path_info)
