@@ -28,8 +28,11 @@ _err_unsupported_index_type = -2334
 def pack_value(value):
     """
     Packs Python values to C structs used for indexed lookups.
-    Currently supported types include strings, booleans, floats and integers.
+    Currently supported types include unicode, strings, booleans,
+    floats and integers.
     """
+    if isinstance(value, unicode):
+        value = value.encode('utf-8')
     packed = None
     if type(value) == str:
         packed = struct.pack('%ds' % len(value), value)

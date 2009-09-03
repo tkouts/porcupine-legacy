@@ -128,55 +128,62 @@ class HttpResponse(object):
         
         @return: None
         """
-        self._body.write(str(s))
+        if isinstance(s, unicode):
+            self._body.write(s.encode(self.charset))
+        elif isinstance(s, str):
+            self._body.write(s)
+        else:
+            self._body.write(str(s))
 
     def end(self):
         """Terminates the response processing cycle
         and sends the response written so far to the client."""
         raise exceptions.ResponseEnd
 
-    def write_file(self, sFilename, sStream, isAttachment=True):
+    def write_file(self, filename, bytestream, is_attachment=True):
         """Writes a file stream to the response using a specified
         filename.
 
-        @param sFilename: file name
-        @type sFilename: str
-        @param sStream: file stream
-        @type sStream: str
-        @param isAttachment: If C{True} then the file is sent as an attachment.
-        @type isAttachment: bool
+        @param filename: file name
+        @type filename: str
+        @param bytestream: file stream
+        @type bytestream: str
+        @param is_attachment: If C{True} then the file is sent as an attachment.
+        @type is_attachment: bool
 
         @return: None
         """
-        if isAttachment:
-            sPrefix = 'attachment;'
+        if is_attachment:
+            prefix = 'attachment;'
         else:
-            sPrefix = ''
-        self.content_type = mimetypes.guess_type(sFilename, False)[0]\
+            prefix = ''
+        content_disposition = u'%sfilename="%s"' % (prefix, filename)
+        self.content_type = mimetypes.guess_type(filename, False)[0]\
                             or 'text/plain'
         self.set_header('Content-Disposition',
-                        '%sfilename="%s"' % (sPrefix, sFilename))
+                        content_disposition.encode('utf-8'))
         self.clear()
-        self.write(sStream)
+        self.write(bytestream)
     writeFile = deprecated(write_file)
 
-    def load_from_file(self, fileName):
+    def load_from_file(self, filename):
         """Loads the response body from a file that resides on the file
         system and sets the 'Content-Type' header accordingly.
         
-        @param fileName: path of the file to be loaded
-        @type fileName: str
+        @param filename: path of the file to be loaded
+        @type filename: str
         
         @return: None
         """
         try:
-            oFile = file(fileName, 'rb')
+            f = file(filename, 'rb')
         except IOError:
             raise exceptions.NotFound(
-                'The file "%s" can not be found' % fileName)
+                'The file "%s" can not be found' % filename)
         
-        self.content_type = mimetypes.guess_type(fileName, False)[0] or 'text/plain'
+        self.content_type = mimetypes.guess_type(filename, False)[0] or \
+                            'text/plain'
         self._body.truncate(0)
-        self._body.write(oFile.read())
-        oFile.close()
+        self._body.write(f.read())
+        f.close()
     loadFromFile = deprecated(load_from_file)

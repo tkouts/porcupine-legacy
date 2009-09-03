@@ -62,14 +62,13 @@ class DataType(object):
         
         @return: None
         """
-        if type(self._safetype) == tuple:
-            is_safe_type = [isinstance(self.value, t) for t in self._safetype]
-            safe_type_name = ' or '.join(['"%s"' % t.__name__
-                                          for t in self._safetype])
-        else:
-            is_safe_type = isinstance(self.value, self._safetype)
-            safe_type_name = '"%s"' % self._safetype.__name__
+        is_safe_type = isinstance(self.value, self._safetype)
         if not is_safe_type:
+            if type(self._safetype) == tuple:
+                safe_type_name = ' or '.join(['"%s"' % t.__name__
+                                              for t in self._safetype])
+            else:
+                safe_type_name = '"%s"' % self._safetype.__name__
             raise TypeError(
                'Invalid data type for "%s". Got "%s" instead of %s.' %
                (self.__class__.__name__, self.value.__class__.__name__,
@@ -82,13 +81,18 @@ class String(DataType):
     """String data type
     
     @ivar value: The datatype's value
-    @type value: str
+    @type value: unicode
     """
-    _safetype = str
+    _safetype = unicode
     
     def __init__(self, **kwargs):
-        self.value = ''
-        
+        self.value = u''
+
+    def validate(self):
+        if isinstance(self.value, str):
+            self.value = self.value.decode('ascii')
+        DataType.validate(self)
+
 class RequiredString(String):
     "Mandatory L{String} data type."
     isRequired = True
@@ -198,8 +202,9 @@ class Password(DataType):
         self._value = self._blank
 
     def validate(self):
-        assert not self.isRequired or not self._value == self._blank, \
-               '"%s" attribute is mandatory' % self.__class__.__name__
+        if self.isRequired and self._value == self._blank:
+            raise ValueError(
+               '"%s" attribute is mandatory' % self.__class__.__name__)
     
     def get_value(self):
         return self._value
@@ -239,14 +244,12 @@ class Reference1(DataType):
         permission on the referenced item or it has been deleted
         then it returns None.
         
-        @param trans: A valid transaction handle
-        
         @rtype: L{GenericItem<porcupine.systemObjects.GenericItem>}
         @return: The referenced object, otherwise None
         """
         item = None
         if self.value:
-            item = db.get_item(self.value, trans)
+            item = db.get_item(self.value)
         return item
     getItem = deprecated(get_item)
 
@@ -277,11 +280,9 @@ class ReferenceN(DataType):
         This method returns the items that this data type
         instance references.
         
-        @param trans: A valid transaction handle
-        
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
-        return ObjectSet(filter(None, [db.get_item(id, trans)
+        return ObjectSet(filter(None, [db.get_item(id)
                                        for id in self.value]))
     getItems = deprecated(get_items)
 
@@ -409,15 +410,17 @@ class ExternalAttribute(DataType):
 
     def __deepcopy__(self, memo):
         clone = copy.copy(self)
-        clone._id = misc.generate_oid()
-        clone.value = self.get_value()
+        duplicate = memo.get('_dup_ext_', False)
+        if duplicate:
+            clone._id = misc.generate_oid()
+            clone.value = self.get_value()
         return clone
 
     def get_value(self, txn=None):
         "L{value} property getter"
         if self._value is None:
             self._value = db._db.get_external(self._id) or ''
-        return(self._value)
+        return self._value
 
     def set_value(self, value):
         "L{value} property setter"
@@ -449,11 +452,12 @@ class Text(ExternalAttribute):
                      "text stream")
 
     def __len__(self):
-        return(self._size)
+        return self._size
 
     def validate(self):
-        assert not self.isRequired or self._size, \
-               '"%s" attribute is mandatory' % self.__class__.__name__
+        if self.isRequired and self._size == 0:
+            raise ValueError(
+               '"%s" attribute is mandatory' % self.__class__.__name__)
 
 class RequiredText(Text):
     "Mandatory L{Text} data type."
@@ -506,7 +510,7 @@ class ExternalFile(String):
     
     def __deepcopy__(self, memo):
         clone = copy.copy(self)
-        duplicate_files = memo.get('df', False)
+        duplicate_files = memo.get('_dup_ext_', False)
         if (duplicate_files):
             # copy the external file
             fcounter = 1

@@ -9,10 +9,10 @@ usermgmnt.getUsers = function(w) {
         query += " where contentclass='" + w.attributes.filter + "'";
     if (w.orderby)
         query += " order by " + w.orderby + " " + w.sortorder;
-    var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
-    xmlrpc.oncomplete = usermgmnt.users_loaded;
-    xmlrpc.callback_info = w;
-    xmlrpc.callmethod('executeOqlCommand', query);
+    var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
+    rpc.oncomplete = usermgmnt.users_loaded;
+    rpc.callback_info = w;
+    rpc.callmethod('executeOqlCommand', query);
 }
 
 usermgmnt.users_loaded = function(req) {
@@ -53,13 +53,13 @@ usermgmnt.deleteItem = function(evt, w) {
                 var pb = w.getWidgetById("pb");
                 pb.increase(1);
                 pb.widgets[1].setCaption(item.displayName);
-                var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
-                xmlrpc.oncomplete = _startDeleting;
-                xmlrpc.callback_info = w;
-                xmlrpc.onerror = function(req) {
+                var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + item.id);
+                rpc.oncomplete = _startDeleting;
+                rpc.callback_info = w;
+                rpc.onerror = function(req) {
                     w.close();
                 }
-                xmlrpc.callmethod('delete');
+                rpc.callmethod('delete');
             }
             else {
                 w.close();
@@ -148,12 +148,12 @@ usermgmnt.resetPassword = function(evt, w) {
     var sPass1 = oDialog.body.getWidgetById('password1').getValue();
     var sPass2 = oDialog.body.getWidgetById('password2').getValue();
     if (sPass1==sPass2) {
-        var xmlrpc = new QuiX.rpc.XMLRPCRequest(user_uri);
-        xmlrpc.oncomplete = function(req){
+        var rpc = new QuiX.rpc.JSONRPCRequest(user_uri);
+        rpc.oncomplete = function(req){
             req.callback_info.close()
         }
-        xmlrpc.callback_info = oDialog;
-        xmlrpc.callmethod('resetPassword', sPass1);
+        rpc.callback_info = oDialog;
+        rpc.callmethod('resetPassword', sPass1);
     }
     else {
         document.desktop.msgbox("Error", 

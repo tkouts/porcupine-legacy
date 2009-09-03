@@ -19,7 +19,7 @@
 import re
 import Cookie
 import cStringIO
-from cgi import parse_qs
+import urlparse
 from cgi import FieldStorage
 from porcupine.core.decorators import deprecated
 
@@ -37,7 +37,7 @@ class HttpRequest(object):
     @ivar input: The raw request input
     @type input: StringIO
 
-    @ivar interface: The request's interface, i.e. 'CGI' or 'MOD_PYTHON' or 'WSGI'
+    @ivar interface: The request's interface, i.e. 'CGI', 'MOD_PYTHON', 'WSGI'
     @type interface: str
     
     @ivar form: If the request method is POST, this attribute holds the posted
@@ -45,18 +45,21 @@ class HttpRequest(object):
     @type form: dict
     """
     _xml_rpc_detect = re.compile('<methodName>(.*?)</methodName>')
+    _json_rpc_detect = re.compile(
+        'jsonrpc.+[\'"]method[\'"]\s*:\s*[\'"](.*?)[\'"]')
 
-    def __init__(self, rawRequest):
-        self.serverVariables = rawRequest['env']
-        
-        #print self.serverVariables
-        
+    def __init__(self, raw_request):
+        self.serverVariables = raw_request['env']
         self.serverVariables.setdefault('HTTP_ACCEPT_LANGUAGE', '')
         self.serverVariables.setdefault('HTTP_USER_AGENT', '')
-        self.serverVariables.setdefault('PATH_INFO', '/')
+
+        # unquote path_info
+        self.serverVariables['PATH_INFO'] = \
+            self._unquote(self.serverVariables.get('PATH_INFO', '/'))
         
         if self.serverVariables.setdefault('QUERY_STRING', ''):
-            self.queryString = parse_qs(self.serverVariables['QUERY_STRING'])
+            self.queryString = urlparse.parse_qs(
+                self._unquote(self.serverVariables['QUERY_STRING']))
         else:
             self.queryString = {}
         
@@ -64,13 +67,15 @@ class HttpRequest(object):
         if 'HTTP_COOKIE' in self.serverVariables:
             self.cookies.load(self.serverVariables['HTTP_COOKIE'])
         
-        self.input = cStringIO.StringIO(rawRequest['inp'])
-        self.interface = rawRequest['if']
+        self.input = cStringIO.StringIO(raw_request['inp'])
+        self.interface = raw_request['if']
         
         self.method = self.queryString.get('cmd', [''])[0]
         self.form = None
+        # required by some rpc protocols such as json-rpc
+        self.id = None
+
         self.type = 'http'
-        
         if self.serverVariables['REQUEST_METHOD'] == 'POST':
             if self.serverVariables['CONTENT_TYPE'][:8] == 'text/xml':
                 # xmlrpc request?
@@ -79,11 +84,21 @@ class HttpRequest(object):
                 if method_match:
                     self.method = method_match.groups()[0]
                     self.type = 'xmlrpc'
+            elif self.serverVariables['CONTENT_TYPE'][:16] == 'application/json':
+                # jsonrpc request?
+                method_match = re.search(self._json_rpc_detect,
+                                         self.input.getvalue())
+                if method_match:
+                    self.method = method_match.groups()[0]
+                    self.type = 'jsonrpc'
             else:
                 # http form post
-                self.form = FieldStorage(fp=self.input, environ=self.serverVariables)
-        
-        
+                self.form = FieldStorage(fp=self.input,
+                                         environ=self.serverVariables)
+
+    def _unquote(self, s):
+        return urlparse.unquote(s).decode('utf-8')
+
     def get_lang(self):
         """Returns the preferred language of the client.
         If the client has multiple languages selected, the first is returned.

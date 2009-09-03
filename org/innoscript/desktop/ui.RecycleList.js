@@ -24,8 +24,8 @@ recycleBin.listMenu_show = function(menu) {
 
 recycleBin.getContainerInfo = function(w) {
 	var folderUri = QuiX.root + w.attributes.FolderID;
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(folderUri);
-	xmlrpc.oncomplete = function(req) {
+	var rpc = new QuiX.rpc.JSONRPCRequest(folderUri);
+	rpc.oncomplete = function(req) {
 		var itemlist;
 		w.setTitle(req.response.displayName);
 		w.attributes.ParentID = req.response.parentid;
@@ -35,7 +35,7 @@ recycleBin.getContainerInfo = function(w) {
 		itemlist.dataSet = req.response.contents;
 		itemlist.refresh();
 	}
-	xmlrpc.callmethod('getInfo');
+	rpc.callmethod('getInfo');
 }
 
 recycleBin.showProperties = function(evt, w) {
@@ -80,11 +80,11 @@ recycleBin.doRestoreTo = function(dlg) {
 	if (dlg.buttonIndex == 0) {
 		var targetid = dlg.getWidgetById('tree').getSelection().getId();
 		
-		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + dlg.attributes.ID);
-		xmlrpc.oncomplete = function(req) {
+		var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + dlg.attributes.ID);
+		rpc.oncomplete = function(req) {
 			recycleBin.getContainerInfo(dlg.opener);
 		}
-		xmlrpc.callmethod('restoreTo', targetid);
+		rpc.callmethod('restoreTo', targetid);
 	}
 }
 
@@ -115,11 +115,11 @@ recycleBin.restoreItem = function(evt, w) {
 			var item = items.pop();
 			pb.increase(1);
 			pb.widgets[1].setCaption(item.displayName);
-			var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
-			xmlrpc.oncomplete = _startRestoring;
-			xmlrpc.callback_info = w;
-			xmlrpc.onerror = recycleBin._onerror;
-			xmlrpc.callmethod('restore');
+			var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + item.id);
+			rpc.oncomplete = _startRestoring;
+			rpc.callback_info = w;
+			rpc.onerror = recycleBin._onerror;
+			rpc.callmethod('restore');
 		}
 		else {
 			w.close();
@@ -146,13 +146,13 @@ recycleBin.deleteItem = function(evt, w) {
 				var pb = w.getWidgetById("pb");
 				pb.increase(1);
 				pb.widgets[1].setCaption(item.displayName);
-				var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
-				xmlrpc.oncomplete = _startDeleting;
-				xmlrpc.callback_info = w;
-				xmlrpc.onerror = function(req) {
+				var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + item.id);
+				rpc.oncomplete = _startDeleting;
+				rpc.callback_info = w;
+				rpc.onerror = function(req) {
 					w.close();
 				}
-				xmlrpc.callmethod('delete');
+				rpc.callmethod('delete');
 			}
 			else {
 				w.close();
@@ -179,11 +179,11 @@ recycleBin.empty = function(evt, w) {
 	
 	var _empty = function(evt, w) {
 		w.getParentByType(Dialog).close();
-		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + rbid);
-		xmlrpc.oncomplete = function(req) {
+		var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + rbid);
+		rpc.oncomplete = function(req) {
 			recycleBin.getContainerInfo(win);
 		}
-		xmlrpc.callmethod('empty');
+		rpc.callmethod('empty');
 	}
 	
 	desktop.msgbox(w.getCaption(), 

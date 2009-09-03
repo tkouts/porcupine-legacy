@@ -20,7 +20,7 @@ This kind of method becomes directly accessible over HTTP.
 """
 from porcupine import exceptions
 from porcupine.core.decorators import WebMethodDescriptor
-from porcupine.core import xmlrpc
+from porcupine.core.rpc import xmlrpc, jsonrpc
 
 def webmethod(of_type, http_method='GET', client='', lang='', qs='',
               max_age=0, content_type='text/html', encoding='utf-8',
@@ -100,15 +100,20 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
                                          None, None)
             
         def execute(self, item, context):
-            args = xmlrpc.XMLRPCParams()
-            args.loadXML(context.request.input.getvalue())
+            if context.request.type == 'xmlrpc':
+                rpc = xmlrpc
+            elif context.request.type == 'jsonrpc':
+                rpc = jsonrpc
+
+            context.request.id, args = \
+                rpc.loads(context.request.input.getvalue())
+
+            # execute method
             v = self.func(item, *args)
             
             if v is not None:
-                response = xmlrpc.XMLRPCParams((v,))
                 context.response.write(
-                    '<?xml version="1.0"?><methodResponse>%s</methodResponse>' %
-                    response.serialize())
+                    rpc.dumps(context.request.id, v, self.encoding))
                 return v
             else:
                 raise exceptions.InternalServerError(

@@ -134,15 +134,18 @@ class DB(object):
     # item operations
     def get_item(self, oid):
         try:
-            return self._itemdb.get(oid,
+            return self._itemdb.get(oid.encode('ascii'),
                                     txn=context._trans and context._trans.txn)
+        except UnicodeEncodeError:
+            return None
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
 
     def put_item(self, item):
         try:
-            self._itemdb.put(item._id, persist.dumps(item), context._trans.txn)
+            self._itemdb.put(item._id.encode('ascii'),
+                             persist.dumps(item), context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
@@ -154,7 +157,7 @@ class DB(object):
 
     def delete_item(self, oid):
         try:
-            self._itemdb.delete(oid, context._trans.txn)
+            self._itemdb.delete(oid.encode('ascii'), context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
@@ -162,7 +165,7 @@ class DB(object):
     # external attributes
     def get_external(self, id):
         try:
-            return self._docdb.get(id,
+            return self._docdb.get(id.encode('ascii'),
                                    txn=context._trans and context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
@@ -170,14 +173,14 @@ class DB(object):
 
     def put_external(self, id, stream):
         try:
-            self._docdb.put(id, stream, context._trans.txn)
+            self._docdb.put(id.encode('ascii'), stream, context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
 
     def delete_external(self, id):
         try:
-            self._docdb.delete(id, context._trans.txn)
+            self._docdb.delete(id.encode('ascii'), context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction

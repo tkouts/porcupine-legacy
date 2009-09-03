@@ -62,22 +62,22 @@ selectObjectsDialog.search = function(evt, w) {
 		sCommand += ' where ' + conditions.join(' and ');
 	}
 
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
-	xmlrpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
-	xmlrpc.callback_info = w;
-	xmlrpc.callmethod('executeOqlCommand', sCommand);
+	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
+	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
+	rpc.callback_info = w;
+	rpc.callmethod('executeOqlCommand', sCommand);
 }
 
 selectObjectsDialog.refreshList = function(treeNodeSelected) {
 	var oDialog = treeNodeSelected.tree.getParentByType(Dialog);
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
+	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
 	var cc = oDialog.attributes.CC;
 	var sOql = "select id as value, __image__ as img, displayName as caption " +
 		"from '" + treeNodeSelected.getId() + "'";
 	if (cc != '*') sOql += " where " + selectObjectsDialog.getConditions(cc);
-	xmlrpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
-	xmlrpc.callback_info = treeNodeSelected.tree;
-	xmlrpc.callmethod('executeOqlCommand', sOql);
+	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
+	rpc.callback_info = treeNodeSelected.tree;
+	rpc.callmethod('executeOqlCommand', sOql);
 }
 
 selectObjectsDialog.getConditions = function(s) {

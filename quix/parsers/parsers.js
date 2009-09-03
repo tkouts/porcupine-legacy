@@ -23,32 +23,32 @@ QuiX.parsers = {};
 QuiX.parsers.XMLRPC = {};
 
 QuiX.parsers.XMLRPC.stringify = function(obj) {
-	if (obj == null || obj == undefined || (typeof obj == "number" &&
+    if (obj == null || obj == undefined || (typeof obj == "number" &&
                                             !isFinite(obj)))
-		return false.toXMLRPC();
-	else {
-		if(!obj.toXMLRPC) {
-			var retstr = "<struct>";
-			for (prop in obj) {
-				if(typeof obj[prop] != "function") {
-					retstr += "<member><name>" + prop + "</name><value>" +
-							  QuiX.parsers.XMLRPC.stringify(obj[prop]) +
+        return false.toXMLRPC();
+    else {
+        if (!obj.toXMLRPC) {
+            var retstr = "<struct>";
+            for (var prop in obj) {
+                if(typeof obj[prop] != "function") {
+                    retstr += "<member><name>" + prop + "</name><value>" +
+                              QuiX.parsers.XMLRPC.stringify(obj[prop]) +
                               "</value></member>";
-				}
-			}
-			retstr += "</struct>";
-			return retstr;
-		}
-		else
-			return obj.toXMLRPC();
-	}
+                }
+            }
+            retstr += "</struct>";
+            return retstr;
+        }
+        else
+            return obj.toXMLRPC();
+    }
 }
 
 QuiX.parsers.XMLRPC.parse = function(xml) {
     function getNode(data, len) {
         var nc = 0; //nodeCount
-        if(data != null) {
-            for(var i=0; i<data.childNodes.length; i++) {
+        if (data != null) {
+            for (var i=0; i<data.childNodes.length; i++) {
                 if(data.childNodes[i].nodeType == 1) {
                     if(nc == len)
                         return data.childNodes[i];
@@ -61,7 +61,7 @@ QuiX.parsers.XMLRPC.parse = function(xml) {
     }
     function toObject(data) {
         var ret, i, elem;
-        switch(data.tagName) {
+        switch (data.tagName) {
             case "string":
                 return (data.firstChild)?
                        data.firstChild.nodeValue.toString():"";
@@ -77,7 +77,7 @@ QuiX.parsers.XMLRPC.parse = function(xml) {
                 break;
             case "array":
                 data = getNode(data, 0);
-                if(data && data.tagName == "data") {
+                if (data && data.tagName == "data") {
                     ret = [];
                     for (i=0; i<data.childNodes.length; ++i) {
                         elem = data.childNodes[i];
@@ -116,6 +116,8 @@ QuiX.parsers.XMLRPC.parse = function(xml) {
                 return (!child)? ((data.firstChild)?
                     data.firstChild.nodeValue.toString():""):toObject(child);
                 break;
+            case "nil":
+                return null;
             default:
                 throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
                                          'Invalid tag name: ' + data.tagName);
@@ -143,38 +145,38 @@ QuiX.parsers.XMLRPC.parse = function(xml) {
 }
 
 String.prototype.toXMLRPC = function() {
-	return "<string>" + this.xmlEncode() + "</string>";
+    return "<string>" + this.xmlEncode() + "</string>";
 }
 
 Number.prototype.toXMLRPC = function() {
-	if(this == parseInt(this)){
-		return "<int>" + this + "</int>";
-	}
-	else if(this == parseFloat(this)) {
-		return "<double>" + this + "</double>";
-	}
-	else {
-		return false.toXMLRPC();
-	}
+    if (this == parseInt(this)) {
+        return "<int>" + this + "</int>";
+    }
+    else if(this == parseFloat(this)) {
+        return "<double>" + this + "</double>";
+    }
+    else {
+        return false.toXMLRPC();
+    }
 }
 
 Boolean.prototype.toXMLRPC = function() {
-	if (this==true) return "<boolean>1</boolean>";
-	else return "<boolean>0</boolean>";
+    if (this==true) return "<boolean>1</boolean>";
+    else return "<boolean>0</boolean>";
 }
 
 Date.prototype.toXMLRPC = function() {
-	var d = "<dateTime.iso8601>" + this.toIso8601() + "</dateTime.iso8601>";
-	return(d);
+    var d = "<dateTime.iso8601>" + this.toIso8601() + "</dateTime.iso8601>";
+    return(d);
 }
 
 Array.prototype.toXMLRPC = function() {
-	var retstr = "<array><data>";
-	for (var i=0; i<this.length; i++) {
-		retstr += "<value>" + QuiX.parsers.XMLRPC.stringify(this[i]) +
+    var retstr = "<array><data>";
+    for (var i=0; i<this.length; i++) {
+        retstr += "<value>" + QuiX.parsers.XMLRPC.stringify(this[i]) +
                   "</value>";
-	}
-	return retstr + "</data></array>";
+    }
+    return retstr + "</data></array>";
 }
 
 //==============================================================================
@@ -186,7 +188,7 @@ QuiX.parsers.JSON = {};
     var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
         escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
         gap, indent,
-        meta = {    // table of character substitutions
+        meta = { // table of character substitutions
             '\b': '\\b',
             '\t': '\\t',
             '\n': '\\n',

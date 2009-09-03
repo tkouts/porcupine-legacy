@@ -10,6 +10,7 @@ QuiX.ui.Form = function(/*params*/) {
 	this.files = [];
 	this.action = params.action;
 	this.method = params.method;
+    this.format = params.format || 'json';
 }
 
 QuiX.constructors['form'] = QuiX.ui.Form;
@@ -38,10 +39,12 @@ QuiX.ui.Form.prototype.submit = function(f_callback) {
 	}
 	
 	// send data
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(this.action);
-	xmlrpc.oncomplete = submit_oncomplete;
-	xmlrpc.callback_info = this;
-	xmlrpc.callmethod(this.method, this.getData());
+    var Rpc = (this.format == 'xml')?
+        QuiX.rpc.XMLRPCRequest:QuiX.rpc.JSONRPCRequest;
+	var rpc = new Rpc(this.action);
+	rpc.oncomplete = submit_oncomplete;
+	rpc.callback_info = this;
+	rpc.callmethod(this.method, this.getData());
 }
 
 QuiX.ui.Form.prototype.getData = function()

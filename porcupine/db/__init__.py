@@ -98,7 +98,7 @@ def transactional(auto_commit=False, nosync=False):
                 while retries < txn.txn_max_retries:
                     try:
                         if is_top_level:
-                            cargs = copy.deepcopy(args)
+                            cargs = copy.deepcopy(args, {'_dup_ext_' : False})
                             if retries > 0:
                                 time.sleep(sleep_time)
                                 sleep_time *= 2

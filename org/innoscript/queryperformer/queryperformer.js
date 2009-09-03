@@ -20,29 +20,32 @@ queryPerformer.executeQuery = function(evt, w) {
     var oPane = oWin.getWidgetById('resultsarea');
     sQuery = oWin.getWidgetById('oqlquery').getValue();
     
-    var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
-    xmlrpc.oncomplete = queryPerformer.executeQuery_oncomplete;
-    xmlrpc.callback_info = oPane;
-    xmlrpc.callmethod('executeOqlCommand', sQuery);
+    var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
+    rpc.oncomplete = queryPerformer.executeQuery_oncomplete;
+    rpc.callback_info = oPane;
+    rpc.callmethod('executeOqlCommand', sQuery);
 }
 
 queryPerformer.executeQuery_oncomplete = function(req) {
-	var treeNode, caption;
 	var oPane = req.callback_info;
 	var oWin = oPane.getParentByType(Window);
 	var oResults = req.response;
+    var options;
 	oPane.clear();
     if (oResults.length > 0) {
-        var schema = req.response[0];
+        options = oWin.getParentByType(Window).getWidgetById('clientArea').attributes;
         oPane.parseFromString(
-            '<tree xmlns="http://www.innoscript.org/quix" onexpand="queryPerformer.expandNode" onselect="queryPerformer.showProps"></tree>',
+            '<tree xmlns="http://www.innoscript.org/quix"\
+                onexpand="queryPerformer.expandNode"\
+                onselect="queryPerformer.showProps"></tree>',
             function (w) {
-                queryPerformer.expandArray(w, oResults, oWin.getParentByType(Window).getWidgetById('clientArea').attributes);
+                queryPerformer.expandArray(w, oResults, options);
             }
         );
         oWin.setStatus('Query returned ' + oResults.length + ' rows/objects.');
     } else {
-        oPane.parseFromString('<rect xmlns="http://www.innoscript.org/quix"><xhtml>No results found</xhtml></rect>');
+        oPane.parseFromString('<rect xmlns="http://www.innoscript.org/quix">\
+            <xhtml>No results found</xhtml></rect>');
     }
 }
 

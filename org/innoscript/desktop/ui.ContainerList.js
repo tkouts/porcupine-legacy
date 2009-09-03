@@ -38,8 +38,8 @@ containerList.showProperties = function(evt, w) {
 
 containerList.getContainerInfo = function(w, bAddPath) {
 	var folderUri = QuiX.root + w.attributes.FolderID;
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(folderUri);
-	xmlrpc.oncomplete = function(req) {
+	var rpc = new QuiX.rpc.JSONRPCRequest(folderUri);
+	rpc.oncomplete = function(req) {
 		var itemlist, i;
 		w.setTitle(req.response.displayName);
 		w.attributes.ParentID = req.response.parentid;
@@ -93,7 +93,7 @@ containerList.getContainerInfo = function(w, bAddPath) {
 		if (w.attributes.history[w.attributes.history.length-1] != w.attributes.FolderID)
 			w.attributes.history.push(w.attributes.FolderID);
 	}
-	xmlrpc.callmethod('getInfo');
+	rpc.callmethod('getInfo');
 }
 
 containerList.upOneFolder = function(evt, w) {
@@ -179,13 +179,13 @@ containerList.paste = function(evt, w) {
 			var pb = w.getWidgetById("pb");
 			pb.increase(1);
 			pb.widgets[1].setCaption(item.displayName);
-			var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
-			xmlrpc.oncomplete = _startPasting;
-			xmlrpc.callback_info = w;
-			xmlrpc.onerror = function(req) {
+			var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + item.id);
+			rpc.oncomplete = _startPasting;
+			rpc.callback_info = w;
+			rpc.onerror = function(req) {
 				w.close();
 			}
-			xmlrpc.callmethod(method, target);
+			rpc.callmethod(method, target);
 		} else {
 			w.close();
 			containerList.getContainerInfo(win);
@@ -212,13 +212,13 @@ containerList.doCopyMove = function(dlg) {
 		var method = (dlg.attributes.method=='copy')?'copyTo':'moveTo';
 		var targetid = dlg.getWidgetById('tree').getSelection().getId();
 		
-		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + dlg.attributes.ID);
-		xmlrpc.oncomplete = function(req) {
+		var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + dlg.attributes.ID);
+		rpc.oncomplete = function(req) {
 			if (method!='copyTo') {
 				containerList.getContainerInfo(p_win);
 			}
 		}
-		xmlrpc.callmethod(method, targetid);
+		rpc.callmethod(method, targetid);
 	}
 }
 
@@ -237,11 +237,11 @@ containerList.doRename = function(dlg) {
 		var p_win = dlg.opener;
 		var new_name = dlg.getWidgetById('new_name').getValue();
 		
-		var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + dlg.attributes.ID);
-		xmlrpc.oncomplete = function() {
+		var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + dlg.attributes.ID);
+		rpc.oncomplete = function() {
 			containerList.getContainerInfo(p_win);
 		}
-		xmlrpc.callmethod('rename', new_name);
+		rpc.callmethod('rename', new_name);
 	}
 }
 
@@ -262,13 +262,13 @@ containerList.deleteItem = function(evt, w) {
 				var pb = w.getWidgetById("pb");
 				pb.increase(1);
 				pb.widgets[1].setCaption(item.displayName);
-				var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + item.id);
-				xmlrpc.oncomplete = _start;
-				xmlrpc.callback_info = w;
-				xmlrpc.onerror = function(req) {
+				var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + item.id);
+				rpc.oncomplete = _start;
+				rpc.callback_info = w;
+				rpc.onerror = function(req) {
 					w.close();
 				}
-				xmlrpc.callmethod('delete');
+				rpc.callmethod('delete');
 			}
 			else {
 				w.close();

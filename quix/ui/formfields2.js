@@ -351,10 +351,10 @@ QuiX.ui.AutoComplete.prototype._getSelection = function(evt) {
 }
 
 QuiX.ui.AutoComplete.prototype._getResults = function() {
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + this.url);
-	xmlrpc.oncomplete = this._showResults;
-	xmlrpc.callback_info = this;
-	xmlrpc.callmethod(this.method, this.textField.value);
+	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + this.url);
+	rpc.oncomplete = this._showResults;
+	rpc.callback_info = this;
+	rpc.callmethod(this.method, this.textField.value);
 }
 
 QuiX.ui.AutoComplete.prototype._showResults = function(oReq) {

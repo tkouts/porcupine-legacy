@@ -28,12 +28,12 @@ generic.runApp = function(evt,w) {
 generic.getSecurity = function(tabcontrol, itab) {
 	var acl_datagrid = tabcontrol.tabs[itab].getWidgetsByType(DataGrid)[0];
 	var sObjectURI = tabcontrol.getParentByType(Form).action;
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(sObjectURI);
-	xmlrpc.oncomplete = function(req) {
+	var rpc = new QuiX.rpc.JSONRPCRequest(sObjectURI);
+	rpc.oncomplete = function(req) {
 		acl_datagrid.dataSet = req.response;
 		acl_datagrid.refresh();
 	};
-	xmlrpc.callmethod('getSecurity');
+	rpc.callmethod('getSecurity');
 }
 
 generic.computeSize = function(obj, value) {

@@ -260,10 +260,10 @@ var FolderTree = QuiX.ui.FolderTree;
 
 QuiX.ui.FolderTree.prototype.loadSubfolders = function(treeNode) {
 	var sID = treeNode.getId() || '';
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root + sID);
-	xmlrpc.oncomplete = treeNode.tree.load_oncomplete;
-	xmlrpc.callback_info = treeNode;
-	xmlrpc.callmethod(treeNode.tree.method);
+	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + sID);
+	rpc.oncomplete = treeNode.tree.load_oncomplete;
+	rpc.callback_info = treeNode;
+	rpc.callmethod(treeNode.tree.method);
 	for (var i=0; i< treeNode.childNodes.length; i++ ) {
 		treeNode.childNodes[i].hide();
 	}

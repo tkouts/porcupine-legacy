@@ -50,6 +50,8 @@ class PorcupineThread(BaseServerThread):
         session_id = None
         cookies_enabled = True
         path_info = request.serverVariables['PATH_INFO']
+
+        #print path_info
         
         # detect if sessionid is injected in the URL
         session_match = re.match(self._sid_pattern, path_info)
@@ -190,8 +192,13 @@ class PorcupineThread(BaseServerThread):
             self._method_cache[method_key] = method
     
         if method is None:
-            raise exceptions.NotImplemented(
-                'Unknown method call "%s"' % method_name)
+            if context.request.type == 'http':
+                raise exceptions.NotFound(
+                    'Unknown method call "%s"' % method_name)
+            else:
+                # rpc call
+                raise exceptions.RPCMethodNotFound(
+                    'Remote method "%s" is not found' % method_name)
         else:
             # execute method
             getattr(item, method)(context)

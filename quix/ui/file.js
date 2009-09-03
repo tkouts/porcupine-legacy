@@ -189,9 +189,9 @@ QuiX.ui.File.prototype.upload = function() {
 
 QuiX.ui.File.prototype._upload = function(chunk, fname) {
 	var oFile = this;
-	var xmlrpc = new QuiX.rpc.XMLRPCRequest(QuiX.root);
-    xmlrpc.use_cache = false;
-	xmlrpc.oncomplete = function(req) {
+	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
+    rpc.use_cache = false;
+	rpc.oncomplete = function(req) {
 		if (!oFile.cancelUpload) {
 			var chunk = oFile.uploader.getChunk(oFile._fileid);
 			var filename = req.response;
@@ -208,10 +208,10 @@ QuiX.ui.File.prototype._upload = function(chunk, fname) {
 			oFile.cancelUpload = false;
 		}
 	}
-	xmlrpc.onerror = function(req) {
+	rpc.onerror = function(req) {
 		if (oFile.onerror) oFile.onerror(oFile);
 	}
-	xmlrpc.callmethod('upload', new String(chunk), fname);
+	rpc.callmethod('upload', new String(chunk), fname);
 	delete chunk;
 }
 

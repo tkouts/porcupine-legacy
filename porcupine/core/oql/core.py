@@ -105,7 +105,7 @@ def evaluate_stack(stack, variables, for_object=None):
     elif type(op) == types.FunctionType:
         return op(for_object)
 
-    elif type(op) == str:
+    elif isinstance(op, (str, unicode)):
         if op[0] == "'":
             # a string
             return op[1:-1]
@@ -178,7 +178,6 @@ def get_attribute(obj, name_list):
                 obj = [get_attribute(item, name_list[:]) for item in obj]
             else:
                 obj = get_attribute(obj, name_list[:])
-        
         return obj
     except AttributeError:
         return None
@@ -462,7 +461,7 @@ def h_200(params, variables, for_object=None):
 
     select_from = params[1]
     where_condition = params[2]
-    
+
     if params[3]:
         sort_order, order_by = params[3]
         
