@@ -21,11 +21,11 @@ import os
 import time
 import signal
 import select
+import asyncore
 from errno import EINTR
 from threading import Thread, Event
 
 from porcupine.config import services
-from porcupine.core import asyncore
 from porcupine.core import runtime
 from porcupine.utils.misc import freeze_support
 
@@ -47,8 +47,8 @@ class Controller(object):
             # start services
             runtime.logger.info('Starting services...')
             services.start()
-        except Exception, e:
-            runtime.logger.error(e[0], *(), **{'exc_info' : True})
+        except Exception as e:
+            runtime.logger.error(e, *(), **{'exc_info' : True})
             # stop services
             services.stop()
             raise e
@@ -69,7 +69,7 @@ class Controller(object):
         self.running = True
 
         # record process id
-        pidfile = file(PID_FILE, "w")
+        pidfile = open(PID_FILE, "w")
         if os.name == 'posix':
             pidfile.write(str(os.getpgid(os.getpid())))
         else:
@@ -91,7 +91,7 @@ certain conditions; See COPYING for more details.''')
             _use_poll = True
         try:
             asyncore.loop(16.0, _use_poll)
-        except select.error, v:
+        except select.error as v:
             if v[0] == EINTR:
                 print('Shutdown not completely clean...')
             else:
@@ -158,7 +158,11 @@ def main(args):
     try:
         controller = Controller()
         controller.start()
-    except Exception, e:
+    except Exception as e:
+        import traceback
+        output = traceback.format_exception(*sys.exc_info())
+        output = ''.join(output)
+        print(output)
         sys.exit(e)
 
     signal.signal(signal.SIGINT, controller.initiateShutdown)

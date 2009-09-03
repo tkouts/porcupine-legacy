@@ -91,7 +91,7 @@ class DB(object):
                        db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
                        additional_flags)
 
-        dbMode = 0660
+        dbMode = 660
         dbFlags = db.DB_THREAD | db.DB_CREATE | db.DB_AUTO_COMMIT
 
         # open items db
@@ -149,7 +149,7 @@ class DB(object):
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
-        except db.DBError, e:
+        except db.DBError as e:
             if e[0] == _err_unsupported_index_type:
                 raise db.DBError("Unsupported indexed data type")
             else:

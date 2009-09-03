@@ -15,8 +15,12 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine WSGI interface"
-
-from cPickle import dumps
+try:
+    # python 2.6
+    from cPickle import dumps
+except ImportError:
+    # python 3
+    from pickle import dumps
 
 def wsgi_handler(rh, response):
     cookies = [response.cookies[cookie_name].OutputString()

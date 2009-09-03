@@ -27,7 +27,7 @@ class BackupFile(object):
         try:
             for fl in filelist:
                 tarinfo = backup_file.gettarinfo(fl, os.path.basename(fl))
-                backup_file.addfile(tarinfo, file(fl, 'rb'))
+                backup_file.addfile(tarinfo, open(fl, 'rb'))
         finally:
             backup_file.close()
             

@@ -247,7 +247,7 @@ def upload(self, chunk, fname):
         os.close(fileno)
         fname = os.path.basename(fname)
     else:
-        tmpfile = file(context.server.temp_folder + '/' + fname, 'ab+')
+        tmpfile = open(context.server.temp_folder + '/' + fname, 'ab+')
         tmpfile.write(chunk)
         tmpfile.close()
     return fname

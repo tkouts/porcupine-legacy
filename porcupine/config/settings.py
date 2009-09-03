@@ -17,7 +17,7 @@
 "Porcupine configuration file loader"
 import mimetypes
 
-conf_file = file('conf/porcupine.conf', 'r')
+conf_file = open('conf/porcupine.conf', 'r')
 try:
     settings = eval(conf_file.read().replace('\r\n', '\n'))
 finally:

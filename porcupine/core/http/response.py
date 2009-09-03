@@ -15,11 +15,22 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine HTTP response class"
+try:
+    # python 2.6
+    import Cookie as cookies
+except ImportError:
+    # python 3
+    import http.cookies as cookies
 
-import Cookie
+try:
+    # python 2.6
+    import cStringIO as io
+except ImportError:
+    # python 3.0
+    import io
+
 import time
 import mimetypes
-import cStringIO
 
 from porcupine import exceptions
 from porcupine.core.decorators import deprecated
@@ -39,10 +50,10 @@ class HttpResponse(object):
     """
     def __init__(self):
         self.__headers = {}
-        self.cookies = Cookie.SimpleCookie()
+        self.cookies = cookies.SimpleCookie()
         self.content_type = 'text/html'
         self.charset = 'utf-8'
-        self._body = cStringIO.StringIO()
+        self._body = io.StringIO()
         self._code = 200
     
     def _reset(self):
@@ -157,7 +168,7 @@ class HttpResponse(object):
             prefix = 'attachment;'
         else:
             prefix = ''
-        content_disposition = u'%sfilename="%s"' % (prefix, filename)
+        content_disposition = '%sfilename="%s"' % (prefix, filename)
         self.content_type = mimetypes.guess_type(filename, False)[0]\
                             or 'text/plain'
         self.set_header('Content-Disposition',

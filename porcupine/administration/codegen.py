@@ -158,7 +158,7 @@ class GenericSchemaEditor(object):
             if modulefilename[-1] in ['c', 'o']:
                 modulefilename = modulefilename[:-1]
             
-            modfile = file(modulefilename, 'w')
+            modfile = open(modulefilename, 'w')
             modfile.writelines(new_source)
             modfile.close()
     # backwards compatibility

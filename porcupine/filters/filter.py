@@ -17,12 +17,17 @@
 """
 Porcupine filters base classes.
 """
-import ConfigParser
+try:
+    # python 2.6
+    import ConfigParser as configparser
+except ImportError:
+    # python 3
+    import configparser
 
 class BaseFilter(object):
     @classmethod
     def loadConfig(cls):
-        config_file = ConfigParser.RawConfigParser()
+        config_file = configparser.RawConfigParser()
         config_file.readfp(open('conf/filters.ini'))
         section = cls.__module__ + '.' + cls.__name__
         settings = config_file.items(section)

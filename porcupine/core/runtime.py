@@ -69,7 +69,7 @@ def init_session_manager(init_expiration=True):
 
 def init_config():
     # check if config is inited
-    if type(settings['requestinterfaces'].values()[0]) == str:
+    if type(list(settings['requestinterfaces'].values())[0]) == str:
         # register request interfaces
         for key, value in settings['requestinterfaces'].items():
             settings['requestinterfaces'][key] = misc.get_rto_by_name(value)

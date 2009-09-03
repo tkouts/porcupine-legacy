@@ -21,8 +21,13 @@ import os
 import os.path
 import glob
 import gzip
-import cStringIO
 import re
+try:
+    # python 2.6
+    import cStringIO as io
+except ImportError:
+    # python 3.0
+    import io
 
 from porcupine.filters.filter import PostProcessFilter
 from porcupine.utils import misc
@@ -66,23 +71,23 @@ class Gzip(PostProcessFilter):
                 oldFiles = glob.glob(glob_f + '*.gzip')
                 [os.remove(oldFile) for oldFile in oldFiles]
 
-                zBuf = cStringIO.StringIO()
+                zBuf = io.StringIO()
                 Gzip.compress(zBuf, context.response._get_body(), Gzip.staticLevel)
 
                 context.response._body = zBuf
 
-                cache_file = file(compfn, 'wb')
+                cache_file = open(compfn, 'wb')
                 cache_file.write(zBuf.getvalue())
                 
                 cache_file.close()
             else:
-                cache_file = file(compfn, 'rb')
+                cache_file = open(compfn, 'rb')
                 context.response.clear()
                 context.response.write(cache_file.read())
                 cache_file.close()
                 
         else:
-            zBuf = cStringIO.StringIO()
+            zBuf = io.StringIO()
             Gzip.compress(zBuf, context.response._get_body(), Gzip.dynamicLevel)
             context.response._body = zBuf
 

@@ -487,7 +487,7 @@ class File(Text):
         
         @return: None
         """
-        oFile = file(fname, 'rb')
+        oFile = open(fname, 'rb')
         self.value = oFile.read()
         oFile.close()
     loadFromFile = deprecated(load_from_file)

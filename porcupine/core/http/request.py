@@ -17,9 +17,28 @@
 "Request classes"
 
 import re
-import Cookie
-import cStringIO
-import urlparse
+
+try:
+    # python 2.6
+    import Cookie as cookies
+except ImportError:
+    # python 3
+    import http.cookies as cookies
+
+try:
+    # python 2.6
+    import cStringIO as io
+except ImportError:
+    # python 3.0
+    import io
+
+try:
+    # python 2.6
+    import urlparse
+except ImportError:
+    # python 3
+    import urllib.parse as urlparse
+
 from cgi import FieldStorage
 from porcupine.core.decorators import deprecated
 
@@ -63,11 +82,11 @@ class HttpRequest(object):
         else:
             self.queryString = {}
         
-        self.cookies = Cookie.SimpleCookie()
+        self.cookies = cookies.SimpleCookie()
         if 'HTTP_COOKIE' in self.serverVariables:
             self.cookies.load(self.serverVariables['HTTP_COOKIE'])
         
-        self.input = cStringIO.StringIO(raw_request['inp'])
+        self.input = io.StringIO(raw_request['inp'])
         self.interface = raw_request['if']
         
         self.method = self.queryString.get('cmd', [''])[0]

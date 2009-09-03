@@ -20,14 +20,14 @@ from xml.dom import minidom
 
 class SettingsManager(object):
     def __init__(self):
-        conf_file = file('conf/porcupine.conf', 'r')
+        conf_file = open('conf/porcupine.conf', 'r')
         try:
             self.settings = eval(conf_file.read().replace('\r\n', '\n'))
         finally:
             conf_file.close()
             
     def save(self):
-        conf_file = file('conf/porcupine.conf', 'w')
+        conf_file = open('conf/porcupine.conf', 'w')
         conf_file.write(pprint.pformat(self.settings, 4))
         conf_file.close()
 
@@ -55,7 +55,7 @@ class PubDirManager(object):
 
     def close(self, commitChanges):
         if commitChanges:
-            configfile = file('conf/pubdir.xml', 'w')
+            configfile = open('conf/pubdir.xml', 'w')
             configfile.write(self._xmlfile.toxml('utf-8'))
             configfile.close()
         self._xmlfile.unlink()

@@ -16,12 +16,17 @@
 #===============================================================================
 "Porcupine object persistence layer"
 try:
+    # python 2.6
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    # python 3
+    from io import StringIO
+
 try:
+    # python 2.6
     import cPickle as pickle
 except ImportError:
+    # python 3
     import pickle
 
 def loads(value):

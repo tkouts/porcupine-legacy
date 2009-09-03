@@ -28,9 +28,9 @@ from porcupine.core.decorators import deprecated
 
 _VALID_ID_CHRS = [
     chr(x) for x in \
-    range(ord('a'), ord('z')) +
-    range(ord('A'), ord('Z')) +
-    range(ord('0'), ord('9'))
+    list(range(ord('a'), ord('z'))) +
+    list(range(ord('A'), ord('Z'))) +
+    list(range(ord('0'), ord('9')))
 ]
 
 def main_is_frozen():

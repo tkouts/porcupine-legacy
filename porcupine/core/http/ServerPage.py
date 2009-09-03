@@ -95,14 +95,14 @@ def execute(context, filename):
         marshal.dump(oCode, pspBinaryFile)
         pspBinaryFile.seek(0)
 
-    pspDir = {
+    psp_globals = {
         'Server' : context.server,
         'Session' : context.session,
         'Response' : context.response,
         'Request' : context.request
     }
-    oCode = marshal.load(pspBinaryFile)
+    code = marshal.load(pspBinaryFile)
     try:
-        exec oCode in pspDir
+        exec(code, psp_globals)
     finally:
         pspBinaryFile.close()

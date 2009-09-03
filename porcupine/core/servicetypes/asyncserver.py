@@ -17,13 +17,19 @@
 """
 Porcupine base classes for multi processing, multi threaded network servers
 """
+try:
+    # python 2.6
+    import Queue as queue
+except ImportError:
+    # python 3
+    import queue
+
+import asyncore
+import select
 import socket
 import time
-import Queue
-import select
 from threading import Thread, currentThread
 
-from porcupine.core import asyncore
 from porcupine.db.basetransaction import BaseTransaction
 from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
@@ -34,8 +40,9 @@ class BaseServerThread(Thread):
 
 class Dispatcher(asyncore.dispatcher):
     def __init__(self, request_queue, done_queue=None, socket_map=None):
+        asyncore.dispatcher.__init__(self, map=socket_map)
         # create queue for inactive RequestHandler objects i.e. those served
-        self.rh_queue = Queue.Queue(0)
+        self.rh_queue = queue.Queue(0)
         self.active_connections = 0
         self.request_queue = request_queue
         self.done_queue = done_queue
@@ -66,7 +73,7 @@ class Dispatcher(asyncore.dispatcher):
             try:
                 # get inactive requestHandler from queue
                 rh = self.rh_queue.get_nowait()
-            except Queue.Empty:
+            except queue.Empty:
                 # if empty then create new requestHandler
                 rh = RequestHandler(self)
             # set the client socket of requestHandler
@@ -115,7 +122,7 @@ class BaseServer(BaseService, Dispatcher):
                 done_queue = get_shared_queue(2048)
                 self.sentinel = (-1 , 'EOF')
         else:
-            request_queue = Queue.Queue(worker_threads * 2)
+            request_queue = queue.Queue(worker_threads * 2)
 
         Dispatcher.__init__(self, request_queue, done_queue)
 
@@ -130,7 +137,7 @@ class BaseServer(BaseService, Dispatcher):
         self._socket.setblocking(0)
         try:
             self._socket.bind(self.addr)
-        except socket.error, v:
+        except socket.error as v:
             self._socket.close()
             raise v
         self._socket.listen(64)
@@ -276,6 +283,7 @@ class BaseServer(BaseService, Dispatcher):
 class RequestHandler(asyncore.dispatcher):
     "Request handler object"
     def __init__(self, server):
+        asyncore.dispatcher.__init__(self)
         self.server = server
         self.has_request = False
         self.has_response = False
@@ -389,7 +397,8 @@ if multiprocessing:
                 self.release()
                 return fn, ''.join(buffer)
 
-            def put(self, (fn, b)):
+            def put(self, t):
+                fn, b = t
                 # split buffer into chunks
                 chunks = [array('B', b[i:i + 16384])
                           for i in range(0, len(b), 16384)]
@@ -456,7 +465,7 @@ if multiprocessing:
                 _use_poll = True
             try:
                 asyncore.loop(16.0, _use_poll, socket_map)
-            except select.error, v:
+            except select.error as v:
                 if v[0] == EINTR:
                     print('Shutdown not completely clean...')
                 else:
@@ -490,7 +499,7 @@ if multiprocessing:
                 socket_map = {}
                 
                 # start server
-                self.request_queue = Queue.Queue(self.worker_threads * 2)
+                self.request_queue = queue.Queue(self.worker_threads * 2)
                 self.done_queue = None
                 server = Dispatcher(self.request_queue, None, socket_map)
                 # activate server socket
@@ -504,7 +513,7 @@ if multiprocessing:
             else:
                 # create queue for inactive RequestHandlerProxy objects
                 # i.e. those served
-                self.rhproxy_queue = Queue.Queue(0)
+                self.rhproxy_queue = queue.Queue(0)
                 # patch shared queues
                 self.request_queue = init_queue(*self.request_queue)
                 self.done_queue = init_queue(*self.done_queue)
@@ -567,7 +576,7 @@ if multiprocessing:
                             # get inactive RequestHandlerProxy from queue
                             proxy = self.rhproxy_queue.get_nowait()
                             proxy.input_buffer = input_buffer
-                        except Queue.Empty:
+                        except queue.Empty:
                             # if empty then create new RequestHandlerProxy
                             proxy = RequestHandlerProxy(input_buffer)
 

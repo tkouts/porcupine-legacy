@@ -14,30 +14,18 @@
 #    along with Porcupine; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
-"Porcupine Server CGI Interface"
-try:
-    # python 2.6
-    import httplib
-except ImportError:
-    # python 3
-    import http.client as httplib
+"Python 3 compatibility layer"
 
-def cgi_handler(rh, response):
-    # write status line
-    rh.write_buffer('Status: %d %s\n' % (response._code,
-                                         httplib.responses[response._code]))
-    # write headers
-    for header, value in response._get_headers().items():
-        rh.write_buffer('%s: %s\n' % (header, value))
+def get_func_name(f):
+    try:
+        func_name = f.__name__
+    except AttributeError:
+        func_name = f.func_name
+    return func_name
 
-    sBody = response._get_body()
-    if sBody:
-        rh.write_buffer('Content-Length: %i\n' % len(sBody))
-        
-    if len(response.cookies) > 0:
-        rh.write_buffer(response.cookies.output() + '\n')
+def set_func_name(f, func_name):
+    if hasattr(f, '__name__'):
+        f.__name__ = func_name
+    else:
+        f.func_name = func_name
 
-    rh.write_buffer('\n')
-
-    # write body
-    rh.write_buffer(sBody)

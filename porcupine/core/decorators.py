@@ -23,6 +23,7 @@ import traceback
 
 from porcupine import exceptions
 from porcupine.utils import permsresolver
+from porcupine.core import compat
 from porcupine.config.settings import settings
 
 def deprecated(function, member=None):
@@ -37,9 +38,9 @@ def deprecated(function, member=None):
             "DEPRECATION WARNING\n" +
             "File \"%s\".\n" % pfile +
             "Line %d:\n    %s\nin \"%s\". " % (line_no, line, where) +
-            "Use \"%s\" instead." % (member or function.func_name))
+            "Use \"%s\" instead." % (member or compat.get_func_name(function)))
         return function(*args, **kwargs)
-    dep_wrapper.func_name = function.func_name
+    compat.set_func_name(dep_wrapper, compat.get_func_name(function))
     return dep_wrapper
 
 class WebMethodDescriptor(object):
@@ -48,8 +49,9 @@ class WebMethodDescriptor(object):
                  template, template_engine):
         self.func = function
         self.conditions = conditions
-        self.func_name = 'WM_%s_%s' % (function.func_name,
-                                       hashlib.md5(str(self.conditions)).hexdigest())
+        self.func_name = 'WM_%s_%s' % (
+            function.func_name,
+            hashlib.md5(str(self.conditions)).hexdigest())
         # response parameters
         self.content_type = content_type
         self.encoding = encoding

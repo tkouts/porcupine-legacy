@@ -17,7 +17,12 @@
 "Porcupine Server Thread"
 import re
 import hashlib
-from cPickle import loads
+try:
+    # python 2.6
+    from cPickle import loads
+except ImportError:
+    # python 3
+    from pickle import loads
 
 from porcupine import context
 from porcupine import exceptions
@@ -119,7 +124,7 @@ class PorcupineThread(BaseServerThread):
                             if registration.encoding:
                                 response.charset = registration.encoding
             
-            except exceptions.ResponseEnd, e:
+            except exceptions.ResponseEnd as e:
                 pass
             
             if registration is not None and response._code == 200:
@@ -131,7 +136,7 @@ class PorcupineThread(BaseServerThread):
                  for filter in registration.filters
                  if filter[0].type == 'post']
 
-        except exceptions.InternalRedirect, e:
+        except exceptions.InternalRedirect as e:
             lstPathInfo = e.args[0].split('?')
             raw_request['env']['PATH_INFO'] = lstPathInfo[0]
             if len(lstPathInfo) == 2:
@@ -140,7 +145,7 @@ class PorcupineThread(BaseServerThread):
                 raw_request['env']['QUERY_STRING'] = ''
             self.handle_request(rh, raw_request)
             
-        except exceptions.PorcupineException, e:
+        except exceptions.PorcupineException as e:
             e.emit(context, item)
                 
         except:

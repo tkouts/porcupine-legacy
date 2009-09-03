@@ -24,7 +24,7 @@ from porcupine import exceptions
 
 def string_template(context, filename, vars):
     try:
-        f = file(filename)
+        f = open(filename)
     except IOError:
         raise exceptions.NotFound('Template file "%s" is missing' % filename)
     try:
