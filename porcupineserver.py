@@ -29,7 +29,6 @@ from porcupine.core import asyncore
 from porcupine.core import runtime
 from porcupine.utils.misc import freeze_support
 
-#warnings.filterwarnings('ignore', '', Warning, 'logging')
 __version__ = '0.6 build(20090402)'
 PID_FILE = 'conf/.pid'
 

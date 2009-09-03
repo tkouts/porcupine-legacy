@@ -46,38 +46,34 @@ class BaseRequest(object):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            # TODO: remove this try
-            # THIS TRY IS FOR DEBUGGING PURPOSES
-            try:
+            err = s.connect_ex(address)
+            while not err in (0, EISCONN):
+                if err == EADDRINUSE:  # address already in use
+                    # the ephemeral port range is exhausted
+                    s.close()
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.bind((SERVER_IP, self.__next_port(address)))
+                else:
+                    # the host refuses conncetion
+                    break
                 err = s.connect_ex(address)
-                while not err in (0, EISCONN):
-                    if err == EADDRINUSE:  # address already in use
-                        # the ephemeral port range is exhausted
-                        s.close()
-                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        s.bind((SERVER_IP, self.__next_port(address)))
-                    else:
-                        # the host refuses conncetion
-                        break
-                    err = s.connect_ex(address)
 
-                s.send(self.buffer)
-                s.shutdown(1)
-                # Get the response object from master
-                response = []
+            s.send(self.buffer)
+            s.shutdown(1)
+            # Get the response object from master
+            response = []
 
+            rdata = s.recv(8192)
+            while rdata:
+                response.append(rdata)
                 rdata = s.recv(8192)
-                while rdata:
-                    response.append(rdata)
-                    rdata = s.recv(8192)
-            except socket.error:
-                import traceback
-                import sys
-                output = traceback.format_exception(*sys.exc_info())
-                output = ''.join(output)
-                print(output)
-                raise
-
+#        except socket.error:
+#            import traceback
+#            import sys
+#            output = traceback.format_exception(*sys.exc_info())
+#            output = ''.join(output)
+#            print(output)
+#            raise
         finally:
             s.close()
 

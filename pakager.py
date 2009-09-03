@@ -181,12 +181,11 @@ class Package(object):
                     self.package_file.extract(dbfile, self.tmp_folder)
                     objfile = None
                     try:
-                        try:
-                            objfile = file(fn, 'rb')
-                            self._import_item(objfile)
-                        except Exception, e:
-                            raise e
-                            sys.exit(2)
+                        objfile = file(fn, 'rb')
+                        self._import_item(objfile)
+                    except Exception, e:
+                        raise e
+                        sys.exit(2)
                     finally:
                         if objfile:
                             objfile.close()
