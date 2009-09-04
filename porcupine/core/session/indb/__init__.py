@@ -77,7 +77,7 @@ class SessionManager(GenericSessionManager):
                 for session in sessions:
                     logger.debug('Expiring Session: %s' % session.id)
                     session.terminate()
-            except Exception, e:
+            except Exception as e:
                 logger.error('Error in session expiration thread: %s' % e)
             time.sleep(3.0)
 

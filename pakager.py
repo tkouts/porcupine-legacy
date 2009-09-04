@@ -183,7 +183,7 @@ class Package(object):
                     try:
                         objfile = file(fn, 'rb')
                         self._import_item(objfile)
-                    except Exception, e:
+                    except Exception as e:
                         raise e
                         sys.exit(2)
                     finally:
@@ -224,7 +224,7 @@ class Package(object):
                         if item is not None:
                             print('INFO: removing object %s' % itemid)
                             item.delete()
-                except Exception, e:
+                except Exception as e:
                     raise e
                     sys.exit(2)
 

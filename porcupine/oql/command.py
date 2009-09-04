@@ -49,7 +49,7 @@ class OqlCommand(object):
             #cProfile.runctx('ret = self._execute()', globals(), locals())
             ret = self._execute()
         
-        except SyntaxError, e:
+        except SyntaxError as e:
             lineno = e[1]
             errvalue = e[2]
             script_lines = oql_script.split('\n')
@@ -63,7 +63,7 @@ class OqlCommand(object):
                                          "OQL syntax error at line %d: '%s'" % \
                                          (lineno, errvalue))
             raise exceptions.OQLError(error_string)
-        except TypeError, e:
+        except TypeError as e:
             raise exceptions.InternalServerError(e[0])
         
         if len(ret) == 1:

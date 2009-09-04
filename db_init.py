@@ -17,7 +17,7 @@ def init_db():
     try:
         # open offline db handle
         db = offlinedb.get_handle(system)
-    except Exception, e:
+    except Exception as e:
         sys.exit(e)
     initialize_db()
     db.close()
