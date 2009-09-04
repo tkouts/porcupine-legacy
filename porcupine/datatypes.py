@@ -26,12 +26,13 @@ import copy
 import hashlib
 import os.path
 import shutil
-import cStringIO
-import types
+import io
+
 
 from porcupine import db
 from porcupine.utils import misc, date
 from porcupine.core import dteventhandlers
+from porcupine.core.compat import str
 from porcupine.core.objectSet import ObjectSet
 from porcupine.core.decorators import deprecated
 
@@ -83,13 +84,13 @@ class String(DataType):
     @ivar value: The datatype's value
     @type value: unicode
     """
-    _safetype = unicode
+    _safetype = str
     
     def __init__(self, **kwargs):
-        self.value = u''
+        self.value = str()
 
     def validate(self):
-        if isinstance(self.value, str):
+        if isinstance(self.value, bytes):
             self.value = self.value.decode('ascii')
         DataType.validate(self)
 
@@ -231,11 +232,16 @@ class Reference1(DataType):
     @type value: str
 
     """
-    _safetype = (str, types.NoneType)
+    _safetype = (str, type(None))
     relCc = ()
     
     def __init__(self, **kwargs):
         self.value = None
+
+    def validate(self):
+        if isinstance(self.value, bytes):
+            self.value = self.value.decode('ascii')
+        DataType.validate(self)
 
     def get_item(self, trans=None):
         """
@@ -397,7 +403,7 @@ class ExternalAttribute(DataType):
     @type is_dirty: bool
     @type value: str
     """
-    _safetype = (str, types.NoneType)
+    _safetype = (bytes, type(None))
     _eventHandler = dteventhandlers.ExternalAttributeEventHandler
     
     def __init__(self, **kwargs):
@@ -474,7 +480,7 @@ class File(Text):
         self.filename = ''
         
     def get_file(self):
-        return cStringIO.StringIO(self.value)
+        return io.StringIO(self.value)
     getFile = deprecated(get_file)
         
     def load_from_file(self, fname):

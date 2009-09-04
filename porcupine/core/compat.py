@@ -16,6 +16,15 @@
 #===============================================================================
 "Python 3 compatibility layer"
 
+# types
+try:
+    # python 2.6
+    str = unicode
+except NameError:
+    # python 3
+    str = str
+
+# functions
 def get_func_name(f):
     try:
         func_name = f.__name__
@@ -29,3 +38,15 @@ def set_func_name(f, func_name):
     else:
         f.func_name = func_name
 
+def get_func_doc(f):
+    try:
+        func_doc = f.__doc__
+    except AttributeError:
+        func_doc = f.func_doc
+    return func_doc
+
+def set_func_doc(f, func_doc):
+    if hasattr(f, '__doc__'):
+        f.__doc__ = func_doc
+    else:
+        f.func_doc = func_doc

@@ -26,7 +26,7 @@ class BaseRequest(object):
     Syncronous base request object
     """
     # port range to use when the ephemeral port range is exhausted
-    _port_range = xrange(65535, 49150, -1)
+    _port_range = range(65535, 49150, -1)
     _client_ip = socket.gethostbyname(socket.gethostname())
     _host_ports = {}
     _next_port_lock = RLock()

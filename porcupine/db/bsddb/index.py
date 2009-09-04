@@ -21,7 +21,7 @@ from porcupine.utils.db import _err_unsupported_index_type
 from porcupine.db.baseindex import BaseIndex
 
 class DbIndex(BaseIndex):
-    db_mode = 0660
+    db_mode = 660
     db_flags = db.DB_THREAD | db.DB_CREATE | db.DB_AUTO_COMMIT
     
     def __init__(self, env, primary_db, name, unique=False, immutable=False):
@@ -47,7 +47,7 @@ class DbIndex(BaseIndex):
             primary_db.associate(self.db,
                                  self.callback,
                                  flags=flags)
-        except db.DBError, e:
+        except db.DBError as e:
             if e[0] == _err_unsupported_index_type:
                 # remove index
                 self.close()

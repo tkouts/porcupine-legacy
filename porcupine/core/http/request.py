@@ -17,6 +17,8 @@
 "Request classes"
 
 import re
+import io
+from cgi import FieldStorage
 
 try:
     # python 2.6
@@ -27,19 +29,11 @@ except ImportError:
 
 try:
     # python 2.6
-    import cStringIO as io
-except ImportError:
-    # python 3.0
-    import io
-
-try:
-    # python 2.6
     import urlparse
 except ImportError:
     # python 3
     import urllib.parse as urlparse
 
-from cgi import FieldStorage
 from porcupine.core.decorators import deprecated
 
 class HttpRequest(object):
@@ -116,7 +110,9 @@ class HttpRequest(object):
                                          environ=self.serverVariables)
 
     def _unquote(self, s):
-        return urlparse.unquote(s).decode('utf-8')
+        if type(s) == bytes:
+            s = s.decode('utf-8')
+        return urlparse.unquote(s)#.decode('utf-8')
 
     def get_lang(self):
         """Returns the preferred language of the client.

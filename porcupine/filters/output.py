@@ -22,12 +22,7 @@ import os.path
 import glob
 import gzip
 import re
-try:
-    # python 2.6
-    import cStringIO as io
-except ImportError:
-    # python 3.0
-    import io
+import io
 
 from porcupine.filters.filter import PostProcessFilter
 from porcupine.utils import misc

@@ -30,9 +30,9 @@ import socket
 import time
 from threading import Thread, currentThread
 
-from porcupine.db.basetransaction import BaseTransaction
 from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
+from porcupine.db.basetransaction import BaseTransaction
 
 class BaseServerThread(Thread):
     def handle_request(self, request_handler):
@@ -313,7 +313,7 @@ class RequestHandler(asyncore.dispatcher):
         if data:
             self.input_buffer.append(data)
         else:
-            self.input_buffer = ''.join(self.input_buffer)
+            self.input_buffer = bytes().join(self.input_buffer)
             self.has_request = True
             if self.input_buffer:
                 if self.server.done_queue is not None:

@@ -22,17 +22,12 @@ except ImportError:
     # python 3
     import http.cookies as cookies
 
-try:
-    # python 2.6
-    import cStringIO as io
-except ImportError:
-    # python 3.0
-    import io
-
+import io
 import time
 import mimetypes
 
 from porcupine import exceptions
+from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
 class HttpResponse(object):
@@ -53,7 +48,7 @@ class HttpResponse(object):
         self.cookies = cookies.SimpleCookie()
         self.content_type = 'text/html'
         self.charset = 'utf-8'
-        self._body = io.StringIO()
+        self._body = io.BytesIO()
         self._code = 200
     
     def _reset(self):
@@ -139,9 +134,9 @@ class HttpResponse(object):
         
         @return: None
         """
-        if isinstance(s, unicode):
+        if isinstance(s, str):
             self._body.write(s.encode(self.charset))
-        elif isinstance(s, str):
+        elif isinstance(s, bytes):
             self._body.write(s)
         else:
             self._body.write(str(s))

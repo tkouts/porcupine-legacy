@@ -166,7 +166,7 @@ class Movable(object):
         parent_id = self._parentid
         target = db._db.get_item(target_id)
         if target is None or target._isDeleted:
-            raise exceptions.ObjectNotFound, (
+            raise exceptions.ObjectNotFound(
                 'The target container "%s" does not exist.' % target_id)
         
         if isinstance(self, Shortcut):

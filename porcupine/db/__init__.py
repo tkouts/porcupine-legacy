@@ -23,6 +23,7 @@ import copy
 from porcupine import context
 from porcupine import exceptions
 from porcupine.utils import permsresolver
+from porcupine.core import compat
 from porcupine.core.decorators import deprecated
 
 def get_item(oid, trans=None):
@@ -70,8 +71,8 @@ def requires_transactional_context(function):
             raise exceptions.InternalServerError(
                 "Not in a transactional context. Use @db.transactional().")
         return function(*args, **kwargs)
-    rtc_wrapper.func_name = function.func_name
-    rtc_wrapper.func_doc = function.func_doc
+    compat.set_func_name(rtc_wrapper, compat.get_func_name(function))
+    compat.set_func_doc(rtc_wrapper, compat.get_func_doc(function))
     rtc_wrapper.__module__ = function.__module__
     return rtc_wrapper
 
@@ -126,8 +127,8 @@ def transactional(auto_commit=False, nosync=False):
             finally:
                 if is_top_level:
                     context._trans = None
-        transactional_wrapper.func_name = function.func_name
-        transactional_wrapper.func_doc = function.func_doc
+        compat.set_func_name(transactional_wrapper, compat.get_func_name(function))
+        compat.set_func_doc(transactional_wrapper, compat.get_func_doc(function))
         transactional_wrapper.__module__ = function.__module__
         return transactional_wrapper
     return transactional_decorator

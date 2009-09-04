@@ -110,7 +110,7 @@ Are you sure you want proceed(Y/N)?''')
             db = offlinedb.get_handle(recover=2)
             db.close()
             print('Database recovery completed successfully.')
-        except Exception, e:
+        except Exception as e:
             sys.exit(e)
     sys.exit()
 else:

@@ -16,7 +16,12 @@
 #===============================================================================
 "Porcupine Server management service"
 import os
-from cPickle import dumps, loads
+try:
+    # python 2.6
+    from cPickle import dumps, loads
+except ImportError:
+    # python 3
+    from pickle import dumps, loads
 
 from porcupine.core.runtime import logger
 from porcupine.core.servicetypes import asyncserver

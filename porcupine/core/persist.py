@@ -15,12 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine object persistence layer"
-try:
-    # python 2.6
-    from cStringIO import StringIO
-except ImportError:
-    # python 3
-    from io import StringIO
+from io import BytesIO
 
 try:
     # python 2.6
@@ -33,7 +28,7 @@ def loads(value):
     return pickle.loads(value)
 
 def dumps(obj):
-    f = StringIO()
+    f = BytesIO()
     pickler = pickle.Pickler(f, 2)
     pickler.fast = True
     pickler.dump(obj)
