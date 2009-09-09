@@ -18,7 +18,6 @@
 Porcupine cookie based session manager classes
 """
 import time
-import hashlib
 
 from porcupine import context, exceptions
 from porcupine.utils import misc
@@ -88,6 +87,13 @@ class Session(GenericSession):
         self.__data = sessiondata
 
     @staticmethod
+    def generate_sig(session):
+        return misc.hash(session.sessionid,
+                         session.userid,
+                         Session.secret,
+                         algo='sha256').hexdigest()
+
+    @staticmethod
     def load(request):
         i = 0
         chunks = []
@@ -98,8 +104,7 @@ class Session(GenericSession):
             session = request.cookies.get('_s%d' % i, None)
         if chunks:
             session = persist.loads(''.join(chunks))
-            sig = hashlib.sha256(session.sessionid + session.userid +
-                                 Session.secret).hexdigest()
+            sig = Session.generate_sig(session)
             if session.sig != sig:
                 session = None
         else:
@@ -107,11 +112,13 @@ class Session(GenericSession):
         return session
         
     def _get_sig(self):
-        sig = hashlib.sha256(self.sessionid + self.__userid + self.secret)
-        return sig.hexdigest()
+        return Session.generate_sig(self)
     
     def _update(self):
         chunk = persist.dumps(self)
+        if type(chunk) != str:
+            # python 3: conver to str
+            chunk = chunk.decode('latin-1')
         chunks = [chunk[i:i + 4000]
                   for i in range(0, len(chunk), 4000)]
         for i in range(len(chunks)):

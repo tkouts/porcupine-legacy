@@ -16,6 +16,7 @@
 #===============================================================================
 "Porcupine Server Thread"
 import re
+import sys
 import hashlib
 try:
     # python 2.6
@@ -164,28 +165,49 @@ class PorcupineThread(BaseServerThread):
         r_browser = context.request.serverVariables['HTTP_USER_AGENT']
         r_qs = context.request.serverVariables['QUERY_STRING']
         r_lang = context.request.get_lang()
-        
-        method_key = hashlib.md5(''.join((str(hash(item.__class__)),
-                                 method_name, r_http_method,
-                                 r_qs, r_browser, r_lang))).digest()
+
+        method_key = misc.hash(str(hash(item.__class__)),
+                               method_name,
+                               r_http_method,
+                               r_qs,
+                               r_browser,
+                               r_lang).digest()
         
         method = self._method_cache.get(method_key, None)
         if method is None:
             candidate_methods = [meth for meth in dir(item)
                                  if meth[:4+len(method_name)] == \
                                  'WM_%s_' % method_name]
-            
-            candidate_methods.sort(
-                cmp=lambda x,y:-cmp(
-                    int(getattr(item,x).func_dict['cnd'][1]!='') +
-                    int(getattr(item,x).func_dict['cnd'][3]!=''),
-                    int(getattr(item,y).func_dict['cnd'][1]!='') +
-                    int(getattr(item,y).func_dict['cnd'][3]!=''))
-            )
+
+            if sys.version_info[0] == 2:
+                # python 2.6
+                kwargs = {
+                    'cmp' : lambda x,y: -cmp(
+                        int(getattr(item, x).func_dict['cnd'][1] != '') +
+                        int(getattr(item, x).func_dict['cnd'][3] != ''),
+                        int(getattr(item, y).func_dict['cnd'][1] != '') +
+                        int(getattr(item, y).func_dict['cnd'][3] != ''))
+                }
+            else:
+                # python 3
+                kwargs = {
+                    'key' : lambda x: - (
+                        int(getattr(item, x).__dict__['cnd'][1] != '') +
+                        int(getattr(item, x).__dict__['cnd'][3] != '')
+                    )
+                }
+
+            candidate_methods.sort(**kwargs)
             
             for method_name in candidate_methods:
-                http_method, client, lang, qs = \
-                    getattr(item, method_name).func_dict['cnd']
+                try:
+                    # python 2.6
+                    http_method, client, lang, qs = \
+                        getattr(item, method_name).func_dict['cnd']
+                except AttributeError:
+                    # python 3
+                    http_method, client, lang, qs = \
+                        getattr(item, method_name).__dict__['cnd']
             
                 if re.match(http_method, r_http_method) and \
                         re.search(qs, r_qs) and \

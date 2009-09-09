@@ -92,7 +92,7 @@ certain conditions; See COPYING for more details.''')
         try:
             asyncore.loop(16.0, _use_poll)
         except select.error as v:
-            if v[0] == EINTR:
+            if v.args[0] == EINTR:
                 print('Shutdown not completely clean...')
             else:
                 pass

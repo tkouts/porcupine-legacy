@@ -947,7 +947,7 @@ class Container(Item):
         cursor.enforce_permissions = False
         iterator = iter(cursor)
         try:
-            childid = iterator.next()
+            childid = next(iterator)
         except StopIteration:
             childid = None
         cursor.close()
@@ -970,7 +970,7 @@ class Container(Item):
         cursor.set_scope(self._id)
         iterator = iter(cursor)
         try:
-            child = iterator.next()
+            child = next(iterator)
         except StopIteration:
             child = None
         cursor.close()

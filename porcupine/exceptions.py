@@ -19,6 +19,8 @@ import logging
 import sys
 import traceback
 
+from string import Template
+
 class ConfigurationError(Exception):
     pass
 
@@ -81,11 +83,14 @@ class PorcupineException(Exception):
                 else:
                     contentclass = '-'
 
+                # write response
                 context.response.content_type = 'text/html'
-                file = open('conf/errorpage.html')
-                body = file.read()
-                file.close()
-                context.response.write(body % vars())
+                f = open('conf/errorpage.html')
+                try:
+                    template = Template(f.read())
+                    context.response.write(template.substitute(vars()))
+                finally:
+                    f.close()
         
     def __str__(self):
         return self.info

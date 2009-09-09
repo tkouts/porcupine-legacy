@@ -116,7 +116,7 @@ class Cursor(BaseCursor):
             if self._reversed:
                 if self._value is not None:
                     # equality
-                    is_set = bool(self._cursor.set(self._scope + '_' +
+                    is_set = bool(self._cursor.set(self._scope + b'_' +
                                                    self._value))
                     if is_set:
                         next_nodup = self._cursor.get(db.DB_NEXT_NODUP)
@@ -129,18 +129,18 @@ class Cursor(BaseCursor):
                     # range
                     if self._range._upper_value is not None:
                         first = self._cursor.set_range(
-                                    self._scope + '_' +
+                                    self._scope + b'_' +
                                     self._range._upper_value)
                         if first is not None \
                                 and not self._range._upper_inclusive:
-                            key = first[0].split('_', 1)[1]
+                            key = first[0].split(b'_', 1)[1]
                             if key == self._range._upper_value:
                                 first = self._cursor.get(db.DB_PREV_NODUP)
                         is_set = bool(first)
                     else:
                         # move to last
                         next_container = self._cursor.set_range(
-                                    self._scope + 'a')
+                                    self._scope + b'a')
                         if next_container is not None:
                             is_set = bool(self._cursor.get(db.DB_PREV))
                         else:
@@ -148,24 +148,24 @@ class Cursor(BaseCursor):
             else:
                 if self._value is not None:
                     # equality
-                    is_set = bool(self._cursor.set(self._scope + '_' +
+                    is_set = bool(self._cursor.set(self._scope + b'_' +
                                                    self._value))
 
                 elif self._range is not None:
                     # range
                     if self._range._lower_value is not None:
                         first = self._cursor.set_range(
-                                    self._scope + '_' +
+                                    self._scope + b'_' +
                                     self._range._lower_value)
                         if first is not None \
                                 and not self._range._lower_inclusive:
-                            key = first[0].split('_', 1)[1]
+                            key = first[0].split(b'_', 1)[1]
                             if key == self._range._lower_value:
                                 first = self._cursor.get(db.DB_NEXT_NODUP)
                         is_set = bool(first)
                     else:
                         # move to first
-                        is_set = bool(self._cursor.set_range(self._scope + '_'))
+                        is_set = bool(self._cursor.set_range(self._scope + b'_'))
             return is_set
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
@@ -174,7 +174,7 @@ class Cursor(BaseCursor):
     def _eval(self, item):
         if hasattr(item, self._index.name):
             attr = getattr(item, self._index.name)
-            if attr.__class__.__module__ != '__builtin__':
+            if attr.__class__.__module__ != ''.__class__.__module__:
                 attr = attr.value
             packed = pack_value(attr)
             if self._value is not None:
@@ -201,7 +201,7 @@ class Cursor(BaseCursor):
 
             try:
                 composite_key, value = self._cursor.get(db.DB_CURRENT)
-                scope, key = composite_key.split('_', 1)
+                scope, key = composite_key.split(b'_', 1)
                 while scope == self._scope and cmp_func(key):
                     item = self._get_item(value)
                     if item is not None:
@@ -213,7 +213,7 @@ class Cursor(BaseCursor):
                     if not next:
                         break
                     composite_key, value = next
-                    scope, key = composite_key.split('_', 1)
+                    scope, key = composite_key.split(b'_', 1)
             except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
                 context._trans.abort()
                 raise exceptions.DBRetryTransaction

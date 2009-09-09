@@ -22,19 +22,20 @@ import time
 from porcupine import db
 from porcupine import context
 from porcupine.administration import offlinedb
+from porcupine.core.compat import str
 
 _err_unsupported_index_type = -2334
 
 def pack_value(value):
     """
     Packs Python values to C structs used for indexed lookups.
-    Currently supported types include unicode, strings, booleans,
+    Currently supported types include unicode strings, bytes, booleans,
     floats and integers.
     """
-    if isinstance(value, unicode):
+    if isinstance(value, str):
         value = value.encode('utf-8')
     packed = None
-    if type(value) == str:
+    if type(value) == bytes:
         packed = struct.pack('%ds' % len(value), value)
     elif type(value) == bool:
         packed = struct.pack('c', chr(int(value)))

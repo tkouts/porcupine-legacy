@@ -296,11 +296,11 @@ class ItemEditor(GenericSchemaEditor):
             
             # props
             for prop in [x for x in self._attrs
-                    if self._attrs[x].__class__.__module__ != '__builtin__']:
+                    if self._attrs[x].__class__.__module__ != ''.__class__.__module__]:
                 code.append('        self.%s = %s()\n' %
                         (prop, self._get_full_name(self._attrs[prop].__class__)))
             for prop in [x for x in self._attrs
-                    if self._attrs[x].__class__.__module__ == '__builtin__']:
+                    if self._attrs[x].__class__.__module__ == ''.__class__.__module__]:
                 if prop != '_id':
                     code.append('        self.%s = %s\n' %
                             (prop, repr(self._attrs[prop])))
@@ -387,11 +387,11 @@ class DatatypeEditor(GenericSchemaEditor):
             
             # props
             for prop in [x for x in self._attrs
-                    if self._attrs[x].__class__.__module__ != '__builtin__']:
+                    if self._attrs[x].__class__.__module__ != ''.__class__.__module__]:
                 code.append('        self.%s = %s()\n' %
                         (prop, self._get_full_name(self._attrs[prop].__class__)))
             for prop in [x for x in self._attrs
-                    if self._attrs[x].__class__.__module__ == '__builtin__']:
+                    if self._attrs[x].__class__.__module__ == ''.__class__.__module__]:
                 code.append('        self.%s = %s\n' % 
                         (prop, repr(self._attrs[prop])))
         

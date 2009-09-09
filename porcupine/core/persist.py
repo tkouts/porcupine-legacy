@@ -24,7 +24,11 @@ except ImportError:
     # python 3
     import pickle
 
+from porcupine.core.compat import str
+
 def loads(value):
+    if type(value) == str:
+        value = value.encode('latin-1')
     return pickle.loads(value)
 
 def dumps(obj):

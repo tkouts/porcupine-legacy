@@ -21,6 +21,7 @@ import time
 
 from porcupine.config.resources import Locale
 from porcupine.config.resources import ResourceStrings
+from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
 class Date(object):
@@ -130,37 +131,46 @@ class Date(object):
         """
         tupTime = time.localtime(self.value)
         sYear = str(tupTime[0])
-        iMonth = tupTime[1]-1
+        iMonth = tupTime[1] - 1
         iDate = tupTime[2]
         iHours = tupTime[3]
-        if iHours>12:
+        if iHours > 12:
             iHours12 = iHours - 12
             ampm = self.resources.get_resource('PM', locale)
         else:
             iHours12 = iHours
             ampm = self.resources.get_resource('AM', locale)
+        if type(ampm) == bytes:
+            # python 2.6
+            ampm = ampm.decode('utf-8')
+
         iMins = tupTime[4]
         iSecs = tupTime[5]
         iWeekday = tupTime[6]
 
-        months = self.resources.get_resource('MONTHS', locale)
-        days = self.resources.get_resource('DAYS', locale)
+        sMonth = self.resources.get_resource('MONTHS', locale)[iMonth]
+        if type(sMonth) == bytes:
+            # python 2.6
+            sMonth = sMonth.decode('utf-8')
+
+        sDay = self.resources.get_resource('DAYS', locale)[iWeekday]
+        if type(sDay) == bytes:
+            # python 2.6
+            sDay = sDay.decode('utf-8')
         
         format = format.replace('yyyy', sYear)
         format = format.replace('yy', sYear[2:4])
         
-        format = format.replace('month', months[iMonth])
-        format = format.replace('mmm', unicode(months[iMonth],
-                                               'utf-8')[0:3].encode('utf-8'))
+        format = format.replace('month', sMonth)
+        format = format.replace('mmm', sMonth[:3])
         format = format.replace('mm', str(iMonth + 1))
         
         format = format.replace('min', '%02d' % iMins)
         format = format.replace('sec', '%02d' % iSecs)
         
-        format = format.replace('ddd', unicode(days[iWeekday],
-                                'utf-8')[0:3].encode('utf-8'))
+        format = format.replace('ddd', sDay[:3])
         format = format.replace('dd', str(iDate))
-        format = format.replace('day', days[iWeekday])
+        format = format.replace('day', sDay)
         
         format = format.replace('h24', '%02d' % iHours)
         format = format.replace('h12', str(iHours12))

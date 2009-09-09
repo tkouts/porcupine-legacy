@@ -28,6 +28,7 @@ import asyncore
 import select
 import socket
 import time
+from errno import EINTR
 from threading import Thread, currentThread
 
 from porcupine.core.runtime import multiprocessing
@@ -47,7 +48,7 @@ class Dispatcher(asyncore.dispatcher):
         self.request_queue = request_queue
         self.done_queue = done_queue
         self.socket_map = socket_map
-        self.accepting = 1
+        self.accepting = True
 
     def readable(self):
         return self.accepting
@@ -287,7 +288,7 @@ class RequestHandler(asyncore.dispatcher):
         self.server = server
         self.has_request = False
         self.has_response = False
-        self.output_buffer = ''
+        self.output_buffer = b''
         self.input_buffer = []
 
     def activate(self, sock, socket_map=None):
@@ -313,7 +314,7 @@ class RequestHandler(asyncore.dispatcher):
         if data:
             self.input_buffer.append(data)
         else:
-            self.input_buffer = bytes().join(self.input_buffer)
+            self.input_buffer = b''.join(self.input_buffer)
             self.has_request = True
             if self.input_buffer:
                 if self.server.done_queue is not None:
@@ -344,7 +345,7 @@ class RequestHandler(asyncore.dispatcher):
         self.has_request = False
         self.has_response = False
         self.input_buffer = []
-        self.output_buffer = ''
+        self.output_buffer = b''
         if self.server is not None:
             # put it in inactive request handlers queue
             self.server.rh_queue.put(self)
@@ -427,14 +428,14 @@ if multiprocessing:
         class RequestHandlerProxy(object):
             def __init__(self, input_buffer):
                 self.input_buffer = input_buffer
-                self.output_buffer = ''
+                self.output_buffer = b''
 
             def write_buffer(self, s):
                 self.output_buffer += s
 
             def close(self):
-                self.input_buffer = ''
-                self.output_buffer = ''
+                self.input_buffer = b''
+                self.output_buffer = b''
 
     class SubProcess(BaseService, multiprocessing.Process):
         runtime_services = [('config', (), {}),
@@ -466,7 +467,7 @@ if multiprocessing:
             try:
                 asyncore.loop(16.0, _use_poll, socket_map)
             except select.error as v:
-                if v[0] == EINTR:
+                if v.args[0] == EINTR:
                     print('Shutdown not completely clean...')
                 else:
                     pass

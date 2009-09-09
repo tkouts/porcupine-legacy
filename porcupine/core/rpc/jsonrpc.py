@@ -15,14 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine JSON-RPC 2.0 Library"
-
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        json = None
+import json
 
 from porcupine.core.rpc import BaseEncoder
 
@@ -48,7 +41,7 @@ def dumps(request_id, obj, encoding):
         'result' : obj,
         'id' : request_id
     }
-    return json.dumps(response, cls=_JSONEncoder, encoding=encoding)
+    return json.dumps(response, cls=_JSONEncoder)
 
 class _JSONEncoder(json.JSONEncoder, BaseEncoder):
     default = BaseEncoder.default

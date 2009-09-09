@@ -15,14 +15,15 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine desktop security objects"
-
 import hashlib
 
-from porcupine import systemObjects as system
 from porcupine import datatypes
+from porcupine import systemObjects as system
+from porcupine.core.compat import str
+from porcupine.core.decorators import deprecated
+
 from org.innoscript.desktop.schema import properties
 from org.innoscript.desktop.schema import handlers
-from porcupine.core.decorators import deprecated
 
 class PoliciesFolder(system.Container):
     """
@@ -147,18 +148,20 @@ class User(GenericUser):
         self.settings = datatypes.Dictionary()
         self.personalFolder = datatypes.Reference1()
 
-    def authenticate(self, sPsw):
+    def authenticate(self, password):
         """Checks if the given string matches the
         user's password.
         
-        @param sPsw: The string to check against.
-        @type sPsw: str
+        @param password: The string to check against.
+        @type password: str
         
         @rtype: bool
         """
-        md = hashlib.md5(sPsw)
-        hexDigestP = md.hexdigest()
-        return hexDigestP==self.password.value
+        if type(password) == str:
+            password = password.encode('utf-8')
+        md = hashlib.md5(password)
+        hex_digest = md.hexdigest()
+        return hex_digest == self.password.value
 
 class SystemUser(system.Item):
     """

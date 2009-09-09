@@ -25,6 +25,7 @@ from porcupine import db
 from porcupine.core.objectSet import ObjectSet
 from porcupine.utils.date import Date
 from porcupine.utils import misc
+from porcupine.core.compat import str
 
 NEG         = 1
 
@@ -105,7 +106,7 @@ def evaluate_stack(stack, variables, for_object=None):
     elif type(op) == types.FunctionType:
         return op(for_object)
 
-    elif isinstance(op, (str, unicode)):
+    elif isinstance(op, (bytes, str)):
         if op[0] == "'":
             # a string
             return op[1:-1]
@@ -158,7 +159,7 @@ def get_attribute(obj, name_list):
     try:
         attr_name = name_list.pop(0)
         attr = getattr(obj, attr_name)
-        if attr.__class__.__module__ != '__builtin__':
+        if attr.__class__.__module__ != ''.__class__.__module__:
             if isinstance(attr, datatypes.Reference1):
                 obj = attr.get_item()
             elif isinstance(attr,
@@ -183,7 +184,7 @@ def get_attribute(obj, name_list):
         return None
         
 def sort_list(list1, list2):
-    pairs = zip(list1, list2)
+    pairs = list(zip(list1, list2))
     pairs.sort()
     res = [x[1] for x in pairs]
     return res
@@ -283,10 +284,10 @@ def h_64(params, variables, for_object):
     expression = evaluate_stack(params[0][:], variables, for_object)
     low = evaluate_stack(params[1][:], variables, for_object) or None
     high = evaluate_stack(params[2][:], variables, for_object) or None
-    if type(expression)==str:
-        return unicode(expression, 'utf-8')[low:high].encode('utf-8')
-    else:
-        return expression[low:high]
+#    if type(expression) == str:
+#        return unicode(expression, 'utf-8')[low:high].encode('utf-8')
+#    else:
+    return expression[low:high]
 
 #===============================================================================
 # IF command handler

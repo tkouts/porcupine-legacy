@@ -106,7 +106,7 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
                 rpc = jsonrpc
 
             context.request.id, args = \
-                rpc.loads(context.request.input.getvalue())
+                rpc.loads(context.request.input.decode(context.request.charset))
 
             # execute method
             v = self.func(item, *args)

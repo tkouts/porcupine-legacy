@@ -66,8 +66,9 @@ class Gzip(PostProcessFilter):
                 oldFiles = glob.glob(glob_f + '*.gzip')
                 [os.remove(oldFile) for oldFile in oldFiles]
 
-                zBuf = io.StringIO()
-                Gzip.compress(zBuf, context.response._get_body(), Gzip.staticLevel)
+                zBuf = io.BytesIO()
+                Gzip.compress(zBuf, context.response._get_body(),
+                              Gzip.staticLevel)
 
                 context.response._body = zBuf
 
@@ -87,7 +88,7 @@ class Gzip(PostProcessFilter):
             context.response._body = zBuf
 
 class I18n(PostProcessFilter):
-    _tokens = re.compile('(@@([\w\.]+)@@)', re.DOTALL)
+    _tokens = re.compile(b'(@@([\w\.]+)@@)', re.DOTALL)
     """
     Internationalization filter based on the browser's
     preferred language setting.

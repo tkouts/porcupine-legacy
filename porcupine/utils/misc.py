@@ -17,6 +17,7 @@
 """
 Porcupine miscelaneous utilities
 """
+import io
 import hashlib
 import time
 import random
@@ -24,6 +25,7 @@ import os
 import sys
 import imp
 
+from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
 _VALID_ID_CHRS = [
@@ -50,6 +52,16 @@ def freeze_support():
 def generate_file_etag(path):
     file_info = os.stat(path)
     return hex(file_info[6] + file_info[8])
+
+def hash(*args, **kwargs):
+    bt = io.BytesIO()
+    for arg in args:
+        if isinstance(arg, str):
+            arg = arg.encode('utf-8')
+        bt.write(arg)
+    hash = getattr(hashlib, kwargs.get('algo', 'md5'))(bt.getvalue())
+    bt.close()
+    return hash
 
 def generate_guid():
     """

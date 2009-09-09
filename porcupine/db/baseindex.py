@@ -33,9 +33,10 @@ class BaseIndex(object):
             # do not index composite objects
             if hasattr(item, self.name) and hasattr(item, '_parentid'):
                 attr = getattr(item, self.name)
-                if attr.__class__.__module__ != '__builtin__':
+                if attr.__class__.__module__ != ''.__class__.__module__:
                     attr = attr.value
-                index_value = '%s_%s' % (item._parentid, pack_value(attr))
+                index_value = pack_value(item._parentid) + b'_' + \
+                              pack_value(attr)
             _cache[value] = item
             return index_value
         return callback

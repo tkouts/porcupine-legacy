@@ -66,7 +66,7 @@ class HttpResponse(object):
     def _get_body(self):
         body = self._body.getvalue()
         self._body.close()
-        return(body)
+        return body
         
     def set_expiration(self, seconds, cache_type='private'):
         """The response becomes valid for a certain amount of time
@@ -88,7 +88,6 @@ class HttpResponse(object):
     def clear(self):
         "Clears the response body."
         self._body.truncate(0)
-        #self._body.seek(0)
         
     def set_header(self, header, value):
         """Sets a response HTTP header.
@@ -100,6 +99,8 @@ class HttpResponse(object):
         
         @return: None
         """
+        if type(value) == str:
+            value = value.encode('utf-8')
         self.__headers[header] = value
     setHeader = deprecated(set_header)
         
@@ -166,8 +167,7 @@ class HttpResponse(object):
         content_disposition = '%sfilename="%s"' % (prefix, filename)
         self.content_type = mimetypes.guess_type(filename, False)[0]\
                             or 'text/plain'
-        self.set_header('Content-Disposition',
-                        content_disposition.encode('utf-8'))
+        self.set_header('Content-Disposition', content_disposition)
         self.clear()
         self.write(bytestream)
     writeFile = deprecated(write_file)
@@ -182,7 +182,7 @@ class HttpResponse(object):
         @return: None
         """
         try:
-            f = file(filename, 'rb')
+            f = open(filename, 'rb')
         except IOError:
             raise exceptions.NotFound(
                 'The file "%s" can not be found' % filename)

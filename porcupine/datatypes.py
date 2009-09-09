@@ -82,7 +82,8 @@ class String(DataType):
     """String data type
     
     @ivar value: The datatype's value
-    @type value: unicode
+    @type value: unicode in Python 2.6
+                 str in Python 3.x
     """
     _safetype = str
     
@@ -91,7 +92,7 @@ class String(DataType):
 
     def validate(self):
         if isinstance(self.value, bytes):
-            self.value = self.value.decode('ascii')
+            self.value = self.value.decode('utf-8')
         DataType.validate(self)
 
 class RequiredString(String):
@@ -197,7 +198,7 @@ class Password(DataType):
     @ivar value: The datatype's value
     @type value: str
     """
-    _blank = 'd41d8cd98f00b204e9800998ecf8427e'
+    _blank = b'd41d8cd98f00b204e9800998ecf8427e'
     
     def __init__(self, **kwrags):
         self._value = self._blank
@@ -212,6 +213,8 @@ class Password(DataType):
     
     def set_value(self, value):
         if value != self._value:
+            if type(value) == str:
+                value = value.encode('utf-8')
             self._value = hashlib.md5(value).hexdigest()
     value = property(get_value, set_value)
     

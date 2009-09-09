@@ -64,7 +64,7 @@ class OqlCommand(object):
                                          (lineno, errvalue))
             raise exceptions.OQLError(error_string)
         except TypeError as e:
-            raise exceptions.InternalServerError(e[0])
+            raise exceptions.InternalServerError(e.args[0])
         
         if len(ret) == 1:
            ret = ret[0]

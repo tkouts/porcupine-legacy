@@ -15,14 +15,13 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Base classes of decorators applied to web methods"
-import hashlib
 import types
 import os.path
 import sys
 import traceback
 
 from porcupine import exceptions
-from porcupine.utils import permsresolver
+from porcupine import utils
 from porcupine.core import compat
 from porcupine.config.settings import settings
 
@@ -50,8 +49,8 @@ class WebMethodDescriptor(object):
         self.func = function
         self.conditions = conditions
         self.func_name = 'WM_%s_%s' % (
-            function.func_name,
-            hashlib.md5(str(self.conditions)).hexdigest())
+            compat.get_func_name(function),
+            utils.misc.hash(*self.conditions).hexdigest())
         # response parameters
         self.content_type = content_type
         self.encoding = encoding
@@ -68,26 +67,32 @@ class WebMethodDescriptor(object):
     
     def __get__(self, item, item_class):
         def wm_wrapper(item, context):
-            if permsresolver.get_access(item, context.user) == 0:
+            if utils.permsresolver.get_access(item, context.user) == 0:
                 raise exceptions.PermissionDenied
             context.response.content_type = self.content_type
             context.response.charset = self.encoding
             if self.max_age:
                 context.response.set_expiration(self.max_age)
             return self.execute(item, context)
-        wm_wrapper.func_name = self.func_name
-        wm_wrapper.func_doc = self.func.func_doc
-        wm_wrapper.func_dict['cnd'] = self.conditions
-        return types.MethodType(wm_wrapper, item, item_class)
+        compat.set_func_name(wm_wrapper, self.func_name)
+        compat.set_func_doc(wm_wrapper, compat.get_func_doc(self.func))
+        try:
+            # python 2.6
+            wm_wrapper.func_dict['cnd'] = self.conditions
+        except AttributeError:
+            # python 3
+            wm_wrapper.__dict__['cnd'] = self.conditions
+        return types.MethodType(wm_wrapper, item)#, item_class)
     
     def execute(self, item, context):
         v = self.func(item)
         if self.template is not None:
             func_dir = os.path.dirname(sys.modules[self.func.__module__].__file__)
             template_processor = settings['templatelanguages'][self.t_engine]
-            template_processor(context,
-                               '%s%s%s' % (func_dir, os.path.sep, self.template),
-                               v)
+            template_processor(
+                context,
+                '%s%s%s' % (func_dir, os.path.sep, self.template),
+                v)
 
 class WebMethodWrapper(object):
     def __init__(self, decorator):
@@ -104,10 +109,15 @@ class WebMethodWrapper(object):
 
     def __get__(self, item, item_class):
         wrapper = self.get_wrapper()
-        wrapper.func_name = self.func_name
-        wrapper.func_doc = self.func.func_doc
-        wrapper.func_dict['cnd'] = self.conditions
-        return types.MethodType(wrapper, item, item_class)
+        compat.set_func_name(wrapper, self.func_name)
+        compat.set_func_doc(wrapper, compat.get_func_doc(self.func))
+        try:
+            # python 2.6
+            wrapper.func_dict['cnd'] = self.conditions
+        except AttributeError:
+            # python 3
+            wrapper.__dict__['cnd'] = self.conditions
+        return types.MethodType(wrapper, item)#, item_class)
     
     def get_wrapper(self):
         raise NotImplementedError

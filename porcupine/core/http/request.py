@@ -34,6 +34,7 @@ except ImportError:
     # python 3
     import urllib.parse as urlparse
 
+from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
 class HttpRequest(object):
@@ -48,71 +49,83 @@ class HttpRequest(object):
     @type cookies: Cookie.SimpleCookie
     
     @ivar input: The raw request input
-    @type input: StringIO
+    @type input: bytes
 
     @ivar interface: The request's interface, i.e. 'CGI', 'MOD_PYTHON', 'WSGI'
     @type interface: str
-    
+
+    @ivar charset: The request's body charset
+    @type charset: str
+
     @ivar form: If the request method is POST, this attribute holds the posted
                 values.
     @type form: dict
     """
-    _xml_rpc_detect = re.compile('<methodName>(.*?)</methodName>')
+    _charset_detect = re.compile('charset=([\w-]+)')
+    _xml_rpc_detect = re.compile(b'<methodName>(.*?)</methodName>')
     _json_rpc_detect = re.compile(
-        'jsonrpc.+[\'"]method[\'"]\s*:\s*[\'"](.*?)[\'"]')
+        b'jsonrpc.+[\'"]method[\'"]\s*:\s*[\'"](.*?)[\'"]')
 
     def __init__(self, raw_request):
         self.serverVariables = raw_request['env']
         self.serverVariables.setdefault('HTTP_ACCEPT_LANGUAGE', '')
         self.serverVariables.setdefault('HTTP_USER_AGENT', '')
+        
+        path_info = self.serverVariables.get('PATH_INFO', '/')
+        if type(path_info) == str:
+            # python 3: convert to bytes
+            path_info = path_info.encode('latin-1')
+        # decode utf-8 encoded path_info
+        self.serverVariables['PATH_INFO'] = path_info.decode('utf-8')
 
-        # unquote path_info
-        self.serverVariables['PATH_INFO'] = \
-            self._unquote(self.serverVariables.get('PATH_INFO', '/'))
-        
-        if self.serverVariables.setdefault('QUERY_STRING', ''):
-            self.queryString = urlparse.parse_qs(
-                self._unquote(self.serverVariables['QUERY_STRING']))
-        else:
-            self.queryString = {}
-        
+        query_string = self.serverVariables.setdefault('QUERY_STRING', '')
+        if type(query_string) == bytes:
+            # python 2.6: convert to unicode
+            query_string = query_string.decode('latin-1')
+        self.queryString = urlparse.parse_qs(query_string)
+
         self.cookies = cookies.SimpleCookie()
         if 'HTTP_COOKIE' in self.serverVariables:
             self.cookies.load(self.serverVariables['HTTP_COOKIE'])
-        
-        self.input = io.StringIO(raw_request['inp'])
+
+        self.input = raw_request['inp']
         self.interface = raw_request['if']
-        
+        self.charset = None
+
         self.method = self.queryString.get('cmd', [''])[0]
         self.form = None
-        # required by some rpc protocols such as json-rpc
+        # required by some rpc protocols such as json-rpc 2.0
         self.id = None
 
         self.type = 'http'
         if self.serverVariables['REQUEST_METHOD'] == 'POST':
+            # detect charset
+            charset_match = re.search(self._charset_detect,
+                                      self.serverVariables['CONTENT_TYPE'])
+            if charset_match:
+                self.charset = charset_match.groups()[0]
+            else:
+                # TODO: sniff charset?
+                self.charset = 'utf-8'
+
             if self.serverVariables['CONTENT_TYPE'][:8] == 'text/xml':
                 # xmlrpc request?
                 method_match = re.search(self._xml_rpc_detect,
-                                         self.input.getvalue())
+                                         self.input)
                 if method_match:
-                    self.method = method_match.groups()[0]
+                    self.method = method_match.groups()[0].decode(self.charset)
                     self.type = 'xmlrpc'
             elif self.serverVariables['CONTENT_TYPE'][:16] == 'application/json':
                 # jsonrpc request?
                 method_match = re.search(self._json_rpc_detect,
-                                         self.input.getvalue())
+                                         self.input)
                 if method_match:
-                    self.method = method_match.groups()[0]
+                    self.method = method_match.groups()[0].decode(self.charset)
                     self.type = 'jsonrpc'
             else:
                 # http form post
-                self.form = FieldStorage(fp=self.input,
+                self.form = FieldStorage(fp=io.BytesIO(self.input),
                                          environ=self.serverVariables)
-
-    def _unquote(self, s):
-        if type(s) == bytes:
-            s = s.decode('utf-8')
-        return urlparse.unquote(s)#.decode('utf-8')
 
     def get_lang(self):
         """Returns the preferred language of the client.

@@ -133,8 +133,10 @@ class DB(object):
 
     # item operations
     def get_item(self, oid):
+        if type(oid) != bytes:
+            oid = oid.encode('utf-8')
         try:
-            return self._itemdb.get(oid.encode('ascii'),
+            return self._itemdb.get(oid,
                                     txn=context._trans and context._trans.txn)
         except UnicodeEncodeError:
             return None

@@ -17,7 +17,6 @@
 """
 Template languages processors
 """
-
 from string import Template
 
 from porcupine import exceptions

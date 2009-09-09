@@ -40,7 +40,7 @@ class BaseCursor(object):
         self.resolve_shortcuts = False
 
     def set_scope(self, scope):
-        self._scope = scope
+        self._scope = scope.encode()
 
     def _get_item(self, s):
         item = persist.loads(s)
