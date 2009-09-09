@@ -59,7 +59,8 @@ QuiX.rpc.JSONRPCRequest.prototype._buildRequestBody = function(method_name
     var request = {
         'jsonrpc' : '2.0',
         'method' : method_name,
-        'params' : Array.prototype.concat.apply([], arguments).splice(1),
+        'params' : Array.prototype.concat.apply([], arguments).
+                   splice(1, arguments.length - 1),
         'id' : this.id
     }
     return QuiX.parsers.JSON.stringify(request);
