@@ -15,7 +15,6 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Porcupine XML-RPC Library"
-import types
 try:
     # python 2.6
     import xmlrpclib

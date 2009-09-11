@@ -17,7 +17,6 @@
 "Porcupine Server Thread"
 import re
 import sys
-import hashlib
 try:
     # python 2.6
     from cPickle import loads

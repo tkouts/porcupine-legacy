@@ -55,7 +55,7 @@ class PubDirManager(object):
 
     def close(self, commitChanges):
         if commitChanges:
-            configfile = open('conf/pubdir.xml', 'w')
+            configfile = open('conf/pubdir.xml', 'wb')
             configfile.write(self._xmlfile.toxml('utf-8'))
             configfile.close()
         self._xmlfile.unlink()

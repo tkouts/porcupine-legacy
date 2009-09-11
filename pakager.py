@@ -21,7 +21,13 @@ import getopt
 import sys
 import os
 import tarfile
-import ConfigParser
+import io
+try:
+    # python 2.6
+    import ConfigParser as configparser
+except ImportError:
+    # python 3
+    import configparser
 from xml.dom import minidom
 
 from porcupine import db
@@ -58,12 +64,13 @@ class Package(object):
         
         if package_file:
             self.package_file = tarfile.open(package_file, 'r:gz')
-            ini_file = self.package_file.extractfile('_pkg.ini')
+            ini_file = io.StringIO(
+                self.package_file.extractfile('_pkg.ini').read().decode())
         elif ini_file:
-            ini_file = file(ini_file)
+            ini_file = open(ini_file)
         
         if ini_file:
-            self.config_file = ConfigParser.RawConfigParser()
+            self.config_file = configparser.RawConfigParser()
             self.config_file.readfp(ini_file)
             self.name = self.config_file.get('package', 'name')
             self.version = self.config_file.get('package', 'version')
@@ -76,7 +83,7 @@ class Package(object):
             self.package_file.close()
     
     def _export_item(self, item, clear_roles_inherited=True):
-        it_file = file(self.tmp_folder + '/' + item._id, 'wb')
+        it_file = open(self.tmp_folder + '/' + item._id, 'wb')
         if clear_roles_inherited:
             item.inheritRoles = False
         
@@ -133,6 +140,9 @@ class Package(object):
         self.package_files.append((
             self.package_file.gettarinfo(path, path), path))
 
+    def _execute_script(self, filename, name):
+        exec(compile(open(filename).read(), name, 'exec'))
+
     def install(self):
         print('INFO: installing [%s-%s] package...' % (self.name, self.version))
         contents = self.package_file.getnames()
@@ -141,7 +151,8 @@ class Package(object):
         if '_pre.py' in contents:
             print('INFO: running pre installation script...')
             self.package_file.extract('_pre.py', self.tmp_folder)
-            execfile(self.tmp_folder + '/_pre.py')
+            self._execute_script(self.tmp_folder + '/_pre.py',
+                                 'Pre-installation script')
             os.remove(self.tmp_folder + '/_pre.py')
         
         # published directories
@@ -181,7 +192,7 @@ class Package(object):
                     self.package_file.extract(dbfile, self.tmp_folder)
                     objfile = None
                     try:
-                        objfile = file(fn, 'rb')
+                        objfile = open(fn, 'rb')
                         self._import_item(objfile)
                     except Exception as e:
                         raise e
@@ -202,7 +213,8 @@ class Package(object):
         if '_post.py' in contents:
             print('INFO: running post installation script...')
             self.package_file.extract('_post.py', self.tmp_folder)
-            execfile(self.tmp_folder + '/_post.py')
+            self._execute_script(self.tmp_folder + '/_post.py',
+                                 'Post-installation script')
             os.remove(self.tmp_folder + '/_post.py')
             
     def uninstall(self):
@@ -238,7 +250,8 @@ class Package(object):
         if '_uninstall.py' in contents:
             print('INFO: running uninstallation script...')
             self.package_file.extract('_uninstall.py', self.tmp_folder)
-            execfile(self.tmp_folder + '/_uninstall.py')
+            self._execute_script(self.tmp_folder + '/_uninstall.py',
+                                 'Uninstall script')
             os.remove(self.tmp_folder + '/_uninstall.py')
         
         # files
@@ -321,7 +334,7 @@ class Package(object):
                           % appname)
             
             if dir_nodes:
-                dirsFile = file(self.tmp_folder + '/_pubdir.xml', 'w')
+                dirsFile = open(self.tmp_folder + '/_pubdir.xml', 'w')
                 dirsFile.write('<?xml version="1.0" encoding="utf-8"?><dirs>')
                 for dir_node in dir_nodes:
                     dirsFile.write(dir_node.toxml('utf-8'))

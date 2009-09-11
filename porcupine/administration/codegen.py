@@ -23,6 +23,7 @@ import sys
 import types
 import time
 import re
+import imp
 
 from porcupine import db
 from porcupine import datatypes
@@ -72,7 +73,7 @@ class GenericSchemaEditor(object):
         for x in moduledict:
             if type(moduledict[x]) == types.ModuleType:
                 self._imports[moduledict[x]] = x
-            elif callable(moduledict[x]) and \
+            elif hasattr(moduledict[x], '__call__') and \
                     (sys.modules[moduledict[x].__module__] != self._module):
                 imported = misc.get_rto_by_name(moduledict[x].__module__ +
                                                 '.' + moduledict[x].__name__)
@@ -82,7 +83,7 @@ class GenericSchemaEditor(object):
         raise NotImplementedError
     
     def _get_full_name(self, callable):
-        if callable.__module__ == '__builtin__':
+        if callable.__module__ == ''.__class__.__module__:
             return callable.__name__
         module = misc.get_rto_by_name(callable.__module__)
         if module in self._imports:
@@ -209,7 +210,7 @@ class ItemEditor(GenericSchemaEditor):
                 GenericSchemaEditor.commit_changes(self)
                 # we must reload the class module
                 oMod = misc.get_rto_by_name(self._class.__module__)
-                reload(oMod)
+                imp.reload(oMod)
             
             db_handle = offlinedb.get_handle()
             oql_command = OqlCommand()
