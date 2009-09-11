@@ -15,11 +15,10 @@
 #    along with Porcupine; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
-"Utility for Porcupine Server database backup"
-
+"Administrative Tools utility for Porcupine Server"
 import getopt
-import sys
 import socket
+import sys
 
 from porcupine.utils import misc
 from porcupine.core.services import management
@@ -91,13 +90,20 @@ try:
 except:
     sys.exit('Invalid server address...')
 
+if sys.version_info[0] == 2:
+    # python 2.6
+    input_ = raw_input
+else:
+    # python 3
+    input_ = input
+
 # construct request object
 if command in ('DB_BACKUP', 'DB_RESTORE'):
     if not(file):
         usage()
     msg = management.MgtMessage(command, file)
 elif command == 'DB_RECOVER' and not address:
-    answer = raw_input('''
+    answer = input_('''
 WARNING: You are about to perform an offline recovery.
 Please ensure that all Porcupine services are stopped,
 since database recovery requires a single-threaded environment.

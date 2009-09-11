@@ -77,5 +77,5 @@ class BaseRequest(object):
         finally:
             s.close()
 
-        sResponse = ''.join(response)
-        return(sResponse)
+        response_bytes = b''.join(response)
+        return(response_bytes)

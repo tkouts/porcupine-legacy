@@ -6,7 +6,7 @@
 	container_id = ""
 	container_title = ""
 	
-	if Request.queryString.has_key("id"):
+	if id in Request.queryString:
 		container_id = Request.queryString["id"][0]
 		container = db.get_item(container_id)
 		container_title = container.displayName.value

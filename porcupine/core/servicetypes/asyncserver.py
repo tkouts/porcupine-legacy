@@ -29,7 +29,7 @@ import select
 import socket
 import time
 from errno import EINTR
-from threading import Thread, currentThread
+from threading import Thread, current_thread
 
 from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
@@ -121,7 +121,7 @@ class BaseServer(BaseService, Dispatcher):
                 # create queues for communicating
                 request_queue = get_shared_queue(2048)
                 done_queue = get_shared_queue(2048)
-                self.sentinel = (-1 , 'EOF')
+                self.sentinel = (-1 , b'EOF')
         else:
             request_queue = queue.Queue(worker_threads * 2)
 
@@ -172,7 +172,7 @@ class BaseServer(BaseService, Dispatcher):
                 multiprocessing.Semaphore(BaseTransaction.txn_max)
 
             # start worker processes
-            for i in range(self.worker_processes):
+            for i in list(range(self.worker_processes)):
                 pname = '%s server process %d' % (self.name, i+1)
                 pconn, cconn = multiprocessing.Pipe()
                 p = SubProcess(pname, self.worker_threads, self.thread_class,
@@ -264,7 +264,7 @@ class BaseServer(BaseService, Dispatcher):
 
     def _thread_loop(self):
         "loop for threads serving content to clients (non mutltiprocessing)"
-        thread = currentThread()
+        thread = current_thread()
         while True:
             # get next waiting client request
             request_handler = self.request_queue.get()
@@ -284,7 +284,7 @@ class BaseServer(BaseService, Dispatcher):
 class RequestHandler(asyncore.dispatcher):
     "Request handler object"
     def __init__(self, server):
-        asyncore.dispatcher.__init__(self)
+        asyncore.dispatcher.__init__(self, map=server.socket_map)
         self.server = server
         self.has_request = False
         self.has_response = False
@@ -335,13 +335,13 @@ class RequestHandler(asyncore.dispatcher):
                 if len(self.output_buffer) == 0:
                     self.shutdown(socket.SHUT_WR)
                     self.close()
-        except socket.error:
+        except socket.error as v:
             self.close()
 
     def close(self):
         asyncore.dispatcher.close(self)
-        if self.server.socket_map is not None:
-            self.del_channel(self.server.socket_map)
+        #if self.server.socket_map is not None:
+        #    self.del_channel(self.server.socket_map)
         self.has_request = False
         self.has_response = False
         self.input_buffer = []
@@ -396,7 +396,7 @@ if multiprocessing:
                 qsize.value -= i
                 self.item_popped.notify()
                 self.release()
-                return fn, ''.join(buffer)
+                return fn, b''.join(buffer)
 
             def put(self, t):
                 fn, b = t
@@ -418,8 +418,8 @@ if multiprocessing:
                 self.item_pushed.notify()
                 self.release()
 
-            queue.get = MethodType(get, queue, type(queue))
-            queue.put = MethodType(put, queue, type(queue))
+            queue.get = MethodType(get, queue)
+            queue.put = MethodType(put, queue)
             queue.qsize = qsize
             queue.item_pushed = item_pushed
             queue.item_popped = item_popped
@@ -470,6 +470,8 @@ if multiprocessing:
                 if v.args[0] == EINTR:
                     print('Shutdown not completely clean...')
                 else:
+                    print (self.name, v)
+                    print (socket_map)
                     pass
 
         def _manage(self):
@@ -559,7 +561,7 @@ if multiprocessing:
 
         def _thread_loop(self):
             "subprocess loop for threads serving content to clients"
-            thread = currentThread()
+            thread = current_thread()
             while True:
                 # get next waiting client request
                 request_handler = self.request_queue.get()
