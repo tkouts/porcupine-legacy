@@ -93,14 +93,43 @@ class Date(object):
         """
         self.value = fTime or time.time()
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if isinstance(other, Date):
-            return cmp(self.value, other.value)
+            return self.value == other.value
         else:
-            return cmp(self.value, other)
+            return self.value == other
 
-    def __hash__(self):
-        return hash(self.value)
+    def __ne__(self, other):
+        if isinstance(other, Date):
+            return self.value != other.value
+        else:
+            return self.value != other
+
+    def __lt__(self, other):
+        if isinstance(other, Date):
+            return self.value < other.value
+        else:
+            return self.value < other
+
+    def __gt__(self, other):
+        if isinstance(other, Date):
+            return self.value > other.value
+        else:
+            return self.value > other
+
+    def __le__(self, other):
+        if isinstance(other, Date):
+            return self.value <= other.value
+        else:
+            return self.value <= other
+
+    def __ge__(self, other):
+        if isinstance(other, Date):
+            return self.value >= other.value
+        else:
+            return self.value >= other
+
+    __hash__ = object.__hash__
 
     def format(self, format, locale='*'):
         """

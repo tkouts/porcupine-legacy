@@ -116,12 +116,17 @@ class Range(object):
             cmp_value = [-1]
             if self._lower_inclusive:
                 cmp_value.append(0)
-            if not cmp(self._lower_value, string_value) in cmp_value:
+            cmp = (self._lower_value > string_value) - \
+                  (self._lower_value < string_value)
+            if cmp not in cmp_value:
                 return False
         if self._upper_value is not None:
             cmp_value = [1]
             if self._upper_inclusive:
                 cmp_value.append(0)
-            if not cmp(self._upper_value, string_value) in cmp_value:
+            # cmp is gone
+            cmp = (self._upper_value > string_value) - \
+                  (self._upper_value < string_value)
+            if cmp not in cmp_value:
                 return False
         return True

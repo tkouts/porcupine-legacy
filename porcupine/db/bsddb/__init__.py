@@ -152,7 +152,7 @@ class DB(object):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
         except db.DBError as e:
-            if e[0] == _err_unsupported_index_type:
+            if e.args[0] == _err_unsupported_index_type:
                 raise db.DBError("Unsupported indexed data type")
             else:
                 raise

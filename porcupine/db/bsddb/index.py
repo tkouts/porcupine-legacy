@@ -48,7 +48,7 @@ class DbIndex(BaseIndex):
                                  self.callback,
                                  flags=flags)
         except db.DBError as e:
-            if e[0] == _err_unsupported_index_type:
+            if e.args[0] == _err_unsupported_index_type:
                 # remove index
                 self.close()
                 _db = db.DB(env)
