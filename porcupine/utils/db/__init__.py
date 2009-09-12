@@ -42,7 +42,7 @@ def pack_value(value):
     elif type(value) == int:
         packed = struct.pack('>l', value)
     elif type(value) == float:
-        packed = struct.pack('>f', value)
+        packed = struct.pack('>d', value)
     elif value is None:
         packed = struct.pack('c', chr(0))
     else:
