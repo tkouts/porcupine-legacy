@@ -10,7 +10,12 @@ QuiX.ui.Toolbar = function(/*params*/) {
 	params.overflow = 'hidden';
 	this.base(params);
 	this.div.className = 'toolbar';
-	this.handle = new Widget({width:4,height:"100%",border:0,overflow:'hidden'});
+	this.handle = new QuiX.ui.Widget({
+            width:4,
+            height:"100%",
+            border:0,
+            overflow:'hidden'
+        });
 	this.appendChild(this.handle);
 	this.handle.div.className = 'handle';
 

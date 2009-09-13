@@ -16,7 +16,7 @@ function Reference1(/*params*/) {
 	this.root = params.root || '';
 	this.cc = params.cc;
 
-	var hidden = new Field({
+	var hidden = new QuiX.ui.Field({
 		name : params.name,
 		value : params.value,
 		type : 'hidden'
@@ -24,7 +24,7 @@ function Reference1(/*params*/) {
 	this.appendChild(hidden);
 	hidden.hide();
 	
-	var lbl = new Label({
+	var lbl = new QuiX.ui.Label({
 		caption : params.caption,
 		width : 105,
 		height : 20
@@ -37,7 +37,7 @@ function Reference1(/*params*/) {
 	});
 	this.appendChild(fld);
 	
-	var btn1 = new XButton({
+	var btn1 = new QuiX.ui.Button({
 		caption : '...',
 		width : 20,
 		height : 20,
@@ -46,7 +46,7 @@ function Reference1(/*params*/) {
 	});
 	this.appendChild(btn1);
 	
-	var btn2 = new XButton({
+	var btn2 = new QuiX.ui.Button({
 		img : 'desktop/images/cancel8.gif',
 		width : 20,
 		height : 20,
@@ -99,7 +99,7 @@ function Reference1__fill(dlg) {
 // ReferenceN datatype QuiX control
 function ReferenceN(/*params*/) {
 	var params = arguments[0] || {};
-	this.base = Box;
+	this.base = QuiX.ui.Box;
 	
 	params.orientation = 'v';
 	this.base(params);
@@ -107,7 +107,7 @@ function ReferenceN(/*params*/) {
 	this.root = params.root || '';
 	this.cc = params.cc;
 	
-	var select = new SelectList({
+	var select = new QuiX.ui.SelectList({
 		name : params.name,
 		value : params.value,
 		multiple : true,
@@ -124,13 +124,13 @@ function ReferenceN(/*params*/) {
 		});
 	}
 	
-	var rect = new Widget({
+	var rect = new QuiX.ui.Widget({
 		height : 24,
 		disabled : params.disabled
 	});
 	this.appendChild(rect);
 	
-	var btn1 = new FlatButton({
+	var btn1 = new QuiX.ui.FlatButton({
 		width : 70,
 		height : 22,
 		caption : '@@ADD@@...',
@@ -138,7 +138,7 @@ function ReferenceN(/*params*/) {
 	});
 	rect.appendChild(btn1);
 	
-	var btn2 = new FlatButton({
+	var btn2 = new QuiX.ui.FlatButton({
 		left : 80,
 		width : 70,
 		height : 22,
@@ -150,7 +150,7 @@ function ReferenceN(/*params*/) {
 	this.redraw(true);
 }
 
-ReferenceN.prototype = new Box;
+ReferenceN.prototype = new QuiX.ui.Box;
 
 function ReferenceN__SelectObject(evt, btn) {
 	var oWindow = btn.getParentByType(Window);
@@ -191,7 +191,7 @@ function ReferenceN__fill(dlg) {
 // ACLEditor QuiX control
 function ACLEditor(/*params*/) {
 	var params = arguments[0] || {};
-	this.base = Box;
+	this.base = QuiX.ui.Box;
 	
 	params.orientation = 'v';
 	params.spacing = params.spacing || 0;
@@ -200,7 +200,7 @@ function ACLEditor(/*params*/) {
 	var rolesInherited = (params.rolesinherited == true ||
 						  params.rolesinherited == 'true')? true:false;
 	
-	var ri = new Field({
+	var ri = new QuiX.ui.Field({
 		id : '__rolesinherited',
 		name : '__rolesinherited',
 		type : 'checkbox',
@@ -211,19 +211,19 @@ function ACLEditor(/*params*/) {
 	});
 	this.appendChild(ri);
 	
-	var box = new Box({
+	var box = new QuiX.ui.Box({
 		spacing : 0,
 		disabled : rolesInherited
 	});
 	this.appendChild(box);
 	
-	var dg = new DataGrid({
+	var dg = new QuiX.ui.DataGrid({
 		id : '__acl',
 		name : '__acl'
 	});
 	dg.addHeader({});
 	
-	var col1 = dg.addColumn({
+	dg.addColumn({
 		caption : '@@displayName@@',
 		name : 'displayName',
 		width : '140',
@@ -246,10 +246,10 @@ function ACLEditor(/*params*/) {
 	
 	box.appendChild(dg);
 		
-	var rect = new Widget({width : 60});
+	var rect = new QuiX.ui.Widget({width : 60});
 	box.appendChild(rect);
 	
-	var btn1 = new FlatButton({
+	var btn1 = new QuiX.ui.FlatButton({
 		left : 'center',
 		width : 56,
 		height : 22,
@@ -258,7 +258,7 @@ function ACLEditor(/*params*/) {
 	});
 	rect.appendChild(btn1);
 	
-	var btn2 = new FlatButton({
+	var btn2 = new QuiX.ui.FlatButton({
 		top : 24,
 		left : 'center',
 		width : 56,
@@ -271,7 +271,7 @@ function ACLEditor(/*params*/) {
 	this.redraw(true);
 }
 
-ACLEditor.prototype = new Box;
+ACLEditor.prototype = new QuiX.ui.Box;
 
 function ACLEditor__riclick(evt, check) {
 	var _aclbox = check.parent.widgets[1];
