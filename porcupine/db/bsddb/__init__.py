@@ -91,7 +91,7 @@ class DB(object):
                        db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
                        additional_flags)
 
-        dbMode = 660
+        dbMode = 0o660
         dbFlags = db.DB_THREAD | db.DB_CREATE | db.DB_AUTO_COMMIT
 
         # open items db

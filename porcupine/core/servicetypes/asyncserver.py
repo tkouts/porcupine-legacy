@@ -461,17 +461,15 @@ if multiprocessing:
             multiprocessing.Process.start(self)
 
         def _async_loop(self, socket_map):
-            _use_poll = False
+            use_poll = False
             if hasattr(select, 'poll'):
-                _use_poll = True
+                use_poll = True
             try:
-                asyncore.loop(16.0, _use_poll, socket_map)
+                asyncore.loop(16.0, use_poll, socket_map)
             except select.error as v:
                 if v.args[0] == EINTR:
                     print('Shutdown not completely clean...')
                 else:
-                    print (self.name, v)
-                    print (socket_map)
                     pass
 
         def _manage(self):
