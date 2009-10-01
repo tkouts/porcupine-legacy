@@ -36,6 +36,7 @@ from porcupine.core.http.request import HttpRequest
 from porcupine.core.http.response import HttpResponse
 from porcupine.core.http import ServerPage
 from porcupine.core.session import SessionManager
+from porcupine.core.networking.request import BaseRequest
 from porcupine.core.servicetypes.asyncserver import BaseServerThread
 
 class PorcupineThread(BaseServerThread):
@@ -99,7 +100,7 @@ class PorcupineThread(BaseServerThread):
                     if not registration:
                         raise exceptions.NotFound(
                             'The resource "%s" does not exist' % path_info)
-                    
+
                     rtype = registration.type
                     if rtype == 1: # in case of psp fetch session
                         self._fetch_session(session_id, cookies_enabled)
@@ -120,7 +121,7 @@ class PorcupineThread(BaseServerThread):
                         else: 
                             response.load_from_file(f_name)
                             response.set_header('ETag', '"%s"' %
-                                               misc.generate_file_etag(f_name))
+                                                misc.generate_file_etag(f_name))
                             if registration.encoding:
                                 response.charset = registration.encoding
             
@@ -144,6 +145,23 @@ class PorcupineThread(BaseServerThread):
             else:
                 raw_request['env']['QUERY_STRING'] = ''
             self.handle_request(rh, raw_request)
+
+        except exceptions.DBReadOnly:
+            context._reset()
+            # proxy request to master
+            rep_mgr = _db.get_replication_manager()
+            master_addr = rep_mgr.master.req_address
+            master_request = BaseRequest(rh.input_buffer)
+            try:
+                master_response = master_request.get_response(master_addr)
+            except:
+                e = exceptions.InternalServerError(
+                    'Database is in read-only mode')
+                e.output_traceback = False
+                e.emit(context, item)
+            else:
+                rh.write_buffer(master_response)
+                return
             
         except exceptions.PorcupineException as e:
             e.emit(context, item)

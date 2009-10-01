@@ -14,12 +14,55 @@
 #    along with Porcupine; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
-"Porcupine configured services loader"
+"Porcupine services loader"
+from collections import Mapping
 
 from porcupine.config.settings import settings
 from porcupine.utils import misc
 
-services = {}
+class ServicesCollection(Mapping):
+    def __init__(self):
+        self.services_list = []
+
+    def __getitem__(self, name):
+        for service in self.services_list:
+            if service.name == name:
+                return service
+
+    def __iter__(self):
+        return iter(self.services_list)
+
+    def __len__(self):
+        return len(self.services_list)
+
+    def __contains__(self, key):
+        return key in [s.name for s in self.services_list]
+
+    def get_services_by_type(self, t):
+        return [service for service in self.services_list
+                if service.type == t]
+
+    def notify(self, message):
+        servers = self.get_services_by_type('TCPListener')
+        for server in servers:
+            if server.is_multiprocess:
+                server.send(message)
+
+    def lock_db(self):
+        [s.lock_db() for s in self.services_list]
+
+    def unlock_db(self):
+        [s.unlock_db() for s in self.services_list]
+
+    def open_db(self):
+        [s.add_runtime_service('db')
+         for s in self.services_list]
+
+    def close_db(self):
+        [s.remove_runtime_service('db')
+         for s in self.services_list]
+
+services = ServicesCollection()
 
 def start():
     for service in settings['services']:
@@ -31,24 +74,24 @@ def start():
             address = misc.get_address_from_string(service['address'])
             worker_processes = service['worker_processes']
             worker_threads = int(service['worker_threads'])
-            services[name] = service_class(name, address, worker_processes,
-                                           worker_threads)
+            svc = service_class(name, address, worker_processes,
+                                    worker_threads)
         elif type == 'ScheduledTask':
             interval = int(service['interval'])
-            services[name] = service_class(name, interval)
+            svc = service_class(name, interval)
 
         # add parameters
         if 'parameters' in service:
-            services[name].parameters = service['parameters']
-            
-        # start service
-        services[name].start()
+            svc.parameters = service['parameters']
 
-def get_services_by_type(t):
-    return [service for service in services.values()
-            if service.type == t]
+        services.services_list.append(svc)
+
+    # start services
+    for service in services:
+        service.start()
 
 def stop():
-    for service_name in services:
-        if service_name != '_controller':
-            services[service_name].shutdown()
+    svcs = list(services)
+    svcs.reverse()
+    for service in svcs:
+        service.shutdown()

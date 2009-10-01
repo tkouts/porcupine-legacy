@@ -14,13 +14,16 @@ def init_db():
     system.displayName.value = 'SYSTEM'
     system._isSystem = True
     system.description.value = 'System account'
+
+    db = None
     try:
-        # open offline db handle
         db = offlinedb.get_handle(system)
+        initialize_db()
     except Exception as e:
         sys.exit(e)
-    initialize_db()
-    db.close()
+    finally:
+        if db is not None:
+            db.close()
 
 if __name__ == '__main__':
     freeze_support()

@@ -17,46 +17,57 @@
 "Porcupine server Berkeley DB index"
 from porcupine import exceptions
 from porcupine.db.bsddb import db
-from porcupine.utils.db import _err_unsupported_index_type
 from porcupine.db.baseindex import BaseIndex
+from porcupine.utils.db import _err_unsupported_index_type
 
 class DbIndex(BaseIndex):
-    db_mode = 0o660
-    db_flags = db.DB_THREAD | db.DB_CREATE | db.DB_AUTO_COMMIT
-    
-    def __init__(self, env, primary_db, name, unique=False, immutable=False):
+    """
+    BerkeleyDB index
+    """
+    def __init__(self, env, primary_db, name, unique, immutable, db_flags):
         BaseIndex.__init__(self, name, unique)
-        self.db = db.DB(env)
-        self.db.set_pagesize(1024)
-        if not unique:
-            self.db.set_flags(db.DB_DUPSORT)
-        self.db.open(
-            'porcupine.idx',
-            name,
-            dbtype = db.DB_BTREE,
-            mode = self.db_mode,
-            flags = self.db_flags
-        )
-        try:
-            flags = db.DB_CREATE
-            if immutable:
-                if hasattr(db, 'DB_IMMUTABLE_KEY'):
-                    flags |= db.DB_IMMUTABLE_KEY
-                #else:
-                #    flags |= 0x00000002
-            primary_db.associate(self.db,
-                                 self.callback,
-                                 flags=flags)
-        except db.DBError as e:
-            if e.args[0] == _err_unsupported_index_type:
-                # remove index
-                self.close()
-                _db = db.DB(env)
-                _db.remove('porcupine.idx', dbname=name)
-                raise exceptions.ConfigurationError(
-                    'Unsupported data type for index "%s".' % name)
-            else:
-                raise
+
+        while True:
+            try:
+                self.db = db.DB(env)
+                self.db.set_pagesize(1024)
+                if not unique:
+                    self.db.set_flags(db.DB_DUPSORT)
+                self.db.open(
+                    'porcupine.idx',
+                    name,
+                    dbtype = db.DB_BTREE,
+                    mode = 0o660,
+                    flags = db_flags
+                )
+                if db_flags != db.DB_RDONLY:
+                    flags = db.DB_CREATE
+                else:
+                    flags = 0
+                if immutable:
+                    if hasattr(db, 'DB_IMMUTABLE_KEY'):
+                        flags |= db.DB_IMMUTABLE_KEY
+                    #else:
+                    #    flags |= 0x00000002
+                primary_db.associate(self.db,
+                                     self.callback,
+                                     flags=flags)
+
+            except db.DBLockDeadlockError:
+                self.db.close()
+                continue
+
+            except db.DBError as e:
+                if e.args[0] == _err_unsupported_index_type:
+                    # remove index
+                    self.close()
+                    _db = db.DB(env)
+                    _db.remove('porcupine.idx', dbname=name)
+                    raise exceptions.ConfigurationError(
+                        'Unsupported data type for index "%s".' % name)
+                else:
+                    raise
+            break
 
     def close(self):
         self.db.close()

@@ -49,9 +49,8 @@ else:
 logger.addHandler(_loghandler)
 logger.setLevel(int(settings['log']['level']))
 
-def init_db(init_maintenance=True, recover=0):
-    return _db.open(**{'maintain' : init_maintenance,
-                       'recover' : recover})
+def init_db(**kwargs):
+    return _db.open(**kwargs)
 
 def lock_db():
     _db.lock()

@@ -33,6 +33,9 @@ class InternalRedirect(Exception):
 class DBRetryTransaction(Exception):
     pass
 
+class DBReadOnly(Exception):
+    pass
+
 class PorcupineException(Exception):
     """Base class of all server related exceptions"""
     code = 0

@@ -54,15 +54,17 @@ def usage():
 # get arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "brhcs:f:",
+    opts, args = getopt.getopt(argv, "brhcs:f:l:",
                                ["backup","restore","shrink",
-                                "recover","server=","file="])
+                                "recover","server=","file=",
+                                "reload="])
 except getopt.GetoptError:
     usage()
 
 command = ''
 address = ()
 file = ''
+data = ''
 
 if opts:
     for opt, arg in opts:                
@@ -78,6 +80,9 @@ if opts:
             address = arg
         elif opt in ('-f', '--file'):
             file = arg
+        elif opt in ('-l', '--reload'):
+            command = 'RELOAD'
+            data = arg
 else:
     usage()
 
@@ -120,7 +125,7 @@ Are you sure you want proceed(Y/N)?''')
             sys.exit(e)
     sys.exit()
 else:
-    msg = management.MgtMessage(command, '')
+    msg = management.MgtMessage(command, data)
 
 request = management.MgtRequest(msg.serialize())
 

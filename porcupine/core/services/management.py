@@ -16,6 +16,7 @@
 #===============================================================================
 "Porcupine Server management service"
 import os
+import imp
 try:
     # python 2.6
     from cPickle import dumps, loads
@@ -23,11 +24,12 @@ except ImportError:
     # python 3
     from pickle import dumps, loads
 
+from porcupine.db import _db
 from porcupine.core.runtime import logger
 from porcupine.core.servicetypes import asyncserver
 from porcupine.core.networking.request import BaseRequest
-from porcupine.config import services
-from porcupine.db import _db
+from porcupine.config.services import services
+from porcupine.utils import misc
 
 class MgtRequest(BaseRequest):
     def get_response(self, addr):
@@ -60,7 +62,7 @@ class MgtMessage(object):
 
 class ManagementServer(asyncserver.BaseServer):
     "Management Service"
-    runtime_services = [('db', (), {})]
+    runtime_services = [('db', (), {'recover':1, 'maintain':1, 'init_rep':1})]
     
     def __init__(self, name, address, processes, worker_threads):
         asyncserver.BaseServer.__init__(self, name, address, processes,
@@ -82,7 +84,7 @@ class ManagementThread(asyncserver.BaseServerThread):
         except:
             logger.error('Management Error:', *(), **{'exc_info':1})
             error_msg = MgtMessage(-1,
-                        'Internal server error. See server log for details.')
+                'Internal server error. See server log for details.')
             rh.write_buffer(error_msg.serialize())
 
     def execute_command(self, cmd, request):
@@ -92,24 +94,24 @@ class ManagementThread(asyncserver.BaseServerThread):
                 output_file = request.data
                 if not os.path.isdir(os.path.dirname(output_file)):
                     raise IOError
-                services.services['_controller'].lock_db()
+                services.lock_db()
                 try:
                     _db.backup(output_file)
                 finally:
-                    services.services['_controller'].unlock_db()
+                    services.unlock_db()
                 return (0, 'Database backup completed successfully.')
             
             elif cmd == 'DB_RESTORE':
                 backup_set = request.data
                 if not os.path.exists(backup_set):
                     raise IOError
-                services.services['_controller'].lock_db()
-                services.services['_controller'].close_db()
+                services.lock_db()
+                services.close_db()
                 try:
                     _db.restore(backup_set)
                 finally:
-                    services.services['_controller'].open_db()
-                    services.services['_controller'].unlock_db()
+                    services.open_db()
+                    services.unlock_db()
                 return (0, 'Database restore completed successfully.')
     
             elif cmd == 'DB_SHRINK':
@@ -118,12 +120,52 @@ class ManagementThread(asyncserver.BaseServerThread):
                     return (0, 'Successfully removed %d log files.' % iLogs)
                 else:
                     return (0, 'No log files removed.')
-            
+
+            # replication commands
+            elif cmd == 'REP_JOIN_SITE':
+                rep_mgr = _db.get_replication_manager()
+                if rep_mgr is not None:
+                    site = request.data
+                    #print('adding remote site %s' % (site.address, ))
+                    site_list = rep_mgr.get_site_list() + [rep_mgr.local_site]
+                    rep_mgr.add_remote_site(site, True)
+                    return (0, [rep_mgr.master, site_list])
+                else:
+                    raise NotImplementedError
+
+            elif cmd == 'REP_ADD_REMOTE_SITE':
+                rep_mgr = _db.get_replication_manager()
+                if rep_mgr is not None:
+                    site = request.data
+                    #print('adding remote site %s' % (site.address, ))
+                    rep_mgr.add_remote_site(site)
+                    return (0, None)
+                else:
+                    raise NotImplementedError
+
+            elif cmd == 'REP_NEW_MASTER':
+                rep_mgr = _db.get_replication_manager()
+                if rep_mgr is not None:
+                    master = request.data
+                    #print('new master is %s' % (master.address, ))
+                    rep_mgr.master = master
+                    services.notify(('NEW_MASTER', master))
+                    return (0, None)
+                else:
+                    raise NotImplementedError
+
+            # other
+            elif cmd == 'RELOAD':
+                mod = misc.get_rto_by_name(request.data)
+                imp.reload(mod)
+                return (0, 'Reloaded module "%s"' % request.data)
+
             # unknown command
             else:
                 logger.warning(
                     'Management service received unknown command: %s' % cmd)
                 return (-1, 'Unknown command.')
+
         except IOError:
             return (-1, 'Invalid file path.')
         except NotImplementedError:

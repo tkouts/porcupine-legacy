@@ -145,6 +145,10 @@ def get_transaction(nosync=False):
         time.sleep(0.2)
     return _db_handle.get_transaction(nosync)
 
+# replication
+def get_replication_manager():
+    return _db_handle.replication_service
+
 # administrative
 def lock():
     global _locks

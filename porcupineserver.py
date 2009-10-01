@@ -25,16 +25,14 @@ import asyncore
 from errno import EINTR
 from threading import Thread, Event
 
-from porcupine.config import services
 from porcupine.core import runtime
+from porcupine.config import services
 from porcupine.utils.misc import freeze_support
 
 __version__ = '0.6 build(20090402)'
 PID_FILE = 'conf/.pid'
 
 class Controller(object):
-    type = 'Controller'
-
     def __init__(self):
         self.shutdowninprogress = False
         self.running = False
@@ -43,7 +41,6 @@ class Controller(object):
     def start(self):
         try:
             runtime.logger.info('Server starting...')
-            self.services['_controller'] = self
             # start services
             runtime.logger.info('Starting services...')
             services.start()
@@ -96,22 +93,6 @@ certain conditions; See COPYING for more details.''')
                 print('Shutdown not completely clean...')
             else:
                 pass
-
-    def lock_db(self):
-        [s.lock_db() for s in services.services.values() if s != self]
-
-    def unlock_db(self):
-        [s.unlock_db() for s in services.services.values() if s != self]
-
-    def open_db(self):
-        [services.services[s['name']].add_runtime_service('db')
-         for s in services.settings['services']
-         if s != self]
-
-    def close_db(self):
-        [services.services[s['name']].remove_runtime_service('db')
-         for s in services.settings['services']
-         if s != self]
 
     def initiateShutdown(self, arg1=None, arg2=None):
         self.shutdowninprogress = True

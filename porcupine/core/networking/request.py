@@ -31,7 +31,7 @@ class BaseRequest(object):
     _host_ports = {}
     _next_port_lock = RLock()
 
-    def __init__(self, buffer=''):
+    def __init__(self, buffer=b''):
         self.buffer = buffer
 
     def __next_port(self, address):
@@ -44,7 +44,6 @@ class BaseRequest(object):
 
     def get_response(self, address):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         try:
             err = s.connect_ex(address)
             while not err in (0, EISCONN):
@@ -55,11 +54,11 @@ class BaseRequest(object):
                     s.bind((SERVER_IP, self.__next_port(address)))
                 else:
                     # the host refuses conncetion
-                    break
+                    raise socket.error
                 err = s.connect_ex(address)
 
             s.send(self.buffer)
-            s.shutdown(1)
+            s.shutdown(socket.SHUT_WR)
             # Get the response object from master
             response = []
 
@@ -67,15 +66,8 @@ class BaseRequest(object):
             while rdata:
                 response.append(rdata)
                 rdata = s.recv(8192)
-#        except socket.error:
-#            import traceback
-#            import sys
-#            output = traceback.format_exception(*sys.exc_info())
-#            output = ''.join(output)
-#            print(output)
-#            raise
         finally:
             s.close()
 
         response_bytes = b''.join(response)
-        return(response_bytes)
+        return response_bytes

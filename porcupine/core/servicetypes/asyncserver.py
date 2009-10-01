@@ -171,6 +171,12 @@ class BaseServer(BaseService, Dispatcher):
             BaseTransaction._txn_max_s = \
                 multiprocessing.Semaphore(BaseTransaction.txn_max)
 
+            # check if running in replicated environment
+            from porcupine.db import _db
+            rep_mgr = _db.get_replication_manager()
+            if rep_mgr is not None:
+                kwargs['master'] = rep_mgr.master
+
             # start worker processes
             for i in list(range(self.worker_processes)):
                 pname = '%s server process %d' % (self.name, i+1)
@@ -314,18 +320,15 @@ class RequestHandler(asyncore.dispatcher):
         if data:
             self.input_buffer.append(data)
         else:
-            self.input_buffer = b''.join(self.input_buffer)
-            self.has_request = True
             if self.input_buffer:
+                self.input_buffer = b''.join(self.input_buffer)
                 if self.server.done_queue is not None:
                     self.server.request_queue.put((self._fileno,
                                                    self.input_buffer))
                 else:
                     # put it in the queue so that is served
                     self.server.request_queue.put(self)
-            else:
-                # we have a dead socket(?)
-                self.close()
+                self.has_request = True
 
     def handle_write(self):
         try:
@@ -335,7 +338,7 @@ class RequestHandler(asyncore.dispatcher):
                 if len(self.output_buffer) == 0:
                     self.shutdown(socket.SHUT_WR)
                     self.close()
-        except socket.error as v:
+        except socket.error:
             self.close()
 
     def close(self):
@@ -439,12 +442,12 @@ if multiprocessing:
 
     class SubProcess(BaseService, multiprocessing.Process):
         runtime_services = [('config', (), {}),
-                            ('db', (), {'init_maintenance':False}),
+                            ('db', (), {}),
                             ('session_manager', (), {'init_expiration':False})]
 
         def __init__(self, name, worker_threads, thread_class, connection,
-                     txn_max_s, request_queue = None, done_queue = None,
-                     sentinel=None, socket = None):
+                     txn_max_s, request_queue=None, done_queue=None,
+                     sentinel=None, socket=None, master=None):
             BaseService.__init__(self, name)
             multiprocessing.Process.__init__(self, name=name)
             self.worker_threads = worker_threads
@@ -456,6 +459,7 @@ if multiprocessing:
             self.sentinel = sentinel
             self.socket = socket
             self.is_alive = True
+            self.master = master
 
         def start(self):
             multiprocessing.Process.start(self)
@@ -477,7 +481,9 @@ if multiprocessing:
                 command = self.connection.recv()
                 if command == self.sentinel:
                     break
-                elif command == 'DB_LOCK':
+                if isinstance(command, (list, tuple)):
+                    command, params = command
+                if command == 'DB_LOCK':
                     self.lock_db()
                 elif command == 'DB_UNLOCK':
                     self.unlock_db()
@@ -485,6 +491,10 @@ if multiprocessing:
                     self.add_runtime_service('db')
                 elif command == 'DB_CLOSE':
                     self.remove_runtime_service('db')
+                elif command == 'NEW_MASTER':
+                    from porcupine.db import _db
+                    #print(self.name, params.address)
+                    _db.get_replication_manager().master = params
                 self.connection.send(True)
             self.connection.send(None)
             self.is_alive = False
@@ -494,6 +504,11 @@ if multiprocessing:
             BaseService.start(self)
             # set tx_max multiprocessing semaphore
             BaseTransaction._txn_max_s = self.txn_max_s
+
+            # set initial site master
+            if self.master is not None:
+                from porcupine.db import _db
+                _db.get_replication_manager().master = self.master
 
             # start server
             if self.socket is not None:
