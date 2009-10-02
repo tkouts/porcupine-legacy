@@ -217,7 +217,7 @@ class Removable(object):
     deleted - (moved to a L{RecycleBin} instance) - or physically
     deleted.
     """
-    def _delete(self):
+    def _delete(self, _update_parent=True):
         """
         Deletes the item physically.
         
@@ -226,13 +226,19 @@ class Removable(object):
         """
         db._db.handle_delete(self, True)
         db._db.delete_item(self)
+
+        if _update_parent:
+            # update container modification timestamp
+            parent = db._db.get_item(self._parentid)
+            parent.modified = time.time()
+            db._db.put_item(parent)
         
         if self.isCollection:
             conditions = (('displayName', (None, None)), )
             cursor = db._db.query(conditions)
             cursor.set_scope(self._id)
             cursor.enforce_permissions = False
-            [child._delete() for child in cursor]
+            [child._delete(False) for child in cursor]
             cursor.close()
 
     @db.requires_transactional_context
@@ -253,16 +259,12 @@ class Removable(object):
         if (not(self_._isSystem) and can_delete):
             # delete item physically
             self_._delete()
-            # update container
-            parent = db._db.get_item(self_._parentid)
-            parent.modified = time.time()
-            db._db.put_item(parent)
         else:
             raise exceptions.PermissionDenied(
                 'The object was not deleted.\n'
                 'The user has insufficient permissions.')
     
-    def _recycle(self):
+    def _recycle(self, _update_parent=True):
         """
         Deletes an item logically.
         Bypasses security checks.
@@ -273,18 +275,24 @@ class Removable(object):
             db._db.handle_delete(self, False)
         
         self._isDeleted = int(self._isDeleted) + 1
+
+        if _update_parent:
+            # update container
+            parent = db._db.get_item(self._parentid)
+            parent.modified = time.time()
+            db._db.put_item(parent)
         
         if self.isCollection:
             conditions = (('displayName', (None, None)), )
             cursor = db._db.query(conditions)
             cursor.set_scope(self._id)
             cursor.enforce_permissions = False
-            [child._recycle() for child in cursor]
+            [child._recycle(False) for child in cursor]
             cursor.close()
         
         db._db.put_item(self)
         
-    def _undelete(self):
+    def _undelete(self, _update_parent=True):
         """
         Undeletes a logically deleted item.
         Bypasses security checks.
@@ -295,13 +303,19 @@ class Removable(object):
             db._db.handle_undelete(self)
         
         self._isDeleted = int(self._isDeleted) - 1
+
+        if _update_parent:
+            # update container
+            parent = db._db.get_item(self._parentid)
+            parent.modified = time.time()
+            db._db.put_item(parent)
         
         if self.isCollection:
             conditions = (('displayName', (None, None)), )
             cursor = db._db.query(conditions)
             cursor.set_scope(self._id)
             cursor.enforce_permissions = False
-            [child._undelete() for child in cursor]
+            [child._undelete(False) for child in cursor]
             cursor.close()
         
         db._db.put_item(self)
@@ -346,11 +360,6 @@ class Removable(object):
             
             # delete item logically
             self_._recycle()
-            
-            # update container
-            parent = db._db.get_item(self_._parentid)
-            parent.modified = time.time()
-            db._db.put_item(parent)
         else:
             raise exceptions.PermissionDenied(
                 'The object was not deleted.\n'
@@ -752,9 +761,6 @@ class DeletedItem(GenericItem, Removable):
         
         # try to restore original item
         self._restore(deleted, parent)
-        # update parent
-        parent.modified = time.time()
-        db._db.put_item(parent)
         # delete self
         self.delete(_remove_deleted=False)
     restoreTo = deprecated(restore_to)
