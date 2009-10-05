@@ -157,6 +157,7 @@ class ManagementThread(asyncserver.BaseServerThread):
             elif cmd == 'RELOAD':
                 mod = misc.get_rto_by_name(request.data)
                 misc.reload_module_tree(mod)
+                services.notify(('RELOAD', request.data))
                 return (0, 'Reloaded module tree "%s"' % request.data)
 
             # unknown command

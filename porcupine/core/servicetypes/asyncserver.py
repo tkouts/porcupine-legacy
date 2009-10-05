@@ -495,6 +495,10 @@ if multiprocessing:
                     from porcupine.db import _db
                     #print(self.name, params.address)
                     _db.get_replication_manager().master = params
+                elif command == 'RELOAD':
+                    from porcupine.utils import misc
+                    mod = misc.get_rto_by_name(params)
+                    misc.reload_module_tree(mod)
                 self.connection.send(True)
             self.connection.send(None)
             self.is_alive = False

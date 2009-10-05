@@ -96,7 +96,7 @@ def get_rto_by_name(name):
         get_rto_by_name('org.innoscript.desktop.schema.common.Folder')()
     
     instantiates a new I{Folder} object.
-        
+    
     @rtype: callable type
     """
     modules = name.split('.')
@@ -134,7 +134,8 @@ def reload_module_tree(module, memo={}):
     """
     Reloads a module hierarchy.
 
-    @param module:
+    @param module: the top-level module
+    @type module: module
     """
     if not memo:
         memo['__root__'] = module.__name__
