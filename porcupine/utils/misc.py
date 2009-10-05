@@ -139,7 +139,7 @@ def reload_module_tree(module, memo={}):
     """
     if not memo:
         memo['__root__'] = module.__name__
-    if not module in memo:
+    if not module.__name__ in memo:
         imp.reload(module)
         #print(module.__name__)
         memo[module.__name__] = True
