@@ -16,7 +16,6 @@
 #===============================================================================
 "Porcupine Server management service"
 import os
-import imp
 try:
     # python 2.6
     from cPickle import dumps, loads
@@ -157,8 +156,8 @@ class ManagementThread(asyncserver.BaseServerThread):
             # other
             elif cmd == 'RELOAD':
                 mod = misc.get_rto_by_name(request.data)
-                imp.reload(mod)
-                return (0, 'Reloaded module "%s"' % request.data)
+                misc.reload_module_tree(mod)
+                return (0, 'Reloaded module tree "%s"' % request.data)
 
             # unknown command
             else:

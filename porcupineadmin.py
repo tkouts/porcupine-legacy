@@ -45,6 +45,13 @@ DATABASE COMMANDS
     
     SERVERNAME:SERVERPORT - The management server address (i.e. localhost:6001)
     BACKUPFILE - The server's local path to the backup file
+
+OTHER COMMANDS
+==============
+
+    Reload module tree:
+        $ python porcupineadmin.py -l MODULENAME -s SERVERNAME:SERVERPORT
+        $ python porcupineadmin.py --reload=MODULENAME --server=SERVERNAME:SERVERPORT
 """
 
 def usage():
