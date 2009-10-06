@@ -106,6 +106,9 @@ class I18n(PostProcessFilter):
                 res = bundle.get_resource(key.decode(), language)
                 if res != key:
                     break
+            if isinstance(res, bytes):
+                # python 2.6
+                res = res.decode('utf-8')
             output = output.replace(token, res.encode(context.response.charset))
         context.response.clear()
         context.response.write(output)
