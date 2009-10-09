@@ -24,7 +24,8 @@ QuiX.ui.Combo = function(/*params*/) {
 	
 	var e = ce('INPUT');
 	e.style.padding = '1px';
-	e.style.position = 'absolute';
+	e.style.position = 'relative';
+    e.style.left = '0px';
 	this.div.appendChild(e);
 	e.onselectstart = QuiX.stopPropag;
 	
@@ -255,7 +256,7 @@ QuiX.ui.Combo.prototype.setBgColor = function(color) {
 }
 
 QuiX.ui.Combo.prototype.addOption = function(params) {
-	params.align = params.align || 'left';
+	params.align = params.align || ((QuiX.dir != 'rtl')?'left':'right');
 	params.width = '100%';
 	params.height = params.height || 24;
 	params.overflow = 'hidden';
@@ -446,7 +447,7 @@ var SelectList = QuiX.ui.SelectList;
 
 QuiX.ui.SelectList.prototype.addOption = function(params) {
 	params.imgalign = 'left';
-	params.align = 'left';
+	params.align = (QuiX.dir != 'rtl')?'left':'right';
 	params.width = '100%';
 	params.height = params.height || 24;
 	params.overflow = 'hidden';

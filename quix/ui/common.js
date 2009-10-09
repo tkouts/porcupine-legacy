@@ -73,21 +73,23 @@ QuiX.ui.GroupBox = function(/*params*/) {
 	var v = true;
 	if (params.checked) {
 		v = params.value || true;
-		this.caption = new Field({
-			left: 5,
-			bgcolor: params.bgcolor,
-			caption: params.caption,
-			border: "thin",
-			value: v,
-			onclick: GroupBox__checkBody,
-			type: "checkbox"
+		this.caption = new QuiX.ui.Field({
+			left : 5,
+            width : 'auto',
+			bgcolor : params.bgcolor,
+			caption : params.caption,
+			border : 'thin',
+			value : v,
+			onclick : GroupBox__checkBody,
+			type : 'checkbox'
 		});
 	}
 	else
-		this.caption = new Label({
-			left:5,
-			bgcolor: params.bgcolor,
-			caption: params.caption
+		this.caption = new QuiX.ui.Label({
+			left : 5,
+            width : 'auto',
+			bgcolor : params.bgcolor,
+			caption : params.caption
 		});
 	
 	this.base = QuiX.ui.Widget;
@@ -96,10 +98,10 @@ QuiX.ui.GroupBox = function(/*params*/) {
 	
 	this.border = new QuiX.ui.Widget({
 		top: 8,
-		width:"100%",
-		padding:"12,12,12,12",
-		height: "this.parent.getHeight(false, memo)-this.top",
-		border: params.border || 2
+		width : '100%',
+		padding : '12,12,12,12',
+		height : 'this.parent.getHeight(false, memo)-this.top',
+		border : params.border || 2
 	});
 	this.border.div.className = "groupboxframe";
 	this.appendChild(this.border);
@@ -108,9 +110,9 @@ QuiX.ui.GroupBox = function(/*params*/) {
 	this.caption.div.className = this.div.className;
 
 	this.body = new QuiX.ui.Widget({
-		width: "100%",
-		height: "100%",
-		disabled: !v
+		width : '100%',
+		height : '100%',
+		disabled : !v
 	});
 	this.border.appendChild(this.body);
 }
@@ -194,9 +196,10 @@ QuiX.ui.Slider = function(/*params*/) {
 	
 	this.handle.attachEvent('onmousedown', Slider__mousedown)
 	
-	var lbl = new Label({
-		top : 10,
-		left : 10
+	var lbl = new QuiX.ui.Label({
+		top : 16,
+		left : (QuiX.dir != 'rtl')?-10:16,
+        display : 'none'
 	});
 	this.handle.appendChild(lbl);
 	this.label = lbl;
@@ -226,9 +229,9 @@ QuiX.ui.Slider.prototype.setValue = function(val) {
 }
 
 QuiX.ui.Slider.prototype._update = function() {
-	var x = '((this.parent._value - this.parent.min)/' +
-            '(this.parent.max - this.parent.min))*' +
-            '(this.parent.getWidth(false, memo) - 8)';
+	var x = ((this._value - this.min) / +
+             (this.max - this.min)) *  +
+             (this.getWidth(false) - 8);
 	this.handle.moveTo(x ,'center');
 	this.label.setCaption(this._value);
 }
@@ -237,6 +240,8 @@ function Slider__mousedown(evt, handle) {
 	QuiX.startX = evt.clientX;
 	QuiX.tmpWidget = handle;
 	handle.attributes.__startx = handle.getLeft();
+    handle.widgets[0].show();
+    handle.widgets[0].redraw();
 	document.desktop.attachEvent('onmousemove', Slider__mousemove);
 	document.desktop.attachEvent('onmouseup', Slider__mouseup);
 	QuiX.cancelDefault(evt);
@@ -244,14 +249,19 @@ function Slider__mousedown(evt, handle) {
 
 function Slider__mousemove(evt, desktop) {
 	var offsetX = evt.clientX - QuiX.startX;
+    if (QuiX.dir == 'rtl')
+        offsetX = -offsetX;
 	var new_x = QuiX.tmpWidget.attributes.__startx + offsetX;
 	var slider = QuiX.tmpWidget.parent;
 	var range_length = slider.max - slider.min;
 		
 	new_x = (new_x<0)?0:new_x;
-	new_x = (new_x>QuiX.tmpWidget.parent.getWidth()-8)?QuiX.tmpWidget.parent.getWidth()-8:new_x;
+	new_x = (new_x>QuiX.tmpWidget.parent.getWidth()-8)?
+            QuiX.tmpWidget.parent.getWidth() - 8 : new_x;
 	
-	var new_value = slider.min + (QuiX.tmpWidget.getLeft() / (slider.getWidth() - 8)) * range_length;
+	var new_value = slider.min +
+                    (QuiX.tmpWidget.getLeft() / (slider.getWidth() - 8)) *
+                    range_length;
 	slider.label.setCaption(Math.round(new_value * 100) / 100);
 	
 	QuiX.tmpWidget.moveTo(new_x, 'center');
@@ -262,6 +272,7 @@ function Slider__mouseup(evt, desktop) {
 	document.desktop.detachEvent('onmouseup');
 	
 	var slider = QuiX.tmpWidget.parent;
+    slider.label.hide();
 	var range_length = slider.max - slider.min;
 	var old_value = slider._value;
 	var new_value = slider.min + (QuiX.tmpWidget.getLeft() / (slider.getWidth() - 8)) * range_length;
@@ -294,13 +305,13 @@ QuiX.ui.ProgressBar.prototype = new QuiX.ui.Widget;
 var ProgressBar = QuiX.ui.ProgressBar;
 
 QuiX.ui.ProgressBar.prototype._update = function() {
-	this.bar.width = parseInt((this.value/this.maxvalue)*100) + '%';
+	this.bar.width = parseInt((this.value / this.maxvalue) * 100) + '%';
 	this.bar.redraw();
 }
 
 QuiX.ui.ProgressBar.prototype.setValue = function(v) {
 	this.value = parseInt(v);
-	if (this.value>this.maxvalue) this.value=this.maxvalue;
+	if (this.value>this.maxvalue) this.value = this.maxvalue;
 	this._update();
 }
 

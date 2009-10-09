@@ -7,7 +7,7 @@
 	 	<form action="./" method="applySettings">
 			<tabpane width="100%" height="100%">
 				<tab caption="@@TASK_BAR@@">
-					<label caption="@@TASK_BAR_POSITION@@:"/>
+					<label caption="@@TASK_BAR_POSITION@@:" width="auto"/>
 					<field id="barpos"
 						 name="TASK_BAR_POS"
 						 type="radio"

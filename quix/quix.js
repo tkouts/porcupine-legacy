@@ -44,6 +44,7 @@ QuiX.constructors = {
 };
 QuiX._activeLoaders = 0;
 QuiX._scrollbarSize = 16;
+QuiX.dir = '';
 QuiX.effectsEnabled = true;
 QuiX.ui = {};
 
@@ -176,7 +177,7 @@ QuiX.modules = [
     new QuiX.Module('Tree', QuiX.baseUrl + 'ui/tree.js', []),
     new QuiX.Module('Toolbars', QuiX.baseUrl + 'ui/toolbars.js', [3]),
     new QuiX.Module('Forms & Fields', QuiX.baseUrl + 'ui/formfields.js', [3]),
-    new QuiX.Module('Common Widgets', QuiX.baseUrl + 'ui/common.js', [3]),
+    new QuiX.Module('Common Widgets', QuiX.baseUrl + 'ui/common.js', [3,8]),
     new QuiX.Module('Datagrid', QuiX.baseUrl + 'ui/datagrid.js', [5,8]),
     new QuiX.Module('File Control', QuiX.baseUrl + 'ui/file.js', [1,3,8,9,14]),
     new QuiX.Module('Date Picker', QuiX.baseUrl + 'ui/datepicker.js', [14,8]),
@@ -271,7 +272,10 @@ QuiX.addLoader = function() {
 			var loader = document.desktop._loader;
 			if (loader.div.style.display == 'none')
 				loader.show();
-			loader.moveTo(evt.clientX + 16, evt.clientY + 20);
+            var x = evt.clientX + 16;
+            if (QuiX.dir == 'rtl')
+                x = QuiX.transformX(x - 16);
+			loader.moveTo(x, evt.clientY + 20);
 		}
 	}
 	QuiX._activeLoaders++;
@@ -411,7 +415,7 @@ QuiX.getEventWrapper = function(f1, f2) {
 		var r1, r2 = null;
 		if (f1) r1 = f1(evt, w);
 		if (f2) r2 = f2(evt, w);
-		return((typeof(r1)!='undefined')?r1:r1||r2);
+		return (typeof(r1) != 'undefined')?r1:r1||r2;
 	}
 	return(wrapper);
 }
@@ -647,6 +651,44 @@ QuiX.attachFrames = function(w) {
 	}
 }
 
+QuiX.transformX = function(x /*, parent*/) {
+    var parent = arguments[1] || document.desktop;
+    // rtl xform
+    return parent.getWidth(false) +
+           parseInt(parent.div.style.paddingRight) +
+           parseInt(parent.div.style.paddingLeft) -
+           x;
+}
+
+QuiX.measureWidget = function(w, dim) {
+    var div = ce('DIV');
+    div.style.position = 'absolute';
+    div.id = w.div.id;
+    div.style.whiteSpace = w.div.style.whiteSpace;
+    div.style.fontSize = w.div.style.fontSize;
+    div.style.fontWeight = w.div.style.fontWeight;
+    var other = (dim == 'height')?'width':'height';
+    var other_func = (other == 'height')?'_calcHeight':'_calcWidth';
+    var measure = (dim == 'height')?'offsetHeight':'offsetWidth';
+    var padding_offset = (dim == 'height')?2:0;
+    var padding = w.getPadding();
+    if (w[other] != 'auto')
+        div.style[other] = w[other_func](true) + 'px';
+    div.innerHTML = w.div.innerHTML;
+    // required by safari
+    var imgs = div.getElementsByTagName('IMG');
+    if (imgs.length > 0)
+        imgs[imgs.length - 1].style.height = '';
+    //
+    document.body.appendChild(div);
+    var value = div[measure] +
+                padding[padding_offset] +
+                padding[padding_offset + 1] +
+                2 * w.getBorderWidth();
+    QuiX.removeNode(div);
+    return value
+}
+
 // QuiX Parser
 QuiX.Parser = function() {
 	this.__modulesToLoad = [];
@@ -706,7 +748,7 @@ QuiX.Parser.prototype._addModule = function(iMod) {
 	}
 }
 
-QuiX.Parser.prototype.loadModules= function() {
+QuiX.Parser.prototype.loadModules = function() {
 	var module, imgurl, img;
 	var self = this;
 	if (this.__modulesToLoad.length > 0) {

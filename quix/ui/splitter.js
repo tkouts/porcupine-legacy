@@ -59,36 +59,23 @@ QuiX.ui.Splitter.prototype._addHandle = function() {
 
 QuiX.ui.Splitter.prototype._handleMoving = function(evt, iHandle) {
 	var length_var = (this.orientation == 'h')?'width':'height';
-	var length_func = (this.orientation == 'h')?'getWidth':'getHeight';
 	var offset_var = (this.orientation == 'h')?'X':'Y';
-	var min_length_var = (this.orientation == 'h')?
-                         '_calcMinWidth':'_calcMinHeight';
 
-	var offset = evt['client' + offset_var] - QuiX['start' + offset_var];
+    var offset = evt['client' + offset_var] - QuiX['start' + offset_var];
 
-    var memo = {};
+    if (QuiX.dir == 'rtl' && this.orientation == 'h')
+        offset = -offset;
+
 	var	pane1 = this.panes[iHandle];
 	var	pane2 = this.panes[iHandle + 1];
-	var length1 = pane1[length_func](true, memo);
-	var length2 = pane2[length_func](true, memo);
-	var limit1 = pane1[length_func](false, memo);
-	var limit2 = pane2[length_func](false, memo);
-	var min1 = pane1[min_length_var]();
-	var min2 = pane2[min_length_var]();
-	var free1 = (pane1[length_var] == this.free_length);
-	var free2 = (pane2[length_var] == this.free_length);
 
-	if (-offset < limit1 && offset < limit2) {
+	if (-offset < this._l1 && offset < this._l2) {
 		var fc = this._getFillersCount();
-		if (!free1 || (free1 && free2) || fc > 1)
-			pane1[length_var] = Math.max(length1 + offset, min1);
-		if (!free2 || (fc > 1 && !(free1 && free2)))
-			pane2[length_var] = Math.max(length2 - offset, min2);	
+		if (!this._f1 || (this._f1 && this._f2) || fc > 1)
+			pane1[length_var] = Math.max(this._w1 + offset, this._m1);
+		if (!this._f2 || (fc > 1 && !(this._f1 && this._f2)))
+			pane2[length_var] = Math.max(this._w2 - offset, this._m2);
 		this.redraw();
-		if (length1 + offset >= min1 && length2 - offset >= min2)
-			QuiX['start' + offset_var] = evt['client' + offset_var];
-		else
-			QuiX['start' + offset_var] = pane1.getScreenLeft() + length1;
 	}
 }
 
@@ -143,12 +130,30 @@ function SplitterPane__destroy() {
 function SplitterHandle__mousedown(evt, w) {
 	if (!w._isCollapsed) {
 		var splitter = w.parent;
-		QuiX.startX = evt.clientX;
+        QuiX.startX = evt.clientX;
 		QuiX.startY = evt.clientY;
 		QuiX.cancelDefault(evt);
 		QuiX.dragging = true;
 		QuiX.detachFrames(splitter);
+
 		var idx = splitter._handles.indexOf(w);
+        // store panes initial state info
+        var length_var = (splitter.orientation == 'h')?'width':'height';
+        var length_func = (splitter.orientation == 'h')?'getWidth':'getHeight';
+        var min_length_var = (splitter.orientation == 'h')?
+                             '_calcMinWidth':'_calcMinHeight';
+        var memo = {};
+        var	pane1 = splitter.panes[idx];
+        var	pane2 = splitter.panes[idx + 1];
+        splitter._w1 = pane1[length_func](true, memo);
+        splitter._w2 = pane2[length_func](true, memo);
+        splitter._l1 = pane1[length_func](false, memo);
+        splitter._l2 = pane2[length_func](false, memo);
+        splitter._m1 = pane1[min_length_var]();
+        splitter._m2 = pane2[min_length_var]();
+        splitter._f1 = (pane1[length_var] == splitter.free_length);
+        splitter._f2 = (pane2[length_var] == splitter.free_length);
+
 		splitter.attachEvent('onmouseup',
 			function(evt, w){w._endMoveHandle(evt, idx)});
 		splitter.attachEvent('onmousemove',

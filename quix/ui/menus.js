@@ -4,7 +4,7 @@ Menus
 //menu option
 QuiX.ui.MenuOption = function(params) {
 	params.height = params.height || 21;
-	params.align = 'left';
+	//params.align = 'left';
 	params.imgalign = 'left';
 	params.width = null;
 	params.overflow = 'visible';
@@ -152,12 +152,12 @@ QuiX.ui.ContextMenu = function(params, owner) {
 		overflow : 'visible',
 		onmousedown : QuiX.stopPropag,
 		onshow : params.onshow,
-		onclose : params.onclose
+		onclose : params.onclose//,
+        //dir : owner.div.dir
 	});
 	this.div.className = 'contextmenu';
 	if (QuiX.utils.BrowserInfo.family == 'moz'
-        && QuiX.utils.BrowserInfo.OS == 'MacOS')
-	{
+            && QuiX.utils.BrowserInfo.OS == 'MacOS') {
 		var c = new QuiX.ui.Widget({
 			width : '100%',
 			height : '100%',
@@ -284,13 +284,14 @@ QuiX.ui.ContextMenu.prototype.close = function() {
 QuiX.ui.ContextMenu.prototype.addOption = function(params) {
 	var oOption;
 	if (params != -1) { //not a separator
+        params.align = (QuiX.dir != 'rtl')?'left':'right';
 		oOption = new QuiX.ui.MenuOption(params);
 	}
 	else {
 		oOption = new QuiX.ui.Widget({
-			width : 'this.parent.getWidth(false, memo)-22',
+			width : 'this.parent.getWidth(false, memo) - 22',
 			height : 2,
-			left : 22,
+			left : (QuiX.dir != 'rtl')?22:-22,
 			border : 1,
 			overflow : 'hidden'
 		});
@@ -306,8 +307,11 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
 }
 
 function Widget__contextmenu(evt, w) {
+    var x = evt.clientX;
+    if (QuiX.dir == 'rtl')
+        x = QuiX.transformX(x);
 	w.contextMenu.target = QuiX.getTargetWidget(evt);
-	w.contextMenu.show(document.desktop, evt.clientX, evt.clientY);
+	w.contextMenu.show(document.desktop, x, evt.clientY);
 	QuiX.cancelDefault(evt);
 }
 

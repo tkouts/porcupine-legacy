@@ -169,6 +169,7 @@ QuiX.ui.RichText = function(/*params*/) {
     this.frame.attachEvent('ondocumentload',
         function() {
             self.doc = self.frame.getDocument();
+            self.doc.dir = QuiX.dir;
             self.writeDocument(self.field.getValue());
             if (self._supportsEdit() && !self.readonly) {
                 self.locked = true;
@@ -206,7 +207,7 @@ QuiX.ui.RichText.prototype.getValue = function() {
 }
 
 QuiX.ui.RichText.prototype.redraw = function(bForceAll /*, memo*/) {
-    if (QQuiX.utils.BrowserInfo.family == 'moz' && this.wysiwyg && this.doc) {
+    if (QuiX.utils.BrowserInfo.family == 'moz' && this.wysiwyg && this.doc) {
         this._updateInput();
     }
     QuiX.ui.Box.prototype.redraw.apply(this, arguments);

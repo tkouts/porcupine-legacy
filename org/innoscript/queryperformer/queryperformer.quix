@@ -19,7 +19,7 @@
 		            <menuoption img="queryperformer/images/about16.gif" caption="About OQL Query Performer" onclick="queryPerformer.about"/>
 		        </menu>
 		    </menubar>
-		    <rect length="-1" overflow="auto" id="clientArea">
+		    <rect overflow="auto" id="clientArea">
 		        <prop name="tree_caption" value="displayName"/>
 		        <prop name="use_image" type="bool" value="0"/>
 		        <prop name="tree_image" value="__image__"/>

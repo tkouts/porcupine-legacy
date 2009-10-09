@@ -11,11 +11,11 @@ QuiX.ui.Toolbar = function(/*params*/) {
 	this.base(params);
 	this.div.className = 'toolbar';
 	this.handle = new QuiX.ui.Widget({
-            width:4,
-            height:"100%",
-            border:0,
-            overflow:'hidden'
-        });
+        width : 4,
+        height : '100%',
+        border : 0,
+        overflow : 'hidden'
+    });
 	this.appendChild(this.handle);
 	this.handle.div.className = 'handle';
 
@@ -29,19 +29,19 @@ QuiX.ui.Toolbar.prototype = new QuiX.ui.Widget;
 // backwards compatibility
 var Toolbar = QuiX.ui.Toolbar;
 
-QuiX.ui.Toolbar.prototype._getOffset = function(oButton) {
+QuiX.ui.Toolbar.prototype._getOffset = function(oButton, memo) {
 	var offset = 0;
-	for (var i=0; i<this.buttons.length; i++) {
-		if (this.buttons[i]==oButton)
+	for (var i=1; i<this.widgets.length; i++) {
+		if (this.widgets[i]==oButton)
 			break;
-		offset += this.buttons[i]._calcWidth(true) + this.spacing;
+		offset += this.widgets[i]._calcWidth(true, memo) + this.spacing;
 	}
-	return(offset + this.handle._calcWidth(true) + 4);
+	return(offset + this.handle._calcWidth(true, memo) + 4);
 }
 
 QuiX.ui.Toolbar.prototype.addButton = function(params) {
-	params.left = "this.parent._getOffset(this)";
-	params.height = "100%";
+	params.left = 'this.parent._getOffset(this, memo)';
+	params.height = '100%';
 	var oButton = new QuiX.ui.FlatButton(params);
 	oButton.destroy = ToolbarButton__destroy;
 	this.appendChild(oButton);
@@ -51,9 +51,9 @@ QuiX.ui.Toolbar.prototype.addButton = function(params) {
 
 QuiX.ui.Toolbar.prototype.addSeparator = function() {
 	var oSep = new QuiX.ui.Widget({
-        left : 'this.parent._getOffset(this)',
+        left : 'this.parent._getOffset(this, memo)',
         width : 2,
-        height : "100%",
+        height : '100%',
         border : 1,
         overflow : 'hidden'
     });
@@ -61,7 +61,6 @@ QuiX.ui.Toolbar.prototype.addSeparator = function() {
 	oSep.destroy = ToolbarButton__destroy;
 	this.appendChild(oSep);
 	oSep.div.className = 'separator';
-	this.buttons.push(oSep);
 	return(oSep);
 }
 

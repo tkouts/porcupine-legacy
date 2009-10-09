@@ -44,7 +44,7 @@ QuiX.ui.Window = function(/*params*/) {
 	//title
 	this.title = new QuiX.ui.Box({
 		height : 22,
-		padding :'1,1,1,1',
+		padding : '1,1,1,1',
 		childrenalign : 'center',
 		onmousedown : WindowTitle__onmousedown
 	});
@@ -54,7 +54,7 @@ QuiX.ui.Window = function(/*params*/) {
 		id : '_t',
 		caption : params.title || 'Untitled',
 		img : params.img,
-		align : 'left',
+		align : (QuiX.dir!='rtl')?'left':'right',
 		style : 'cursor:move'
 	});
 	this.title.appendChild(t);

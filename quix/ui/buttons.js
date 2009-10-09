@@ -11,7 +11,7 @@ QuiX.ui.Label = function(/*params*/) {
 	this.base(params);
 
 	this.div.className = 'label';
-	this.align = params.align || 'left';
+	this.align = params.align;
 	
 	if (params.color) {
 		if (!this._isDisabled)
@@ -41,31 +41,7 @@ QuiX.ui.Label.prototype._calcSize = function(height, offset, getHeight, memo) {
     if (this[height] == 'auto' &&
             (!memo || (memo && !memo[this._uniqueid + height]))) {
         // we need to measure
-        var div = ce('DIV');
-        div.style.position = 'absolute';
-        div.id = this.div.id;
-        div.style.whiteSpace = this.div.style.whiteSpace;
-        div.style.fontSize = this.div.style.fontSize;
-        div.style.fontWeight = this.div.style.fontWeight;
-        var other = (height == 'height')?'width':'height';
-        var other_func = (other == 'height')?'_calcHeight':'_calcWidth';
-        var measure = (height == 'height')?'offsetHeight':'offsetWidth';
-        var padding_offset = (height == 'height')?2:0;
-        var padding = this.getPadding();
-        if (this[other] != 'auto')
-            div.style[other] = this[other_func](true, memo) + 'px';
-        div.innerHTML = this.div.innerHTML;
-        // required by safari
-        var imgs = div.getElementsByTagName('IMG');
-        if (imgs.length > 0)
-            imgs[imgs.length - 1].style.height = '';
-        //
-        document.body.appendChild(div);
-        var value = div[measure] +
-                    padding[padding_offset] +
-                    padding[padding_offset + 1] +
-                    2*this.getBorderWidth();
-        QuiX.removeNode(div);
+        var value = QuiX.measureWidget(this, height);
         if (typeof memo != 'undefined')
             memo[this._uniqueid + height] = value;
         return value - offset;
@@ -88,7 +64,8 @@ QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
 			whiteSpace = 'nowrap';
 		else
 			whiteSpace = '';
-		textAlign = this.align;
+        if (this.align)
+            textAlign = this.align;
 	}
 	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
 }
@@ -204,7 +181,7 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
 	QuiX.ui.Label.prototype.redraw.apply(this, arguments);
 }
 
-//XButton class
+//Button class
 
 QuiX.ui.Button = function(/*params*/) {
 	var params = arguments[0] || {};

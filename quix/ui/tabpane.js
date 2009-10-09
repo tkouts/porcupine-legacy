@@ -35,7 +35,7 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
 	oTab.setPosition('relative');
 	oTab.div.className = 'tab';
 
-	params.top = 24;
+    params.top = 24;
 	params.height = 'this.parent.getHeight(false, memo)-24';
 	params.width = '100%';
 	params.border = 1;

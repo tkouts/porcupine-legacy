@@ -49,6 +49,8 @@ QuiX.ui.Widget = function(/*params*/) {
     else
         this.div.style.padding = '0px 0px 0px 0px';
 
+    this.div.dir = QuiX.dir;
+
     if (params.display)
         this.setDisplay(params.display);
     if (params.overflow)
@@ -90,7 +92,6 @@ QuiX.ui.Widget.prototype.appendChild = function(w /*, p*/) {
     if (QuiX.utils.BrowserInfo.family == 'ie' && w.height=='100%' &&
             w.width=='100%')
         p.setOverflow('hidden');
-
     w.bringToFront();
     if (p._isDisabled)
         w.disable();
@@ -136,11 +137,13 @@ QuiX.ui.Widget.prototype.parse = function(dom, callback) {
     parser.parse(dom, this);
 }
 
-QuiX.ui.Widget.prototype.parseFromString = function(s, oncomplete) {
+QuiX.ui.Widget.prototype.parseFromString = function(s /*, oncomplete*/) {
+    var oncomplete = arguments[1] || null;
     this.parse(QuiX.domFromString(s), oncomplete);
 }
 
-QuiX.ui.Widget.prototype.parseFromUrl = function(url, oncomplete) {
+QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
+    var oncomplete = arguments[1] || null;
     var xmlhttp = QuiX.XHRPool.getInstance();
     var self = this;
     xmlhttp.onreadystatechange = function() {
@@ -167,7 +170,7 @@ QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
 QuiX.ui.Widget.prototype.getWidgetById = function(sid /*, shallow*/) {
     var shallow = arguments[1] || false;
     var ws = this.query('w._id==param', sid, shallow);
-    if (ws.length==0)
+    if (ws.length == 0)
         return null;
     else if (ws.length==1)
         return ws[0];
@@ -180,7 +183,9 @@ QuiX.ui.Widget.prototype.query = function(eval_condition, param, shallow) {
     var ws = [];
     for (var i=0; i<this.widgets.length; i++) {
         w = this.widgets[i];
-        if (eval(eval_condition)) ws.push(w);
+        if (eval(eval_condition)) {
+            ws.push(w);
+        }
         if (!shallow)
             ws = ws.concat(w.query(eval_condition, param, shallow));
     }
@@ -205,7 +210,13 @@ QuiX.ui.Widget.prototype.getWidgetsByAttributeValue = function(attr_name, value,
 }
 
 QuiX.ui.Widget.prototype._setAbsProps = function(memo) {
-    this.div.style.left = this._calcLeft(memo) + 'px';
+    var left = this._calcLeft(memo);
+    if (this.parent && QuiX.dir == 'rtl' && this.div.style.position == 'absolute')
+        // rtl xform
+        this.div.style.left = QuiX.transformX(
+            left + this.getWidth(true), this.parent) + 'px';
+    else
+        this.div.style.left = left + 'px';
     this.div.style.top = this._calcTop(memo) + 'px';
 }
 
@@ -296,15 +307,19 @@ QuiX.ui.Widget.prototype.getOpacity = function() {
 
 //padding attribute
 QuiX.ui.Widget.prototype.setPadding = function(arrPadding) {
-    this.div.style.paddingLeft = arrPadding[0] + 'px';
-    this.div.style.paddingRight = arrPadding[1] + 'px';
+    var near = (QuiX.dir != 'rtl')?'paddingLeft':'paddingRight';
+    var far = (QuiX.dir != 'rtl')?'paddingRight':'paddingLeft';
+    this.div.style[near] = arrPadding[0] + 'px';
+    this.div.style[far] = arrPadding[1] + 'px';
     this.div.style.paddingTop = arrPadding[2] + 'px';
     this.div.style.paddingBottom = arrPadding[3] + 'px';
 }
 QuiX.ui.Widget.prototype.getPadding = function() {
+    var near = (QuiX.dir != 'rtl')?'paddingLeft':'paddingRight';
+    var far = (QuiX.dir != 'rtl')?'paddingRight':'paddingLeft';
     var padding = [
-        parseInt(this.div.style.paddingLeft),
-        parseInt(this.div.style.paddingRight),
+        parseInt(this.div.style[near]),
+        parseInt(this.div.style[far]),
         parseInt(this.div.style.paddingTop),
         parseInt(this.div.style.paddingBottom)
     ];
@@ -361,7 +376,7 @@ QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
         memo[this._uniqueid + 'gh'] = [hg, ofs, has_scrollbar];
         if (!b && (this.div.style.overflowX == 'auto'
                    || this.div.style.overflow == 'auto')
-                 && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
+               && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
             has_scrollbar = true;
             memo[this._uniqueid + 'gh'][2] = true;
         }
@@ -411,6 +426,8 @@ QuiX.ui.Widget.prototype.getLeft = function() {
     if (isNaN(lf)) return 0;
     ofs = this.parent.getPadding()[0];
     lf -= ofs
+    if (QuiX.dir == 'rtl')
+        lf = QuiX.transformX(lf + this.getWidth(true), this.parent);
     return lf;
 }
 
@@ -469,6 +486,7 @@ QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
                     (this[getWidth](true, memo) / 2)) + offset || 0;
             else
                 value = ((eval(value) + offset) || 0);
+
             if (typeof memo != 'undefined')
                 memo[this._uniqueid + left] = value;
         }
@@ -540,6 +558,8 @@ QuiX.ui.Widget.prototype.getScreenLeft = function() {
         }
         oElement = QuiX.getParentNode(oElement);
     }
+    if (QuiX.dir == 'rtl')
+        iX = QuiX.transformX(iX + this.div.offsetWidth);
     return iX - offset;
 }
 
@@ -580,7 +600,13 @@ QuiX.ui.Widget.prototype.moveTo = function(x, y) {
     this.left = x;
     this.top = y;
     var padding = this.parent.getPadding();
-    x = (isNaN(x))? this._calcLeft() : x + padding[0];
+    if (isNaN(x))
+        x = this._calcLeft();
+    else {
+        x += padding[0];
+        if (QuiX.dir == 'rtl')
+            x = QuiX.transformX(x + this.getWidth(true), this.parent)
+    }
     y = (isNaN(y))? this._calcTop() : y + padding[2];
     this.div.style.left = x + 'px';
     this.div.style.top = y + 'px';
@@ -640,12 +666,14 @@ QuiX.ui.Widget.prototype._startResize = function (evt) {
         function(evt){
             self._resizing(evt)
         });
-    this.parent.div.style.cursor = 'se-resize';
+    this.parent.div.style.cursor = (QuiX.dir!='rtl')?'se-resize':'sw-resize';
 }
 
 QuiX.ui.Widget.prototype._resizing = function(evt) {
     evt = evt || event;
     var offsetX = evt.clientX - QuiX.startX;
+    if (QuiX.dir == 'rtl')
+        offsetX = -offsetX;
     var offsetY = evt.clientY - QuiX.startY;
     QuiX.tmpWidget.resize(this.getWidth(true) + offsetX,
         this.getHeight(true) + offsetY);
@@ -655,6 +683,8 @@ QuiX.ui.Widget.prototype._endResize = function(evt) {
     evt = evt || event;
     QuiX.tmpWidget.destroy();
     var offsetX = evt.clientX - QuiX.startX;
+    if (QuiX.dir == 'rtl')
+        offsetX = -offsetX;
     var offsetY = evt.clientY - QuiX.startY;
     this.resize(this.getWidth(true) + offsetX,
         this.getHeight(true) + offsetY);
@@ -667,7 +697,10 @@ QuiX.ui.Widget.prototype._endResize = function(evt) {
 QuiX.ui.Widget.prototype._startMove = function(evt) {
     var self = this;
     evt = evt || event;
-    QuiX.startX = evt.clientX - this.getLeft();
+    var clientX = evt.clientX;
+    if (QuiX.dir == 'rtl')
+        clientX = QuiX.transformX(clientX);
+    QuiX.startX = clientX - this.getLeft();
     QuiX.startY = evt.clientY - this.getTop();
     document.desktop.attachEvent('onmouseup',
         function(evt){
@@ -682,7 +715,10 @@ QuiX.ui.Widget.prototype._startMove = function(evt) {
 
 QuiX.ui.Widget.prototype._moving = function(evt) {
     evt = evt || event;
-    this.moveTo(evt.clientX - QuiX.startX,
+    var clientX = evt.clientX;
+    if (QuiX.dir == 'rtl')
+        clientX = QuiX.transformX(clientX);
+    this.moveTo(clientX - QuiX.startX,
         evt.clientY - QuiX.startY);
 }
 
@@ -983,6 +1019,8 @@ QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, chr*/) {
 function Widget__tooltipover(evt, w) {
     if (!QuiX.dragging) {
         var x1 = evt.clientX;
+        if (QuiX.dir == 'rtl')
+            x1 = QuiX.transformX(x1);
         var y1 = evt.clientY + 18;
         if (!w.__tooltipID) {
             w.__tooltipID = window.setTimeout(
@@ -1020,6 +1058,8 @@ function Widget__showtooltip(w, x, y) {
 function Widget__startdrag(evt, w) {
     if (QuiX.getMouseButton(evt) == 0) {
         var x = evt.clientX;
+        if (QuiX.dir == 'rtl')
+            x = QuiX.transformX(x);
         var y = evt.clientY;
         var el = QuiX.getTarget(evt);
         document.desktop.attachEvent('onmouseup', Widget__enddrag);
@@ -1035,7 +1075,10 @@ function Widget__startdrag(evt, w) {
 }
 
 function Widget__drag(evt, desktop) {
-    QuiX.tmpWidget.moveTo(evt.clientX + 2, evt.clientY + 2);
+    var x = evt.clientX + 2;
+    if (QuiX.dir == 'rtl')
+        x = QuiX.transformX(x)
+    QuiX.tmpWidget.moveTo(x, evt.clientY + 2);
 }
 
 function Widget__enddrag(evt, desktop) {
@@ -1079,6 +1122,7 @@ function Widget__detecttarget(evt, desktop) {
 
 //Desktop class
 QuiX.ui.Desktop = function(params, root) {
+    QuiX.dir = params.dir || '';
     this.base = QuiX.ui.Widget;
     params.id = 'desktop';
     params.width = 'document.documentElement.clientWidth';

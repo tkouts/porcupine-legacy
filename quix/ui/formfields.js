@@ -89,7 +89,7 @@ QuiX.ui.Field = function(/*params*/) {
 			var checked = (params[val]==true || params[val] == 'true')?'checked':'';
 			this.div.innerHTML = '<input type="' + this.type + '" ' + checked +
 				' style="vertical-align:middle">';
-			this._checked = (checked=='checked');
+			this._checked = (checked == 'checked');
 			e = this.div.firstChild;
 			if (this.readonly) e.disabled = true;
 			if (params.caption) this.setCaption(params.caption);
@@ -102,6 +102,7 @@ QuiX.ui.Field = function(/*params*/) {
 			e = (this.type=='textarea')?ce('TEXTAREA'):ce('INPUT');
 			e.style.borderWidth = '1px';
 			e.style.position='absolute';
+            e.style.left = '0px';
 			e.style.textAlign = this.textAlign;
 			if (this.readonly) e.readOnly = true;
 			if (this.type!='textarea') e.type = this.type;
@@ -193,7 +194,7 @@ QuiX.ui.Field.prototype.setCaption = function(caption) {
 	if (this.type=='radio' || this.type=='checkbox') {
 		var textnode = this.div.getElementsByTagName('SPAN')[0];
 		if (!textnode) {
-			textnode =ce('SPAN');
+			textnode = ce('SPAN');
 			textnode.style.cursor = 'default';
 			textnode.innerHTML = caption;
 			textnode.style.verticalAlign = 'middle';
@@ -255,6 +256,19 @@ QuiX.ui.Field.prototype._adjustFieldSize = function(memo) {
 QuiX.ui.Field.prototype._setCommonProps = function(memo) {
 	QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
 	this._adjustFieldSize(memo);
+}
+
+QuiX.ui.Field.prototype._calcSize = function(height, offset, getHeight, memo) {
+    if (this[height] == 'auto' &&
+            (!memo || (memo && !memo[this._uniqueid + height]))) {
+        // we need to measure
+        var value = QuiX.measureWidget(this, height);
+        if (typeof memo != 'undefined')
+            memo[this._uniqueid + height] = value;
+        return value - offset;
+    }
+    else
+        return Widget.prototype._calcSize.apply(this, arguments);
 }
 
 function Check__click(evt, w) {

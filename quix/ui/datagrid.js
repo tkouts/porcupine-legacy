@@ -66,11 +66,14 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 		editValue = this.dataSet[ridx][this.columns[idx].name];
 		if (typeof editValue == 'undefined' && !this.editUndef)
 			return;
+        var left = cell.offsetLeft;
+        if (QuiX.dir == 'rtl')
+            left = QuiX.transformX(left + cell.offsetWidth, this.widgets[1]);
 		switch (this.columns[idx].columnType) {
 			case 'optionlist':
 				w2 = new QuiX.ui.Combo({
 					top : cell.offsetTop,
-					left : cell.offsetLeft,
+					left : left,
 					width : cell.offsetWidth,
 					height : cell.offsetHeight,
 					onchange : DataGrid__update
@@ -91,7 +94,7 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 			default:
 				w2 = new QuiX.ui.Field({
 					top : cell.offsetTop,
-					left : cell.offsetLeft,
+					left : left,
 					width : cell.offsetWidth,
 					height : cell.offsetHeight,
 					value : editValue,

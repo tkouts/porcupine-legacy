@@ -43,7 +43,10 @@ var TreeNode = QuiX.ui.TreeNode;
 
 QuiX.ui.TreeNode.prototype.appendChild = function (w) {
 	w.tree = this.tree;
-	w.div.style.margin = '2px 0px 0px ' + this.tree.levelpadding + 'px';
+    if (QuiX.dir != 'rtl')
+        w.div.style.margin = '2px 0px 0px ' + this.tree.levelpadding + 'px';
+    else
+        w.div.style.margin = '2px ' + this.tree.levelpadding + 'px 0px 0px';
 	QuiX.ui.Widget.prototype.appendChild(w, this);
 	if (!w._isDisabled)
 		w.enable();
@@ -201,7 +204,9 @@ QuiX.ui.TreeNode.prototype.enable = function() {
 /************************
 Tree
 ************************/
-QuiX.ui.Tree = function(params) {
+QuiX.ui.Tree = function(/*params*/) {
+    var params = arguments[0] || {};
+    params.width = params.width || '100%';
 	this.base = QuiX.ui.Widget;
 	this.base(params);
 	

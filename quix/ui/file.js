@@ -95,12 +95,16 @@ QuiX.ui.File.prototype._checkFileSize = function(size) {
 }
 
 QuiX.ui.File.prototype.showUploadDialog = function() {
-	var fileName = this.uploader.selectFiles(false, this.filetypes);
-	if (fileName != '') {
-		this.setFile(new String(fileName));
-		this.onbeginupload(this);
-		this.upload();
-	}
+    var self = this;
+    window.setTimeout(
+        function() {
+            var fileName = self.uploader.selectFiles(false, self.filetypes);
+            if (fileName != '') {
+                self.setFile(fileName.toString());
+                self.onbeginupload(self);
+                self.upload();
+            }
+        }, 0);
 }
 
 QuiX.ui.File.prototype.onbeginupload = function(filecontrol) {
@@ -138,7 +142,7 @@ QuiX.ui.File.prototype.onstatechange = function(filecontrol) {
                          getBytesRead(filecontrol._fileid).toString());
 	var pbar = filecontrol.attributes.pbar;
 	pbar.setValue(bytes);
-	pbar.widgets[1].setCaption(parseInt((bytes/pbar.maxvalue)*100) + '%');
+	pbar.widgets[1].setCaption(parseInt((bytes / pbar.maxvalue) * 100) + '%');
 }
 
 QuiX.ui.File.prototype.oncomplete =
@@ -283,66 +287,73 @@ QuiX.ui.MultiFile.prototype.reset = function() {
 QuiX.ui.MultiFile.prototype.showUploadDialog = function(evt, btn) {
 	var file_size;
 	var mf = btn.parent;
-	var filenames = mf.filecontrol.uploader.selectFiles(true, mf.filetypes);
-	
-	if (filenames != '') {
-		var fileid;
-		var files = new String(filenames).split(';');
-		files = files.slice(0, files.length-1).reverse();
-		mf.files4upload = [];
-		var total_size = 0;
-		for (var i=0; i<files.length; i++) {
-			fileid = mf.filecontrol.uploader.setFile(files[i]);
-			file_size = parseInt(
+
+    window.setTimeout(
+        function() {
+            var filenames = mf.filecontrol.uploader.selectFiles(true,
+                                                                mf.filetypes);
+
+            if (filenames != '') {
+                var fileid;
+                var files = new String(filenames).split(';');
+                files = files.slice(0, files.length-1).reverse();
+                mf.files4upload = [];
+                var total_size = 0;
+                for (var i=0; i<files.length; i++) {
+                    fileid = mf.filecontrol.uploader.setFile(files[i]);
+                    file_size = parseInt(
                         mf.filecontrol.uploader.getFileSize(fileid).toString());
-			if (!mf.filecontrol._checkFileSize(file_size)) {
-				QuiX.stopPropag(evt);
-				return;
-			}
-			mf.files4upload.push({
-				path: files[i],
-				filename: mf.filecontrol.getFileName(files[i]),
-				size: file_size
-			});			
-			total_size += file_size;
-			mf.filecontrol.uploader.closeFile(fileid);
-		}
-		
-		mf.current_file = mf.files4upload.pop();
-		mf.filecontrol.setFile(mf.current_file.path);
-		mf._tmpsize = mf.current_file.size;
-		
-		document.desktop.parseFromString(
-			'<dialog xmlns="http://www.innoscript.org/quix" title="' +
-					mf.filecontrol.contextMenu.options[0].getCaption() + '" ' +
-					'width="240" height="140" left="center" top="center">' +
-				'<wbody>' +
-					'<progressbar width="90%" height="24" left="center" top="20" ' +
-							'maxvalue="' + total_size + '">' +
-						'<label align="center" width="100%" height="100%" caption="' +
-							mf.current_file.filename + '"/>' +
-					'</progressbar>' +
-					'<progressbar width="90%" height="24" left="center" top="50" ' +
-							'maxvalue="' + mf.current_file.size + '">' +
-						'<label align="center" width="100%" height="100%" caption="0%"/>' +
-					'</progressbar>' +
-				'</wbody>' +
-				'<dlgbutton width="70" height="22" caption="CANCEL"/>' +
-			'</dialog>',
-			function (w) {
-				mf.filecontrol.attributes.pbar1 = w.getWidgetsByType(ProgressBar)[0];
-				mf.filecontrol.attributes.pbar2 = w.getWidgetsByType(ProgressBar)[1];
-				mf.filecontrol.attributes.bytesRead = 0;
-				w.buttons[0].attachEvent('onclick',
-					function (evt, w) {
-						mf.filecontrol.cancelUpload = true;
-						w.getParentByType(Dialog).close();
-					}
-				);
-				mf.filecontrol.upload();
-			}
-		);
-	}
+                    if (!mf.filecontrol._checkFileSize(file_size)) {
+                        QuiX.stopPropag(evt);
+                        return;
+                    }
+                    mf.files4upload.push({
+                        path: files[i],
+                        filename: mf.filecontrol.getFileName(files[i]),
+                        size: file_size
+                    });
+                    total_size += file_size;
+                    mf.filecontrol.uploader.closeFile(fileid);
+                }
+
+                mf.current_file = mf.files4upload.pop();
+                mf.filecontrol.setFile(mf.current_file.path);
+                mf._tmpsize = mf.current_file.size;
+
+                document.desktop.parseFromString(
+                    '<dialog xmlns="http://www.innoscript.org/quix" title="' +
+                            mf.filecontrol.contextMenu.options[0].getCaption() + '" ' +
+                            'width="240" height="140" left="center" top="center">' +
+                        '<wbody>' +
+                            '<progressbar width="90%" height="24" left="center" top="20" ' +
+                                    'maxvalue="' + total_size + '">' +
+                                '<label align="center" width="100%" height="100%" caption="' +
+                                    mf.current_file.filename + '"/>' +
+                            '</progressbar>' +
+                            '<progressbar width="90%" height="24" left="center" top="50" ' +
+                                    'maxvalue="' + mf.current_file.size + '">' +
+                                '<label align="center" width="100%" height="100%" caption="0%"/>' +
+                            '</progressbar>' +
+                        '</wbody>' +
+                        '<dlgbutton width="70" height="22" caption="CANCEL"/>' +
+                    '</dialog>',
+                    function (w) {
+                        mf.filecontrol.attributes.pbar1 =
+                            w.getWidgetsByType(ProgressBar)[0];
+                        mf.filecontrol.attributes.pbar2 =
+                            w.getWidgetsByType(ProgressBar)[1];
+                        mf.filecontrol.attributes.bytesRead = 0;
+                        w.buttons[0].attachEvent('onclick',
+                            function (evt, w) {
+                                mf.filecontrol.cancelUpload = true;
+                                w.getParentByType(Dialog).close();
+                            }
+                        );
+                        mf.filecontrol.upload();
+                    }
+                );
+            }
+        }, 0);
 	QuiX.stopPropag(evt);
 }
 

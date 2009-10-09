@@ -34,7 +34,9 @@ BODY {
 	border-color: DarkGray;
 }
 
-.field INPUT, .field TEXTAREA {border:none}
+.field INPUT, .field TEXTAREA {
+    border:none
+}
 
 .field .optionselected {
 	cursor: default;
@@ -138,6 +140,11 @@ BODY {
 	cursor : se-resize;
 }
 
+.resize[dir=rtl] {
+	background-image : url(images/resize-handle-rtl.gif);
+	cursor : sw-resize;
+}
+
 .window .control {
 	background-color : ButtonFace;
 	cursor: default;
@@ -196,8 +203,13 @@ BODY {
 .menubar .menu {
 	cursor : default;
 	border-style: solid;
-	float: left;
-	clear: right;
+    float : left;
+    clear : right;
+}
+
+.menubar .menu[dir=rtl] {
+    float : right;
+    clear : left;
 }
 
 .menubar .over{
@@ -225,6 +237,11 @@ BODY {
 	background-repeat : no-repeat;
 }
 
+.contextmenu .submenu[dir=rtl] {
+	background-image : url(images/submenu-rtl.gif);
+	background-position : left;
+}
+
 .contextmenu .over {
 	color: White;
 	background-color : #6699FF;
@@ -248,10 +265,15 @@ BODY {
 	border-style : solid solid none solid;
 	border-color:	ThreeDHighlight ThreeDDarkShadow
 					ThreeDDarkShadow ThreeDHighlight;
-	margin-top: 2px;
-	float: left;
-	clear: right;
+	margin-top : 2px;
+    float : left;
+    clear : right;
 	white-space : nowrap;
+}
+
+.tabpane .tab[dir=rtl] {
+    float : right;
+    clear : left;
 }
 
 .tabpane .over {
@@ -274,12 +296,17 @@ BODY {
 
 .listview .listheader .column {
 	border-width: 1px;
-	border-style : none solid none solid;
+	border-style : none solid;
 	border-color:	ThreeDHighlight ThreeDDarkShadow
 					ThreeDDarkShadow ThreeDHighlight;
 	white-space : nowrap;
 	overflow : hidden;
 	cursor : default;
+}
+
+.listview .listheader .column[dir=rtl] {
+	border-color:	ThreeDHighlight ThreeDHighlight
+					ThreeDShadow ThreeDShadow;
 }
 
 .listview .list .column {
@@ -290,10 +317,19 @@ BODY {
 					ThreeDShadow ThreeDHighlight;
 	overflow : hidden;
 	cursor : default;
-	
 }
+
+.listview .list .column[dir=rtl] {
+	border-color:	ThreeDHighlight ThreeDHighlight
+					ThreeDShadow ThreeDShadow;
+}
+
 .listview .listheader .filler {
 	border-style: none none none solid;
+}
+
+.listview .listheader .filler[dir=rtl] {
+	border-style: none solid none none;
 }
 
 .listview .listheader .resizer {
@@ -307,6 +343,10 @@ BODY {
 	border-color : silver;
 	border-style : none solid solid none;
 	cursor : default;
+}
+
+.listview .list .cell[dir=rtl] {
+    border-style : none none solid solid;
 }
 
 .listview .list .cell SPAN {
