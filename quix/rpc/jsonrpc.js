@@ -56,12 +56,14 @@ QuiX.rpc.JSONRPCRequest.prototype._processResult = function(/*jsonstr*/) {
 QuiX.rpc.JSONRPCRequest.prototype._buildRequestBody = function(method_name
                                                         /*, arg1, arg2, ...*/) {
     this.id = ++QuiX.rpc.JSONRPCRequest._requestId;
+    var params = [];
+    for (var i=1; i<arguments.length; i++)
+        params.push(arguments[i]);
     var request = {
-        'jsonrpc' : '2.0',
-        'method' : method_name,
-        'params' : Array.prototype.concat.call([], arguments).
-                   splice(1, arguments.length - 1),
-        'id' : this.id
+        jsonrpc : '2.0',
+        method : method_name,
+        params : params,
+        id : this.id
     }
     return QuiX.parsers.JSON.stringify(request);
 }
