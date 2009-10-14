@@ -660,6 +660,22 @@ QuiX.transformX = function(x /*, parent*/) {
            x;
 }
 
+QuiX.getScrollLeft = function(el) {
+    if (QuiX.dir == 'rtl') {
+        var fm = QuiX.utils.BrowserInfo.family;
+        switch (fm) {
+            case 'ie':
+                return -el.scrollLeft;
+            case 'saf':
+                return el.scrollLeft - (el.scrollWidth - el.clientWidth);
+            default:
+                return el.scrollLeft;
+        }
+    }
+    else
+        return el.scrollLeft;
+}
+
 QuiX.measureWidget = function(w, dim) {
     var div = ce('DIV');
     div.style.position = 'absolute';

@@ -25,13 +25,13 @@ QuiX.ui.DataGrid.prototype.addHeader = function(params) {
 	var oHeader = QuiX.ui.ListView.prototype.addHeader.apply(this, arguments);
 	this.widgets[1].attachEvent('onclick', DataGrid__onclick);
 	this.widgets[1].attachEvent('onkeydown', DataGrid__onkeydown);
-	return(oHeader);
+	return oHeader;
 }
 
 QuiX.ui.DataGrid.prototype.addColumn = function(params) {
 	var oCol = QuiX.ui.ListView.prototype.addColumn.apply(this, arguments);
 	oCol.editable = !(params.editable=='false' || params.editable == false);
-	return(oCol);
+	return oCol;
 }
 
 QuiX.ui.DataGrid.prototype.getValue = function(params) {
@@ -62,13 +62,15 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 	var editValue, w2, w2_type;
 	var idx = cell.cellIndex;
 	var ridx = QuiX.getParentNode(cell).rowIndex;
-	if (idx>0 && idx<this.columns.length-1 && this.columns[idx].editable) {
+	if (idx > 0 && idx < this.columns.length-1 && this.columns[idx].editable) {
 		editValue = this.dataSet[ridx][this.columns[idx].name];
 		if (typeof editValue == 'undefined' && !this.editUndef)
 			return;
         var left = cell.offsetLeft;
-        if (QuiX.dir == 'rtl')
-            left = QuiX.transformX(left + cell.offsetWidth, this.widgets[1]);
+        if (QuiX.dir == 'rtl' && QuiX.utils.BrowserInfo.family != 'op') {
+            left -= this.widgets[1].div.scrollWidth -
+                    this.widgets[1].div.clientWidth;
+        }
 		switch (this.columns[idx].columnType) {
 			case 'optionlist':
 				w2 = new QuiX.ui.Combo({
@@ -106,7 +108,10 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 					w2.attachEvent('onkeyup', DataGrid__update)
 				this.widgets[1].appendChild(w2);
 		}
+        // do not perform rtl xform
+        w2._xformed = true;
 		w2.redraw();
+        w2.div.scrollIntoView();
 		if (w2.focus) w2.focus();
 		this.attributes.__editwidget = w2;
 		this.attributes.__rowindex = ridx;

@@ -49,7 +49,7 @@ QuiX.ui.Widget = function(/*params*/) {
     else
         this.div.style.padding = '0px 0px 0px 0px';
 
-    this.div.dir = QuiX.dir;
+    this.div.dir = params.dir || QuiX.dir;
 
     if (params.display)
         this.setDisplay(params.display);
@@ -211,7 +211,8 @@ QuiX.ui.Widget.prototype.getWidgetsByAttributeValue = function(attr_name, value,
 
 QuiX.ui.Widget.prototype._setAbsProps = function(memo) {
     var left = this._calcLeft(memo);
-    if (this.parent && QuiX.dir == 'rtl' && this.div.style.position == 'absolute')
+    if (this.parent && QuiX.dir == 'rtl'
+            && this.div.style.position == 'absolute' && !this._xformed)
         // rtl xform
         this.div.style.left = QuiX.transformX(
             left + this.getWidth(true), this.parent) + 'px';
@@ -545,11 +546,11 @@ QuiX.ui.Widget.prototype.getScreenLeft = function() {
         var includeBorders = !(family == 'op' ||
             (family == 'ie' && version > 7));
         var offset = (family == 'saf' ||
-            (family == 'ie' && version < 8))?1:0;
+            (family == 'ie' && version < 8))? 1 : 0;
     }
     while(oElement && oElement.tagName && oElement.tagName!='HTML') {
         if (oElement.tagName!='TR') {
-            iX += oElement.offsetLeft - oElement.scrollLeft;
+            iX += oElement.offsetLeft - QuiX.getScrollLeft(oElement);
             if (includeBorders) {
                 b = parseInt(oElement.style.borderWidth);
                 if (b)
