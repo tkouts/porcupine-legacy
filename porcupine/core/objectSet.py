@@ -68,7 +68,9 @@ class ObjectSet(Set, Hashable):
             id = value._id
         else:
             id = value
-        if schema is not None and len(schema) == 1 and not isinstance(id, tuple):
+        if self.schema is not None \
+                and len(self.schema) == 1 \
+                and not isinstance(id, tuple):
             id = (id, )
         return id in self._keys
 

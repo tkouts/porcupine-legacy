@@ -33,3 +33,4 @@ class Context(local):
     def _reset(self):
         # close any opened cursors
         [c.close() for c in self._cursors.values()]
+        self._cursors = {}
