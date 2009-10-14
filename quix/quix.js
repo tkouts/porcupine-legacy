@@ -423,7 +423,7 @@ QuiX.getEventWrapper = function(f1, f2) {
 QuiX.getImage = function(url) {
     var img;
     url = url.replace('$THEME_URL$', QuiX.getThemeUrl());
-    if (url.slice(0,4) != 'http')
+    if (url.slice(0,4) != 'http' && url.slice(0,1) != '/')
         url = QuiX.root + url;
     if (QuiX._image_cache[url]) {
         img = QuiX._image_cache[url].cloneNode(false);
