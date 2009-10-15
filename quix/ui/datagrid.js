@@ -80,7 +80,6 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 					height : cell.offsetHeight,
 					onchange : DataGrid__update
 				});
-				this.widgets[1].appendChild(w2);
 			
 				var options = this.columns[idx].options;
 				for (var i=0; i<options.length; i++) {
@@ -106,12 +105,12 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 					w2.attachEvent('onchange', DataGrid__update)
 				else
 					w2.attachEvent('onkeyup', DataGrid__update)
-				this.widgets[1].appendChild(w2);
 		}
         // do not perform rtl xform
         w2._xformed = true;
+        this.widgets[1].appendChild(w2);
 		w2.redraw();
-        w2.div.scrollIntoView();
+        w2.div.scrollIntoView(false);
 		if (w2.focus) w2.focus();
 		this.attributes.__editwidget = w2;
 		this.attributes.__rowindex = ridx;

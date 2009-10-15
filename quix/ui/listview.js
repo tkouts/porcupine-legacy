@@ -87,17 +87,17 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
         '</tr></table>';
 
     var oTable = this.header.div.firstChild;
-    if (displayVerticalScroll)
+
+    if (displayVerticalScroll) {
         oTable.style.paddingRight = QuiX._scrollbarSize + 'px';
+    }
     else
         oTable.style.paddingRight = '0px';
-    oTable.style.paddingLeft = QuiX._scrollbarSize + 'px';
 	var oRow = oTable.rows[0];
 
     // opera horizontal scrollbar patch
     if (QuiX.dir == 'rtl' && family == 'op') {
         oTable.style.cssFloat = 'left';
-        oRow.lastChild.style.display = 'none';
     }
 
 	this.columns = oRow.cells;
@@ -143,6 +143,8 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
     // opera horizontal scrollbar patch
     if (QuiX.dir == 'rtl' && family == 'op') {
         oTable.style.cssFloat = 'left';
+        // vertical scrollbar patch
+        oTable.style.paddingBottom = QuiX._scrollbarSize + 'px';
         list.attachEvent('onresize', function() {
             window.setTimeout(
                 function() {
@@ -667,7 +669,7 @@ function ListView__onscroll(evt , w) {
     if (QuiX.dir == 'rtl') {
         var family = QuiX.utils.BrowserInfo.family;
         if (family == 'saf')
-            offset = 2 * QuiX._scrollbarSize;
+            offset = QuiX._scrollbarSize;
         else if (family == 'op') {
             if (w.div.scrollHeight == w.div.offsetHeight)
                 offset = QuiX._scrollbarSize;

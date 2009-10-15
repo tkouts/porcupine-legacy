@@ -668,6 +668,11 @@ QuiX.getScrollLeft = function(el) {
                 return -el.scrollLeft;
             case 'saf':
                 return el.scrollLeft - (el.scrollWidth - el.clientWidth);
+            case 'op':
+                var offset = 0;
+                if (el.scrollHeight > el.offsetHeight)
+                    offset = QuiX._scrollbarSize;
+                return el.scrollLeft - offset;
             default:
                 return el.scrollLeft;
         }

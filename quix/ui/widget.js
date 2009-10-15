@@ -548,7 +548,7 @@ QuiX.ui.Widget.prototype.getScreenLeft = function() {
         var offset = (family == 'saf' ||
             (family == 'ie' && version < 8))? 1 : 0;
     }
-    while(oElement && oElement.tagName && oElement.tagName!='HTML') {
+    while(oElement && oElement.tagName && oElement.tagName != 'HTML') {
         if (oElement.tagName!='TR') {
             iX += oElement.offsetLeft - QuiX.getScrollLeft(oElement);
             if (includeBorders) {
