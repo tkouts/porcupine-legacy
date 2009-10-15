@@ -232,6 +232,14 @@ QuiX.bootLibraries = [
 ];
 
 QuiX.__init__ = function() {
+    var boot_loader = new Image();
+    boot_loader.src = QuiX.getThemeUrl() + 'images/boot_loader.gif';
+    boot_loader.style.margin = '100px auto';
+    boot_loader.style.display = 'block';
+    boot_loader.style.textAlign = 'center';
+    boot_loader.style.border = '1px solid silver';
+    document.body.appendChild(boot_loader);
+
     QuiX.load(QuiX.bootLibraries,
         function() {
             var root = document.body.removeChild(
@@ -239,6 +247,7 @@ QuiX.__init__ = function() {
             var parser = new QuiX.Parser();
             parser.oncomplete = function() {
                 // calculate scrollbars size
+                QuiX.removeNode(boot_loader);
                 var w1 = document.desktop.div.clientWidth;
                 document.desktop.div.style.overflow = 'scroll';
                 QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
