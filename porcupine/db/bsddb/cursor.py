@@ -131,11 +131,18 @@ class Cursor(BaseCursor):
                         first = self._cursor.set_range(
                                     self._scope + b'_' +
                                     self._range._upper_value)
-                        if first is not None \
-                                and not self._range._upper_inclusive:
+                        if first is not None:
+                            if not self._range._upper_inclusive:
+                                cmp = [1, 0]
+                            else:
+                                cmp = [1]
                             key = first[0].split(b'_', 1)[1]
-                            if key == self._range._upper_value:
+                            while (key > self._range._upper_value) - \
+                                  (key < self._range._upper_value) in cmp:
                                 first = self._cursor.get(db.DB_PREV_NODUP)
+                                if first is None:
+                                    break
+                                key = first[0].split(b'_', 1)[1]
                         is_set = bool(first)
                     else:
                         # move to last
