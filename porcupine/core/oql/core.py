@@ -328,19 +328,32 @@ def h_100(params, variables):
 # oql select command handler
 #===============================================================================
 
-def select(container_id, deep, specifier, fields, variables):
+def select(container_id, deep, specifier, fields, variables,
+           top=None, top_accumulative=False):
     results = ObjectSet([])
     for iterable, condition in specifier:
-        if condition:
-            results1 = [tuple(evaluate_stack(expr[1], variables, item)
-                              for expr in fields)
-                        for item in iterable
-                        if evaluate_stack(condition[:], variables, item)]
-        else:
-            results1 = [tuple(evaluate_stack(expr[1], variables, item)
-                              for expr in fields)
-                        for item in iterable]
+        results1 = []
+        for item in iterable:
+            if condition:
+                condition_eval = evaluate_stack(condition[:], variables, item)
+            else:
+                condition_eval = True
+            if condition_eval:
+                results1.append(tuple(evaluate_stack(expr[1], variables, item)
+                                      for expr in fields))
+                if len(specifier) == 1 and \
+                        top is not None and \
+                        not top_accumulative and \
+                        len(results1) == top:
+                    break
+
         results |= ObjectSet(results1)
+
+    if top is not None and top_accumulative:
+        if len(results) >= top:
+            return results
+        else:
+            top -= len(results)
 
     if deep:
         subfolders = db._db.query((('isCollection', True), ))
@@ -350,10 +363,20 @@ def select(container_id, deep, specifier, fields, variables):
                            for c, conditions in specifier]
             [l[0].set_scope(folder._id)
              for l in c_specifier]
-            results1 = select(folder._id, deep, c_specifier, fields, variables)
+            results1 = select(folder._id, deep, c_specifier,
+                              fields, variables, top=top,
+                              top_accumulative=top_accumulative)
             c_specifier.reverse()
             [l[0].close() for l in c_specifier]
+
+            results_len = len(results)
+
             results |= results1
+            
+            if top is not None and top_accumulative:
+                if len(results) - results_len >= top:
+                    break
+
         subfolders.close()
     
     return results
@@ -462,6 +485,9 @@ def h_200(params, variables, for_object=None):
 
     select_from = params[1]
     where_condition = params[2]
+    select_range = params[5]
+    select_top = None
+    top_accumulative = False
 
     if params[3]:
         sort_order, order_by = params[3]
@@ -516,20 +542,84 @@ def h_200(params, variables, for_object=None):
 
     #print('where: %s' % where_condition)
 
+    # optimize query based on indexes
     uses_indexes = False
-    if for_object is None and where_condition:
-        # in case of not being a subquery, optimize query
-        optimized = optimize_query(where_condition[:], variables)
-        uses_indexes = all([l[0] for l in optimized])
+    if for_object is None:
+        # not being a subquery
+        if where_condition:
+            # optimize query
+            optimized = optimize_query(where_condition[:], variables)
+            uses_indexes = all([l[0] for l in optimized])
+        if not uses_indexes:
+            optimized = [[[('displayName', (None, None))], where_condition]]
 
-    if for_object is None and not uses_indexes:
-        optimized = [[[('displayName', (None, None))], where_condition]]
+    # order by, range optimizations
+    if for_object is None:
+        if order_by:
+            # check if ordering is indexed
+            optimize_ordering = (len(order_by) == 1 and
+                                 db._db.has_index(order_by[0][0]))
 
+            if optimize_ordering:
+                is_single_shallow = len(select_from) == 1 and \
+                                    not select_from[0][0]
+
+                if uses_indexes:
+                    if len(optimized) == 1:
+                        # we do not have indexed ORing
+                        indexed_lookups = optimized[0][0]
+                        if len(indexed_lookups) == 1 and \
+                                indexed_lookups[0][0] == order_by[0][0]:
+                            # select ... from ...
+                            # where indexed =|>|<|<=|>= value
+                            # order by indexed asc|desc
+                            indexed_range = indexed_lookups[0][1]
+                            if not type(indexed_range) == tuple:
+                                # remove order by
+                                # we have selected only one value
+                                order_by = []
+                                if select_range:
+                                    select_top = select_range[1]
+                                    top_accumulative = True
+                            else:
+                                # we have a possible range of values
+                                reversed = (sort_order == False)
+                                if reversed:
+                                    # reverse lookup cursor
+                                    indexed_lookups[0][1] = (indexed_range[0],
+                                                             indexed_range[1],
+                                                             reversed)
+
+                                if is_single_shallow:
+                                    order_by = []
+
+                                if select_range:
+                                    select_top = select_range[1]
+
+                else:
+                    # use ordering attribute instead of displayName
+                    reversed = (sort_order == False)
+                    optimized = [[[(order_by[0][0], (None, None, reversed))],
+                                  where_condition]]
+                    if is_single_shallow:
+                        # shallow select from one container
+                        order_by = []
+
+                    if select_range:
+                        # select with indexed ordering and range
+                        select_top = select_range[1]
+        elif select_range:
+            # range without ordering
+            select_top = select_range[1]
+            top_accumulative = True
+
+    #print order_by
+    #print len(optimized)
     #print('opt: %s' % optimized)
 
     results = ObjectSet([])
     for deep, object_id in select_from:
-        if deep==2:
+        if deep == 2:
             # this:attr
             if not for_object:
                 raise TypeError(
@@ -558,11 +648,17 @@ def h_200(params, variables, for_object=None):
                 for l in cp_optimized:
                     l[0] = db._db.query(l[0])
                     l[0].set_scope(obj._id)
-                r = select(obj._id, deep, cp_optimized, all_fields, variables)
+                r = select(obj._id, deep, cp_optimized,
+                           all_fields, variables,
+                           top=select_top, top_accumulative=top_accumulative)
                 # close cursors
                 cp_optimized.reverse()
                 [l[0].close() for l in cp_optimized]
                 results |= r
+                
+                if select_top is not None and top_accumulative:
+                    if len(results) >= select_top:
+                        break
 
     results = results.to_list()
 
@@ -625,6 +721,11 @@ def h_200(params, variables, for_object=None):
     else:
         schema = None
         results = tuple([x[:1][0] for x in results])
+
+    #print len(results)
+
+    if select_range:
+        results = results[slice(select_range[0]-1, select_range[1])]
 
     results = ObjectSet(results)
     results.schema = schema

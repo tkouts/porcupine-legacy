@@ -268,7 +268,10 @@ class DB(object):
         for index, value in conditions:
             cursor = Cursor(self._indices[index])
             if type(value) == tuple:
+                reversed = (len(value) == 3 and value[2])
                 cursor.set_range(value[0], value[1])
+                if reversed:
+                    cursor.reverse()
             else:
                 cursor.set(value)
             cur_list.append(cursor)

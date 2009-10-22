@@ -28,7 +28,7 @@ reserved = (
 # oql statements
 #===============================================================================
     'SET',
-    'SELECT', 'AS', 'FROM', 'WHERE', 'ORDER', 'GROUP', 'BY',
+    'SELECT', 'AS', 'FROM', 'WHERE', 'ORDER', 'GROUP', 'BY', 'RANGE',
     'IF','THEN','ELSE', 
     'ASC', 'DESC',
 #===============================================================================
@@ -259,9 +259,9 @@ class OqlParser:
         '''
         # [select_fields, scopes, where_condition, order_by, group_by]
         if p[2]=='*':
-            p[0] = [ core.OQL_SELECT, [ [], p[4], [], [], [] ] ]
+            p[0] = [ core.OQL_SELECT, [ [], p[4], [], [], [], [] ] ]
         else:
-            p[0] = [ core.OQL_SELECT, [ p[2], p[4], [], [], [] ] ]
+            p[0] = [ core.OQL_SELECT, [ p[2], p[4], [], [], [], [] ] ]
 
     def p_select_statement_2(self, p):
         'select_statement : select_statement WHERE expression'
@@ -279,6 +279,16 @@ class OqlParser:
     def p_select_statement_4(self, p):
         'select_statement : select_statement GROUP BY field_list'
         p[1][1][4] = p[4]
+        p[0] = p[1]
+
+    def p_select_statement_5(self, p):
+        'select_statement : select_statement RANGE INT MINUS INT'
+        p[1][1][5] = [p[3], p[5]]
+        p[0] = p[1]
+
+    def p_select_statement_6(self, p):
+        'select_statement : select_statement RANGE INT'
+        p[1][1][5] = [1, p[3]]
         p[0] = p[1]
 
 #===============================================================================
