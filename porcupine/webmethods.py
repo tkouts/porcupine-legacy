@@ -48,14 +48,17 @@ def quixui(of_type, isPage=False, lang='', qs='',
             
         def execute(self, item, context):
             if isPage:
+                from porcupine.core.session import SessionManager
                 script_name = context.request.serverVariables["SCRIPT_NAME"]
+                cookies_required = SessionManager._sm.requires_cookies
                 no_cookies_url = '%s/{%s}%s%s' % (
                     script_name,
                     context.session.sessionid,
                     context.request.serverVariables['PATH_INFO'],
                     context.request.get_query_string()
                 )
-                vars = (script_name, no_cookies_url)
+                vars = (script_name, str(cookies_required).lower(),
+                        no_cookies_url)
                 
                 context.response.content_type = 'text/html'
                 context.response.write(('''
@@ -64,14 +67,20 @@ def quixui(of_type, isPage=False, lang='', qs='',
     <head>
         <script type="text/javascript" defer="defer" src="%s/__quix/quix.js"></script>
         <script type="text/javascript" defer="defer">
-            var cookiesEnabled = false;
-            var session_id = (new RegExp("/\(?:{|%%7b)(.*?)\(?:}|%%7d)", "i")).exec(document.location.href);
-            if (session_id)
-                session_id = session_id[1];
-            if (typeof document.cookie == "string" && document.cookie.length != 0)
-                cookiesEnabled = true;
-            if (!session_id && !cookiesEnabled)
-                document.location.href = '%s';
+            (function() {
+                document.cookiesEnabled = false;
+                document.cookiesRequired = %s;
+                var session_id = (
+                    new RegExp("/\(?:{|%%7b)(.*?)\(?:}|%%7d)", "i"))
+                    .exec(document.location.href
+                );
+                if (session_id)
+                    session_id = session_id[1];
+                if (typeof document.cookie == "string" && document.cookie.length != 0)
+                    document.cookiesEnabled = true;
+                if (!session_id && !document.cookiesEnabled)
+                    document.location.href = '%s';
+                })();
         </script>
     </head>
     <body onload="QuiX.__init__()">
