@@ -42,7 +42,7 @@ QuiX.rpc.handleError = function(req, e) {
 }
 
 QuiX.rpc._cache = (function() {
-    if (QuiX.persist.type) {
+    if (QuiX.persist && QuiX.persist.type) {
         var cache = new QuiX.persist.Store('rpccache');
         return {
             get : function(key, callback) {
