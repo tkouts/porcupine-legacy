@@ -90,7 +90,7 @@ class Gzip(PostProcessFilter):
 class I18n(PostProcessFilter):
     _tokens = re.compile(b'(@@([\w\.]+)@@)', re.DOTALL)
     """
-    Internationalization filter based on the browser's
+    Internationalization filter based on the request's
     preferred language setting.
     """
     @staticmethod

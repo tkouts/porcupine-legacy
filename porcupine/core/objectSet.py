@@ -68,11 +68,18 @@ class ObjectSet(Set, Hashable):
             id = value._id
         else:
             id = value
-        if self.schema is not None \
-                and len(self.schema) == 1 \
-                and not isinstance(id, tuple):
-            id = (id, )
-        return id in self._keys
+        if self.schema is not None:
+            if not isinstance(id, tuple):
+                if isinstance(id, list):
+                    id = tuple(id)
+                else:
+                    id = (id, )
+            if 'id' not in self.schema and '_id' not in self.schema:
+                return id in [x[:-1] for x in self._keys]
+            else:
+                return id in self._keys
+        else:
+            return id in self._keys
 
     def __len__(self):
         "Returns the size of the object set."

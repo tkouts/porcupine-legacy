@@ -34,6 +34,7 @@ except ImportError:
     # python 3
     import urllib.parse as urlparse
 
+from porcupine import context
 from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
@@ -129,11 +130,19 @@ class HttpRequest(object):
 
     def get_lang(self):
         """Returns the preferred language of the client.
+        If the session has a value of "lang" then this value is used.
+        If not then the client's prefered language setting is used.
         If the client has multiple languages selected, the first is returned.
         
         @rtype: str
         """
-        return(self.serverVariables['HTTP_ACCEPT_LANGUAGE'].split(',')[0])
+        lang = None
+        if hasattr(context, 'session'):
+            lang = context.session.get_value('lang')
+        if lang:
+            return lang
+        else:
+            return self.serverVariables['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
     getLang = deprecated(get_lang)
         
     def get_host(self):
