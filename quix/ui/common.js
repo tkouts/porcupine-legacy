@@ -25,6 +25,7 @@ QuiX.ui.IFrame = function(/*params*/) {
 	this.div.className = 'ifrm';
 	this.frame = ce("IFRAME");
 	this.frame.frameBorder = 0;
+    this.frame.name = params.name || '';
 	QuiX.addEvent(this.frame, 'onload', IFrame.prototype._onload);
 	this.frame.src = params.src || "";
 	this.frame.style.width = "100%";
