@@ -64,8 +64,12 @@ QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
 			whiteSpace = 'nowrap';
 		else
 			whiteSpace = '';
-        if (this.align)
-            textAlign = this.align;
+        if (this.align) {
+            if (this.align == 'auto')
+                textAlign = (QuiX.dir=='rtl')?'right':'left';
+            else
+                textAlign = this.align;
+        }
 	}
 	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
 }
@@ -382,7 +386,7 @@ QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
 	if (this.type == 'menu' && (!this._menuImg || bForceAll)) {
 		this._menuImg = QuiX.getImage('$THEME_URL$images/desc8.gif');
 		this._menuImg.border = 0;
-		this._menuImg.align = 'absmiddle';
+		this._menuImg.align = 'top';
 		this.div.appendChild(this._menuImg);
 	}
 }
