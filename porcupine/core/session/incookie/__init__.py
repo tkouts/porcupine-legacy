@@ -153,6 +153,10 @@ class Session(GenericSession):
         return self.__data.get(name, None)
     getValue = deprecated(get_value)
 
+    def remove_value(self, name):
+        del self.__data[name]
+        self._update()
+        
     def get_data(self):
         return(self.__data)
 

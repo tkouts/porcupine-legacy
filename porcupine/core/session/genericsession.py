@@ -62,6 +62,17 @@ class GenericSession(object):
         """
         raise NotImplementedError
     
+    def remove_value(self, name):
+        """
+        Removes a session variable.
+        
+        @param name: the name of the variable
+        @type name: str
+
+        @rtype: None
+        """
+        raise NotImplementedError
+    
     def get_data(self):
         """
         Returns all the session's variables.
