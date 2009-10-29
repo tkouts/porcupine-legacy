@@ -34,19 +34,19 @@ class PersonalFolderHandler(events.ContentclassEventHandler):
                 user.id : 2
             }
             
-            personal_folder.append_to('personal', trans)
+            personal_folder.append_to('personal')
             
     @staticmethod
     def on_update(user, old_user, trans):
         new_name = user.displayName.value
         old_name = old_user.displayName.value
         if new_name != old_name:
-            personal_folder = user.personalFolder.get_item(trans)
+            personal_folder = user.personalFolder.get_item()
             personal_folder.displayName.value = new_name
-            personal_folder.update(trans)
+            personal_folder.update()
     
     @staticmethod
     def on_delete(user, trans, bPermanent):
         if bPermanent:
-            personal_folder = user.personalFolder.get_item(trans)
-            personal_folder.delete(trans)
+            personal_folder = user.personalFolder.get_item()
+            personal_folder.delete()
