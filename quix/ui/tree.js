@@ -197,7 +197,9 @@ QuiX.ui.TreeNode.prototype.disable = function() {
 QuiX.ui.TreeNode.prototype.enable = function() {
 	var oTreeNode = this;
 	this.anchor.className = '';
-	this.anchor.onclick = function(){oTreeNode.tree.selectNode(oTreeNode)};
+	this.anchor.onclick = function(){
+        oTreeNode.tree.selectNode(oTreeNode)
+    };
 	QuiX.ui.Widget.prototype.enable.apply(this, arguments);
 }
 
@@ -206,11 +208,11 @@ Tree
 ************************/
 QuiX.ui.Tree = function(/*params*/) {
     var params = arguments[0] || {};
-    params.width = params.width || '100%';
 	this.base = QuiX.ui.Widget;
 	this.base(params);
 	
 	this.div.className = 'tree';
+    this.setPosition('relative');
 	if (params)
 		this.levelpadding = params.levelpadding || 14;
 	
