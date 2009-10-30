@@ -29,6 +29,7 @@ from porcupine import exceptions
 from porcupine import datatypes
 from porcupine.core.objectSet import ObjectSet
 from porcupine.utils import misc, permsresolver
+from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
 class _Shortcuts(datatypes.RelatorN):
@@ -71,6 +72,7 @@ class Cloneable(object):
         
         db._db.handle_update(clone, None)
         db._db.put_item(clone)
+        db._db.handle_post_update(clone, None)
 
         if self.isCollection:
             [child._copy(clone) for child in self.get_children()]
@@ -94,26 +96,25 @@ class Cloneable(object):
         return clone
 
     @db.requires_transactional_context
-    def copy_to(self, target_id, trans=None):
+    def copy_to(self, target, trans=None):
         """
         Copies the item to the designated target.
 
-        @param target_id: The ID of the destination container
-        @type target_id: str
-        @param trans: A valid transaction handle
+        @param target: The id of the target container or the container object
+                       itself
+        @type target: str OR L{Container}
         @return: None
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the target container does not exist.
         """
-        target = db._db.get_item(target_id)
+        if isinstance(target, (str, bytes)):
+            target = db._db.get_item(target)
+
         if target is None or target._isDeleted:
             raise exceptions.ObjectNotFound(
-                'The target container "%s" does not exist.' % target_id)
+                'The target container does not exist.')
         
-        if isinstance(self, Shortcut):
-            contentclass = self.get_target_contentclass()
-        else:
-            contentclass = self.get_contentclass()
+        contentclass = self.get_contentclass()
         
         if self.isCollection and target.is_contained_in(self._id):
             raise exceptions.ContainmentError(
@@ -147,13 +148,13 @@ class Movable(object):
     makes instances of this class movable, allowing item moving.
     """
     @db.requires_transactional_context
-    def move_to(self, target_id, trans=None):
+    def move_to(self, target, trans=None):
         """
         Moves the item to the designated target.
         
-        @param target_id: The ID of the destination container
-        @type target_id: str
-        @param trans: A valid transaction handle
+        @param target: The id of the target container or the container object
+                       itself
+        @type target: str OR L{Container}
         @return: None
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the target container does not exist.
@@ -164,15 +165,14 @@ class Movable(object):
         ## or (user_role == permsresolver.AUTHOR and oItem.owner == user.id)
 
         parent_id = self._parentid
-        target = db._db.get_item(target_id)
+        if isinstance(target, (str, bytes)):
+            target = db._db.get_item(target)
+
         if target is None or target._isDeleted:
             raise exceptions.ObjectNotFound(
-                'The target container "%s" does not exist.' % target_id)
+                'The target container does not exist.')
         
-        if isinstance(self, Shortcut):
-            contentclass = self.get_target_contentclass()
-        else:
-            contentclass = self.get_contentclass()
+        contentclass = self.get_contentclass()
         
         user_role2 = permsresolver.get_access(target, user)
         
@@ -221,18 +221,19 @@ class Removable(object):
         """
         Deletes the item physically.
         
-        @param trans: A valid transaction handle
         @return: None
         """
         db._db.handle_delete(self, True)
         db._db.delete_item(self)
-
+        
         if _update_parent:
             # update container modification timestamp
             parent = db._db.get_item(self._parentid)
             parent.modified = time.time()
             db._db.put_item(parent)
         
+        db._db.handle_post_delete(self, True)
+
         if self.isCollection:
             conditions = (('displayName', (None, None)), )
             cursor = db._db.query(conditions)
@@ -246,7 +247,6 @@ class Removable(object):
         """
         Deletes the item permanently.
         
-        @param trans: A valid transaction handle
         @return: None
         """
         user = context.user
@@ -271,10 +271,13 @@ class Removable(object):
         
         @return: None
         """
-        if not self._isDeleted:
+        is_deleted = self._isDeleted
+
+        if not is_deleted:
             db._db.handle_delete(self, False)
-        
+
         self._isDeleted = int(self._isDeleted) + 1
+        db._db.put_item(self)
 
         if _update_parent:
             # update container
@@ -282,6 +285,9 @@ class Removable(object):
             parent.modified = time.time()
             db._db.put_item(parent)
         
+        if not is_deleted:
+            db._db.handle_post_delete(self, False)
+
         if self.isCollection:
             conditions = (('displayName', (None, None)), )
             cursor = db._db.query(conditions)
@@ -289,9 +295,7 @@ class Removable(object):
             cursor.enforce_permissions = False
             [child._recycle(False) for child in cursor]
             cursor.close()
-        
-        db._db.put_item(self)
-        
+
     def _undelete(self, _update_parent=True):
         """
         Undeletes a logically deleted item.
@@ -329,7 +333,6 @@ class Removable(object):
         @param rb_id: The id of the destination container, which must be
                       a L{RecycleBin} instance
         @type rb_id: str
-        @param trans: A valid transaction handle
         @return: None
         """
         user = context.user
@@ -350,13 +353,14 @@ class Removable(object):
             
             # check recycle bin's containment
             recycle_bin = db._db.get_item(rb_id)
-            if not(deleted.get_contentclass() in recycle_bin.containment):
+            if deleted.get_contentclass() not in recycle_bin.containment:
                 raise exceptions.ContainmentError(
                     'The target container does not accept '
                     'objects of type\n"%s".' % deleted.get_contentclass())
             
             db._db.handle_update(deleted, None)
             db._db.put_item(deleted)
+            db._db.handle_post_update(deleted, None)
             
             # delete item logically
             self_._recycle()
@@ -492,16 +496,12 @@ class GenericItem(object):
         @param parent: The id of the destination container or the container
                        itself
         @type parent: str OR L{Container}
-        @param trans: A valid transaction handle
         @return: None
         """
-        if type(parent) == str:
+        if isinstance(parent, (str, bytes)):
             parent = db._db.get_item(parent)
         
-        if isinstance(self, Shortcut):
-            contentclass = self.get_target_contentclass()
-        else:
-            contentclass = self.get_contentclass()
+        contentclass = self.get_contentclass()
         
         user = context.user
         user_role = permsresolver.get_access(parent, user)
@@ -528,10 +528,12 @@ class GenericItem(object):
         self.modifiedBy = user.displayName.value
         self.modified = time.time()
         self._parentid = parent._id
+
         db._db.handle_update(self, None)
-        parent.modified = self.modified
         db._db.put_item(self)
+        parent.modified = self.modified
         db._db.put_item(parent)
+        db._db.handle_post_update(self, None)
     appendTo = deprecated(append_to)
     
     def is_contained_in(self, item_id, trans=None):
@@ -554,7 +556,6 @@ class GenericItem(object):
         """
         Returns the parent container.
                 
-        @param trans: A valid transaction handle
         @return: the parent container object
         @rtype: type
         """
@@ -716,7 +717,6 @@ class DeletedItem(GenericItem, Removable):
         Restores the deleted item to its original location, if
         it still exists.
         
-        @param trans: A valid transaction handle
         @return: None
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the original location or the original item no longer exists.
@@ -730,8 +730,7 @@ class DeletedItem(GenericItem, Removable):
         
         @param parent_id: The ID of the container in which
                           the item will be restored
-        @type parent_id: str    
-        @param trans: A valid transaction handle
+        @type parent_id: str
         @return: None
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the original location or the original item no longer exists.
@@ -754,11 +753,15 @@ class DeletedItem(GenericItem, Removable):
         else:
             contentclass = deleted.get_contentclass()
         
-        if contentclass and not(contentclass in parent.containment):
+        if contentclass and contentclass not in parent.containment:
             raise exceptions.ContainmentError(
                 'The target container does not accept '
                 'objects of type\n"%s".' % contentclass)
-        
+
+        if parent_id is not None and not isinstance(deleted, Shortcut):
+            # restoring to a designated container
+            deleted._isDeleted = 1
+
         # try to restore original item
         self._restore(deleted, parent)
         # delete self
@@ -770,7 +773,6 @@ class DeletedItem(GenericItem, Removable):
         """
         Deletes the deleted object permanently.
         
-        @param trans: A valid transaction handle
         @param _remove_deleted: Leave as is
         @return: None
         """
@@ -801,7 +803,6 @@ class Item(GenericItem, Cloneable, Movable, Removable):
         """
         Updates the item.
         
-        @param trans: A valid transaction handle
         @return: None
         """
         old_item = db._db.get_item(self._id)
@@ -826,13 +827,15 @@ class Item(GenericItem, Cloneable, Movable, Removable):
                 self.security = old_item.security
                 self.inheritRoles = old_item.inheritRoles
 
-            db._db.handle_update(self, old_item)
             self.modifiedBy = user.displayName.value
             self.modified = time.time()
+
+            db._db.handle_update(self, old_item)
             db._db.put_item(self)
             if parent is not None:
                 parent.modified = self.modified
                 db._db.put_item(parent)
+            db._db.handle_post_update(self, old_item)
         else:
             raise exceptions.PermissionDenied(
                     'The user does not have update permissions.')
@@ -865,20 +868,68 @@ class Shortcut(Item):
         
         @param target: The id of the item or the item object itself
         @type parent: str OR L{Item}
-        @param trans: A valid transaction handle
         @return: L{Shortcut}
         """
-        if type(target) == str:
+        if isinstance(target, (str, bytes)):
             target = db._db.get_item(target)
         shortcut = Shortcut()
         shortcut.displayName.value = target.displayName.value
         shortcut.target.value = target._id
         return shortcut
+
+    @db.requires_transactional_context
+    def append_to(self, parent, trans=None):
+        if isinstance(parent, (str, bytes)):
+            parent = db._db.get_item(parent)
+
+        contentclass = self.get_target_contentclass()
+        if not(contentclass in parent.containment):
+            raise exceptions.ContainmentError(
+                'The target container does not accept '
+                'objects of type\n"%s".' % contentclass)
+        else:
+            return super(Shortcut, self).append_to(parent)
+
+    @db.requires_transactional_context
+    def copy_to(self, target, trans=None):
+        if isinstance(target, (str, bytes)):
+            target = db._db.get_item(target)
+
+        contentclass = self.get_target_contentclass()
+        if not(contentclass in target.containment):
+            raise exceptions.ContainmentError(
+                'The target container does not accept '
+                'objects of type\n"%s".' % contentclass)
+        else:
+            return super(Shortcut, self).copy_to(target)
+
+    @db.requires_transactional_context
+    def move_to(self, target, trans=None):
+        if isinstance(target, (str, bytes)):
+            target = db._db.get_item(target)
+
+        contentclass = self.get_target_contentclass()
+        if not(contentclass in target.containment):
+            raise exceptions.ContainmentError(
+                'The target container does not accept '
+                'objects of type\n"%s".' % contentclass)
+        else:
+            return super(Shortcut, self).move_to(target)
+
+    @db.requires_transactional_context
+    def update(self, trans=None):
+        parent = db._db.get_item(self._parentid)
+        contentclass = self.get_target_contentclass()
+        if not(contentclass in parent.containment):
+            raise exceptions.ContainmentError(
+                'The parent container does not accept '
+                'objects of type\n"%s".' % contentclass)
+        else:
+            return super(Shortcut, self).update()
     
     def get_target(self, trans=None):
         """Returns the target item.
         
-        @param trans: A valid transaction handle
         @return: the target item or C{None} if the user
                  has no read permissions
         @rtype: L{Item} or NoneType
@@ -893,7 +944,6 @@ class Shortcut(Item):
     def get_target_contentclass(self, trans=None):
         """Returns the content class of the target item.
         
-        @param trans: A valid transaction handle
         @return: the fully qualified name of the target's
                  content class
         @rtype: str
@@ -926,8 +976,6 @@ class Container(Item):
         
         @param name: The name of the child to check for
         @type name: str
-        
-        @param trans: A valid transaction handle
             
         @rtype: bool
         """
@@ -941,7 +989,6 @@ class Container(Item):
         
         @param name: The name of the child
         @type name: str
-        @param trans: A valid transaction handle
         @return: The ID of the child if a child with the given name exists
                  else None.
         @rtype: str
@@ -966,7 +1013,6 @@ class Container(Item):
         
         @param name: The name of the child
         @type name: str
-        @param trans: A valid transaction handle
         @return: The child object if a child with the given name exists
                  else None.
         @rtype: L{GenericItem}
@@ -987,7 +1033,6 @@ class Container(Item):
         """
         This method returns all the children of the container.
         
-        @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('displayName', (None, None)), )
@@ -1003,7 +1048,6 @@ class Container(Item):
         """
         This method returns the children that are not containers.
         
-        @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('isCollection', False), )
@@ -1019,7 +1063,6 @@ class Container(Item):
         """
         This method returns the children that are containers.
         
-        @param trans: A valid transaction handle
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('isCollection', True), )
@@ -1035,7 +1078,6 @@ class Container(Item):
         """
         Checks if the container has at least one non-container child.
         
-        @param trans: A valid transaction handle
         @rtype: bool
         """
         conditions = (('isCollection', False), )
@@ -1046,7 +1088,6 @@ class Container(Item):
         """
         Checks if the container has at least one child container.
         
-        @param trans: A valid transaction handle
         @rtype: bool
         """
         conditions = (('isCollection', True), )
@@ -1076,7 +1117,6 @@ class RecycleBin(Container):
         L{DeletedItem.delete} method for every
         L{DeletedItem} instance contained in the bin.
         
-        @param trans: A valid transaction handle
         @return: None
         """
         items = self.get_items()

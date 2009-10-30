@@ -22,9 +22,21 @@ class ContentclassEventHandler(object):
         pass
     
     @staticmethod
+    def on_post_create(item, trans):
+        pass
+    
+    @staticmethod
     def on_update(item, old_item, trans):
         pass
     
     @staticmethod
+    def on_post_update(item, old_item, trans):
+        pass
+    
+    @staticmethod
     def on_delete(item, trans, bPermanent):
+        pass
+    
+    @staticmethod
+    def on_post_delete(item, trans, bPermanent):
         pass

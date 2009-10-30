@@ -84,9 +84,10 @@ def put_external(id, stream):
 def delete_external(id):
     _db_handle.delete_external(id)
 
+# events
 def handle_update(item, old_item):
     if item._eventHandlers:
-        if old_item:
+        if old_item is not None:
             # update
             [handler.on_update(item, old_item, context._trans)
              for handler in item._eventHandlers]
@@ -110,6 +111,17 @@ def handle_update(item, old_item):
                 # it is a new object
                 attr._eventHandler.on_create(item, attr)
 
+def handle_post_update(item, old_item):
+    if item._eventHandlers:
+        if old_item is not None:
+            # update
+            [handler.on_post_update(item, old_item, context._trans)
+             for handler in item._eventHandlers]
+        else:
+            # create
+            [handler.on_post_create(item, context._trans)
+             for handler in item._eventHandlers]
+
 def handle_delete(item, is_permanent):
     if item._eventHandlers:
         [handler.on_delete(item, context._trans, is_permanent)
@@ -120,6 +132,11 @@ def handle_delete(item, is_permanent):
     [attr._eventHandler.on_delete(item, attr, is_permanent)
      for attr in attrs
      if attr._eventHandler]
+
+def handle_post_delete(item, is_permanent):
+    if item._eventHandlers:
+        [handler.on_post_delete(item, context._trans, is_permanent)
+         for handler in item._eventHandlers]
 
 def handle_undelete(item):
     attrs = [getattr(item, attr_name)
