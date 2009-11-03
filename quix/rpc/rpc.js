@@ -50,7 +50,7 @@ QuiX.rpc._cache = (function() {
                     function(ok, value){
                         if (value) {
                             value = unescape(value);
-                            var _pos = value.indexOf('_')
+                            var _pos = value.indexOf('_');
                             callback([value.substring(0, _pos),
                                       value.substring(_pos + 1)]);
                         }
@@ -60,8 +60,10 @@ QuiX.rpc._cache = (function() {
             },
             set : function(key, etag, response) {
                 var value = escape(etag + '_' + response);
-                if (QuiX.persist.size < 0 || QuiX.persist.size > value.length)
+                if (!QuiX.persist.size || QuiX.persist.size < 0 ||
+                        QuiX.persist.size > value.length) {
                     cache.set(key, value);
+                }
             }
         }
     }
@@ -124,7 +126,7 @@ function(method_name /*, arg1, arg2, ...*/) {
                     var status = self.xmlhttp.status;
                     // parse response...
                     try {
-                        if (status == 304) { //Not modified
+                        if (status == 304 || status == 0) { //Not modified
                             retVal = self._processResult(self._cached);
                         }
                         else {

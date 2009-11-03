@@ -568,7 +568,9 @@ QuiX.persist = (function() {
                                          'No suitable storage found');
             o = o || {};
             this.name = name;
-            o.domain = o.domain || location.hostname || 'localhost.localdomain';
+            o.domain = o.domain || location.hostname;
+            if (!o.domain || o.domain == 'localhost')
+                o.domain = 'localhost.localdomain';
             this.o = o;
             o.expires = o.expires || 365 * 2;
             o.path = o.path || '/';
