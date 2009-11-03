@@ -167,7 +167,8 @@ QuiX.ui.TreeNode.prototype.toggle = function() {
     var i;
 	this.isExpanded = !this.isExpanded;
 	if (this.isExpanded) {
-		this._expandImg.src = QuiX.getThemeUrl() + 'images/collapse.gif';
+        if (this._expandImg)
+            this._expandImg.src = QuiX.getThemeUrl() + 'images/collapse.gif';
 		for (i=0; i < this.childNodes.length; i++) {
 			this.childNodes[i].show();
 		}
