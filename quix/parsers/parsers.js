@@ -73,7 +73,7 @@ QuiX.parsers.XMLRPC.parse = function(xml) {
                        new Number(data.firstChild.nodeValue):0;
                 break;
             case "dateTime.iso8601":
-                return new Date().parseIso8601(data.firstChild.nodeValue);
+                return Date.parseIso8601(data.firstChild.nodeValue);
                 break;
             case "array":
                 data = getNode(data, 0);
@@ -284,9 +284,8 @@ QuiX.parsers.JSON = {};
 
     function dateReviver (key, value) {
         if (typeof value === 'string') {
-            if(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/.test(value)) {
-                return new Date(RegExp.$1,RegExp.$2-1,RegExp.$3,
-                                RegExp.$4,RegExp.$5,RegExp.$6);
+            if (Date._iso8601Re.test(value)) {
+                return Date.parseIso8601(value);
             }
         }
         return value;

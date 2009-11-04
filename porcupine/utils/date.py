@@ -18,10 +18,12 @@
 "Porcupine Date class"
 
 import time
+import calendar
 
 from porcupine.config.resources import Locale
 from porcupine.config.resources import ResourceStrings
 from porcupine.core.compat import str
+from porcupine.utils import iso8601
 from porcupine.core.decorators import deprecated
 
 class Date(object):
@@ -211,12 +213,12 @@ class Date(object):
         """
         This method formats the date in the Iso8601 format
         
-        Sample output C{'2004-01-29T18:00:12'}
+        Sample output C{'2004-01-29T18:00:12Z'}
 
         @rtype: str
         """
-        tupTime = time.localtime(self.value)
-        return('%04i-%02i-%02iT%02i:%02i:%02i' % tupTime[:6])
+        tup_time = time.gmtime(self.value)
+        return '%04i-%02i-%02iT%02i:%02i:%02iZ' % tup_time[:6]
     toIso8601 = deprecated(to_iso_8601)
 
     #@staticmethod
@@ -229,7 +231,8 @@ class Date(object):
 
         @rtype: L{Date}
         """
-        tupTime = time.strptime(s, "%Y-%m-%dT%H:%M:%S")
-        return Date(time.mktime(tupTime))
+        date_time = iso8601.parse_date(s)
+        date = Date(float(calendar.timegm(date_time.utctimetuple())))
+        return date
     fromIso8601 = staticmethod(deprecated(from_iso_8601))
     from_iso_8601 = staticmethod(from_iso_8601)

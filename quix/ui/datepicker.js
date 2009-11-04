@@ -11,7 +11,6 @@ QuiX.ui.Datepicker = function(/*params*/) {
 	this.base(params);
 	
 	this.format = params.dateformat || 'ddd dd/mmm/yyyy';
-	this.utc = (params.utc==true || params.utc=='true')?true:false;
 	this.setValue(params.value || '');
 	this.dropdown.parseFromString(
 		'<vbox xmlns="http://www.innoscript.org/quix" ' +
@@ -41,22 +40,16 @@ QuiX.ui.Datepicker.prototype = new QuiX.ui.Combo;
 // backwards compatibility
 var Datepicker = QuiX.ui.Datepicker;
 
-QuiX.ui.Datepicker.prototype.getValue = function(local) {
-	if (!local && this.utc)
-		return this._dt.toUtc();
-	else
-		return this._dt;
+QuiX.ui.Datepicker.prototype.getValue = function() {
+    return this._dt;
 }
 
 QuiX.ui.Datepicker.prototype.setValue = function(val) {
 	if (!(val instanceof Date)) {
 		if (val == '')
 			this._dt = new Date();
-		else {
-			this._dt = new Date().parseIso8601(val);
-			if (this.utc)
-				this._dt = this._dt.toLocal();
-		}
+		else
+			this._dt = Date.parseIso8601(val);
 	}
 	else {
 		var old_dt = this._dt;

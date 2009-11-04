@@ -11,6 +11,7 @@ Contributors:
 3rd party libraries:
 
     * The OQL parser is using PLY by David M. Beazley
+    * The Python ISO 8601 date parser is written by Michael Twomey
     * QuiX's persistence library is based on PersistJS by Paul Duncan
     * QuiX's lightweight rich text editor is based on Cameron Adams'
       work (http://www.themaninblue.com/)
