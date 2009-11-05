@@ -11,6 +11,7 @@ QuiX.ui.Datepicker = function(/*params*/) {
 	this.base(params);
 	
 	this.format = params.dateformat || 'ddd dd/mmm/yyyy';
+    this.time = params.time || '00:00:00.000';
 	this.setValue(params.value || '');
 	this.dropdown.parseFromString(
 		'<vbox xmlns="http://www.innoscript.org/quix" ' +
@@ -46,8 +47,22 @@ QuiX.ui.Datepicker.prototype.getValue = function() {
 
 QuiX.ui.Datepicker.prototype.setValue = function(val) {
 	if (!(val instanceof Date)) {
-		if (val == '')
+		if (val == '') {
 			this._dt = new Date();
+            var time_re = /(\d\d):(\d\d):(\d\d)(\.\d+)?/;
+            var time_match = this.time.match(time_re);
+            if (time_match) {
+                var hour, min, sec, msec;
+                hour = parseInt(time_match[1], 10);
+                min = parseInt(time_match[2], 10);
+                sec = parseInt(time_match[3], 10);
+                if (time_match[4])
+                    msec = parseFloat(time_match[4]) * 1000;
+                else
+                    msec = 0;
+                this._dt.setHours(hour, min, sec, msec);
+            }
+        }
 		else
 			this._dt = Date.parseIso8601(val);
 	}
@@ -72,7 +87,7 @@ QuiX.ui.Datepicker.prototype.render = function(container) {
 	oT1.datepicker = this;
 	
 	oTR1 = oT1.insertRow(oT1.rows.length);
-	for ( i = 0; i < 7; i++ ) {
+	for (var i=0; i<7; i++) {
 		oTH1 = document.createElement("th");
 	    oTR1.appendChild(oTH1);
 	    oTH1.innerHTML = this._navdt.Days[i].slice(0,1);

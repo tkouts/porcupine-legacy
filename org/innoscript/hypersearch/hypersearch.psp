@@ -45,7 +45,7 @@
 				</hbox>
 				<hbox id="date_to_box" height="24" padding="8,0,0,0" disabled="true">
 					<label caption="@@TO@@" width="40"/>
-					<datepicker id="to"/>
+					<datepicker id="to" time="23:59:59.999"/>
 				</hbox>
 				<vbox padding="0,0,8,0" childrenalign="right" height="40">
 					<button width="80" height="24" caption="@@SEARCH@@" onclick="hypersearch.search"/>
