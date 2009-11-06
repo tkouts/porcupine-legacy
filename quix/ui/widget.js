@@ -147,15 +147,45 @@ QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
     var xmlhttp = QuiX.XHRPool.getInstance();
     var self = this;
     xmlhttp.onreadystatechange = function() {
-        if (xmlhttp != null && xmlhttp.readyState==4) {
+        if (xmlhttp.readyState == 4) {
+            var dom;
             QuiX.removeLoader();
-            self.parse(xmlhttp.responseXML, oncomplete);
+            if (QuiX.utils.BrowserInfo.family == 'moz' && QuiX.rpc._cache) {
+                // mozilla xmlhttp doesn't respect cache
+                // use rpc cache for caching responses
+                var status = xmlhttp.status;
+                if (status == 304) { //Not modified
+                    dom = QuiX.domFromString(xmlhttp._cached);
+                }
+                else {
+                    var etag = xmlhttp.getResponseHeader('Etag');
+                    if (etag) {
+                        QuiX.rpc._cache.set(url, etag, xmlhttp.responseText);
+                    }
+                    dom = xmlhttp.responseXML;
+                }
+            }
+            else
+                dom = xmlhttp.responseXML;
+
             QuiX.XHRPool.release(xmlhttp);
+            self.parse(dom, oncomplete);
         }
     }
     QuiX.addLoader();
     xmlhttp.open('GET', url, true);
-    xmlhttp.send('');
+
+    if (QuiX.utils.BrowserInfo.family == 'moz' && QuiX.rpc._cache) {
+        QuiX.rpc._cache.get(url, function(val) {
+            if (val != null) {
+                xmlhttp.setRequestHeader("If-None-Match", val[0]);
+                xmlhttp._cached = val[1];
+            }
+            xmlhttp.send('');
+        });
+    }
+    else
+        xmlhttp.send('');
 }
 
 QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
