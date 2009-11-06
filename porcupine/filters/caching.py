@@ -17,17 +17,44 @@
 """
 Porcupine HTTP caching filters
 """
+import sys
+import os.path
+import struct
+
 from porcupine.filters.filter import PreProcessFilter
+from porcupine.utils import misc
 
 class ETag(PreProcessFilter):
     @staticmethod
-    def generate_item_etag(context, item, registration):
+    def generate_webmethod_etag(context, item, registration, wrapper):
         if item is not None:
-            return '%s%s' % (context.user._id, item.modified)
+            # locate web method's descriptor
+            filter_class = wrapper.__class__
+            while wrapper.__class__.__module__ == filter_class.__module__:
+                wrapper = wrapper.decorator
+
+            method_id = [context.user._id,
+                         struct.pack('>d', item.modified),
+                         context.request.get_lang()]
+            try:
+                # python 2.6
+                func_hash = hash(wrapper.func.func_code)
+            except AttributeError:
+                # python 3
+                func_hash = hash(wrapper.func.__code__)
+            method_id.append(struct.pack('>l', func_hash))
+            
+            if wrapper.template is not None:
+                func_dir = os.path.dirname(
+                    sys.modules[wrapper.func.__module__].__file__)
+                template_file = '%s%s%s' % (func_dir, os.path.sep,
+                                            wrapper.template)
+                method_id.append(misc.generate_file_etag(template_file))
+            return misc.hash(*method_id).hexdigest()
     
     @staticmethod
     def apply(context, item, registration, **kwargs):
-        etag = kwargs['generator'](context, item, registration)
+        etag = kwargs['generator'](context, item, registration, kwargs['wrapper'])
         if etag:
             response = context.response
             if_none_match = context.request.HTTP_IF_NONE_MATCH

@@ -28,10 +28,11 @@ def filter(filter_class, **kwargs):
     class FDecorator(WebMethodWrapper):
         def get_wrapper(self):
             def f_wrapper(item, context):
-                if (filter_class.type=='pre'):
+                kwargs['wrapper'] = self
+                if filter_class.type == 'pre':
                     filter_class.apply(context, item, None, **kwargs)
                 self.decorator.__get__(item, item.__class__)(context)
-                if (filter_class.type=='post'):
+                if filter_class.type == 'post':
                     filter_class.apply(context, item, None, **kwargs)
             return f_wrapper
     return FDecorator
@@ -55,5 +56,5 @@ def requires_login(redirect=None):
 def requires_policy(policyid):
     return filter(authorization.RequiresPolicy, policyid=policyid)
 
-def etag(generator=caching.ETag.generate_item_etag):
+def etag(generator=caching.ETag.generate_webmethod_etag):
     return filter(caching.ETag, generator=generator)
