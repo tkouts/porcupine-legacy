@@ -173,10 +173,10 @@ def get_attribute(obj, name_list):
             obj = Date(attr)
         else:
             obj = attr
-        
+
         if len(name_list) > 0:
-            if type(obj) == list:
-                obj = [get_attribute(item, name_list[:]) for item in obj]
+            if isinstance(obj, ObjectSet):
+                obj = tuple([get_attribute(item, name_list[:]) for item in obj])
             else:
                 obj = get_attribute(obj, name_list[:])
         return obj
