@@ -289,7 +289,7 @@ class Removable(object):
             db._db.handle_post_delete(self, False)
 
         if self.isCollection:
-            conditions = (('displayName', (None, None)), )
+            conditions = (('_parentid', self._id), )
             cursor = db._db.query(conditions)
             cursor.set_scope(self._id)
             cursor.enforce_permissions = False
@@ -303,10 +303,9 @@ class Removable(object):
         
         @return: None
         """
-        if int(self._isDeleted) == 1:
-            db._db.handle_undelete(self)
-        
         self._isDeleted = int(self._isDeleted) - 1
+        if not self._isDeleted:
+            db._db.handle_undelete(self)
 
         if _update_parent:
             # update container
@@ -315,7 +314,7 @@ class Removable(object):
             db._db.put_item(parent)
         
         if self.isCollection:
-            conditions = (('displayName', (None, None)), )
+            conditions = (('_parentid', self._id), )
             cursor = db._db.query(conditions)
             cursor.set_scope(self._id)
             cursor.enforce_permissions = False

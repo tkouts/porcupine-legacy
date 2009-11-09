@@ -30,6 +30,9 @@ class BaseIndex(object):
         def callback(key, value):
             item = _cache.get(value, persist.loads(value))
             index_value = None
+            if item._isDeleted and self.unique:
+                # do not index unique attributes of deleted objects
+                return None
             # do not index composite objects
             if hasattr(item, self.name) and hasattr(item, '_parentid'):
                 attr = getattr(item, self.name)
