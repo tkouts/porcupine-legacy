@@ -26,16 +26,16 @@ class ObjectSet(Set, Hashable):
     The Porcupine object set is a versatile type for keeping a large collection
     of objects or rows of named values in the form of dictionaries.
     """
-    def __init__(self, iterable):
+    def __init__(self, iterable=[]):
         self._elements = []
         self._keys = {}
         self.schema = None
 
         for item in iterable:
-            if hasattr(item, '_id'):
-                id = item._id
-            else:
+            if isinstance(item, tuple):
                 id = item
+            else:
+                id = item._id
             if id not in self._keys:
                 self._keys[id] = True
                 self._elements.append(item)

@@ -52,7 +52,7 @@ class CompositionEventHandler(DatatypeEventHandler):
         dctObjects = {}
         for i, obj in enumerate(new_attr.value):
             if isinstance(obj, Composite):
-                obj._containerid = item._id
+                obj._pid = item._id
             elif isinstance(obj, str):
                 obj = db._db.get_item(obj)
                 new_attr.value[i] = obj
@@ -78,7 +78,12 @@ class CompositionEventHandler(DatatypeEventHandler):
             old_ids = set()
         
         new_ids = set([obj._id for obj in new_attr.value])
-        
+
+        # calculate removed composites
+        lstRemoved = list(old_ids - new_ids)
+        [CompositionEventHandler._removeComposite(db._db.get_item(id))
+         for id in lstRemoved]
+
         # calculate added composites
         lstAdded = list(new_ids - old_ids)
         for obj_id in lstAdded:
@@ -91,29 +96,21 @@ class CompositionEventHandler(DatatypeEventHandler):
             db._db.handle_update(dctObjects[obj_id], db._db.get_item(obj_id))
             db._db.put_item(dctObjects[obj_id])
         
-        # calculate removed composites
-        lstRemoved = list(old_ids - new_ids)
-        [CompositionEventHandler._removeComposite(db._db.get_item(id))
-         for id in lstRemoved]
-        
         new_attr.value = list(new_ids)
     
     @staticmethod
     def on_delete(item, attr, bPermanent):
-        if bPermanent:
-            [CompositionEventHandler._removeComposite(db._db.get_item(id))
-             for id in attr.value]
-        else:
-            for sID in attr.value:
-                composite = db._db.get_item(sID)
-                db._db.handle_delete(composite, False)
-                composite._isDeleted = 1
-                db._db.put_item(composite)
+        [CompositionEventHandler._removeComposite(db._db.get_item(id), bPermanent)
+         for id in attr.value]
     
     @staticmethod
-    def _removeComposite(composite):
-        db._db.handle_delete(composite, True)
-        db._db.delete_item(composite)
+    def _removeComposite(composite, permanent=True):
+        db._db.handle_delete(composite, permanent)
+        if not permanent:
+            composite._isDeleted = 1
+            db._db.put_item(composite)
+        else:
+            db._db.delete_item(composite)
 
 class RelatorNEventHandler(DatatypeEventHandler):
     "RelatorN datatype event handler"

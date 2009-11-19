@@ -73,7 +73,7 @@ def put_item(item):
     _db_handle.put_item(item)
     
 def delete_item(item):
-    _db_handle.delete_item(item._id)
+    _db_handle.delete_item(item)
 
 def get_external(id):
     return _db_handle.get_external(id)
@@ -83,6 +83,16 @@ def put_external(id, stream):
     
 def delete_external(id):
     _db_handle.delete_external(id)
+
+# containers
+def get_children(container_id):
+    return _db_handle.get_children(container_id)
+
+def get_child_by_name(container_id, name):
+    item = _db_handle.get_child_by_name(container_id, name)
+    if item is not None:
+        item = persist.loads(item)
+    return item
 
 # events
 def handle_update(item, old_item):

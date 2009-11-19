@@ -17,13 +17,13 @@
 """
 Porcupine database session manager content classes
 """
-from porcupine.core.decorators import deprecated
 import time
 
 from porcupine import db
 from porcupine import exceptions
 from porcupine.systemObjects import Container, GenericItem
 from porcupine.core.session.genericsession import GenericSession
+from porcupine.core.decorators import deprecated
 
 class SessionsContainer(Container):
     """
@@ -75,7 +75,7 @@ class Session(GenericItem, GenericSession):
     sessionid = property(get_sessionid)
 
     @db.requires_transactional_context
-    def append_to(self, parent, trans=None):
+    def append_to(self, parent):
         """
         A lighter append_to
         """
@@ -91,11 +91,11 @@ class Session(GenericItem, GenericSession):
         self._created = time.time()
         self.modifiedBy = 'SYSTEM'
         self.modified = time.time()
-        self._parentid = parent._id
+        self._pid = parent._id
         db._db.put_item(self)
 
     @db.requires_transactional_context
-    def update(self, trans=None):
+    def update(self):
         """
         A lighter update
         """
@@ -103,7 +103,7 @@ class Session(GenericItem, GenericSession):
         db._db.put_item(self)
 
     @db.requires_transactional_context
-    def delete(self, trans=None):
+    def delete(self):
         """
         A lighter delete
         """

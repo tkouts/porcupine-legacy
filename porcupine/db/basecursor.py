@@ -25,8 +25,7 @@ from porcupine.systemObjects import Shortcut
 class BaseCursor(object):
     "Base cursor class"
 
-    def __init__(self, index):
-        self._index = index
+    def __init__(self):
         self._value = None
         self._range = None
         self._reversed = False

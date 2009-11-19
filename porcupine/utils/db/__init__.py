@@ -51,13 +51,16 @@ def pack_value(value):
     return packed
 
 def str_long(s, padding=16):
+    """
+    Used by bdb range cursors to provide an approximate cursor sizing
+    """
     if len(s) < padding:
-        s += '\x00' * (padding - len(s))
+        s += b'\x00' * (padding - len(s))
     chars = [c for c in s[:padding]]
     chars.reverse()
     long = 0
     for i, c in enumerate(chars):
-        long += ord(c) * (256 ** i)
+        long += ord(c) * (2 ** i)
     return long
 
 @db.transactional(auto_commit=True)

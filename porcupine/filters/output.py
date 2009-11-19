@@ -18,7 +18,6 @@
 Porcupine output filters
 """
 import os
-import os.path
 import glob
 import gzip
 import re

@@ -18,7 +18,6 @@
 Porcupine server Berkeley DB interface
 """
 import os
-import os.path
 import time
 import glob
 try:
@@ -30,6 +29,7 @@ from threading import Thread
 from porcupine import context
 from porcupine import exceptions
 from porcupine.core import persist
+from porcupine.core.runtime import logger
 from porcupine.config.services import services
 from porcupine.config.settings import settings
 # db objects
@@ -38,7 +38,7 @@ from porcupine.db.bsddb.index import DbIndex
 from porcupine.db.bsddb.cursor import Cursor, Join
 # utilities
 from porcupine.utils import misc
-from porcupine.utils.db import _err_unsupported_index_type
+from porcupine.utils.db import _err_unsupported_index_type, pack_value
 from porcupine.utils.db.backup import BackupFile
 
 class DB(object):
@@ -63,6 +63,10 @@ class DB(object):
     shm_key = settings['store'].get('shm_key', None)
     # maintenance (checkpoint) thread
     _maintenance_thread = None
+
+    # log berkeleyDB version
+    logger.info('BerkeleyDB version is %s' %
+                '.'.join(str(x) for x in db.version()))
 
     def __init__(self, **kwargs):
         # create db environment
@@ -94,8 +98,7 @@ class DB(object):
         # replication settings
         rep_config = settings['store'].get('rep_config', None)
         init_rep = kwargs.get('init_rep', False)
-
-
+        
         if rep_config and init_rep:
             # in replicated environments use non-durable transactions
             self._env.set_flags(db.DB_TXN_NOSYNC, 1)
@@ -127,7 +130,7 @@ class DB(object):
                     raise exceptions.ConfigurationError(
                         'Multiprocessing environments should not be ' +
                         'master candidates and join an existing replication ' +
-                        'site as clients.')
+                        'site only as clients.')
 
                 # start replication service
                 self.replication_service.start()
@@ -160,11 +163,12 @@ class DB(object):
         # open items db
         while True:
             self._itemdb = db.DB(self._env)
+            self._itemdb.set_pagesize(2048)
             try:
                 self._itemdb.open(
                     'porcupine.db',
                     'items',
-                    dbtype = db.DB_HASH,
+                    dbtype = db.DB_BTREE,
                     mode = db_mode,
                     flags = db_flags
                 )
@@ -210,43 +214,75 @@ class DB(object):
     def get_item(self, oid):
         if type(oid) != bytes:
             oid = oid.encode('utf-8')
-        try:
-            return self._itemdb.get(oid,
-                                    txn=context._trans and context._trans.txn)
-        except UnicodeEncodeError:
-            return None
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            context._trans.abort()
-            raise exceptions.DBRetryTransaction
+        while True:
+            try:
+                item = self._indices['_id'].db.get(oid,
+                    txn=context._trans and context._trans.txn)
+                break
+            except UnicodeEncodeError:
+                return None
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                if context._trans is not None:
+                    context._trans.abort()
+                    raise exceptions.DBRetryTransaction
+        return item
 
     def put_item(self, item):
         try:
-            self._itemdb.put(item._id.encode('ascii'),
-                             persist.dumps(item), context._trans.txn)
+            self._itemdb.put(
+                pack_value(item._pid) + b'_' + pack_value(item._id),
+                persist.dumps(item),
+                context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
         except db.DBError as e:
             if e.args[0] == _err_unsupported_index_type:
-                raise db.DBError("Unsupported indexed data type")
+                raise db.DBError('Unsupported indexed data type')
             else:
                 raise
 
-    def delete_item(self, oid):
+    def delete_item(self, item):
         try:
-            self._itemdb.delete(oid.encode('ascii'), context._trans.txn)
+            self._itemdb.delete(
+                pack_value(item._pid) + b'_' + pack_value(item._id),
+                context._trans.txn)
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
 
+    # containers
+    def get_children(self, container_id):
+        cursor = Cursor(self._itemdb, '_pid')
+        cursor.set_scope(container_id)
+        cursor.set_range(None, None)
+        return cursor
+
+    def get_child_by_name(self, container_id, name):
+        while True:
+            try:
+                item = self._indices['displayName'].db.get(
+                    pack_value(container_id) + b'_' + pack_value(name),
+                    txn=context._trans and context._trans.txn)
+                break
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                if context._trans is not None:
+                    context._trans.abort()
+                    raise exceptions.DBRetryTransaction
+        return item
+
     # external attributes
     def get_external(self, id):
-        try:
-            return self._docdb.get(id.encode('ascii'),
-                                   txn=context._trans and context._trans.txn)
-        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-            context._trans.abort()
-            raise exceptions.DBRetryTransaction
+        while True:
+            try:
+                item = self._docdb.get(id.encode('ascii'),
+                                       txn=context._trans and context._trans.txn)
+                break
+            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+                if context._trans is not None:
+                    context._trans.abort()
+                    raise exceptions.DBRetryTransaction
+        return item
 
     def put_external(self, id, stream):
         try:
@@ -266,7 +302,7 @@ class DB(object):
     def get_cursor_list(self, conditions):
         cur_list = []
         for index, value in conditions:
-            cursor = Cursor(self._indices[index])
+            cursor = Cursor(self._indices[index].db, self._indices[index].name)
             if type(value) == tuple:
                 reversed = (len(value) == 3 and value[2])
                 cursor.set_range(value[0], value[1])
@@ -361,7 +397,6 @@ class DB(object):
 
     def __maintain(self):
         "deadlock detection thread"
-        from porcupine.core.runtime import logger
         while self._running:
             time.sleep(0.05)
             # deadlock detection

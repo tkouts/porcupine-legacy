@@ -93,12 +93,12 @@ def pop_stack(stack):
             pop_stack(stack)
 
 def evaluate_stack(stack, variables, for_object=None):
-    try:
+    if isinstance(stack, list):
         op = stack.pop()
-    except AttributeError:
+    else:
         op = stack
 
-    if type(op) == list:
+    if isinstance(op, list):
         cmd_code, params = op
         handler = globals()['h_%s' % cmd_code]
         return handler(params, variables, for_object)
@@ -159,7 +159,7 @@ def get_attribute(obj, name_list):
     try:
         attr_name = name_list.pop(0)
         attr = getattr(obj, attr_name)
-        if attr.__class__.__module__ != ''.__class__.__module__:
+        if attr.__class__.__module__ != None.__class__.__module__:
             if isinstance(attr, datatypes.Reference1):
                 obj = attr.get_item()
             elif isinstance(attr,
@@ -330,7 +330,7 @@ def h_100(params, variables):
 
 def select(container_id, deep, specifier, fields, variables,
            top=None, top_accumulative=False):
-    results = ObjectSet([])
+    results = ObjectSet()
     for iterable, condition in specifier:
         results1 = []
         for item in iterable:
@@ -435,16 +435,18 @@ def optimize_query(conditions, variables, parent_op=None):
         elif op in ['=', '<', '>', '<=', '>=']:
             index = conditions[-1]
             lookup = None
-            if type(index) == str and db._db.has_index(index):
-                conditions.pop()
-                index_value = evaluate_stack(conditions, variables)
-                if index_value is not None:
-                    if op == '=':
-                        lookup = [index, index_value]
-                    elif op in ['<', '<=']:
-                        lookup = [index, (None, (index_value, '=' in op))]
-                    elif op in ['>', '>=']:
-                        lookup = [index, ((index_value, '=' in op), None)]
+            if type(index) == str:
+                if index == '_id': index = 'id'
+                if db._db.has_index(index):
+                    conditions.pop()
+                    index_value = evaluate_stack(conditions, variables)
+                    if index_value is not None:
+                        if op == '=':
+                            lookup = [index, index_value]
+                        elif op in ['<', '<=']:
+                            lookup = [index, (None, (index_value, '=' in op))]
+                        elif op in ['>', '>=']:
+                            lookup = [index, ((index_value, '=' in op), None)]
             if lookup is not None:
                 optimized[0][0].append(lookup)
             else:
@@ -551,7 +553,7 @@ def h_200(params, variables, for_object=None):
             optimized = optimize_query(where_condition[:], variables)
             uses_indexes = all([l[0] for l in optimized])
         if not uses_indexes:
-            optimized = [[[('displayName', (None, None))], where_condition]]
+            optimized = [[None, where_condition]]
 
     # order by, range optimizations
     if for_object is None:
@@ -617,7 +619,7 @@ def h_200(params, variables, for_object=None):
     #print len(optimized)
     #print('opt: %s' % optimized)
 
-    results = ObjectSet([])
+    results = ObjectSet()
     for deep, object_id in select_from:
         if deep == 2:
             # this:attr
@@ -646,8 +648,11 @@ def h_200(params, variables, for_object=None):
                 cp_optimized = copy.deepcopy(optimized)
                 # create cursors
                 for l in cp_optimized:
-                    l[0] = db._db.query(l[0])
-                    l[0].set_scope(obj._id)
+                    if l[0] is None:
+                        l[0] = db._db.get_children(obj._id)
+                    else:
+                        l[0] = db._db.query(l[0])
+                        l[0].set_scope(obj._id)
                 r = select(obj._id, deep, cp_optimized,
                            all_fields, variables,
                            top=select_top, top_accumulative=top_accumulative)
