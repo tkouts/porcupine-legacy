@@ -50,6 +50,9 @@ def i18n(resources):
 def gzip():
     return filter(output.Gzip)
 
+def jsmin():
+    return filter(output.JSMin)
+
 def requires_login(redirect=None):
     return filter(authorization.RequiresLogin, redirect=redirect)
 

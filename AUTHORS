@@ -21,3 +21,4 @@ Contributors:
       and Bobby van der Sluis
     * QuiX's hashing functions are written by Angel Marin (SHA256) and
       Paul Johnston (MD5)
+    * JavaScript minifier filter is based on JSMin by Douglas Crockford

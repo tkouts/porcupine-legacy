@@ -23,8 +23,9 @@ import gzip
 import re
 import io
 
-from porcupine.filters.filter import PostProcessFilter
 from porcupine.utils import misc
+from porcupine.filters.jsmin import JavascriptMinify
+from porcupine.filters.filter import PostProcessFilter
 
 class Gzip(PostProcessFilter):
     "Compresses the server's output using the gzip compression algorithm"
@@ -33,9 +34,9 @@ class Gzip(PostProcessFilter):
     dynamicLevel = 3
     
     @staticmethod
-    def compress(zbuf, stream, level):
-        zfile = gzip.GzipFile(mode='wb', fileobj = zbuf, compresslevel = level)
-        zfile.write(stream)
+    def compress(input, output, level):
+        zfile = gzip.GzipFile(mode='wb', fileobj=output, compresslevel=level)
+        zfile.write(input)
         zfile.close()
 
     @staticmethod
@@ -50,30 +51,29 @@ class Gzip(PostProcessFilter):
         isStatic = (registration is not None and registration.type == 0)
                 
         if isStatic:
-            fileName = registration.context
-            sMod = hex(os.stat(fileName)[8])[2:]
+            filename = registration.context
+            modified = hex(os.stat(filename)[8])[2:]
             
-            compfn = fileName.replace(os.path.sep, '_')
+            compfn = filename.replace(os.path.sep, '_')
             if os.name == 'nt':
                 compfn = compfn.replace(os.path.altsep, '_').replace(':', '')
             
             glob_f = Gzip.cacheFolder + '/' + compfn
-            compfn = glob_f + '#' + sMod + '.gzip'
+            compfn = glob_f + '#' + modified + '.gzip'
 
             if not(os.path.exists(compfn)):
                 # remove old compressed files
-                oldFiles = glob.glob(glob_f + '*.gzip')
-                [os.remove(oldFile) for oldFile in oldFiles]
+                oldfiles = glob.glob(glob_f + '*.gzip')
+                [os.remove(old) for old in oldfiles]
 
-                zBuf = io.BytesIO()
-                Gzip.compress(zBuf, context.response._get_body(),
+                output = io.BytesIO()
+                Gzip.compress(context.response._get_body(), output,
                               Gzip.staticLevel)
 
-                context.response._body = zBuf
+                context.response._body = output
 
                 cache_file = open(compfn, 'wb')
-                cache_file.write(zBuf.getvalue())
-                
+                cache_file.write(output.getvalue())
                 cache_file.close()
             else:
                 cache_file = open(compfn, 'rb')
@@ -82,16 +82,17 @@ class Gzip(PostProcessFilter):
                 cache_file.close()
                 
         else:
-            zBuf = io.StringIO()
-            Gzip.compress(zBuf, context.response._get_body(), Gzip.dynamicLevel)
-            context.response._body = zBuf
+            output = io.BytesIO()
+            Gzip.compress(context.response._get_body(), output, Gzip.dynamicLevel)
+            context.response._body = output
 
 class I18n(PostProcessFilter):
-    _tokens = re.compile(b'(@@([\w\.]+)@@)', re.DOTALL)
     """
     Internationalization filter based on the request's
     preferred language setting.
     """
+    _tokens = re.compile(b'(@@([\w\.]+)@@)', re.DOTALL)
+
     @staticmethod
     def apply(context, item, registration, **kwargs):
         language = context.request.get_lang()
@@ -111,3 +112,59 @@ class I18n(PostProcessFilter):
             output = output.replace(token, res.encode(context.response.charset))
         context.response.clear()
         context.response.write(output)
+
+class JSMin(PostProcessFilter):
+    """
+    Compresses JavaScript files using JSMin
+    http://www.crockford.com/javascript/jsmin.html
+    """
+    cacheFolder = None
+
+    @staticmethod
+    def compress(input, output):
+        input.seek(0);
+        jsmin = JavascriptMinify()
+        jsmin.minify(input, output)
+
+    @staticmethod
+    def apply(context, item, registration, **kwargs):
+        if JSMin.cacheFolder is None:
+            config = JSMin.loadConfig()
+            JSMin.cacheFolder = config['cache']
+
+        is_static = (registration is not None and registration.type == 0)
+
+        if is_static:
+            filename = registration.context
+            modified = hex(os.stat(filename)[8])[2:]
+
+            compfn = filename.replace(os.path.sep, '_')
+            if os.name == 'nt':
+                compfn = compfn.replace(os.path.altsep, '_').replace(':', '')
+
+            glob_f = JSMin.cacheFolder + '/' + compfn
+            compfn = glob_f + '#' + modified + '.jsmin'
+
+            if not(os.path.exists(compfn)):
+                # remove old compressed files
+                oldfiles = glob.glob(glob_f + '*.jsmin')
+                [os.remove(old) for old in oldfiles]
+
+                output = io.BytesIO()
+                JSMin.compress(context.response._body, output)
+
+                context.response._body = output
+
+                cache_file = open(compfn, 'wb')
+                cache_file.write(output.getvalue())
+                cache_file.close()
+            else:
+                cache_file = open(compfn, 'rb')
+                context.response.clear()
+                context.response.write(cache_file.read())
+                cache_file.close()
+
+        else:
+            output = io.BytesIO()
+            JSMin.compress(context.response._body, output)
+            context.response._body = ouput
