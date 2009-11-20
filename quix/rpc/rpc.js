@@ -83,10 +83,7 @@ QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
 
         this.callback_info = null;
         this.response = null;
-        this.use_cache = true;
-
-        this.onerror = null;
-    }
+        this.use_cache = true;    }
 }
 
 QuiX.rpc.BaseRPCRequest.prototype._contentType = 'text/plain';
@@ -111,7 +108,7 @@ function(method_name /*, arg1, arg2, ...*/) {
 
             if (this.use_cache) {
                 argsArray = Array.prototype.concat.apply([], arguments);
-                key = QuiX.utils.hashlib.hex_sha256(
+                key = QuiX.utils.hashlib.hex_md5(
                     this.url + QuiX.parsers.JSON.stringify(argsArray));
             }
 

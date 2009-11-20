@@ -19,3 +19,5 @@ Contributors:
       Cowboys' work
     * QuiX also includes swfobject by Geoff Stearns, Michael Williams,
       and Bobby van der Sluis
+    * QuiX's hashing functions are written by Angel Marin (SHA256) and
+      Paul Johnston (MD5)
