@@ -77,7 +77,6 @@ def about(self):
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=RootFolder,
-                   max_age=-1,
                    template='../ui.Dlg_UserSettings.quix')
 def user_settings(self):
     "Displays the user settings dialog"
@@ -149,7 +148,6 @@ def __blank__(self):
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=RootFolder,
                    isPage=True,
-                   max_age=-1,
                    template='../ui.Desktop.quix')
 def __blank__(self):
     "Displays the desktop"

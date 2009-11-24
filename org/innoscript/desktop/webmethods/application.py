@@ -29,7 +29,6 @@ from org.innoscript.desktop.webmethods import baseitem
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Application,
-                   max_age=-1,
                    template='../ui.Frm_AppProperties.quix')
 def properties(self):
     "Displays the application's properties form"

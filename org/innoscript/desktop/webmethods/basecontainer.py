@@ -39,8 +39,7 @@ from org.innoscript.desktop.webmethods import baseitem
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Container,
-                   template='../ui.ContainerList.quix',
-                   max_age=3600)
+                   template='../ui.ContainerList.quix')
 def list(self):
     "Displays the container's window"
     return {
@@ -175,7 +174,6 @@ def getSubtree(self):
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Container,
-                   max_age=-1,
                    template='../ui.Dlg_SelectObjects.quix')
 def selectobjects(self):
     "Displays the select objects dialog"

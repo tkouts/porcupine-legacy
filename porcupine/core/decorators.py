@@ -71,7 +71,7 @@ class WebMethodDescriptor(object):
                 raise exceptions.PermissionDenied
             context.response.content_type = self.content_type
             context.response.charset = self.encoding
-            if self.max_age:
+            if self.max_age is not None:
                 context.response.set_expiration(self.max_age)
             return self.execute(item, context)
         compat.set_func_name(wm_wrapper, self.func_name)

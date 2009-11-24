@@ -176,7 +176,6 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Item,
-                   max_age=-1,
                    template='../ui.Frm_AutoProperties.quix')
 def properties(self):
     "Displays a generic edit form based on the object's schema"
@@ -215,7 +214,6 @@ def properties(self):
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Item,
-                   max_age=-1,
                    template='../ui.Dlg_Rename.quix')
 def rename(self):
     "Displays the rename dialog"

@@ -29,7 +29,6 @@ from org.innoscript.desktop.webmethods import baseitem
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=User,
-                   max_age=-1,
                    template='../ui.Frm_UserProperties.quix')
 def properties(self):
     "Displays the user's properties form"
@@ -73,9 +72,9 @@ def properties(self):
     params['SECURITY_TAB'] = baseitem._getSecurity(self, user)
     return params
 
+@filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=User,
-                   max_age=120,
                    template='../ui.Frm_UserResetPassword.quix')
 def resetpsw(self):
     "Displays the reset password dialog"

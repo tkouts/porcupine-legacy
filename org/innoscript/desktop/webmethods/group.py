@@ -27,7 +27,6 @@ from org.innoscript.desktop.webmethods import baseitem
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Group,
-                   max_age=-1,
                    template='../ui.Frm_GroupProperties.quix')
 def properties(self):
     "Displays the group's properties form"
