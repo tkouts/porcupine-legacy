@@ -51,10 +51,11 @@ class DB(object):
     log_dir = os.path.abspath(settings['store'].get('bdb_log_dir', dir))
     if log_dir[-1] != '/':
         log_dir += '/'
-    # temporary directory
-    tmp_dir = os.path.abspath(settings['global']['temp_folder'])
-    if tmp_dir[-1] != '/':
-        tmp_dir += '/'
+    # environment files directory
+    env_dir = os.path.abspath(settings['store'].get('env_dir',
+              os.path.abspath(settings['global']['temp_folder'])))
+    if env_dir[-1] != '/':
+        env_dir += '/'
     # cache size
     cache_size = settings['store'].get('cache_size', None)
     # transaction timeout
@@ -104,7 +105,7 @@ class DB(object):
             self._env.set_flags(db.DB_TXN_NOSYNC, 1)
             additional_flags |= db.DB_INIT_REP
 
-        self._env.open(self.tmp_dir,
+        self._env.open(self.env_dir,
                        db.DB_THREAD | db.DB_INIT_MPOOL | db.DB_INIT_LOCK |
                        db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
                        additional_flags)
@@ -341,7 +342,7 @@ class DB(object):
         return Transaction(self._env, nosync)
 
     def __remove_env(self):
-        files = glob.glob(self.tmp_dir + '__db.*')
+        files = glob.glob(self.env_dir + '__db.*')
         for file in files:
             try:
                 os.remove(file)
