@@ -27,6 +27,7 @@ from porcupine.db import _db
 from porcupine.core.runtime import logger
 from porcupine.core.servicetypes import asyncserver
 from porcupine.core.networking.request import BaseRequest
+from porcupine.administration.package import Package
 from porcupine.config.services import services
 from porcupine.utils import misc
 
@@ -120,7 +121,76 @@ class ManagementThread(asyncserver.BaseServerThread):
                 else:
                     return (0, 'No log files removed.')
 
+            # package management commands
+            elif cmd == 'PACKAGE':
+                ini_file = request.data
+                my_pkg = None
+                try:
+                    my_pkg = Package(ini_file=ini_file)
+                    my_pkg.create()
+                finally:
+                    if my_pkg is not None:
+                        my_pkg.close()
+                return (0, 'The package "%s-%s.ppf" was created succefully.'
+                        % (my_pkg.name, my_pkg.version))
+
+            elif cmd == 'INSTALL':
+                # some scripts might require a security context
+                from porcupine import context
+                ppf_file = request.data
+                my_pkg = None
+                try:
+                    my_pkg = Package(package_file=ppf_file)
+                    # install as system
+                    context.user = _db.get_item('system')
+                    my_pkg.install()
+                finally:
+                    if my_pkg is not None:
+                        my_pkg.close()
+                    context.user = None
+                return (0, 'The package "%s" was installed succefully.'
+                        % ppf_file)
+
+            elif cmd == 'UNINSTALL':
+                # some scripts might require a security context
+                from porcupine import context
+                ppf_file = request.data
+                my_pkg = None
+                try:
+                    my_pkg = Package(package_file=ppf_file)
+                    # uninstall as system
+                    context.user = _db.get_item('system')
+                    my_pkg.uninstall()
+                finally:
+                    if my_pkg is not None:
+                        my_pkg.close()
+                    context.user = None
+                return (0, 'The package "%s" was uninstalled succefully.'
+                        % ppf_file)
+
             # replication commands
+            elif cmd == 'SITE_INFO':
+                rep_mgr = _db.get_replication_manager()
+                if rep_mgr is not None:
+                    site_list = rep_mgr.get_site_list() + [rep_mgr.local_site]
+                    info = [str.format('{0:25}{1:10}{2:6}',
+                                      'SITE', 'PRIORITY', 'MASTER'),
+                            '-' * 41]
+                    for site in site_list:
+                        if site.is_master:
+                            m = 'X'
+                        else:
+                            m = ' '
+                        info.append(str.format('{0:25}{1:10}{2:6}',
+                                               site.mgt_address,
+                                               str(site.priority), m))
+
+                    info.append('')
+                    info.append('Total sites: %d' % len(site_list))
+                    return (0, '\n'.join(info))
+                else:
+                    raise NotImplementedError
+
             elif cmd == 'REP_JOIN_SITE':
                 rep_mgr = _db.get_replication_manager()
                 if rep_mgr is not None:
@@ -157,7 +227,7 @@ class ManagementThread(asyncserver.BaseServerThread):
             elif cmd == 'RELOAD':
                 mod = misc.get_rto_by_name(request.data)
                 misc.reload_module_tree(mod)
-                services.notify(('RELOAD', request.data))
+                services.notify(('RELOAD_PACKAGE', request.data))
                 return (0, 'Reloaded module tree "%s"' % request.data)
 
             # unknown command

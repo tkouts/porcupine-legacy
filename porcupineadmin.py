@@ -46,6 +46,32 @@ DATABASE COMMANDS
     SERVERNAME:SERVERPORT - The management server address (i.e. localhost:6001)
     BACKUPFILE - The server's local path to the backup file
 
+PACKAGE MANAGEMENT
+==================
+
+    Install package:
+        $ python porcupineadmin.py -i -s SERVERNAME:SERVERPORT -f PPF_FILE or
+        $ python porcupineadmin.py --install --server=SERVERNAME:SERVERPORT --file=PPF_FILE
+
+    Uninstall package:
+        $ python porcupineadmin.py -u -s SERVERNAME:SERVERPORT -f PPF_FILE or
+        $ python porcupineadmin.py --uninstall --server=SERVERNAME:SERVERPORT --file=PPF_FILE
+
+    Create install package:
+        $ python porcupineadmin.py -p -s SERVERNAME:SERVERPORT -f INI_FILE or
+        $ python porcupineadmin.py --package --server=SERVERNAME:SERVERPORT --file=INI_FILE
+
+    SERVERNAME:SERVERPORT - The management server address (i.e. localhost:6001)
+    PPF_FILE - The server's local path to the ppf package
+    INI_FILE - The server's local path to the ini package description file
+
+REPLICATION
+===========
+
+    Site info:
+        $ python porcupineadmin.py -t -s SERVERNAME:SERVERPORT
+        $ python porcupineadmin.py --siteinfo --server=SERVERNAME:SERVERPORT
+
 OTHER COMMANDS
 ==============
 
@@ -61,10 +87,11 @@ def usage():
 # get arguments
 argv = sys.argv[1:]
 try:
-    opts, args = getopt.getopt(argv, "brhcs:f:l:",
+    opts, args = getopt.getopt(argv, "brhcpiuts:f:l:",
                                ["backup","restore","shrink",
                                 "recover","server=","file=",
-                                "reload="])
+                                "reload=","package","install",
+                                "uninstall", "siteinfo"])
 except getopt.GetoptError:
     usage()
 
@@ -87,9 +114,17 @@ if opts:
             address = arg
         elif opt in ('-f', '--file'):
             file = arg
+        elif opt in ('-p', '--package'):
+            command = 'PACKAGE'
+        elif opt in ('-i', '--install'):
+            command = 'INSTALL'
+        elif opt in ('-u', '--uninstall'):
+            command = 'UNINSTALL'
         elif opt in ('-l', '--reload'):
             command = 'RELOAD'
             data = arg
+        elif opt in ('-t', '--siteinfo'):
+            command = 'SITE_INFO'
 else:
     usage()
 
@@ -110,7 +145,7 @@ else:
     input_ = input
 
 # construct request object
-if command in ('DB_BACKUP', 'DB_RESTORE'):
+if command in ('DB_BACKUP', 'DB_RESTORE', 'PACKAGE', 'INSTALL', 'UNINSTALL'):
     if not(file):
         usage()
     msg = management.MgtMessage(command, file)

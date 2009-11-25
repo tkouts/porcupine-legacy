@@ -24,6 +24,7 @@ except ImportError:
     # python 3
     import queue
 
+import sys
 import asyncore
 import select
 import socket
@@ -31,6 +32,7 @@ import time
 from errno import EINTR
 from threading import Thread, current_thread
 
+from porcupine.utils import misc
 from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
 from porcupine.db.basetransaction import BaseTransaction
@@ -495,11 +497,31 @@ if multiprocessing:
                     from porcupine.db import _db
                     #print(self.name, params.address)
                     _db.get_replication_manager().master = params
-                elif command == 'RELOAD':
-                    from porcupine.utils import misc
-                    mod = misc.get_rto_by_name(params)
-                    misc.reload_module_tree(mod)
+                elif command == 'RELOAD_PACKAGE':
+                    try:
+                        mod = sys.modules[params]
+                        misc.reload_module_tree(mod)
+                    except KeyError:
+                        pass
+                elif command == 'RELOAD_MODULE':
+                    try:
+                        mod = sys.modules[params]
+                        misc.reload_module(mod)
+                    except KeyError:
+                        pass
+                elif command == 'ADD_PUBDIR':
+                    from porcupine.config import pubdirs
+                    dir_name, dir = params
+                    pubdirs.dirs[dir_name] = dir
+                elif command == 'REMOVE_PUBDIR':
+                    from porcupine.config import pubdirs
+                    try:
+                        del pubdirs.dirs[params]
+                    except KeyError:
+                        pass
+
                 self.connection.send(True)
+            
             self.connection.send(None)
             self.is_alive = False
 

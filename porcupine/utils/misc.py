@@ -152,7 +152,18 @@ def reload_module_tree(module, memo=None):
         imp.reload(module)
         #print(module.__name__)
         memo[module.__name__] = True
-    
+
+def reload_module(module):
+    dependent = [module]
+    # find dependencies
+    for mod in (m for m in sys.modules.values() if m is not None):
+        for x in mod.__dict__.values():
+            if x == mod or getattr(x, '__module__', None) == module.__name__:
+                if mod not in dependent:
+                    dependent.append(mod)
+    # reload dependent modules
+    [imp.reload(mod) for mod in dependent]
+
 def get_full_path(item):
     """
     Returns the full path of an object

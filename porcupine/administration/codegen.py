@@ -23,13 +23,12 @@ import sys
 import types
 import time
 import re
-import imp
 
 from porcupine import db
 from porcupine import datatypes
 from porcupine import systemObjects
+from porcupine.config.services import services
 from porcupine.utils import misc
-from porcupine.administration import offlinedb
 
 class GenericSchemaEditor(object):
     def __init__(self, classobj):
@@ -210,40 +209,39 @@ class ItemEditor(GenericSchemaEditor):
                 GenericSchemaEditor.commit_changes(self)
                 # we must reload the class module
                 oMod = misc.get_rto_by_name(self._class.__module__)
-                imp.reload(oMod)
+                misc.reload_module(oMod)
+                # reload module in multi-processing enviroments
+                services.notify(('RELOAD_MODULE', self._class.__module__))
             
-            db_handle = offlinedb.get_handle()
+            db_handle = db._db
             oql_command = OqlCommand()
             rs = oql_command.execute(
                 "select * from deep('/') where instanceof('%s')" %
                 self._instance.contentclass)
-            try:
-                if len(rs):
-                    @db.transactional(auto_commit=True)
-                    def _update_db():
-                        for item in rs:
-                            for name in self._removedProps:
-                                if hasattr(item, name):
-                                    delattr(item, name)
-                            for name in self._setProps:
-                                if not hasattr(item, name):
-                                    # add new
-                                    setattr(item, name, self._setProps[name])
+            if len(rs):
+                @db.transactional(auto_commit=True)
+                def _update_db():
+                    for item in rs:
+                        for name in self._removedProps:
+                            if hasattr(item, name):
+                                delattr(item, name)
+                        for name in self._setProps:
+                            if not hasattr(item, name):
+                                # add new
+                                setattr(item, name, self._setProps[name])
+                            else:
+                                # replace property
+                                old_value = getattr(item, name).value
+                                setattr(item, name, self._setProps[name])
+                                new_attr = getattr(item, name)
+                                if isinstance(new_attr, datatypes.Password):
+                                    new_attr._value = old_value
                                 else:
-                                    # replace property
-                                    old_value = getattr(item, name).value
-                                    setattr(item, name, self._setProps[name])
-                                    new_attr = getattr(item, name)
-                                    if isinstance(new_attr, datatypes.Password):
-                                        new_attr._value = old_value
-                                    else:
-                                        new_attr.value = old_value
-                            if self.xform:
-                                item = self.xform(item)
-                            db_handle.put_item(item)
-                    _update_db()
-            finally:
-                offlinedb.close()
+                                    new_attr.value = old_value
+                        if self.xform:
+                            item = self.xform(item)
+                        db_handle.put_item(item)
+                _update_db()
     # backwards compatibility
     commitChanges = commit_changes
     
