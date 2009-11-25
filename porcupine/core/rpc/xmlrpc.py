@@ -58,4 +58,4 @@ class _XMLRPCEncoder(xmlrpclib.Marshaller, BaseEncoder):
             write(obj.to_iso_8601())
             write("</dateTime.iso8601></value>\n")
         else:
-            raise TypeError, "cannot marshal %s objects" % type(obj)
+            raise TypeError("cannot marshal %s objects" % type(obj))
