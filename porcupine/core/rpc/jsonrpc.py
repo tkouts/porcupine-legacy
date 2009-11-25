@@ -18,6 +18,7 @@
 import json
 
 from porcupine.core.rpc import BaseEncoder
+from porcupine.utils.date import Date
 
 def error(code, message, data, request_id):
     response = {
@@ -31,8 +32,13 @@ def error(code, message, data, request_id):
     }
     return json.dumps(response)
 
+def _date_reviver(dct):
+    if '__date__' in dct:
+        return Date.from_iso_8601(dct['value'])
+    return dct
+
 def loads(s):
-    request = json.loads(s)
+    request = json.loads(s, object_hook=_date_reviver)
     return (request['id'], request['params'])
 
 def dumps(request_id, obj, encoding):

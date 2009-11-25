@@ -356,7 +356,14 @@ replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
 
 
 Date.prototype.toJSON = function (key) {
-    return this.toIso8601();
+    // normally this should be used
+    // return this.toIso8601();
+    // but in order to accomodate the Python json parser using an object hook
+    // we encode dates in a somehow different way
+    return {
+        __date__ : true,
+        value : this.toIso8601()
+    }
 };
 
 String.prototype.toJSON =

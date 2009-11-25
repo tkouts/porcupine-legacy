@@ -21,6 +21,7 @@ try:
 except ImportError:
     # python 3
     import xmlrpc.client as xmlrpclib
+import types
 
 from porcupine import systemObjects
 from porcupine.core import objectSet
@@ -44,16 +45,17 @@ class _XMLRPCEncoder(xmlrpclib.Marshaller, BaseEncoder):
     def __init__(self, *args, **kwargs):
         xmlrpclib.Marshaller.__init__(self, *args, **kwargs)
         # add custom dumpers
-        self.dispatch[systemObjects.GenericItem] = _XMLRPCEncoder.dump_item
-        self.dispatch[systemObjects.Composite] = _XMLRPCEncoder.dump_item
-        self.dispatch[objectSet.ObjectSet] = _XMLRPCEncoder.dump_objectset
-        self.dispatch[date.Date] = _XMLRPCEncoder.dump_date
+        self.dispatch[types.InstanceType] = _XMLRPCEncoder.dump_instance
 
-    def dump_item(self, obj, write):
-        self.dump_struct(self.default(obj), write)
-
-    def dump_objectset(self, obj, write):
-        self.dump_array(self.default(obj), write)
-
-    def dump_date(self, date, write):
-        self.dump_datetime(date.value, write)
+    def dump_instance(self, obj, write):
+        if isinstance(obj, (systemObjects.GenericItem,
+                            systemObjects.Composite)):
+            self.dump_struct(self.default(obj), write)
+        elif isinstance(obj, objectSet.ObjectSet):
+            self.dump_array(self.default(obj), write)
+        elif isinstance(obj, date.Date):
+            write("<value><dateTime.iso8601>")
+            write(obj.to_iso_8601())
+            write("</dateTime.iso8601></value>\n")
+        else:
+            raise TypeError, "cannot marshal %s objects" % type(obj)

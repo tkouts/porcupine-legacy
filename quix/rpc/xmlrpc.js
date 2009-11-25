@@ -21,6 +21,8 @@ QuiX.rpc.XMLRPCRequest = function(sUrl /*, async*/) {
     this.base = QuiX.rpc.BaseRPCRequest;
     this.base(sUrl, async);
 }
+// backwards compatibility
+var XMLRPCRequest = QuiX.rpc.XMLRPCRequest;
 
 QuiX.rpc.XMLRPCRequest.prototype = new QuiX.rpc.BaseRPCRequest;
 
