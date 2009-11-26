@@ -1,12 +1,6 @@
 /************************
 File Control
 ************************/
-function FileInfo() {
-	this.filename = '';
-	this.id = '';
-	this.temp_file = '';
-}
-
 QuiX.ui.File = function(/*params*/) {
 	var params = arguments[0] || {};
 
@@ -33,17 +27,17 @@ QuiX.ui.File = function(/*params*/) {
 	
 	if (this.filename) this.setCaption(this._getCaption());
 	
-	var oFile = this;
+	var self = this;
 	
 	this.contextMenu.addOption({
 		img : '$THEME_URL$images/upload.gif',
 		caption : 'Upload file',
-		onclick : function(evt, w){oFile.showUploadDialog()}
+		onclick : function(evt, w){self.showUploadDialog();}
 	});
 	this.contextMenu.addOption({
 		img : '$THEME_URL$images/download.gif',
 		caption : 'Download file',
-		onclick : function(evt, w){oFile.openDocument()}
+		onclick : function(evt, w){self.openDocument();}
 	});
 	
 	if (!this.href)
@@ -74,24 +68,26 @@ QuiX.ui.File.prototype.customEvents =
 // backwards compatibility
 var File = QuiX.ui.File;
 
+QuiX.ui.File.FileInfo = function() {
+	this.filename = '';
+	this.id = '';
+	this.temp_file = '';
+}
+
 QuiX.ui.File.prototype.openDocument = function() {
 	window.location.href = this.href;
 }
 
-QuiX.ui.File.prototype._checkFileSize = function(size) {
+QuiX.ui.File.prototype._checkFileSize = function(/*size*/) {
 	if (this.maxFileSize == 0)
-		return true;
+        return;
+    var size = arguments[0] || this.size;
 	if (size > parseInt(this.maxFileSize)) {
-		document.desktop.msgbox("Error", 
-			'The maximum allowed size per file is ' +
-                this.maxFileSize + ' bytes.',
-			[['OK', 60]],
-			'desktop/images/messagebox_warning.gif',
-            'center', 'center', 280, 112);
 		this.cancelUpload = true;
-		return false;
+        throw new QuiX.Exception('QuiX.ui.File',
+            'The maximum allowed size per file is ' + this.maxFileSize +
+            ' bytes.');
 	}
-	return true;
 }
 
 QuiX.ui.File.prototype.showUploadDialog = function() {
@@ -101,22 +97,27 @@ QuiX.ui.File.prototype.showUploadDialog = function() {
             var fileName = self.uploader.selectFiles(false, self.filetypes);
             if (fileName != '') {
                 self.setFile(fileName.toString());
-                self.onbeginupload(self);
-                self.upload();
+                try {
+                    self.beginupload();
+                    self.upload();
+                }
+                catch (e) {
+                    self.onerror(e);
+                }
             }
-        }, 0);
+        }, 100);
 }
 
-QuiX.ui.File.prototype.onbeginupload = function(filecontrol) {
-	if (!this._checkFileSize(filecontrol.size))
-		return;
+QuiX.ui.File.prototype.beginupload = function() {
+    this._checkFileSize();
+    var self = this;
 	document.desktop.parseFromString(
 		'<dialog xmlns="http://www.innoscript.org/quix" title="'
-				+ filecontrol.contextMenu.options[0].getCaption() + '" ' +
+				+ this.contextMenu.options[0].getCaption() + '" ' +
 				'width="240" height="90" left="center" top="center">' +
 			'<wbody>' +
 				'<progressbar width="90%" height="20" left="center" top="center" ' +
-						'maxvalue="' + filecontrol.size + '">' +
+						'maxvalue="' + this.size + '">' +
 					'<label align="center" width="100%" height="100%" caption="0%"/>' +
 				'</progressbar>' +
 			'</wbody>' +
@@ -125,11 +126,11 @@ QuiX.ui.File.prototype.onbeginupload = function(filecontrol) {
 		'</dialog>',
 		function(w) {
 			var progressDialog = w;
-			filecontrol.attributes.pbar =
+			self.attributes.pbar =
                 progressDialog.getWidgetsByType(ProgressBar)[0];
 			progressDialog.buttons[0].attachEvent('onclick',
 				function (evt, w) {
-					filecontrol.cancelUpload = true;
+					self.cancelUpload = true;
 					progressDialog.close();
 				}
 			);
@@ -137,20 +138,22 @@ QuiX.ui.File.prototype.onbeginupload = function(filecontrol) {
 	);
 }
 
-QuiX.ui.File.prototype.onstatechange = function(filecontrol) {
-	var bytes = parseInt(filecontrol.uploader.
-                         getBytesRead(filecontrol._fileid).toString());
-	var pbar = filecontrol.attributes.pbar;
+QuiX.ui.File.prototype.onstatechange = function() {
+	var bytes = parseInt(this.uploader.
+                         getBytesRead(this._fileid).toString());
+	var pbar = this.attributes.pbar;
 	pbar.setValue(bytes);
 	pbar.widgets[1].setCaption(parseInt((bytes / pbar.maxvalue) * 100) + '%');
 }
 
-QuiX.ui.File.prototype.oncomplete =
-QuiX.ui.File.prototype.onerror = function(filecontrol) {
-	filecontrol.attributes.pbar.getParentByType(Dialog).close();
-	if (filecontrol._customRegistry.oncomplete)
-			filecontrol._customRegistry.oncomplete(filecontrol);
-	
+QuiX.ui.File.prototype.oncomplete = function() {
+	this.attributes.pbar.getParentByType(Dialog).close();
+	if (this._customRegistry.oncomplete)
+			this._customRegistry.oncomplete(this);
+}
+
+QuiX.ui.File.prototype.onerror = function(e) {
+    QuiX.displayError(e);
 }
 
 QuiX.ui.File.prototype._getCaption = function() {
@@ -192,28 +195,29 @@ QuiX.ui.File.prototype.upload = function() {
 }
 
 QuiX.ui.File.prototype._upload = function(chunk, fname) {
-	var oFile = this;
+	var self = this;
 	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
     rpc.use_cache = false;
 	rpc.oncomplete = function(req) {
-		if (!oFile.cancelUpload) {
-			var chunk = oFile.uploader.getChunk(oFile._fileid);
+		if (!self.cancelUpload) {
+			var chunk = self.uploader.getChunk(self._fileid);
 			var filename = req.response;
-			if (chunk!='' && chunk!=null) {
-				if (oFile.onstatechange) oFile.onstatechange(oFile);
-				oFile._upload(chunk, filename);
+			if (chunk != '' && chunk != null) {
+                self.onstatechange();
+				self._upload(chunk, filename);
 			}
 			else {
-				oFile.setCaption(oFile._getCaption());
-				oFile._tmpfile = filename;
-				if (oFile.oncomplete) oFile.oncomplete(oFile);
+				self.setCaption(self._getCaption());
+				self._tmpfile = filename;
+                self.oncomplete();
 			}
 		} else {
-			oFile.cancelUpload = false;
+			self.cancelUpload = false;
 		}
 	}
-	rpc.onerror = function(req) {
-		if (oFile.onerror) oFile.onerror(oFile);
+	rpc.onerror = function(e) {
+        self.attributes.pbar.getParentByType(Dialog).close();
+        self.onerror(e);
 	}
 	rpc.callmethod('upload', new String(chunk), fname);
 	delete chunk;
@@ -258,16 +262,19 @@ QuiX.ui.MultiFile = function(/*params*/) {
 	});
 	this.appendChild(this.addButton);
 	
-	var oMultiFile = this;
+	var self = this;
 	if (!this.readonly) {
 		this.filecontrol = new File({maxfilesize:params.maxfilesize});
 		this.appendChild(this.filecontrol);
 		this.filecontrol.div.style.visibility = 'hidden';
-		this.filecontrol.onstatechange = this.statechange;
-		this.filecontrol.oncomplete =
-            this.filecontrol.onerror = this.onfilecomplete;
-		this.addButton.attachEvent('onclick', oMultiFile.showUploadDialog);
-		this.removeButton.attachEvent('onclick', oMultiFile.removeSelectedFiles);
+		this.filecontrol.onstatechange = function() {
+            self.onstatechange();
+        }
+		this.filecontrol.oncomplete = function() {
+            self.onfilecomplete();
+        }
+		this.addButton.attachEvent('onclick', this.showUploadDialog);
+		this.removeButton.attachEvent('onclick', this.removeSelectedFiles);
 	}
 	this.files = [];
 }
@@ -285,76 +292,82 @@ QuiX.ui.MultiFile.prototype.reset = function() {
 }
 
 QuiX.ui.MultiFile.prototype.showUploadDialog = function(evt, btn) {
-	var file_size;
 	var mf = btn.parent;
-
     window.setTimeout(
         function() {
             var filenames = mf.filecontrol.uploader.selectFiles(true,
                                                                 mf.filetypes);
-
-            if (filenames != '') {
-                var fileid;
-                var files = new String(filenames).split(';');
-                files = files.slice(0, files.length-1).reverse();
-                mf.files4upload = [];
-                var total_size = 0;
-                for (var i=0; i<files.length; i++) {
-                    fileid = mf.filecontrol.uploader.setFile(files[i]);
-                    file_size = parseInt(
-                        mf.filecontrol.uploader.getFileSize(fileid).toString());
-                    if (!mf.filecontrol._checkFileSize(file_size)) {
-                        QuiX.stopPropag(evt);
-                        return;
-                    }
-                    mf.files4upload.push({
-                        path: files[i],
-                        filename: mf.filecontrol.getFileName(files[i]),
-                        size: file_size
-                    });
-                    total_size += file_size;
-                    mf.filecontrol.uploader.closeFile(fileid);
-                }
-
-                mf.current_file = mf.files4upload.pop();
-                mf.filecontrol.setFile(mf.current_file.path);
-                mf._tmpsize = mf.current_file.size;
-
-                document.desktop.parseFromString(
-                    '<dialog xmlns="http://www.innoscript.org/quix" title="' +
-                            mf.filecontrol.contextMenu.options[0].getCaption() + '" ' +
-                            'width="240" height="140" left="center" top="center">' +
-                        '<wbody>' +
-                            '<progressbar width="90%" height="24" left="center" top="20" ' +
-                                    'maxvalue="' + total_size + '">' +
-                                '<label align="center" width="100%" height="100%" caption="' +
-                                    mf.current_file.filename + '"/>' +
-                            '</progressbar>' +
-                            '<progressbar width="90%" height="24" left="center" top="50" ' +
-                                    'maxvalue="' + mf.current_file.size + '">' +
-                                '<label align="center" width="100%" height="100%" caption="0%"/>' +
-                            '</progressbar>' +
-                        '</wbody>' +
-                        '<dlgbutton width="70" height="22" caption="CANCEL"/>' +
-                    '</dialog>',
-                    function (w) {
-                        mf.filecontrol.attributes.pbar1 =
-                            w.getWidgetsByType(ProgressBar)[0];
-                        mf.filecontrol.attributes.pbar2 =
-                            w.getWidgetsByType(ProgressBar)[1];
-                        mf.filecontrol.attributes.bytesRead = 0;
-                        w.buttons[0].attachEvent('onclick',
-                            function (evt, w) {
-                                mf.filecontrol.cancelUpload = true;
-                                w.getParentByType(Dialog).close();
-                            }
-                        );
-                        mf.filecontrol.upload();
-                    }
-                );
-            }
-        }, 0);
+            if (filenames != '') mf.beginUpload(filenames);
+        }, 100);
 	QuiX.stopPropag(evt);
+}
+
+QuiX.ui.MultiFile.prototype.beginUpload = function(filenames) {
+    var fileid, file_size;
+    var files = new String(filenames).split(';');
+    files = files.slice(0, files.length-1).reverse();
+    this.files4upload = [];
+    var total_size = 0;
+    for (var i=0; i<files.length; i++) {
+        fileid = this.filecontrol.uploader.setFile(files[i]);
+        file_size = parseInt(
+            this.filecontrol.uploader.getFileSize(fileid).toString());
+        try {
+            this.filecontrol._checkFileSize(file_size);
+        }
+        catch(e) {
+            this.filecontrol.onerror(e);
+            return;
+        }
+
+        this.files4upload.push({
+            path: files[i],
+            filename: this.filecontrol.getFileName(files[i]),
+            size: file_size
+        });
+        total_size += file_size;
+        this.filecontrol.uploader.closeFile(fileid);
+    }
+
+    this.current_file = this.files4upload.pop();
+    this.filecontrol.setFile(this.current_file.path);
+    this._tmpsize = this.current_file.size;
+
+    var self = this;
+
+    document.desktop.parseFromString(
+        '<dialog xmlns="http://www.innoscript.org/quix" title="' +
+                this.filecontrol.contextMenu.options[0].getCaption() + '" ' +
+                'width="240" height="140" left="center" top="center">' +
+            '<wbody>' +
+                '<progressbar width="90%" height="24" left="center" top="20" ' +
+                        'maxvalue="' + total_size + '">' +
+                    '<label align="center" width="100%" height="100%" caption="' +
+                        this.current_file.filename + '"/>' +
+                '</progressbar>' +
+                '<progressbar width="90%" height="24" left="center" top="50" ' +
+                        'maxvalue="' + this.current_file.size + '">' +
+                    '<label align="center" width="100%" height="100%" caption="0%"/>' +
+                '</progressbar>' +
+            '</wbody>' +
+            '<dlgbutton width="70" height="22" caption="CANCEL"/>' +
+        '</dialog>',
+        function (dlg) {
+            self.filecontrol.attributes.pbar1 =
+                self.filecontrol.attributes.pbar =
+                dlg.getWidgetsByType(ProgressBar)[0];
+            self.filecontrol.attributes.pbar2 =
+                dlg.getWidgetsByType(ProgressBar)[1];
+            self.filecontrol.attributes.bytesRead = 0;
+            dlg.buttons[0].attachEvent('onclick',
+                function (evt, btn) {
+                    self.filecontrol.cancelUpload = true;
+                    btn.getParentByType(Dialog).close();
+                }
+            );
+            self.filecontrol.upload();
+        }
+    );
 }
 
 QuiX.ui.MultiFile.prototype.removeSelectedFiles = function(evt, btn) {
@@ -372,7 +385,7 @@ QuiX.ui.MultiFile.prototype.getValue = function() {
 }
 
 QuiX.ui.MultiFile.prototype.addFile = function(params) {
-	var oFileInfo = new FileInfo();
+	var oFileInfo = new QuiX.ui.File.FileInfo();
 	
 	oFileInfo.id = params.id || '';
 	oFileInfo.filename = params.filename;
@@ -395,46 +408,47 @@ QuiX.ui.MultiFile.prototype.downloadFile = function(evt, w) {
                                '?cmd=' + w.parent.method;
 }
 
-QuiX.ui.MultiFile.prototype.statechange = function(filecontrol) {
-	var bytes = parseInt(filecontrol.uploader.getBytesRead(filecontrol._fileid).
+QuiX.ui.MultiFile.prototype.onstatechange = function() {
+    var fc = this.filecontrol;
+	var bytes = parseInt(fc.uploader.getBytesRead(fc._fileid).
                          toString());
-	var pbar1 = filecontrol.attributes.pbar1;
-	var pbar2 = filecontrol.attributes.pbar2;
+	var pbar1 = fc.attributes.pbar1;
+	var pbar2 = fc.attributes.pbar2;
 	
-	pbar1.setValue(filecontrol.attributes.bytesRead + bytes);
+	pbar1.setValue(fc.attributes.bytesRead + bytes);
 	
 	pbar2.setValue(bytes);
 	pbar2.widgets[1].setCaption(parseInt((bytes/pbar2.maxvalue)*100) + '%');
 }
 
-QuiX.ui.MultiFile.prototype.onfilecomplete = function(filecontrol) {
-	var multifile = filecontrol.parent;
-	var pbar1 = filecontrol.attributes.pbar1;
-	var pbar2 = filecontrol.attributes.pbar2;
-	var file = multifile.current_file;
-	var remaining_files = multifile.files4upload;
+QuiX.ui.MultiFile.prototype.onfilecomplete = function() {
+    var fc = this.filecontrol;
+	var pbar1 = fc.attributes.pbar1;
+	var pbar2 = fc.attributes.pbar2;
+	var file = this.current_file;
+	var remaining_files = this.files4upload;
 	
-	multifile.addFile({
+	this.addFile({
 		filename : file.filename,
-		tmpfile : filecontrol._tmpfile,
+		tmpfile : fc._tmpfile,
 		img : '$THEME_URL$images/file_temporary.gif'
 	});
 
-	if (remaining_files.length>0) {
-		multifile.current_file = remaining_files.pop();
-		pbar1.widgets[1].setCaption(multifile.current_file.filename);
+	if (remaining_files.length > 0) {
+		this.current_file = remaining_files.pop();
+		pbar1.widgets[1].setCaption(this.current_file.filename);
 		pbar2.setValue(0);
-		pbar2.maxvalue = multifile.current_file.size;
+		pbar2.maxvalue = this.current_file.size;
 		pbar2.widgets[1].setCaption('0%');
-		filecontrol.attributes.bytesRead += multifile._tmpsize;
+		fc.attributes.bytesRead += this._tmpsize;
 
-		multifile._tmpsize = multifile.current_file.size;
-		filecontrol.setFile(multifile.current_file.path);
-		filecontrol.upload();
-	} else {
-		filecontrol.attributes.pbar1.getParentByType(Dialog).close();
-		if (multifile._customRegistry.oncomplete)
-			multifile._customRegistry.oncomplete(multifile);
+		this._tmpsize = this.current_file.size;
+		fc.setFile(this.current_file.path);
+		fc.upload();
 	}
-		
+    else {
+		fc.attributes.pbar.getParentByType(Dialog).close();
+		if (this._customRegistry.oncomplete)
+			this._customRegistry.oncomplete(this);
+	}	
 }

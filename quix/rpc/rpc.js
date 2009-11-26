@@ -17,30 +17,6 @@
 
 QuiX.rpc = {};
 
-QuiX.rpc.handleError = function(req, e) {
-	QuiX.removeLoader();
-	document.desktop.parseFromString(
-        '<dialog xmlns="http://www.innoscript.org/quix" title="RPC Error" \
-                resizable="true" close="true" width="560" height="240" \
-                left="center" top="center"> \
-            <wbody> \
-                <hbox spacing="8" width="100%" height="100%"> \
-                    <icon width="56" height="56" padding="12,12,12,12" \
-                        img="$THEME_URL$images/error32.gif"/> \
-                    <rect padding="4,4,4,4" overflow="auto"><xhtml><![CDATA[ \
-                        <pre style="color:red;font-size:12px; \
-                            font-family:monospace;padding-left:4px">' +
-                            e.name + '\n\n' + e.message +
-                        '</pre>]]></xhtml> \
-                    </rect> \
-                </hbox> \
-            </wbody> \
-            <dlgbutton onclick="__closeDialog__" width="70" height="22" \
-                caption="Close"/> \
-        </dialog>');
-	if (req.onerror) req.onerror(req, e);
-}
-
 QuiX.rpc._cache = (function() {
     if (QuiX.persist && QuiX.persist.type) {
         var cache = new QuiX.persist.Store('rpccache');
@@ -83,7 +59,8 @@ QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
 
         this.callback_info = null;
         this.response = null;
-        this.use_cache = true;    }
+        this.use_cache = true;
+    }
 }
 
 QuiX.rpc.BaseRPCRequest.prototype._contentType = 'text/plain';
@@ -97,6 +74,10 @@ function(method_name /*, arg1, arg2, ...*/) {
 
 QuiX.rpc.BaseRPCRequest.prototype._validateMethodName = function(mname) {
     return true;
+}
+
+QuiX.rpc.BaseRPCRequest.prototype.onerror = function(e) {
+    QuiX.displayError(e);
 }
 
 QuiX.rpc.BaseRPCRequest.prototype.callmethod =
@@ -139,6 +120,9 @@ function(method_name /*, arg1, arg2, ...*/) {
                             self.oncomplete(self);
                         }
                     }
+                    catch(e) {
+                        self.onerror(e);
+                    }
                     finally {
                         QuiX.removeLoader();
                         QuiX.XHRPool.release(self.xmlhttp);
@@ -165,10 +149,11 @@ function(method_name /*, arg1, arg2, ...*/) {
         }
         else
             throw new QuiX.Exception('QuiX.rpc.BaseRPCRequest.callMethod',
-                                     'Invalid XMLRPC method name "' +
+                                     'Invalid RPC method name "' +
                                      method_name + '"');
 	}
     catch (e) {
-        QuiX.rpc.handleError(this, e);
+        QuiX.removeLoader();
+        this.onerror(e);
     }
 }

@@ -311,6 +311,28 @@ QuiX.Exception = function(name, msg) {
 }
 QuiX.Exception.prototype = new Error
 
+QuiX.displayError = function(e) {
+	document.desktop.parseFromString(
+        '<dialog xmlns="http://www.innoscript.org/quix" title="Error" \
+                resizable="true" close="true" width="560" height="240" \
+                left="center" top="center"> \
+            <wbody> \
+                <hbox spacing="8" width="100%" height="100%"> \
+                    <icon width="56" height="56" padding="12,12,12,12" \
+                        img="$THEME_URL$images/error32.gif"/> \
+                    <rect padding="4,4,4,4" overflow="auto"><xhtml><![CDATA[ \
+                        <pre style="color:red;font-size:12px; \
+                            font-family:monospace;padding-left:4px">' +
+                            e.name + '\n\n' + e.message +
+                        '</pre>]]></xhtml> \
+                    </rect> \
+                </hbox> \
+            </wbody> \
+            <dlgbutton onclick="__closeDialog__" width="70" height="22" \
+                caption="Close"/> \
+        </dialog>');
+}
+
 QuiX.getTarget = function(evt) {
 	if (evt.target) {
 		var node = evt.target;
@@ -790,23 +812,34 @@ QuiX.Parser.prototype.loadModules = function() {
 		img.load(function(){self.loadModules()});
 	} else {
 		QuiX.removeLoader();
-		this.beginRender();
+        this.beginRender();
 	}
 }
 
-QuiX.Parser.prototype.parse = function(oDom, parentW) {
-	this.dom = oDom;
+QuiX.Parser.prototype.onerror = function(e) {
+    QuiX.displayError(e);
+}
+
+QuiX.Parser.prototype.parse = function(dom, parentW) {
+	this.dom = dom;
 	this.parentWidget = parentW;
-	this.detectModules(oDom.documentElement);
-	if (this.__modulesToLoad.length + this.__imagesToLoad.length > 0) {
-		this.__modulesToLoad.reverse();
-		if (parentW)
-			QuiX.addLoader();
-		this.loadModules();
-	}
-	else {
-		this.beginRender();
-	}
+    if (dom == null || dom.documentElement == null ||
+            dom.documentElement.tagName == 'parsererror') {
+        this.onerror(new QuiX.Exception(
+            'QuiX.Parser.parse',
+            'Invalid QuiX XML'));
+        return;
+    }
+    this.detectModules(dom.documentElement);
+    if (this.__modulesToLoad.length + this.__imagesToLoad.length > 0) {
+        this.__modulesToLoad.reverse();
+        if (parentW)
+            QuiX.addLoader();
+        this.loadModules();
+    }
+    else {
+        this.beginRender();
+    }
 }
 
 QuiX.Parser.prototype.beginRender = function() {
@@ -967,6 +1000,9 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                     var widget_contructor = QuiX.constructors[localName];
                     if (widget_contructor != null)
                         oWidget = new widget_contructor(params, parentW);
+                    else if (typeof widget_contructor == 'undefined')
+                        throw new QuiX.Exception('QuiX.Parser.parseXul',
+                            'Uknown widget tag name (' + localName + ')');
             }
 
             if (oWidget) {

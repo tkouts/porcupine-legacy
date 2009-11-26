@@ -27,30 +27,26 @@ QuiX.rpc.JSONRPCRequest.prototype._contentType = 'application/json';
 QuiX.rpc.JSONRPCRequest._requestId = 0;
 
 QuiX.rpc.JSONRPCRequest.prototype._processResult = function(/*jsonstr*/) {
-    var response;
-    try {
-        var jsonstr = arguments[0] || this.xmlhttp.responseText;
-        response = QuiX.parsers.JSON.parse(jsonstr);
-        if (response.jsonrpc != '2.0')
-            throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
-                                     'Invalid JSON response');
-        // check for errors
-        if (response.error) {
-            var message = response.error.message;
-            if (response.error.data)
-                message += '\n\n' + response.error.data
-            throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
-                                     response.error.code + ' - ' +
-                                     message);
-        }
-        if (arguments.length == 0 && response.id != this.id)
-            throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
-                                     'Invalid response ID');
-        return response.result;
+    var jsonstr = arguments[0] || this.xmlhttp.responseText;
+    var response = QuiX.parsers.JSON.parse(jsonstr);
+    
+    if (response.jsonrpc != '2.0')
+        throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
+                                 'Invalid JSON response');
+    // check for errors
+    if (response.error) {
+        var message = response.error.message;
+        if (response.error.data)
+            message += '\n\n' + response.error.data
+        throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
+                                 response.error.code + ' - ' +
+                                 message);
     }
-    catch (e) {
-        QuiX.rpc.handleError(this, e);
-    }
+    if (arguments.length == 0 && response.id != this.id)
+        throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
+                                 'Invalid response ID');
+    return response.result;
+
 }
 
 QuiX.rpc.JSONRPCRequest.prototype._buildRequestBody = function(method_name

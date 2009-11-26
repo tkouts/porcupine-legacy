@@ -88,8 +88,9 @@ recycleBin.doRestoreTo = function(dlg) {
 	}
 }
 
-recycleBin._onerror = function(req) {
-	req.callback_info.close();
+recycleBin._onerror = function(e) {
+	this.callback_info.close();
+    QuiX.displayError(e);
 }
 
 recycleBin.restoreItem = function(evt, w) {
@@ -149,8 +150,9 @@ recycleBin.deleteItem = function(evt, w) {
 				var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + item.id);
 				rpc.oncomplete = _startDeleting;
 				rpc.callback_info = w;
-				rpc.onerror = function(req) {
+				rpc.onerror = function(e) {
 					w.close();
+                    QuiX.displayError(e);
 				}
 				rpc.callmethod('delete');
 			}

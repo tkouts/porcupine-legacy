@@ -1,21 +1,21 @@
 function login() {}
 
-login.login = function (evt, w) {
-	var login_dialog = w.getParentByType(Dialog);
+login.login = function (evt, btn) {
+	var login_dialog = btn.getParentByType(Dialog);
 	var sUser = login_dialog.getWidgetById('user').getValue();
 	var sPassword = login_dialog.getWidgetById('password').getValue();
 	var sLoginServiceUrl = login_dialog.attributes.ServiceURI;
 
 	var rpc = new QuiX.rpc.JSONRPCRequest(sLoginServiceUrl);
 	rpc.oncomplete = login.login_oncomplete;
-	rpc.callback_info = w;
+	rpc.callback_info = btn;
 	rpc.onerror = login.login_onerror;
 	rpc.callmethod('login', sUser, sPassword);
 	login_dialog.setStatus('Please wait...');
-	w.disable();
+	btn.disable();
 }
 
-login.login_oncomplete = function (req) {
+login.login_oncomplete = function(req) {
 	if (req.response) {
 		document.location.href = QuiX.root;
 	}
@@ -30,7 +30,8 @@ login.login_oncomplete = function (req) {
 	}
 }
 
-login.login_onerror = function(req) {
-	req.callback_info.enable();
-	req.callback_info.getParentByType(Dialog).setStatus('');
+login.login_onerror = function(e) {
+	this.callback_info.enable();
+	this.callback_info.getParentByType(Dialog).setStatus('');
+    QuiX.displayError(e);
 }

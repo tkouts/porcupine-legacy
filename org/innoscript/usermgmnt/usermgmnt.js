@@ -56,8 +56,9 @@ usermgmnt.deleteItem = function(evt, w) {
                 var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + item.id);
                 rpc.oncomplete = _startDeleting;
                 rpc.callback_info = w;
-                rpc.onerror = function(req) {
+                rpc.onerror = function(e) {
                     w.close();
+                    QuiX.displayError(e);
                 }
                 rpc.callmethod('delete');
             }
