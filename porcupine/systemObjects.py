@@ -230,8 +230,9 @@ class Removable(object):
         if _update_parent:
             # update container modification timestamp
             parent = db._db.get_item(self._pid)
-            parent.modified = time.time()
-            db._db.put_item(parent)
+            if parent is not None:
+                parent.modified = time.time()
+                db._db.put_item(parent)
         
         db._db.handle_post_delete(self, True)
 
