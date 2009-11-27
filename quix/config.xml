@@ -1,16 +1,15 @@
 <config>
     <context path="ui/widget.js"
 		method="GET"
-		client="MSIE [6-8]"
+		client="MSIE 6"
 		lang=".*"
 		action="ui/widget.js"
 		max-age="1200"/>
     <context path="ui/widget.js"
 			method="GET"
-			client="Version/[3-4].\d(.*)Safari|Chrome/\d.\d|Netscape/7|Mozilla/5.0|Opera/9"
+			client=".*"
 			lang=".*"
-			action="ui/widget.js"
-			max-age="1200">
+			action="ui/widget.js">
 		<filter type="porcupine.filters.output.Gzip"/>
 	</context>
 	<context path="utils/date.js"
@@ -28,29 +27,32 @@
 		method="GET"
 		client=".*"
 		lang=".*"
-		action="themes/default/quix.css.psp"
-		max-age="1200"/>
+		action="themes/default/quix.css.psp"/>
     <!-- html pages -->
 	<context match="(.*)\.htm"
 		method="GET"
 		client=".*"
 		lang=".*"
-		action="$1.htm"
-		max-age="1200"/>
+		action="$1.htm"/>
     <!-- Stylesheets -->
 	<context match="(.*)\.css"
 		method="GET"
 		client=".*"
 		lang=".*"
-		action="$1.css"
-		max-age="1200"/>
+		action="$1.css"/>
 	<!-- QuiX Modules -->
 	<context match="(.*)\.js"
 		method="GET"
-		client=".*"
+		client="MSIE 6"
 		lang=".*"
-		action="$1.js"
-		max-age="1200"/>
+		action="$1.js"/>
+	<context match="(.*)\.js"
+            method="GET"
+            client=".*"
+            lang=".*"
+            action="$1.js">
+        <filter type="porcupine.filters.output.Gzip"/>
+    </context>
 	<!-- Flash files -->
 	<context match="(.*)\.swf"
 		method="GET"
