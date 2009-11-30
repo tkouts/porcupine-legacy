@@ -399,7 +399,7 @@ class DB(object):
     def __maintain(self):
         "deadlock detection thread"
         while self._running:
-            time.sleep(0.05)
+            time.sleep(1.0)
             # deadlock detection
             try:
                 aborted = self._env.lock_detect(db.DB_LOCK_RANDOM,

@@ -91,7 +91,7 @@ class Cloneable(object):
         @return: the clone object
         @rtype: L{GenericItem}
         """
-        clone = copy.deepcopy(self, {'_dup_ext_':dup_ext})
+        clone = copy.deepcopy(self, {'_dup_ext_' : dup_ext})
         clone._id = misc.generate_oid()
         return clone
 
@@ -132,6 +132,10 @@ class Cloneable(object):
             
             self._copy(target, clear_inherited=True)
             # update parent
+            if self.isCollection:
+                target._nc += 1
+            else:
+                target._ni += 1
             target.modified = time.time()
             db._db.put_item(target)
         else:
@@ -195,6 +199,10 @@ class Movable(object):
             db._db.put_item(self)
 
             # update target
+            if self.isCollection:
+                target._nc += 1
+            else:
+                target._ni += 1
             target.modified = time.time()
             db._db.put_item(target)
 
@@ -227,10 +235,15 @@ class Removable(object):
         db._db.handle_delete(self, True)
         db._db.delete_item(self)
         
-        if _update_parent:
+        if _update_parent and not self._isDeleted:
             # update container modification timestamp
             parent = db._db.get_item(self._pid)
             if parent is not None:
+                # update parent
+                if self.isCollection:
+                    parent._nc -= 1
+                else:
+                    parent._ni -= 1
                 parent.modified = time.time()
                 db._db.put_item(parent)
         
@@ -282,8 +295,12 @@ class Removable(object):
         db._db.put_item(self)
 
         if _update_parent:
-            # update container
+            # update parent
             parent = db._db.get_item(self._pid)
+            if self.isCollection:
+                parent._nc -= 1
+            else:
+                parent._ni -= 1
             parent.modified = time.time()
             db._db.put_item(parent)
         
@@ -310,6 +327,11 @@ class Removable(object):
         if _update_parent:
             # update container
             parent = db._db.get_item(self._pid)
+            # update parent
+            if self.isCollection:
+                parent._nc += 1
+            else:
+                parent._ni += 1
             parent.modified = time.time()
             db._db.put_item(parent)
         
@@ -528,6 +550,10 @@ class GenericItem(object):
 
         db._db.handle_update(self, None)
         db._db.put_item(self)
+        if self.isCollection:
+            parent._nc += 1
+        else:
+            parent._ni += 1
         parent.modified = self.modified
         db._db.put_item(parent)
         db._db.handle_post_update(self, None)
@@ -970,6 +996,11 @@ class Container(Item):
     __image__ = "desktop/images/folder.gif"
     containment = ('porcupine.systemObjects.Shortcut',)
     isCollection = True
+
+    def __init__(self):
+        Item.__init__(self)
+        self._ni = 0
+        self._nc = 0
     
     def child_exists(self, name):
         """
@@ -1072,8 +1103,7 @@ class Container(Item):
         
         @rtype: bool
         """
-        conditions = (('isCollection', False), )
-        return db._db.test_conditions(self._id, conditions)
+        return self._ni > 0
     hasChildren = deprecated(has_children)
     
     def has_subfolders(self):
@@ -1082,9 +1112,23 @@ class Container(Item):
         
         @rtype: bool
         """
-        conditions = (('isCollection', True), )
-        return db._db.test_conditions(self._id, conditions)
+        return self._nc > 0
     hasSubfolders = deprecated(has_subfolders)
+
+    def get_children_count(self):
+        return self._ni + self._nc
+    children_count = property(get_children_count, None, None,
+                              "The total number of the container's children")
+
+    def get_items_count(self):
+        return self._ni
+    items_count = property(get_items_count, None, None,
+                           "The number of the items contained")
+
+    def get_subfolders_count(self):
+        return self._nc
+    subfolders_count = property(get_subfolders_count, None, None,
+                                "The number of containers contained")
 
 class RecycleBin(Container):
     """

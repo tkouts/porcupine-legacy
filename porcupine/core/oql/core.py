@@ -343,8 +343,8 @@ def select(container_id, deep, specifier, fields, variables,
                                       for expr in fields))
                 if len(specifier) == 1 and \
                         top is not None and \
-                        not top_accumulative and \
                         len(results1) == top:
+                    #print 'break'
                     break
 
         results |= ObjectSet(results1)
@@ -352,8 +352,7 @@ def select(container_id, deep, specifier, fields, variables,
     if top is not None and top_accumulative:
         if len(results) >= top:
             return results
-        else:
-            top -= len(results)
+        top -= len(results)
 
     if deep:
         subfolders = db._db.query((('isCollection', True), ))
@@ -376,6 +375,7 @@ def select(container_id, deep, specifier, fields, variables,
             if top is not None and top_accumulative:
                 if len(results) - results_len >= top:
                     break
+                top -= results_len
 
         subfolders.close()
     
@@ -599,13 +599,14 @@ def h_200(params, variables, for_object=None):
                                     select_top = select_range[1]
 
                 else:
-                    # use ordering attribute instead of displayName
+                    # use ordering attribute
                     reversed = (sort_order == False)
                     optimized = [[[(order_by[0][0], (None, None, reversed))],
                                   where_condition]]
                     if is_single_shallow:
                         # shallow select from one container
                         order_by = []
+                        top_accumulative = True
 
                     if select_range:
                         # select with indexed ordering and range
