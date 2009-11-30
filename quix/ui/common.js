@@ -10,7 +10,7 @@ QuiX.ui.HR = function(/*params*/) {
 	this.div.className = 'separator';
 }
 
-QuiX.constructors['hr'] = HR;
+QuiX.constructors['hr'] = QuiX.ui.HR;
 QuiX.ui.HR.prototype = new QuiX.ui.Widget;
 // backwards compatibility
 var HR = QuiX.ui.HR;
