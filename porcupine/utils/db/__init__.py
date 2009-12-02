@@ -60,7 +60,10 @@ def str_long(s, padding=16):
     chars.reverse()
     long = 0
     for i, c in enumerate(chars):
-        long += ord(c) * (2 ** i)
+        # python2.6
+        if not isinstance(c, int):
+            c = ord(c)
+        long += c * (2 ** i)
     return long
 
 @db.transactional(auto_commit=True)

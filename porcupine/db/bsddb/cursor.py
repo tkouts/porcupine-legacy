@@ -21,6 +21,7 @@ import copy
 
 from porcupine import context
 from porcupine import exceptions
+from porcupine.db import _db
 from porcupine.db.bsddb import db
 from porcupine.db.basecursor import BaseCursor
 from porcupine.utils.db import pack_value, str_long
@@ -62,18 +63,13 @@ class Cursor(BaseCursor):
             # range cursor - approximate sizing
             # assuming even distribution of keys
 
-            # get cursor's full range
-            c_first_value = str_long(clone.first()[0])
-            c_last_value = str_long(clone.last()[0])
-            cursor_range = float(c_last_value - c_first_value)
-
             # get scope's range
             first_value = str_long(clone.set_range(self._scope + b'_')[0])
-            last = clone.set_range(self._scope + 'a')
+            last = clone.set_range(self._scope + b'a')
             if last is not None:
                 last_value = str_long(clone.get(db.DB_PREV)[0])
             else:
-                last_value = c_last_value
+                last_value = str_long(clone.last()[0])
             scope_range = float(last_value - first_value)
 
             if self._range._lower_value is not None:
@@ -95,7 +91,7 @@ class Cursor(BaseCursor):
             if scope_range == 0:
                 size = 0
             else:
-                children_count = (scope_range / cursor_range) * len(self.db)
+                children_count = _db.get_item(self._scope).children_count
                 size = int(((end_value - start_value) /
                             scope_range) * children_count)
 
@@ -270,7 +266,7 @@ class Join(BaseCursor):
 
     def _optimize(self):
         sizes = [c._get_size() for c in self._cur_list]
-        cursors = zip(sizes, self._cur_list)
+        cursors = list(zip(sizes, self._cur_list))
         cursors.sort()
         rte_cursors = [c[1] for c in cursors[1:]]
         # close run-time evaluated cursors
