@@ -21,8 +21,8 @@ from porcupine.core import objectSet
 from porcupine.utils import date
 
 class BaseEncoder(object):
-    default_props = ('id', 'modified', 'owner', 'created', '__image__',
-                     'contentclass', 'parentid', 'isCollection')
+    default_props = ['id', 'modified', 'owner', 'created', '__image__',
+                     'contentclass', 'parentid', 'isCollection']
 
     def default(self, obj):
         if isinstance(obj, objectSet.ObjectSet):
@@ -30,7 +30,7 @@ class BaseEncoder(object):
         elif isinstance(obj, (systemObjects.GenericItem,
                               systemObjects.Composite)):
             rpc_object = {}
-            for attr in obj.__props__ + self.default_props:
+            for attr in list(obj.__props__.keys()) + self.default_props:
                 try:
                     oAttr = getattr(obj, attr)
                 except AttributeError:

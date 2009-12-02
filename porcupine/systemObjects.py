@@ -388,7 +388,62 @@ class Removable(object):
                 'The object was not deleted.\n'
                 'The user has insufficient permissions.')
 
-class Composite(object):
+class _Elastic(object):
+    """
+    Base class for all Porcupine objects.
+    Accomodates schema updates without requiring database updates.
+    The object schema is automatically updated the next time the
+    object is written in the database.
+    """
+    __props__ = {}
+
+    def __init__(self):
+        [self.__getattr__(prop) for prop in self.__props__]
+        self._ssig = hash(tuple(self.__props__.keys()))
+
+    def __getattr__(self, name):
+        if name in self.__props__:
+            attr_type = self.__props__[name]
+            if isinstance(attr_type, tuple):
+                attr_type, args, kwargs = attr_type
+            else:
+                attr_type, args, kwargs = attr_type, [], {}
+            attr = attr_type(*args, **kwargs)
+            setattr(self, name, attr)
+            return attr
+        else:
+            raise AttributeError
+
+    def _update_schema(self):
+        new_ssig = hash(tuple(self.__props__.keys()))
+        if self._ssig != new_ssig:
+            item_schema = set([p for p in self.__dict__
+                               if isinstance(self.__dict__[p],
+                                             datatypes.DataType)])
+            current_schema = set(self.__props__.keys())
+            
+            for_addition = current_schema - item_schema
+            # add new attributes
+            [self.__getattr__(x) for x in for_addition]
+            # call event handlers
+            [getattr(self, attr)._eventHandler.on_create(self,
+                                                         getattr(self, attr))
+             for attr in for_addition
+             if getattr(self, attr)._eventHandler]
+
+            for_removal = item_schema - current_schema
+            # call event handlers
+            [getattr(self, attr)._eventHandler.on_delete(self,
+                                                         getattr(self, attr),
+                                                         True)
+             for attr in for_removal
+             if getattr(self, attr)._eventHandler]
+            # remove old attributes
+            [delattr(self, x) for x in for_removal]
+
+            self._ssig = new_ssig
+
+class Composite(_Elastic):
     """Objects within Objects...
     
     Think of this as an embedded item. This class is useful
@@ -407,15 +462,16 @@ class Composite(object):
     @see: L{porcupine.datatypes.Composition}
     """
     __image__ = "desktop/images/object.gif"
-    __props__ = ()
+    __props__ = {
+        'displayName' : datatypes.RequiredString
+    }
     _eventHandlers = []
 
     def __init__(self):
         self._id = misc.generate_oid()
         self._pid = None
         self._isDeleted = 0
-        
-        self.displayName = datatypes.RequiredString()
+        _Elastic.__init__(self)
 
     def get_security(self):
         """Getter of L{security} property
@@ -441,12 +497,12 @@ class Composite(object):
         return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
     contentclass = property(get_contentclass)
 
-class GenericItem(object):
+class GenericItem(_Elastic):
     """Generic Item
     The base class of all Porcupine objects.
     
-    @cvar __props__: A tuple containing all the object's data types.
-    @type __props__: tuple
+    @cvar __props__: A dict containing all the object's data types.
+    @type __props__: dict
     @cvar _eventHandlers: A list containing all the object's event handlers.
     @type _eventHandlers: list
     @cvar isCollection: A boolean indicating if the object is a container.
@@ -473,7 +529,10 @@ class GenericItem(object):
     @type parentid: str
     """
     __image__ = "desktop/images/object.gif"
-    __props__ = ('displayName', 'description')
+    __props__ = {
+        'displayName' : datatypes.RequiredString,
+        'description' : datatypes.String
+    }
     isCollection = False
     _eventHandlers = []
 
@@ -491,8 +550,7 @@ class GenericItem(object):
         self.security = {}
         self.inheritRoles = True
 
-        self.displayName = datatypes.RequiredString()
-        self.description = datatypes.String()
+        _Elastic.__init__(self)
 
     def _apply_security(self, parent, is_new):
         if parent is not None and self.inheritRoles:
@@ -820,11 +878,9 @@ class Item(GenericItem, Cloneable, Movable, Removable):
     Subclass the L{porcupine.systemObjects.Container} class if you want
     to create custom containers.
     """
-    __props__ = GenericItem.__props__ + ('shortcuts',)
-    
-    def __init__(self):
-        GenericItem.__init__(self)
-        self.shortcuts = _Shortcuts()
+    __props__ = dict({
+            'shortcuts' : _Shortcuts
+        }, **GenericItem.__props__)
 
     @db.requires_transactional_context
     def update(self):
@@ -884,11 +940,14 @@ class Shortcut(Item):
     L{get_target} method.
     """
     __image__ = "desktop/images/link.png"
-    __props__ = Item.__props__ + ('target',)
+    #__props__ = Item.__props__ + ('target',)
+    __props__ = {
+        'target' : _TargetItem
+    }
     
-    def __init__(self):
-        Item.__init__(self)
-        self.target = _TargetItem()
+#    def __init__(self):
+#        Item.__init__(self)
+#        self.target = _TargetItem()
         
     @staticmethod
     def create(target):

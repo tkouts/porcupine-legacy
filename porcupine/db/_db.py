@@ -96,6 +96,9 @@ def get_child_by_name(container_id, name):
 
 # events
 def handle_update(item, old_item):
+    if old_item is not None:
+        # check for schema modifications
+        item._update_schema()
     if item._eventHandlers:
         if old_item is not None:
             # update

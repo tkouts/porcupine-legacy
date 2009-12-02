@@ -35,6 +35,7 @@ class ETag(PreProcessFilter):
 
             method_id = [context.user._id,
                          struct.pack('>d', item.modified),
+                         struct.pack('>l', hash(tuple(item.__props__.keys()))),
                          context.request.get_lang()]
             try:
                 # python 2.6

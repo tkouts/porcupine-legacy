@@ -28,7 +28,6 @@ import os.path
 import shutil
 import io
 
-
 from porcupine import db
 from porcupine.utils import misc, date
 from porcupine.core import dteventhandlers
@@ -47,6 +46,16 @@ class DataType(object):
     """
     _eventHandler = None
     isRequired = False
+
+    def __init__(self, **kwargs):
+        if isinstance(self._safetype, tuple):
+            safetype = self._safetype[0]
+        else:
+            safetype = self._safetype
+        if self._default is None and 'value' not in kwargs:
+            self.value = None
+        else:
+            self.value = safetype(kwargs.get('value', self._default))
 
     def validate(self):
         """
@@ -86,9 +95,7 @@ class String(DataType):
                  str in Python 3.x
     """
     _safetype = str
-    
-    def __init__(self, **kwargs):
-        self.value = str()
+    _default = ''
 
     def validate(self):
         if isinstance(self.value, bytes):
@@ -106,9 +113,7 @@ class Integer(DataType):
     @type value: int
     """
     _safetype = int
-    
-    def __init__(self, **kwargs):
-        self.value = 0
+    _default = 0
         
 class RequiredInteger(Integer):
     "Mandatory L{Integer} data type."
@@ -121,9 +126,7 @@ class Float(DataType):
     @type value: float
     """
     _safetype = float
-    
-    def __init__(self, **kwargs):
-        self.value = 0.0
+    _default = 0.0
         
 class RequiredFloat(Float):
     "Mandatory L{Float} data type."
@@ -136,9 +139,7 @@ class Boolean(DataType):
     @type value: bool
     """
     _safetype = bool
-    
-    def __init__(self, **kwargs):
-        self.value = False
+    _default = False
         
 class List(DataType):
     """List data type
@@ -147,9 +148,7 @@ class List(DataType):
     @type value: list
     """
     _safetype = list
-    
-    def __init__(self, **kwargs):
-        self.value = []
+    _default = []
 
 class RequiredList(List):
     "Mandatory L{List} data type."
@@ -162,9 +161,7 @@ class Dictionary(DataType):
     @type value: dict
     """
     _safetype = dict
-    
-    def __init__(self, **kwargs):
-        self.value = {}
+    _default = {}
 
 class RequiredDictionary(Dictionary):
     "Mandatory L{Dictionary} data type."
@@ -198,15 +195,17 @@ class Password(DataType):
     @ivar value: The datatype's value
     @type value: str
     """
+    _safetype = bytes
     _blank = b'd41d8cd98f00b204e9800998ecf8427e'
     
-    def __init__(self, **kwrags):
+    def __init__(self, **kwargs):
         self._value = self._blank
 
     def validate(self):
         if self.isRequired and self._value == self._blank:
             raise ValueError(
                '"%s" attribute is mandatory' % self.__class__.__name__)
+        DataType.validate(self)
     
     def get_value(self):
         return self._value
@@ -236,17 +235,15 @@ class Reference1(DataType):
 
     """
     _safetype = (str, type(None))
+    _default = None
     relCc = ()
-    
-    def __init__(self, **kwargs):
-        self.value = None
 
     def validate(self):
         if isinstance(self.value, bytes):
             self.value = self.value.decode('ascii')
         DataType.validate(self)
 
-    def get_item(self, trans=None):
+    def get_item(self):
         """
         This method returns the object that this data type
         instance references. If the current user has no read
@@ -279,12 +276,10 @@ class ReferenceN(DataType):
                  classes that the instances of this type can reference.
     """
     _safetype = list
+    _default = []
     relCc = ()
-
-    def __init__(self, **kwargs):
-        self.value = []
     
-    def get_items(self, trans=None):
+    def get_items(self):
         """
         This method returns the items that this data type
         instance references.
@@ -371,17 +366,13 @@ class Composition(DataType):
     @see: L{porcupine.systemObjects.Composite}
     """
     _safetype = list
+    _default = []
     _eventHandler = dteventhandlers.CompositionEventHandler
     compositeClass = ''
 
-    def __init__(self, **kwargs):
-        self.value = []
-
-    def get_items(self, trans=None):
+    def get_items(self):
         """
         Returns the items that this data type instance embeds.
-        
-        @param trans: A valid transaction handle
         
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
@@ -450,6 +441,7 @@ class Text(ExternalAttribute):
     
     @type value: str
     """
+
     def __init__(self, **kwargs):
         ExternalAttribute.__init__(self, **kwargs)
         self._size = 0

@@ -61,14 +61,13 @@ class Policy(system.Item):
     exception is raised.
 
     @ivar policyGranted: The list of users that have been granted this policy.
-    @type policyGranted: L{PolicyGranted<org.innoscript.desktop.schema.properties.PolicyGranted>}
+    @type policyGranted:
+        L{PolicyGranted<org.innoscript.desktop.schema.properties.PolicyGranted>}
     """
     __image__ = "desktop/images/policy.gif"
-    __props__ = system.Item.__props__ + ('policyGranted',)
-    
-    def __init__(self):
-        system.Item.__init__(self)
-        self.policyGranted = properties.PolicyGranted()
+    __props__ = dict({
+            'policyGranted' : properties.PolicyGranted
+        }, **system.Item.__props__)
 
 class UsersFolder(system.Container):
     """
@@ -89,20 +88,19 @@ class GenericUser(system.Item):
     @type fullName: L{String<porcupine.datatypes.String>}
 
     @ivar memberof: The list of groups that this user belongs to.
-    @type memberof: L{MemberOf<org.innoscript.desktop.schema.properties.MemberOf>}
+    @type memberof:
+        L{MemberOf<org.innoscript.desktop.schema.properties.MemberOf>}
 
     @ivar policies: The list of policies assigned to this user.
-    @type policies: L{Policies<org.innoscript.desktop.schema.properties.Policies>}
-
+    @type policies:
+        L{Policies<org.innoscript.desktop.schema.properties.Policies>}
     """
     __image__ = "desktop/images/user.gif"
-    __props__ = system.Item.__props__ + ('fullName', 'memberof', 'policies')
-    
-    def __init__(self):
-        system.Item.__init__(self)
-        self.fullName = datatypes.String()
-        self.memberof = properties.MemberOf()
-        self.policies = properties.Policies()
+    __props__ = dict({
+            'fullName' : datatypes.String,
+            'memberof' : properties.MemberOf,
+            'policies' : properties.Policies
+        }, **system.Item.__props__)
 
     def is_member_of(self, group):
         """
@@ -137,16 +135,13 @@ class User(GenericUser):
     @ivar settings: User specific preferences.
     @type settings: L{Dictionary<porcupine.datatypes.Dictionary>}
     """
-    __props__ = GenericUser.__props__ + ('password', 'email',
-                                         'settings', 'personalFolder')
+    __props__ = dict({
+            'password' : datatypes.RequiredPassword,
+            'email' : datatypes.String,
+            'settings' : datatypes.Dictionary,
+            'personalFolder' : datatypes.Reference1
+        }, **GenericUser.__props__)
     _eventHandlers = GenericUser._eventHandlers + [handlers.PersonalFolderHandler]
-    
-    def __init__(self):
-        GenericUser.__init__(self)
-        self.password = datatypes.RequiredPassword()
-        self.email = datatypes.String()
-        self.settings = datatypes.Dictionary()
-        self.personalFolder = datatypes.Reference1()
 
     def authenticate(self, password):
         """Checks if the given string matches the
@@ -199,11 +194,9 @@ class GenericGroup(system.Item):
     @type policies: L{Policies<org.innoscript.desktop.schema.properties.Policies>}
     """
     __image__ = "desktop/images/group.gif"
-    __props__ = system.Item.__props__ + ('policies', )
-    
-    def __init__(self):
-        system.Item.__init__(self)
-        self.policies = properties.Policies()
+    __props__ = dict({
+            'policies' : properties.Policies
+        }, **system.Item.__props__)
     
     def has_member(self, user):
         """
@@ -218,11 +211,9 @@ class Group(GenericGroup):
     @ivar members: The group's members.
     @type members: L{Members<org.innoscript.desktop.schema.properties.Members>}
     """
-    __props__ = GenericGroup.__props__ + ('members', )
-    
-    def __init__(self):
-        GenericGroup.__init__(self)
-        self.members = properties.Members()
+    __props__ = dict({
+            'members' : properties.Members
+        }, **GenericGroup.__props__)
 
     def has_member(self, user):
         """

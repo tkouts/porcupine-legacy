@@ -28,11 +28,9 @@ class File(system.Item):
     @type file: L{RequiredFile<porcupine.datatypes.RequiredFile>}
     """
     __image__ = "desktop/images/document.gif"
-    __props__ = system.Item.__props__ + ('file',)
-    
-    def __init__(self):
-        system.Item.__init__(self)
-        self.file = datatypes.RequiredFile()
+    __props__ = dict({
+            'file' : datatypes.RequiredFile
+        }, **system.Item.__props__)
 
     def get_size(self):
         "Getter for L{size} property"
@@ -96,12 +94,10 @@ class Application(system.Item):
     @type icon: L{String<porcupine.datatypes.String>}
     """
     __image__ = "desktop/images/app.gif"
-    __props__ = system.Item.__props__ + ('launchUrl', 'icon')
-    
-    def __init__(self):
-        system.Item.__init__(self)
-        self.launchUrl = datatypes.RequiredString()
-        self.icon = datatypes.String()
+    __props__ = dict({
+            'launchUrl' : datatypes.RequiredString,
+            'icon' : datatypes.String
+        }, **system.Item.__props__)
 
 class Folder(system.Container):
     """
@@ -138,13 +134,11 @@ class Category(system.Container):
                             CategoryObjects>}
     """
     __image__ = "desktop/images/category.gif"
-    __props__ = system.Container.__props__ + ('category_objects',)
+    __props__ = dict({
+            'category_objects' : properties.CategoryObjects
+        }, **system.Container.__props__)
     containment = system.Container.containment  + \
         ('org.innoscript.desktop.schema.common.Category',)
-    
-    def __init__(self):
-        system.Container.__init__(self)
-        self.category_objects = properties.CategoryObjects()
 
 class Document(File):
     """Document with categorization capabilities
@@ -152,8 +146,6 @@ class Document(File):
     @ivar categories: The document's categories
     @type categories: L{Categories<org.innoscript.desktop.schema.properties.Categories>}
     """
-    __props__ = File.__props__ + ('categories',)
-    
-    def __init__(self):
-        File.__init__(self)
-        self.categories = properties.Categories()
+    __props__ = dict({
+            'categories' : properties.Categories
+        }, **File.__props__)

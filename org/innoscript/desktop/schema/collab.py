@@ -42,10 +42,8 @@ class Contact(system.Item):
     @type categories: L{Categories<org.innoscript.desktop.schema.properties.Categories>}
     """
     __image__ = "desktop/images/contact.gif"
-    __props__ = system.Item.__props__ + ('company', 'email', 'categories')
-    
-    def __init__(self):
-        system.Item.__init__(self)
-        self.company = datatypes.String()
-        self.email = datatypes.String()
-        self.categories = properties.Categories()
+    __props__ = dict({
+            'company' : datatypes.String,
+            'email'   : datatypes.String,
+            'categories' : properties.Categories
+        }, **system.Item.__props__)
