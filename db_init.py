@@ -20,6 +20,10 @@ def init_db():
         db = offlinedb.get_handle(system)
         initialize_db()
     except Exception as e:
+        import traceback
+        output = traceback.format_exception(*sys.exc_info())
+        output = ''.join(output)
+        print(output)
         sys.exit(e)
     finally:
         if db is not None:
