@@ -23,7 +23,7 @@ import signal
 import select
 import asyncore
 from errno import EINTR
-from threading import Thread, Event
+from threading import Thread
 
 from porcupine.core import runtime
 from porcupine.config import services
@@ -34,7 +34,7 @@ PID_FILE = 'conf/.pid'
 
 class Controller(object):
     def __init__(self):
-        self.shutdowninprogress = False
+        #self.shutdowninprogress = False
         self.running = False
         self.services = services.services
     
@@ -55,14 +55,6 @@ class Controller(object):
                                    name='Asyncore thread')
         self._asyn_thread.start()
         
-        # start shutdown thread
-        self.shutdown_evt = Event()
-        self.shutdown_thread = Thread(
-            target=self.shutdown,
-            name='Shutdown thread'
-        )
-        self.shutdown_thread.start()
-
         self.running = True
 
         # record process id
@@ -93,13 +85,8 @@ certain conditions; See COPYING for more details.''')
                 print('Shutdown not completely clean...')
             else:
                 pass
-
-    def initiateShutdown(self, arg1=None, arg2=None):
-        self.shutdowninprogress = True
-        self.shutdown_evt.set()
         
-    def shutdown(self):
-        self.shutdown_evt.wait()
+    def shutdown(self, arg1=None, arg2=None):
         print('Initiating shutdown...')
         runtime.logger.info('Initiating shutdown...')
         self.running = False
@@ -107,12 +94,10 @@ certain conditions; See COPYING for more details.''')
         # stop services
         runtime.logger.info('Stopping services...')
         services.stop()
-
+        
         # join asyn thread
         asyncore.close_all()
         self._asyn_thread.join()
-
-        self.shutdowninprogress = False
 
 def main(args):
     for arg in args:
@@ -146,8 +131,8 @@ def main(args):
         print(output)
         sys.exit(e)
 
-    signal.signal(signal.SIGINT, controller.initiateShutdown)
-    signal.signal(signal.SIGTERM, controller.initiateShutdown)
+    signal.signal(signal.SIGINT, controller.shutdown)
+    signal.signal(signal.SIGTERM, controller.shutdown)
 
     try:
         while controller.running:
@@ -155,7 +140,6 @@ def main(args):
     except IOError:
         pass
 
-    controller.shutdown_thread.join()
     sys.exit()
 
 if __name__=='__main__':

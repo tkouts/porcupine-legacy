@@ -31,19 +31,18 @@ class PorcupineServerService(win32serviceutil.ServiceFramework):
             from porcupineserver import Controller
             self.controller = Controller()
             self.controller.start()
-            self.controller.shutdown_evt.wait()
+            while self.controller.running:
+                time.sleep(1.0)
         except Exception:
             if self.controller:
-                self.controller.initiateShutdown()
+                self.controller.shutdown()
             raise
 
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         while self.controller is None:
             time.sleep(1.0)
-        self.controller.initiateShutdown()
-        while self.controller.shutdowninprogress:
-            time.sleep(1.0)
+        self.controller.shutdown()
 
     def is_frozen(self):
         return (hasattr(sys, "frozen")          # new py2exe
