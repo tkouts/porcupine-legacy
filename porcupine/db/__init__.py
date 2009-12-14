@@ -87,7 +87,7 @@ def transactional(auto_commit=False, nosync=False):
         def transactional_wrapper(*args):
             # check if running in a replicated site and is master
             rep_mgr = _db.get_replication_manager()
-            if rep_mgr is not None and not rep_mgr.local_site.is_master:
+            if rep_mgr is not None and not rep_mgr.is_master():
                 # TODO: abort txn in chained calls?
                 raise exceptions.DBReadOnly(
                     'Attempted write operation in read-only database.')

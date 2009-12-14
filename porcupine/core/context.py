@@ -28,9 +28,9 @@ class Context(local):
         # thread local storage of non-transactional open cursors
         # used for duplicating cursors in order not avoid
         # lockers starvation
-        self._cursors = {}
+        self._cursors = []
 
     def _reset(self):
-        # close any opened cursors
-        [c.close() for c in self._cursors.values()]
-        self._cursors = {}
+        # close any cursors left opened
+        [c.close() for c in self._cursors]
+        self._cursors = []

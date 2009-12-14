@@ -139,23 +139,21 @@ class DB(object):
                 # wait for client start-up
                 timeout = time.time() + 10
                 while time.time() < timeout and \
-                    not (self.replication_service.local_site.is_master and
+                    not (self.replication_service.is_master() and
                          self.replication_service.client_startup_done):
                     time.sleep(0.02)
 
-            if 'site_address' not in rep_config:
+            if self.replication_service.is_master():
                 db_flags |= db.DB_CREATE
             else:
-                if self.replication_service.local_site.priority == 0:
+                if int(rep_config['priority']) == 0:
                     # the site will never be a MASTER
                     db_flags = db.DB_RDONLY
                 
                 timeout = time.time() + 20
                 while time.time() < timeout and \
                         not (os.path.exists(
-                             os.path.join(self.dir, 'porcupine.db')) and \
-                             os.path.exists(
-                             os.path.join(self.dir, 'porcupine.idx'))):
+                             os.path.join(self.dir, 'porcupine.db'))):
                     time.sleep(0.02)
         else:
             self.replication_service = None
@@ -215,18 +213,15 @@ class DB(object):
     def get_item(self, oid):
         if type(oid) != bytes:
             oid = oid.encode('utf-8')
-        while True:
-            try:
-                item = self._indices['_id'].db.get(oid,
-                    txn=context._trans and context._trans.txn)
-                break
-            except UnicodeEncodeError:
-                return None
-            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                if context._trans is not None:
-                    context._trans.abort()
-                    raise exceptions.DBRetryTransaction
-        return item
+        try:
+            return self._indices['_id'].db.get(oid,
+                txn=context._trans and context._trans.txn)
+        except UnicodeEncodeError:
+            return None
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            if context._trans is not None:
+                context._trans.abort()
+            raise exceptions.DBRetryTransaction
 
     def put_item(self, item):
         try:
@@ -260,30 +255,24 @@ class DB(object):
         return cursor
 
     def get_child_by_name(self, container_id, name):
-        while True:
-            try:
-                item = self._indices['displayName'].db.get(
-                    pack_value(container_id) + b'_' + pack_value(name),
-                    txn=context._trans and context._trans.txn)
-                break
-            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                if context._trans is not None:
-                    context._trans.abort()
-                    raise exceptions.DBRetryTransaction
-        return item
+        try:
+            return self._indices['displayName'].db.get(
+                pack_value(container_id) + b'_' + pack_value(name),
+                txn=context._trans and context._trans.txn)
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            if context._trans is not None:
+                context._trans.abort()
+            raise exceptions.DBRetryTransaction
 
     # external attributes
     def get_external(self, id):
-        while True:
-            try:
-                item = self._docdb.get(id.encode('ascii'),
-                                       txn=context._trans and context._trans.txn)
-                break
-            except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                if context._trans is not None:
-                    context._trans.abort()
-                    raise exceptions.DBRetryTransaction
-        return item
+        try:
+            return self._docdb.get(id.encode('ascii'),
+                                   txn=context._trans and context._trans.txn)
+        except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
+            if context._trans is not None:
+                context._trans.abort()
+            raise exceptions.DBRetryTransaction
 
     def put_external(self, id, stream):
         try:
@@ -399,7 +388,7 @@ class DB(object):
     def __maintain(self):
         "deadlock detection thread"
         while self._running:
-            time.sleep(1.0)
+            time.sleep(0.05)
             # deadlock detection
             try:
                 aborted = self._env.lock_detect(db.DB_LOCK_RANDOM,

@@ -43,16 +43,32 @@ class ReplicationService(object):
             req_address = services['main'].addr
         else:
             req_address = None
-        priority = self.config['priority']
-        self.local_site = Site(address, mgt_address, req_address, priority)
-        if 'site_address' not in self.config:
-            self.local_site.is_master = True
+        self.local_site = Site(address, mgt_address, req_address)
+
+        if self.config['priority'] == 0:
+            self.role = db.DB_REP_CLIENT
+        else:
+            role = self.config.get('role', 'CLIENT')
+            self.role = getattr(db, 'DB_REP_%s' % role)
+
+        if self.role == db.DB_REP_ELECTION:
+            logger.info(
+                'REP: Starting replication manager and calling for election')
+        elif self.role == db.DB_REP_CLIENT:
+            logger.info('REP: Starting replication manager as a client')
+        elif self.role == db.DB_REP_MASTER:
+            logger.info('REP: Starting replication manager as MASTER')
+
+        if self.role == db.DB_REP_MASTER:
             self.master = self.local_site
+
+    def is_master(self):
+        return self.local_site == self.master
 
     def start(self):
         self.env.repmgr_set_local_site(*self.local_site.address)
-        self.env.rep_set_priority(self.local_site.priority)
-        self.env.rep_set_nsites(self.config['nsites'] - 1)
+        self.env.rep_set_priority(self.config['priority'])
+        self.env.rep_set_nsites(self.config['nsites'])
         if 'ack_policy' in self.config and \
                 hasattr(db, self.config['ack_policy']):
             self.env.repmgr_set_ack_policy(
@@ -60,9 +76,9 @@ class ReplicationService(object):
 
         def event_notify(a, b, c):
             if b == db.DB_EVENT_REP_MASTER:
-                self.local_site.is_master = True
+                self.master = self.local_site
                 #print('MASTER')
-                self._broadcast(MgtMessage('REP_NEW_MASTER', self.local_site))
+                self.broadcast(MgtMessage('REP_NEW_MASTER', self.local_site))
                 logger.info('REP: Node elected as new MASTER')
             elif b == db.DB_EVENT_REP_STARTUPDONE:
                 self.client_startup_done = True
@@ -75,19 +91,9 @@ class ReplicationService(object):
             site_address = misc.get_address_from_string(
                 self.config['site_address'])
             self.join_site(site_address)
-            if self.local_site.priority > 0:
-                logger.info(
-                  'REP: Starting replication manager and calling for election')
-                role = db.DB_REP_ELECTION
-            else:
-                logger.info('REP: Starting replication manager as a client')
-                role = db.DB_REP_CLIENT
-        else:
-            logger.info('REP: Starting replication manager as MASTER')
-            # be a master
-            role = db.DB_REP_MASTER
+        
         # start replication manager
-        self.env.repmgr_start(self.config['worker_threads'], role)
+        self.env.repmgr_start(self.config['worker_threads'], self.role)
 
     def join_site(self, site_address):
         msg = MgtMessage('REP_JOIN_SITE', self.local_site)
@@ -98,18 +104,19 @@ class ReplicationService(object):
             raise db.DBError('Replication site is unreachable')
 
         if response.header == 0:
-            master, site_list = response.data
+            master, sites = response.data
             self.master = master
-            for site in site_list:
+            for site in [s for s in sites
+                         if s.address != self.local_site.address]:
                 self.add_remote_site(site)
         else:
             raise db.DBError(response.data)
 
     def get_site_list(self):
-        return list(self.sites.values())
+        return self.env.repmgr_site_list()
 
-    def _broadcast(self, message):
-        for site in self.get_site_list():
+    def broadcast(self, message):
+        for site in self.sites.values():
             request = MgtRequest(message.serialize())
             try:
                 request.get_response(site.mgt_address)
@@ -117,17 +124,12 @@ class ReplicationService(object):
                 # the site is down
                 logger.critical('REP: Site %s is down.' % (site.mgt_address, ))
 
-    def add_remote_site(self, site, broadcast=False):
-        if broadcast:
-            self._broadcast(MgtMessage('REP_ADD_REMOTE_SITE', site))
+    def add_remote_site(self, site):
         site_id = self.env.repmgr_add_remote_site(*site.address)
         self.sites[site_id] = site
 
 class Site(object):
-    def __init__(self, repmgr_address, management_address,
-                 req_address, priority):
+    def __init__(self, repmgr_address, management_address, req_address):
         self.address = repmgr_address
         self.mgt_address = management_address
         self.req_address = req_address
-        self.is_master = False
-        self.priority = priority

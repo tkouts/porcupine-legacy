@@ -172,18 +172,26 @@ class ManagementThread(asyncserver.BaseServerThread):
             elif cmd == 'SITE_INFO':
                 rep_mgr = _db.get_replication_manager()
                 if rep_mgr is not None:
-                    site_list = rep_mgr.get_site_list() + [rep_mgr.local_site]
+                    site_list = list(rep_mgr.get_site_list().values())
+                    site_list.append(
+                        rep_mgr.local_site.address + (1,))
+                    #print site_list
                     info = [str.format('{0:25}{1:10}{2:6}',
-                                      'SITE', 'PRIORITY', 'MASTER'),
+                                      'SITE', 'STATUS', 'MASTER'),
                             '-' * 41]
                     for site in site_list:
-                        if site.is_master:
+                        site_address = site[:2]
+                        if site[2] == 1:
+                            s = 'ONLINE'
+                        else:
+                            s = 'OFFLINE'
+                        if rep_mgr.master and \
+                                rep_mgr.master.address == site_address:
                             m = 'X'
                         else:
-                            m = ' '
+                            m = ''
                         info.append(str.format('{0:25}{1:10}{2:6}',
-                                               site.mgt_address,
-                                               str(site.priority), m))
+                                               site_address, s, m))
 
                     info.append('')
                     info.append('Total sites: %d' % len(site_list))
@@ -196,8 +204,11 @@ class ManagementThread(asyncserver.BaseServerThread):
                 if rep_mgr is not None:
                     site = request.data
                     #print('adding remote site %s' % (site.address, ))
-                    site_list = rep_mgr.get_site_list() + [rep_mgr.local_site]
-                    rep_mgr.add_remote_site(site, True)
+                    site_list = rep_mgr.sites.values() + [rep_mgr.local_site]
+                    rep_mgr.broadcast(
+                        MgtMessage('REP_ADD_REMOTE_SITE', site)
+                    )
+                    rep_mgr.add_remote_site(site)
                     return (0, [rep_mgr.master, site_list])
                 else:
                     raise NotImplementedError
