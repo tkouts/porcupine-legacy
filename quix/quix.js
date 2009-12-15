@@ -549,7 +549,13 @@ QuiX.XHRPool = (
 	}
 )();
 
-QuiX.innerText = function(node) {
+QuiX.setInnerText = function(node, text) {
+    var textNode = document.createTextNode(text);
+    node.innerHTML = '';
+    node.appendChild(textNode);
+}
+
+QuiX.getInnerText = function(node) {
     var text = '';
     var i;
     if (typeof XMLSerializer != "undefined") {
@@ -899,11 +905,11 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                     break;
                 case 'field':
                     if (params.type=='textarea')
-                        params.value = QuiX.innerText(oNode);
+                        params.value = QuiX.getInnerText(oNode);
                     oWidget = new QuiX.ui.Field(params);
                     break;
                 case 'richtext':
-                    params.value = QuiX.innerText(oNode);
+                    params.value = QuiX.getInnerText(oNode);
                     oWidget = new QuiX.ui.RichText(params);
                     break;
                 case 'mfile':
@@ -994,7 +1000,7 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                             params['name'] + '=' + params['value']);
                     break;
                 case 'xhtml':
-                    parentW.div.innerHTML = QuiX.innerText(oNode);
+                    parentW.div.innerHTML = QuiX.getInnerText(oNode);
                     break;
                 default:
                     var widget_contructor = QuiX.constructors[localName];

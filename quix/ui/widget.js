@@ -1171,8 +1171,8 @@ QuiX.ui.Desktop = function(params, root) {
     }
     this._setCommonProps();
     this.div.innerHTML =
-    '<p align="right" style="color:#666666;margin:0px;">QuiX v' +
-    QuiX.version + '</p>';
+        '<p align="right" style="color:#666666;margin:0px;">QuiX v' +
+        QuiX.version + '</p>';
     root.appendChild(this.div);
     this.div.className = 'desktop';
     document.desktop = this;

@@ -196,12 +196,12 @@ QuiX.ui.Field.prototype.setCaption = function(caption) {
 		if (!textnode) {
 			textnode = ce('SPAN');
 			textnode.style.cursor = 'default';
-			textnode.innerHTML = caption;
+            QuiX.setInnerText(textnode, caption);
 			textnode.style.verticalAlign = 'middle';
 			this.div.appendChild(textnode);
 		}
 		else {
-			textnode.innerHTML = caption;
+            QuiX.setInnerText(textnode, caption);
 		}
 	}
 }

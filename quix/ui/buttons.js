@@ -28,8 +28,9 @@ QuiX.ui.Label = function(/*params*/) {
 	}
 	this.wrap = (params.wrap=="true" || params.wrap==true);
 	
-	var sCaption = params.caption || '';
-	this.div.innerHTML += '<span>' + sCaption + '</span>';
+	var caption = params.caption || '';
+    this.div.appendChild(ce('SPAN'));
+    QuiX.setInnerText(this.div.firstChild, caption);
 }
 
 QuiX.constructors['label'] = QuiX.ui.Label;
@@ -51,11 +52,12 @@ QuiX.ui.Label.prototype._calcSize = function(height, offset, getHeight, memo) {
 }
 
 QuiX.ui.Label.prototype.setCaption = function(s) {
-	this.div.getElementsByTagName('SPAN')[0].innerHTML = s;
+    var span = this.div.getElementsByTagName('SPAN')[0];
+    QuiX.setInnerText(span, s);
 }
 
-QuiX.ui.Label.prototype.getCaption = function(s) {
-	return(this.div.getElementsByTagName('SPAN')[0].innerHTML.xmlDecode());
+QuiX.ui.Label.prototype.getCaption = function() {
+	return this.div.getElementsByTagName('SPAN')[0].innerHTML.xmlDecode();
 }
 
 QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {

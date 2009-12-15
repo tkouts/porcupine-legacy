@@ -16,7 +16,7 @@ QuiX.ui.ListView = function(/*params*/) {
 	this.cellPadding = parseInt(params.cellpadding) || 4;
 	this.cellBorder = parseInt(params.cellborder) || 0;
 	this.multiple = (params.multiple==true || params.multiple=="true");
-	this.nullText = params.nulltext || '&nbsp;';
+	this.nullText = params.nulltext || ' ';
 	this.dateFormat = params.dateformat || 'ddd dd/mmm/yyyy time';
 	this.trueImg = params.trueimg || '$THEME_URL$images/check16.gif';
 	this.sortfunc = QuiX.getEventListener(params.sortfunc);
@@ -306,7 +306,7 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
 	oCol.getCaption = ListColumn__getCaption;
 
 	oCol.name = params.name;
-	var sCaption = params.caption || '&nbsp;';
+	var sCaption = params.caption || ' ';
 	oCol.setCaption(sCaption);
 		
 	oCol.columnType = params.type || 'str';
@@ -571,7 +571,8 @@ QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value, obj) {
 	var elem, column, column_type;
 
 	if (value==undefined) {
-		cell.innerHTML = this.nullText;
+		//cell.innerHTML = this.nullText;
+        QuiX.setInnerText(cell, this.nullText);
 		return;
 	}
 	
@@ -583,9 +584,11 @@ QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value, obj) {
 		switch (column_type) {
 			case 'optionlist':
 				for (var i=0; i<column.options.length; i++) {
-					if (value==column.options[i].value)
-						cell.innerHTML = '<span>' + 
-							column.options[i].caption + '</span>';
+					if (value == column.options[i].value) {
+                        cell.appendChild(ce('SPAN'));
+                        QuiX.setInnerText(cell.firstChild,
+                                          column.options[i].caption);
+                    }
 				}
 				return;
 			case 'img':
@@ -612,7 +615,7 @@ QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value, obj) {
 				return;
 			default:
 				if (typeof column_type == 'function') {
-					cell.appendChild(column_type(column,obj,value))
+					cell.appendChild(column_type(column, obj, value))
 					return;
 				}
 		}
@@ -624,17 +627,21 @@ QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value, obj) {
 	if (value instanceof Date) {
 		cell.innerHTML = '<span>' + 
 			value.format(this.dateFormat) + '</span>';
-	} else if (typeof(value) == 'boolean') {
+	}
+    else if (typeof(value) == 'boolean') {
 		if (value) {
 			elem = QuiX.getImage(this.trueImg)
 			elem.align = 'absmiddle';
 			cell.appendChild(elem);
-		} else {
+		}
+        else {
 			cell.innerHTML = '&nbsp;';
 		}
-	} else {
-		cell.innerHTML = '<span>' + 
-			((value == '' && value != 0)?'&nbsp;':value) + '</span>';
+	}
+    else {
+        cell.appendChild(ce('SPAN'));
+        QuiX.setInnerText(cell.firstChild,
+                          (value == '' && value != 0)?' ':value);
 	}
 }
 
@@ -679,7 +686,8 @@ function ListView__onscroll(evt , w) {
 }
 
 function ListColumn__setCaption(s) {
-	this.innerHTML = '<span style="white-space:nowrap">' + s + '</span>';
+	this.innerHTML = '<span style="white-space:nowrap"></span>';
+    QuiX.setInnerText(this.firstChild, s);
 }
 
 function ListColumn__getCaption(s) {
