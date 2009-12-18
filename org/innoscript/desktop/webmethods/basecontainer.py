@@ -58,7 +58,7 @@ def new(self):
     
     params = {
         'CC': sCC,
-        'URI': context.request.get_root_url() + '/' + self.id,
+        'URI': self.id,
         'ICON': oNewItem.__image__,
         'PROPERTIES_TAB': '',
         'EXTRA_TABS': '',
