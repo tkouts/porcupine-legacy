@@ -261,30 +261,20 @@ QuiX.ui.Combo.prototype.addOption = function(params) {
 	params.height = params.height || 24;
 	params.overflow = 'hidden';
 	var opt = new QuiX.ui.Icon(params);
+    opt.div.className = 'option';
 	opt._isContainer = false;
 	opt.selected = false;
 	opt.value = params.value;
 	this.dropdown.widgets[0].appendChild(opt);
 	if ((params.selected=='true' || params.selected == true) && !this.editable)
 		this.selectOption(opt);
-	opt.attachEvent('onmouseover', ComboOption__mouseover);
-	opt.attachEvent('onmouseout', ComboOption__mouseout);
 	opt.attachEvent('onclick', ComboOption__onclick);
 	opt.setPosition('relative');
 	return opt;
 }
 
-function ComboOption__mouseover(evt, w) {
-	w.div.className = 'option over';
-}
-
-function ComboOption__mouseout(evt, w) {
-	w.div.className = 'option';
-}
-
 function ComboOption__onclick(evt, w) {
 	w.parent.parent.combo.selectOption(w);
-	w.div.className = 'option';
 }
 
 function ComboBtn__onclick(evt, w) {

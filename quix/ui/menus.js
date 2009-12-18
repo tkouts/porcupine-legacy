@@ -4,13 +4,11 @@ Menus
 //menu option
 QuiX.ui.MenuOption = function(params) {
 	params.height = params.height || 21;
-	//params.align = 'left';
 	params.imgalign = 'left';
 	params.width = null;
 	params.overflow = 'visible';
 	params.padding = '4,0,3,2';
 	params.onmouseover = MenuOption__onmouseover;
-	params.onmouseout = MenuOption__onmouseout;
 	params.onclick = QuiX.getEventWrapper(params.onclick, MenuOption__onclick);
 
 	this.base = QuiX.ui.Icon;
@@ -34,12 +32,11 @@ QuiX.ui.MenuOption.prototype.addOption = function(params) {
 }
 
 QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
-	if (this.subMenu) {
-		this.div.className = 'submenu';
-	}
-	else {
-		this.div.className = '';
-	}
+	if (this.subMenu)
+		this.div.className = 'option submenu';
+	else
+		this.div.className = 'option';
+    
 	if (this.type) {
 		if (this.selected) {
 			switch (this.type) {
@@ -112,33 +109,28 @@ QuiX.ui.MenuOption.prototype.expand = function() {
 			this.getWidth(true),
 			this.getScreenTop() - this.parent.getScreenTop() );
 		
-		if (this.subMenu.getScreenTop() + this.subMenu.height > document.desktop.getHeight(true)) {
-			this.subMenu.top -= this.subMenu.getScreenTop() + this.subMenu.height - document.desktop.getHeight(true);
+		if (this.subMenu.getScreenTop() + this.subMenu.height >
+                document.desktop.getHeight(true)) {
+			this.subMenu.top -= this.subMenu.getScreenTop() +
+                                this.subMenu.height -
+                                document.desktop.getHeight(true);
 			this.subMenu.redraw();
 		}
 		
-		if (this.subMenu.getScreenLeft() + this.subMenu.width > document.desktop.getWidth(true)) {
+		if (this.subMenu.getScreenLeft() + this.subMenu.width >
+                document.desktop.getWidth(true)) {
 			this.subMenu.left = - this.subMenu.width;
 			this.subMenu.redraw();
 		}
 	}
 }
 
-function MenuOption__onmouseout(evt, w) {
-	if (w.subMenu)
-		w.div.className = 'submenu';
-	else
-		w.div.className = '';
-}
-
 function MenuOption__onmouseover(evt, w) {
 	w.expand();
-	w.div.className += ' over';
 }
 
 function MenuOption__onclick(evt, w) {
 	if (w.type) w.select();
-	w.div.className = 'option';
 	QuiX.cleanupOverlays();
 }
 
@@ -152,8 +144,7 @@ QuiX.ui.ContextMenu = function(params, owner) {
 		overflow : 'visible',
 		onmousedown : QuiX.stopPropag,
 		onshow : params.onshow,
-		onclose : params.onclose//,
-        //dir : owner.div.dir
+		onclose : params.onclose
 	});
 	this.div.className = 'contextmenu';
 	if (QuiX.utils.BrowserInfo.family == 'moz'

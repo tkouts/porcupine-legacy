@@ -25,18 +25,16 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
 		overflow : 'hidden',
 		height : 26,
 		caption : params.caption,
-		onclick : Tab__click,
-		onmouseover : Tab__mouseover,
-		onmouseout : Tab__mouseout
+		onclick : Tab__click
 	});
 	this.appendChild(oTab);
 	oTab.redraw();
 	oTab.setDisplay('inline');
 	oTab.setPosition('relative');
-	oTab.div.className = 'tab';
+	oTab.div.className = 'tab inactive';
 
     params.top = 24;
-	params.height = 'this.parent.getHeight(false, memo)-24';
+	params.height = 'this.parent.getHeight(false, memo) - 24';
 	params.width = '100%';
 	params.border = 1;
 	params.padding = params.padding || '8,8,8,8';
@@ -76,19 +74,14 @@ QuiX.ui.TabPane.prototype.activateTab = function(tab) {
 	
 	oTab.tabButton.bringToFront();
 	oTab.tabButton.div.style.top = '-2px';
-	oTab.tabButton.div.className = 'tab';
-	oTab.tabButton.div.style.cursor = 'default';
-	oTab.tabButton.detachEvent('onmouseout');
-	oTab.tabButton.detachEvent('onmouseover');
+	oTab.tabButton.div.className = 'tab active';
 	oTab.tabButton.detachEvent('onclick');
 	
 	if (iActive != iTab) {
 		activeTabButton = this.tabs[iActive].tabButton;
 		activeTabButton.div.style.top = 0;
-		activeTabButton.attachEvent('onmouseout');
-		activeTabButton.attachEvent('onmouseover');
 		activeTabButton.attachEvent('onclick');
-		activeTabButton.div.style.cursor = '';
+        activeTabButton.div.className = 'tab inactive';
 		this.tabs[iActive].hide();
 	}
 	
@@ -114,14 +107,6 @@ function Tab__destroy() {
 	oTab.tabs.splice(idx, 1);
 	this.tabButton.destroy();
 	Widget.prototype.destroy.apply(this, arguments);
-}
-
-function Tab__mouseover(evt, w) {
-	w.div.className = 'tab over';
-}
-
-function Tab__mouseout(evt, w) {
-	w.div.className = 'tab';
 }
 
 function Tab__click(evt, w) {

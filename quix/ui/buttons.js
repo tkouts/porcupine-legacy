@@ -206,8 +206,6 @@ QuiX.ui.Button = function(/*params*/) {
         display: params.display,
 		bgcolor: params.bgcolor || 'buttonface',
 		overflow: 'hidden',
-		onmouseover: QuiX.getEventWrapper(XButton__onmouseover,
-						params.onmouseover),
 		onmouseout: QuiX.getEventWrapper(XButton__onmouseout,
 						params.onmouseout),
 		onmouseup: QuiX.getEventWrapper(XButton__onmouseup,
@@ -305,10 +303,6 @@ QuiX.ui.Button.prototype.redraw = function(bForceAll /*, memo*/) {
 		this.icon.redraw(true, memo);
 	}
 	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
-}
-
-function XButton__onmouseover(evt, w) {
-	w.div.className = 'btnover';
 }
 
 function XButton__onmouseout(evt, w) {

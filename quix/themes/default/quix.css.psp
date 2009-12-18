@@ -85,29 +85,27 @@ BODY {
 	border-color: Gray;
 }
 
-.btnover{
-	border-style : solid;
-	border-color: #FFA500 #663300
-			#663300 #FFA500;
+.btn:hover{
+	border-color: #FFA500 #663300 #663300 #FFA500;
 	color: blue;
 }
 
 .btndown {
 	border-style : solid;
 	border-color: ThreeDDarkShadow ThreedHighlight
-			ThreedHighlight ThreeDDarkShadow;
+                  ThreedHighlight ThreeDDarkShadow;
 }
 
 .btndown .l2, .btndown .l2default {
 	border-style : solid;
 	border-color: ThreedShadow ThreedLightShadow
-			ThreedLightShadow ThreedShadow;
+                  ThreedLightShadow ThreedShadow;
 }
 
 .btnmenu {
 	border-style : solid;
 	border-color:	ThreeDDarkShadow ThreedLightShadow
-			ThreedLightShadow ThreeDDarkShadow;
+                    ThreedLightShadow ThreeDDarkShadow;
 	text-align : center;
 	cursor:pointer;
 }
@@ -242,8 +240,10 @@ BODY {
 	background-position : left;
 }
 
-.contextmenu .over {
-	color: White;
+.contextmenu .option {}
+
+.contextmenu .option:hover {
+	color: white;
 	background-color : #6699FF;
 }
 
@@ -261,7 +261,6 @@ BODY {
 
 .tabpane .tab {
 	background-color : #E5D9C8;
-	cursor : pointer;
 	border-style : solid solid none solid;
 	border-color:	ThreeDHighlight ThreeDDarkShadow
 					ThreeDDarkShadow ThreeDHighlight;
@@ -276,7 +275,15 @@ BODY {
     clear : left;
 }
 
-.tabpane .over {
+.tabpane .active {
+    cursor: default
+}
+
+.tabpane .inactive {
+    cursor : pointer;
+}
+
+.tabpane .inactive:hover {
 	color: blue;
 }
 
@@ -398,19 +405,19 @@ BODY {
 
 .combo {}
 
+.combodropdown {
+	border-style : solid;
+	border-color : gray;
+}
+
 .combodropdown .option {
 	cursor: default;
 	white-space: nowrap;
 }
 
-.combodropdown .over {
-	color: White;
+.combodropdown .option:hover {
+	color: white;
 	background-color : #6699FF;
-}
-
-.combodropdown {
-	border-style : solid;
-	border-color : gray;
 }
 
 .DatePicker {
