@@ -15,6 +15,7 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 "Server string localization classes"
+from porcupine.core import compat
 from porcupine.core.decorators import deprecated
 
 class Locale(dict):
@@ -38,6 +39,12 @@ class ResourceStrings(object):
         @type dctResources: dict
         """
         self.__resources = dctResources
+
+    def set_alias(self, name, alias):
+        if isinstance(alias, compat.str):
+            alias = [alias]
+        for a in alias:
+            self.__resources[a] = self.__resources[name]
 
     def get_resource(self, sName, sLocale):
         """Returns the string with the specified name in the
