@@ -39,12 +39,15 @@ class ETag(PreProcessFilter):
                          context.request.get_lang()]
             try:
                 # python 2.6
-                func_hash = hash(wrapper.func.func_code)
+                func_code = wrapper.func.func_code
             except AttributeError:
                 # python 3
-                func_hash = hash(wrapper.func.__code__)
-            method_id.append(struct.pack('>q', func_hash))
-            
+                func_code = wrapper.func.__code__
+            method_id.append(func_code.co_code)
+            method_id.append(struct.pack('>q', hash(func_code.co_varnames)))
+            # exclude None from consts
+            method_id.append(struct.pack('>q', hash(func_code.co_consts[1:])))
+
             if wrapper.template is not None:
                 func_dir = os.path.dirname(
                     sys.modules[wrapper.func.__module__].__file__)

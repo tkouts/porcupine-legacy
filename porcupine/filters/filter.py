@@ -42,6 +42,7 @@ class BaseFilter(object):
     
 
 class PostProcessFilter(BaseFilter):
+    mutates_output = False
     type = 'post'
     
 class PreProcessFilter(BaseFilter):

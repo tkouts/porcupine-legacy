@@ -90,6 +90,8 @@ class PorcupineThread(BaseServerThread):
                             'The resource "%s" does not exist' % path_info)
                 else:
                     # request to a published directory
+                    self._fetch_session(session_id, cookies_enabled)
+
                     # remove blank entry & app name to get the requested path
                     dir_path = '/'.join(path_tokens[2:])
                     registration = web_app.getRegistration(
@@ -101,15 +103,12 @@ class PorcupineThread(BaseServerThread):
                         raise exceptions.NotFound(
                             'The resource "%s" does not exist' % path_info)
 
-                    rtype = registration.type
-                    if rtype == 1: # in case of psp fetch session
-                        self._fetch_session(session_id, cookies_enabled)
-
                     # apply pre-processing filters
                     [filter[0].apply(context, item, registration, **filter[1])
                      for filter in registration.filters
                      if filter[0].type == 'pre']
 
+                    rtype = registration.type
                     if rtype == 1: # psp page
                         ServerPage.execute(context, registration.context)
                     elif rtype == 0: # static file
@@ -120,8 +119,12 @@ class PorcupineThread(BaseServerThread):
                             response._code = 304
                         else: 
                             response.load_from_file(f_name)
-                            response.set_header('ETag', '"%s"' %
-                                                misc.generate_file_etag(f_name))
+                            if not any([f[0].mutates_output
+                                        for f in registration.filters
+                                        if f[0].type == 'post']):
+                                response.set_header(
+                                    'ETag', '"%s"' %
+                                    misc.generate_file_etag(f_name))
                             if registration.encoding:
                                 response.charset = registration.encoding
             
@@ -150,18 +153,21 @@ class PorcupineThread(BaseServerThread):
             context._reset()
             # proxy request to master
             rep_mgr = _db.get_replication_manager()
-            master_addr = rep_mgr.master.req_address
-            master_request = BaseRequest(rh.input_buffer)
-            try:
-                master_response = master_request.get_response(master_addr)
-            except:
-                e = exceptions.InternalServerError(
-                    'Database is in read-only mode')
-                e.output_traceback = False
-                e.emit(context, item)
-            else:
-                rh.write_buffer(master_response)
-                return
+            if rep_mgr.master is not None:
+                master_addr = rep_mgr.master.req_address
+                master_request = BaseRequest(rh.input_buffer)
+                try:
+                    master_response = master_request.get_response(master_addr)
+                except:
+                    pass
+                else:
+                    rh.write_buffer(master_response)
+                    return
+
+            e = exceptions.InternalServerError(
+                'Database is in read-only mode')
+            e.output_traceback = False
+            e.emit(context, item)
             
         except exceptions.PorcupineException as e:
             e.emit(context, item)

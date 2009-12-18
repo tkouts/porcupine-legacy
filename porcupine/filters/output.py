@@ -91,6 +91,7 @@ class I18n(PostProcessFilter):
     Internationalization filter based on the request's
     preferred language setting.
     """
+    mutates_output = True
     _tokens = re.compile(b'(@@([\w\.]+)@@)', re.DOTALL)
 
     @staticmethod
