@@ -34,3 +34,6 @@ class Context(local):
         # close any cursors left opened
         [c.close() for c in self._cursors]
         self._cursors = []
+        # remove session
+        if hasattr(self, 'session'):
+            delattr(self, 'session')
