@@ -505,16 +505,22 @@ QuiX.persist = (function() {
                 get: function(key, fn, scope) {
                     var val;
                     key = esc(key);
-                    val = this.el.get(this.name, key);
+                    if (!this.el.get)
+                    	val = null;
+                    else
+                		val = this.el.get(this.name, key);
                     if (fn)
                         fn.call(scope || this, val !== null, val);
                 },
                 set: function(key, val, fn, scope) {
-                    var old_val;
+                    var ok = true;
                     key = esc(key);
-                    old_val = this.el.set(this.name, key, val);
+                    if (this.el.set)
+                    	old_val = this.el.set(this.name, key, val);
+                    else
+                    	ok = false;
                     if (fn)
-                        fn.call(scope || this, true, val);
+                        fn.call(scope || this, ok, val);
                 },
                 remove: function(key, fn, scope) {
                     var val;
