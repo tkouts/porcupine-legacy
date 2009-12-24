@@ -53,17 +53,19 @@ BODY {
 	text-align : center;
 	margin-right: 6px;
 	cursor:pointer;
+    border-style : solid;
+    border-color : transparent;
 }
-.flatover{
+.flatover {
 	border-style : solid;
 	color: blue;
-	border-color:	ThreedHighlight ThreeDDarkShadow
-			ThreeDDarkShadow ThreedHighlight;
+	border-color : ThreedHighlight ThreeDDarkShadow
+                   ThreeDDarkShadow ThreedHighlight;
 }
 .flaton {
 	border-style: solid;
-	border-color:	ThreeDDarkShadow ThreedHighlight
-			ThreedHighlight ThreeDDarkShadow;
+	border-color: ThreeDDarkShadow ThreedHighlight
+                  ThreedHighlight ThreeDDarkShadow;
 	background-color : InfoBackground;
 	cursor:pointer;
 }
@@ -116,14 +118,40 @@ BODY {
 	background-color : #D5CCBB;
 }
 
-.window .header{
+.window .header {
 	color : white;
 	font-weight : bolder;
 	background-image : url(images/win_title.gif);
 	background-color : #FF6600;
 	background-repeat : repeat-x;
 	white-space: nowrap;
-	cursor: move;
+}
+
+.window .header #c0 {
+	background-image : url(images/win_close.gif);
+	background-repeat : no-repeat;
+}
+
+.window .header #c0:hover {
+	background-image : url(images/win_close_over.gif);
+}
+
+.window .header #c1 {
+	background-image : url(images/win_max.gif);
+	background-repeat : no-repeat;
+}
+
+.window .header #c1:hover {
+	background-image : url(images/win_max_over.gif);
+}
+
+.window .header #c2 {
+	background-image : url(images/win_min.gif);
+	background-repeat : no-repeat;
+}
+
+.window .header #c2:hover {
+	background-image : url(images/win_min_over.gif);
 }
 
 .window .status{
