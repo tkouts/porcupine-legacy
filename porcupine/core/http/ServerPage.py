@@ -90,7 +90,7 @@ def execute(context, filename):
                                 intend = intend[0:len(intend)-1]
                     execCode += formattedCode
         
-        oCode = compile(execCode, '<string>', 'exec')
+        oCode = compile(execCode, filename, 'exec')
         pspBinaryFile = open(compiledFileName, 'w+b')
         marshal.dump(oCode, pspBinaryFile)
         pspBinaryFile.seek(0)
