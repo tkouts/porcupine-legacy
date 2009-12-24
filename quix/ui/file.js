@@ -157,8 +157,7 @@ QuiX.ui.File.prototype.onerror = function(e) {
 }
 
 QuiX.ui.File.prototype._getCaption = function() {
-	return '<b>' + this.filename  + '</b>&nbsp;' +
-		'(' + parseInt(this.size/1024) + 'KB)&nbsp;&nbsp;';
+	return this.filename + ' (' + parseInt(this.size/1024) + 'KB)  ';
 }
 
 QuiX.ui.File.prototype.setFile = function(path) {
