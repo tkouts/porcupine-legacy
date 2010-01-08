@@ -194,7 +194,7 @@ QuiX.tags = {
     'window':0,'dialog':0,
     'menubar':1,'menu':1,'menuoption':1,'contextmenu':1,
     'splitter':2,
-    'dlgbutton':3,'button':3,'flatbutton':3,'label':3,'icon':3,
+    'dlgbutton':3,'button':3,'flatbutton':3,'label':3,'icon':3,'link':3,
     'tabpane':4,'tab':4,
     'listview':5,
     'tree':6,'treenode':6,'foldertree':6,

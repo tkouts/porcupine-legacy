@@ -370,29 +370,33 @@ QuiX.ui.Widget.prototype._mustRedraw = function () {
             ||isNaN(this.height)||isNaN(this.width);
 }
 
-QuiX.ui.Widget.prototype.getScrollWidth = function(memo) {
-    var lengths = [];
+QuiX.ui.Widget.prototype.getScrollWidth = function() {
+    var memo = {};
+    var lengths = [], sw;
     for (var i=0; i<this.widgets.length; i++)
         lengths.push(this.widgets[i]._calcLeft(memo) +
                      this.widgets[i]._calcWidth(true, memo));
-    return Math.max.apply(Math, lengths);
+    sw = Math.max.apply(Math, lengths);
+    return sw;
 }
 
-QuiX.ui.Widget.prototype.getScrollHeight = function(memo) {
-    var lengths = [];
+QuiX.ui.Widget.prototype.getScrollHeight = function() {
+    var memo = {};
+    var lengths = [], sh;
     for (var i=0; i<this.widgets.length; i++) {
         lengths.push(this.widgets[i]._calcTop(memo) +
                      this.widgets[i]._calcHeight(true, memo));
     }
-    return Math.max.apply(Math, lengths);
+    sh = Math.max.apply(Math, lengths);
+    return sh;
 }
 
 QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
-    var ofs, hg, has_scrollbar;
-    b = b || false;
     var memo = arguments[1] || {};
+    var ofs, hg, has_scrollbar, cached;
+    
     if (memo[this._uniqueid + 'gh']) {
-        var cached = memo[this._uniqueid + 'gh'];
+        cached = memo[this._uniqueid + 'gh'];
         hg = cached[0];
         ofs = cached[1];
         has_scrollbar = cached[2];
@@ -403,14 +407,15 @@ QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
         ofs = parseInt(this.div.style.paddingTop) +
               parseInt(this.div.style.paddingBottom) +
               2 * this.getBorderWidth();
-        has_scrollbar = (this.div.style.overflowX == 'scroll');
-        memo[this._uniqueid + 'gh'] = [hg, ofs, has_scrollbar];
-        if (!b && (this.div.style.overflowX == 'auto'
-                   || this.div.style.overflow == 'auto')
-               && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
+        memo[this._uniqueid + 'gh'] = [hg, ofs, false];
+        has_scrollbar = this.div.style.overflowX == 'scroll' ||
+                        this.div.style.overflow == 'scroll';
+        if (!has_scrollbar && (this.div.style.overflowX == 'auto'
+                               || this.div.style.overflow == 'auto')
+               && this._calcWidth(true, memo) < this.getScrollWidth()) {
             has_scrollbar = true;
-            memo[this._uniqueid + 'gh'][2] = true;
         }
+        memo[this._uniqueid + 'gh'][2] = has_scrollbar;
     }
     if (b)
         hg += ofs;
@@ -420,11 +425,11 @@ QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
 }
 
 QuiX.ui.Widget.prototype.getWidth = function(b /*, memo*/) {
-    var wd, ofs, has_scrollbar;
-    b = b || false;
     var memo = arguments[1] || {};
+    var wd, ofs, has_scrollbar, cached;
+
     if (memo[this._uniqueid + 'gw']) {
-        var cached = memo[this._uniqueid + 'gw'];
+        cached = memo[this._uniqueid + 'gw'];
         wd = cached[0];
         ofs = cached[1];
         has_scrollbar = cached[2];
@@ -435,14 +440,16 @@ QuiX.ui.Widget.prototype.getWidth = function(b /*, memo*/) {
         ofs = parseInt(this.div.style.paddingLeft) +
               parseInt(this.div.style.paddingRight) +
               2 * this.getBorderWidth();
-        has_scrollbar = (this.div.style.overflowY == 'scroll');
-        memo[this._uniqueid + 'gw'] = [wd, ofs, has_scrollbar];
-        if (!b && (this.div.style.overflowY == 'auto'
-                   || this.div.style.overflow == 'auto')
-                 && this._calcHeight(true, memo) < this.getScrollHeight(memo)) {
+        memo[this._uniqueid + 'gw'] = [wd, ofs, false];
+        has_scrollbar = this.div.style.overflowY == 'scroll' ||
+                        this.div.style.overflow == 'scroll';
+        if (!has_scrollbar
+                 && (this.div.style.overflowY == 'auto'
+                     || this.div.style.overflow == 'auto')
+                 && this._calcHeight(true, memo) < this.getScrollHeight()) {
             has_scrollbar = true;
-            memo[this._uniqueid + 'gw'][2] = true;
         }
+        memo[this._uniqueid + 'gw'][2] = has_scrollbar;
     }
     if (b)
         wd += ofs;

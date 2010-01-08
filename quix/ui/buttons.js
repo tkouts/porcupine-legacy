@@ -30,7 +30,7 @@ QuiX.ui.Label = function(/*params*/) {
 	
 	var caption = params.caption || '';
     this.div.appendChild(ce('SPAN'));
-    QuiX.setInnerText(this.div.firstChild, caption);
+    this.setCaption(caption);
 }
 
 QuiX.constructors['label'] = QuiX.ui.Label;
@@ -81,6 +81,35 @@ function Label__onmousedown(evt, w) {
 		QuiX.cancelDefault(evt);
 	else
 		QuiX.stopPropag(evt);
+}
+
+QuiX.ui.Link = function(/*params*/) {
+    var params = arguments[0] || {};
+    this.href = params.href;
+    this.target = params.target || '_blank';
+    this.base = QuiX.ui.Label;
+    this.base(params);
+}
+
+QuiX.constructors['link'] = QuiX.ui.Link;
+QuiX.ui.Link.prototype = new QuiX.ui.Label;
+
+QuiX.ui.Link.prototype.setCaption = function(s) {
+    var a;
+    a = this.div.getElementsByTagName('A')[0];
+    if (!a) {
+        var span = this.div.getElementsByTagName('SPAN')[0];
+        a = ce('A');
+        span.appendChild(a);
+    }
+    a.href = this.href || 'javascript:void(0)';
+    a.target = this.target;
+    QuiX.setInnerText(a, s);
+}
+
+QuiX.ui.Link.prototype.getCaption = function() {
+	return this.div.getElementsByTagName('A')[0].firstChild
+           .innerHTML.xmlDecode();
 }
 
 QuiX.ui.Icon = function(/*params*/) {
