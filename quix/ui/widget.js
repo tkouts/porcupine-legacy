@@ -370,8 +370,8 @@ QuiX.ui.Widget.prototype._mustRedraw = function () {
             ||isNaN(this.height)||isNaN(this.width);
 }
 
-QuiX.ui.Widget.prototype.getScrollWidth = function() {
-    var memo = {};
+QuiX.ui.Widget.prototype.getScrollWidth = function(/*memo*/) {
+    var memo = arguments[0] || {};
     var lengths = [], sw;
     for (var i=0; i<this.widgets.length; i++)
         lengths.push(this.widgets[i]._calcLeft(memo) +
@@ -381,7 +381,7 @@ QuiX.ui.Widget.prototype.getScrollWidth = function() {
 }
 
 QuiX.ui.Widget.prototype.getScrollHeight = function() {
-    var memo = {};
+    var memo = arguments[0] || {};
     var lengths = [], sh;
     for (var i=0; i<this.widgets.length; i++) {
         lengths.push(this.widgets[i]._calcTop(memo) +
@@ -412,7 +412,7 @@ QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
                         this.div.style.overflow == 'scroll';
         if (!has_scrollbar && (this.div.style.overflowX == 'auto'
                                || this.div.style.overflow == 'auto')
-               && this._calcWidth(true, memo) < this.getScrollWidth()) {
+               && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
             has_scrollbar = true;
         }
         memo[this._uniqueid + 'gh'][2] = has_scrollbar;
@@ -446,7 +446,7 @@ QuiX.ui.Widget.prototype.getWidth = function(b /*, memo*/) {
         if (!has_scrollbar
                  && (this.div.style.overflowY == 'auto'
                      || this.div.style.overflow == 'auto')
-                 && this._calcHeight(true, memo) < this.getScrollHeight()) {
+                 && this._calcHeight(true, memo) < this.getScrollHeight(memo)) {
             has_scrollbar = true;
         }
         memo[this._uniqueid + 'gw'][2] = has_scrollbar;
