@@ -48,9 +48,9 @@ QuiX.rpc._cache = (function() {
 })();
 
 QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
-    if (url) {
+    if (typeof(url) != 'undefined') {
         this.async = arguments[1] || true;
-        this.url = url;
+        this.url = url || '.';
         this.xmlhttp = QuiX.XHRPool.getInstance();
 
         this.onreadystatechange = null;
