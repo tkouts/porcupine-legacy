@@ -17,13 +17,14 @@
 """
 Template languages processors
 """
+import io
 from string import Template
 
 from porcupine import exceptions
 
 def string_template(context, filename, vars):
     try:
-        f = open(filename)
+        f = io.open(filename, encoding='utf-8')
     except IOError:
         raise exceptions.NotFound('Template file "%s" is missing' % filename)
     try:
