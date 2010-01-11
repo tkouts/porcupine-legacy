@@ -165,6 +165,8 @@ def get_attribute(obj, name_list):
             elif isinstance(attr,
                             (datatypes.ReferenceN, datatypes.Composition)):
                 obj = attr.get_items()
+            elif isinstance(attr, datatypes.List):
+                obj = tuple(attr.value)
             elif isinstance(attr, datatypes.Date):
                 obj = attr
             else:
@@ -247,7 +249,7 @@ def h_60(params, variables, for_object):
 def h_61(params, variables, for_object):
     value, low, high = [evaluate_stack(expr[:], variables, for_object)
                         for expr in params]
-    return low < value < high
+    return low <= value < high
 
 def h_61_opt(params, variables):
     if len(params[0]) == 1 and db._db.has_index(params[0][0]):
