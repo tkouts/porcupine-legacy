@@ -105,12 +105,13 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
         def __init__(self, function):
             WebMethodDescriptor.__init__(self, function, of_type,
                                          ('POST', client, lang, qs),
-                                         'text/xml', encoding, None,
+                                         'application/json', encoding, None,
                                          None, None)
             
         def execute(self, item, context):
             if context.request.type == 'xmlrpc':
                 rpc = xmlrpc
+                context.response.content_type = 'application/xml'
             elif context.request.type == 'jsonrpc':
                 rpc = jsonrpc
 
