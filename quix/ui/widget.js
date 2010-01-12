@@ -370,8 +370,8 @@ QuiX.ui.Widget.prototype._mustRedraw = function () {
             ||isNaN(this.height)||isNaN(this.width);
 }
 
-QuiX.ui.Widget.prototype.getScrollWidth = function(/*memo*/) {
-    var memo = arguments[0] || {};
+QuiX.ui.Widget.prototype.getScrollWidth = function() {
+    var memo = {};
     var lengths = [], sw;
     for (var i=0; i<this.widgets.length; i++)
         lengths.push(this.widgets[i]._calcLeft(memo) +
@@ -381,7 +381,7 @@ QuiX.ui.Widget.prototype.getScrollWidth = function(/*memo*/) {
 }
 
 QuiX.ui.Widget.prototype.getScrollHeight = function() {
-    var memo = arguments[0] || {};
+    var memo = {};
     var lengths = [], sh;
     for (var i=0; i<this.widgets.length; i++) {
         lengths.push(this.widgets[i]._calcTop(memo) +
@@ -412,7 +412,7 @@ QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
                         this.div.style.overflow == 'scroll';
         if (!has_scrollbar && (this.div.style.overflowX == 'auto'
                                || this.div.style.overflow == 'auto')
-               && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
+               && this._calcWidth(true, memo) < this.getScrollWidth()) {
             has_scrollbar = true;
         }
         memo[this._uniqueid + 'gh'][2] = has_scrollbar;
@@ -446,7 +446,7 @@ QuiX.ui.Widget.prototype.getWidth = function(b /*, memo*/) {
         if (!has_scrollbar
                  && (this.div.style.overflowY == 'auto'
                      || this.div.style.overflow == 'auto')
-                 && this._calcHeight(true, memo) < this.getScrollHeight(memo)) {
+                 && this._calcHeight(true, memo) < this.getScrollHeight()) {
             has_scrollbar = true;
         }
         memo[this._uniqueid + 'gw'][2] = has_scrollbar;
@@ -635,17 +635,18 @@ QuiX.ui.Widget.prototype.click = function() {
 }
 
 QuiX.ui.Widget.prototype.moveTo = function(x, y) {
+    var memo = {}
     this.left = x;
     this.top = y;
     var padding = this.parent.getPadding();
     if (isNaN(x))
-        x = this._calcLeft();
+        x = this._calcLeft(memo);
     else {
         x += padding[0];
         if (QuiX.dir == 'rtl')
-            x = QuiX.transformX(x + this.getWidth(true), this.parent)
+            x = QuiX.transformX(x + this.getWidth(true, memo), this.parent)
     }
-    y = (isNaN(y))? this._calcTop() : y + padding[2];
+    y = (isNaN(y))? this._calcTop(memo) : y + padding[2];
     this.div.style.left = x + 'px';
     this.div.style.top = y + 'px';
 }
