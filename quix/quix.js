@@ -15,7 +15,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //==============================================================================
 
-//QuiX compatibility layer
 var QuiX = {};
 QuiX.version = '1.0 build 20090402';
 QuiX.namespace = 'http://www.innoscript.org/quix';
@@ -168,8 +167,8 @@ QuiX.__resource_onstatechange = function() {
 }
 
 QuiX.modules = [
-    new QuiX.Module('Windows and Dialogs', QuiX.baseUrl + 'ui/windows.js', [3,15,16]),
-    new QuiX.Module('Menus', QuiX.baseUrl + 'ui/menus.js', [3,16]),
+    new QuiX.Module('Windows and Dialogs', QuiX.baseUrl + 'ui/windows.js', [3,13,15]),
+    new QuiX.Module('Menus', QuiX.baseUrl + 'ui/menus.js', [3,13]),
     new QuiX.Module('Splitter', QuiX.baseUrl + 'ui/splitter.js', [15]),
     new QuiX.Module('Labels & Buttons', QuiX.baseUrl + 'ui/buttons.js', []),
     new QuiX.Module('Tab Pane', QuiX.baseUrl + 'ui/tabpane.js', []),
@@ -181,64 +180,60 @@ QuiX.modules = [
     new QuiX.Module('Datagrid', QuiX.baseUrl + 'ui/datagrid.js', [5,8]),
     new QuiX.Module('File Control', QuiX.baseUrl + 'ui/file.js', [1,3,8,9,14]),
     new QuiX.Module('Date Picker', QuiX.baseUrl + 'ui/datepicker.js', [14,8]),
-    new QuiX.Module('Timers', QuiX.baseUrl + 'ui/timers.js', []),
+    new QuiX.Module('Timers & Effects', QuiX.baseUrl + 'ui/timers.js', []),
     new QuiX.Module('Forms & Fields 2', QuiX.baseUrl + 'ui/formfields2.js', [3]),
     new QuiX.Module('VBox & HBox', QuiX.baseUrl + 'ui/box.js', []),
-    new QuiX.Module('Effects', QuiX.baseUrl + 'ui/effects.js', [13]),
     new QuiX.Module('Rich Text Editor', QuiX.baseUrl + 'ui/richtext.js', [8,15,9]),
 ];
 
 QuiX.tags = {
-    'desktop':-1,'xhtml':-1,'script':-1,'prop':-1,'stylesheet':-1,
-    'rect':-1,'module':-1,'custom':-1,
-    'window':0,'dialog':0,
-    'menubar':1,'menu':1,'menuoption':1,'contextmenu':1,
+    'desktop':-1, 'xhtml':-1, 'script':-1, 'prop':-1, 'stylesheet':-1,
+    'rect':-1, 'module':-1, 'custom':-1,
+    
+    'window':0, 'dialog':0,
+    'menubar':1, 'menu':1, 'menuoption':1, 'contextmenu':1,
     'splitter':2,
-    'dlgbutton':3,'button':3,'flatbutton':3,'label':3,'icon':3,'link':3,
-    'tabpane':4,'tab':4,
+    'dlgbutton':3, 'button':3, 'flatbutton':3, 'label':3, 'icon':3, 'link':3,
+    'tabpane':4, 'tab':4,
     'listview':5,
-    'tree':6,'treenode':6,'foldertree':6,
-    'toolbar':7,'tbbutton':7,'outlookbar':7,'tool':7,
-    'field':8,'form':8,'spinbutton':8,
+    'tree':6, 'treenode':6, 'foldertree':6,
+    'toolbar':7, 'tbbutton':7, 'outlookbar':7, 'tool':7,
+    'field':8, 'form':8, 'spinbutton':8,
     'hr':9, 'iframe':9, 'groupbox':9, 'slider':9, 'progressbar':9,
     'datagrid':10,
-    'file':11,'multifile':11,
+    'file':11, 'multifile':11,
     'datepicker':12,
-    'timer':13,
-    'combo':14,'selectlist':14,
+    'timer':13, 'effect':13,
+    'combo':14, 'selectlist':14,
     'box':15, 'vbox':15, 'hbox':15, 'flowbox':15,
-    'effect':16,
-    'richtext':17
+    'richtext':16
 };
 
 QuiX.bootLibraries = [
     // utils
     QuiX.baseUrl + 'utils/utils.js',
     QuiX.baseUrl + 'utils/date.js',
-    QuiX.baseUrl + 'utils/swfobject.js',
-    QuiX.baseUrl + 'utils/browserdetect.js',
     // base widget
     QuiX.baseUrl + 'ui/widget.js',
-    // parsers
-    QuiX.baseUrl + 'parsers/parsers.js',
     // persistence
     QuiX.baseUrl + 'persist/persist.js',
     // rpc
     QuiX.baseUrl + 'rpc/rpc.js',
-    QuiX.baseUrl + 'rpc/xmlrpc.js',
-    QuiX.baseUrl + 'rpc/jsonrpc.js',
     // theme css
     QuiX.getThemeUrl() + 'quix.css'
 ];
 
 QuiX.__init__ = function() {
-    var boot_loader = new Image();
-    boot_loader.src = QuiX.getThemeUrl() + 'images/boot_loader.gif';
-    boot_loader.style.margin = '100px auto';
-    boot_loader.style.display = 'block';
-    boot_loader.style.textAlign = 'center';
-    boot_loader.style.border = '1px solid silver';
-    document.body.appendChild(boot_loader);
+    var boot_loader_url = QuiX.getThemeUrl() + 'images/boot_loader.gif';
+    var boot_loader = new QuiX.Image(boot_loader_url);
+    boot_loader.load(function() {
+        boot_loader = QuiX.getImage(boot_loader_url);
+        boot_loader.style.margin = '100px auto';
+        boot_loader.style.display = 'block';
+        boot_loader.style.textAlign = 'center';
+        boot_loader.style.border = '1px solid silver';
+        document.body.appendChild(boot_loader);
+    });
 
     QuiX.load(QuiX.bootLibraries,
         function() {
@@ -249,9 +244,10 @@ QuiX.__init__ = function() {
                 // calculate scrollbars size
                 QuiX.removeNode(boot_loader);
                 var w1 = document.desktop.div.clientWidth;
+                var overflow = document.desktop.getOverflow()
                 document.desktop.div.style.overflow = 'scroll';
                 QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
-                document.desktop.div.style.overflow = 'hidden';
+                document.desktop.setOverflow(overflow);
             }
             parser.parse(QuiX.domFromElement(root));
         }
@@ -774,10 +770,9 @@ QuiX.measureWidget = function(w, dim) {
     return value
 }
 
-// QuiX Parser
+// QuiX UI Parser
 QuiX.Parser = function() {
 	this.__modulesToLoad = [];
-	this.__imagesToLoad = [];
 	this.__onload = [];
 	this.dom = null;
 	this.oncomplete = null;
@@ -789,13 +784,6 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
 	var iMod = QuiX.tags[sTag];
     var i;
 	this._addModule(iMod);
-	
-	if (iMod && oNode.getAttribute('img')) {
-		var src = oNode.getAttribute('img');
-		if (src != '' && !(QuiX._image_cache[src])) {
-			this.__imagesToLoad.push(src);
-		}
-	}
 	
 	if (sTag == 'script' || sTag == 'module' || sTag == 'stylesheet') {
 		var params = this.getNodeParams(oNode);
@@ -839,10 +827,6 @@ QuiX.Parser.prototype.loadModules = function() {
 	if (this.__modulesToLoad.length > 0) {
 		module = this.__modulesToLoad.pop();
 		module.load(function(){self.loadModules()});
-	} else if (this.__imagesToLoad.length > 0) {
-		imgurl = this.__imagesToLoad.pop();
-		img = new QuiX.Image(imgurl);
-		img.load(function(){self.loadModules()});
 	} else {
 		QuiX.removeLoader();
         this.beginRender();
@@ -864,7 +848,7 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
         return;
     }
     this.detectModules(dom.documentElement);
-    if (this.__modulesToLoad.length + this.__imagesToLoad.length > 0) {
+    if (this.__modulesToLoad.length > 0) {
         this.__modulesToLoad.reverse();
         if (parentW)
             QuiX.addLoader();
@@ -1054,3 +1038,360 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
     }
 	return oWidget;
 }
+
+//==============================================================================
+// RPC Parsers
+//==============================================================================
+QuiX.parsers = {};
+
+// XML-RPC
+QuiX.parsers.XMLRPC = {};
+
+QuiX.parsers.XMLRPC.stringify = function(obj) {
+    if (obj == null || obj == undefined || (typeof obj == "number" &&
+                                            !isFinite(obj)))
+        return false.toXMLRPC();
+    else {
+        if (!obj.toXMLRPC) {
+            var retstr = "<struct>";
+            for (var prop in obj) {
+                if(typeof obj[prop] != "function") {
+                    retstr += "<member><name>" + prop + "</name><value>" +
+                              QuiX.parsers.XMLRPC.stringify(obj[prop]) +
+                              "</value></member>";
+                }
+            }
+            retstr += "</struct>";
+            return retstr;
+        }
+        else
+            return obj.toXMLRPC();
+    }
+}
+
+QuiX.parsers.XMLRPC.parse = function(xml) {
+    function getNode(data, len) {
+        var nc = 0; //nodeCount
+        if (data != null) {
+            for (var i=0; i<data.childNodes.length; i++) {
+                if(data.childNodes[i].nodeType == 1) {
+                    if(nc == len)
+                        return data.childNodes[i];
+                    else
+                        nc++
+                }
+            }
+        }
+        return false;
+    }
+    function toObject(data) {
+        var ret, i, elem;
+        switch (data.tagName) {
+            case "string":
+                return (data.firstChild)?
+                       data.firstChild.nodeValue.toString():"";
+                break;
+            case "int":
+            case "i4":
+            case "double":
+                return (data.firstChild)?
+                       new Number(data.firstChild.nodeValue):0;
+                break;
+            case "dateTime.iso8601":
+                return Date.parseIso8601(data.firstChild.nodeValue);
+                break;
+            case "array":
+                data = getNode(data, 0);
+                if (data && data.tagName == "data") {
+                    ret = [];
+                    for (i=0; i<data.childNodes.length; ++i) {
+                        elem = data.childNodes[i];
+                        if (elem.nodeType == 1) ret.push(toObject(elem));
+                    }
+                    return ret;
+                }
+                else
+                    throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
+                                             'Bad array.');
+                break;
+            case "struct":
+                ret = {};
+                for (i=0; i<data.childNodes.length; ++i) {
+                    elem = data.childNodes[i];
+                    if (elem.nodeType == 1) {
+                        if(elem.tagName == "member")
+                            ret[getNode(elem,0).firstChild.nodeValue] =
+                                toObject(getNode(elem, 1));
+                        else
+                            throw new QuiX.Exception(
+                                    'QuiX.parsers.XMLRPC.parse',
+                                    "'member' element expected, found '" +
+                                    elem.tagName + "' instead");
+                    }
+                }
+                return ret;
+                break;
+            case "boolean":
+                return Boolean(isNaN(parseInt(data.firstChild.nodeValue))?
+                    (data.firstChild.nodeValue == "true"):
+                    parseInt(data.firstChild.nodeValue));
+                break;
+            case "value":
+                var child = getNode(data, 0);
+                return (!child)? ((data.firstChild)?
+                    data.firstChild.nodeValue.toString():""):toObject(child);
+                break;
+            case "nil":
+                return null;
+            default:
+                throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
+                                         'Invalid tag name: ' + data.tagName);
+        }
+    }
+
+    if (typeof xml === 'string')
+        xml = QuiX.domFromString(xml);
+
+    //Check for XMLRPC Errors
+    var rpcErr = xml.getElementsByTagName("fault");
+    if (rpcErr.length > 0) {
+        rpcErr = toObject(getNode(rpcErr[0], 0));
+        throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
+                                 rpcErr.faultCode + ' - ' + rpcErr.faultString);
+    }
+    //handle result
+    var main = xml.getElementsByTagName("param");
+    if (main.length == 0) {
+        throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
+                                 '"param" element is missing');
+    }
+    var data = toObject(getNode(main[0], 0));
+    return data;
+}
+
+String.prototype.toXMLRPC = function() {
+    return "<string>" + this.xmlEncode() + "</string>";
+}
+
+Number.prototype.toXMLRPC = function() {
+    if (this == parseInt(this)) {
+        return "<int>" + this + "</int>";
+    }
+    else if(this == parseFloat(this)) {
+        return "<double>" + this + "</double>";
+    }
+    else {
+        return false.toXMLRPC();
+    }
+}
+
+Boolean.prototype.toXMLRPC = function() {
+    if (this==true) return "<boolean>1</boolean>";
+    else return "<boolean>0</boolean>";
+}
+
+Date.prototype.toXMLRPC = function() {
+    var d = "<dateTime.iso8601>" + this.toIso8601() + "</dateTime.iso8601>";
+    return(d);
+}
+
+Array.prototype.toXMLRPC = function() {
+    var retstr = "<array><data>";
+    for (var i=0; i<this.length; i++) {
+        retstr += "<value>" + QuiX.parsers.XMLRPC.stringify(this[i]) +
+                  "</value>";
+    }
+    return retstr + "</data></array>";
+}
+
+// JSON Parser
+QuiX.parsers.JSON = {};
+
+(function() {
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        gap, indent,
+        meta = { // table of character substitutions
+            '\b': '\\b',
+            '\t': '\\t',
+            '\n': '\\n',
+            '\f': '\\f',
+            '\r': '\\r',
+            '"' : '\\"',
+            '\\': '\\\\'
+        },
+        rep;
+
+    function quote(string) {
+        escapable.lastIndex = 0;
+        return escapable.test(string) ?
+            '"' + string.replace(escapable, function (a) {
+                var c = meta[a];
+                return typeof c === 'string' ? c :
+                    '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+            }) + '"' :
+            '"' + string + '"';
+    }
+
+    function str(key, holder) {
+        var i,          // The loop counter.
+            k,          // The member key.
+            v,          // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+        if (value && typeof value === 'object' &&
+                typeof value.toJSON === 'function') {
+            value = value.toJSON(key);
+        }
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+        switch (typeof value) {
+            case 'string':
+                return quote(value);
+            case 'number':
+                return isFinite(value) ? String(value) : 'null';
+            case 'boolean':
+            case 'null':
+                return String(value);
+            case 'object':
+                if (!value) {
+                    return 'null';
+                }
+                gap += indent;
+                partial = [];
+                if (Object.prototype.toString.apply(value)==='[object Array]') {
+                    length = value.length;
+                    for (i = 0; i < length; i += 1) {
+                        partial[i] = str(i, value) || 'null';
+                    }
+                    v = partial.length === 0 ? '[]' :
+                        gap ? '[\n' + gap +
+                                partial.join(',\n' + gap) + '\n' +
+                                    mind + ']' :
+                              '[' + partial.join(',') + ']';
+                    gap = mind;
+                    return v;
+                }
+                if (rep && typeof rep === 'object') {
+                    length = rep.length;
+                    for (i = 0; i < length; i += 1) {
+                        k = rep[i];
+                        if (typeof k === 'string') {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+                else {
+                    for (k in value) {
+                        if (Object.hasOwnProperty.call(value, k)) {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+                v = partial.length === 0 ? '{}' :
+                    gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+                            mind + '}' : '{' + partial.join(',') + '}';
+                gap = mind;
+                return v;
+        }
+    }
+
+    function dateReviver (key, value) {
+        if (typeof value === 'string') {
+            if (Date._iso8601Re.test(value)) {
+                return Date.parseIso8601(value);
+            }
+        }
+        return value;
+    }
+
+    QuiX.parsers.JSON.stringify = function (value, replacer, space) {
+        var i;
+        gap = '';
+        indent = '';
+        if (typeof space === 'number') {
+            for (i=0; i<space; i+=1) {
+                indent += ' ';
+            }
+        }
+        else if (typeof space === 'string') {
+            indent = space;
+        }
+        rep = replacer;
+        if (replacer && typeof replacer !== 'function' &&
+                (typeof replacer !== 'object' ||
+                 typeof replacer.length !== 'number')) {
+            throw new QuiX.Exception('QuiX.parsers.JSON.stringify',
+                                     'Invalid replacer');
+        }
+        return str('', {'': value});
+    }
+
+    QuiX.parsers.JSON.parse = function (text, reviver) {
+        var j;
+        if (typeof reviver === 'undefined')
+            reviver = dateReviver;
+        function walk(holder, key) {
+            var k, v, value = holder[key];
+            if (value && typeof value === 'object') {
+                for (k in value) {
+                    if (Object.hasOwnProperty.call(value, k)) {
+                        v = walk(value, k);
+                        if (v !== undefined) {
+                            value[k] = v;
+                        }
+                        else {
+                            delete value[k];
+                        }
+                    }
+                }
+            }
+            return reviver.call(holder, key, value);
+        }
+        cx.lastIndex = 0;
+        if (cx.test(text)) {
+            text = text.replace(cx, function (a) {
+                return '\\u' +
+                    ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+            });
+        }
+        if (/^[\],:{}\s]*$/.
+test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').
+replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+            j = eval('(' + text + ')');
+            return typeof reviver === 'function' ?
+                walk({'': j}, '') : j;
+        }
+        throw new QuiX.Exception('QuiX.parsers.JSON.stringify',
+                                 'Invalid JSON string');
+    }
+})();
+
+
+Date.prototype.toJSON = function (key) {
+    // normally this should be used
+    // return this.toIso8601();
+    // but in order to accomodate the Python
+    // json parser using an object hook
+    // we encode dates in a somehow different way
+    return {
+        __date__ : true,
+        value : this.toIso8601()
+    }
+};
+
+String.prototype.toJSON =
+Number.prototype.toJSON =
+Boolean.prototype.toJSON = function (key) {
+    return this.valueOf();
+};

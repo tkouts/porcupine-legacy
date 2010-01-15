@@ -157,3 +157,104 @@ function(method_name /*, arg1, arg2, ...*/) {
         this.onerror(e);
     }
 }
+
+// XMLRPC request
+
+QuiX.rpc.XMLRPCRequest = function(sUrl /*, async*/) {
+    var async = arguments[1] || true;
+    this.base = QuiX.rpc.BaseRPCRequest;
+    this.base(sUrl, async);
+}
+// backwards compatibility
+var XMLRPCRequest = QuiX.rpc.XMLRPCRequest;
+
+QuiX.rpc.XMLRPCRequest.prototype = new QuiX.rpc.BaseRPCRequest;
+
+QuiX.rpc.XMLRPCRequest.prototype._contentType = 'text/xml';
+
+QuiX.rpc.XMLRPCRequest.prototype._processResult = function(/*xmlrpcstr*/) {
+    var dom;
+    if (arguments[0]) {
+        dom = QuiX.domFromString(arguments[0]);
+    }
+    else {
+        dom = this.xmlhttp.responseXML;
+    }
+    if (dom) {
+        return QuiX.parsers.XMLRPC.parse(dom);
+    }
+    else {
+        throw new QuiX.Exception('QuiX.rpc.XMLRPCRequest',
+                                 'Malformed XMLRPC response');
+    }
+}
+
+QuiX.rpc.XMLRPCRequest.prototype._buildRequestBody = function(method_name
+                                                       /*, arg1, arg2, ...*/) {
+    var message = '<?xml version="1.0"?><methodCall><methodName>' +
+                  method_name + '</methodName><params>';
+    for (var i=1; i<arguments.length; i++)
+            message += '<param><value>' +
+               QuiX.parsers.XMLRPC.stringify(arguments[i]) +
+               '</value></param>';
+    message += '</params></methodCall>';
+    return message;
+}
+
+QuiX.rpc.XMLRPCRequest.prototype._validateMethodName = function(mname) {
+    if( /^[A-Za-z0-9\._\/:]+$/.test(mname) )
+        return true
+    else
+        return false
+}
+
+// JSONRPC 2.0 request
+
+QuiX.rpc.JSONRPCRequest = function(sUrl /*, async*/) {
+    var async = arguments[1] || true;
+    this.base = QuiX.rpc.BaseRPCRequest;
+    this.base(sUrl, async);
+}
+
+QuiX.rpc.JSONRPCRequest.prototype = new QuiX.rpc.BaseRPCRequest;
+
+QuiX.rpc.JSONRPCRequest.prototype._contentType = 'application/json';
+QuiX.rpc.JSONRPCRequest._requestId = 0;
+
+QuiX.rpc.JSONRPCRequest.prototype._processResult = function(/*jsonstr*/) {
+    var jsonstr = arguments[0] || this.xmlhttp.responseText;
+    var response = QuiX.parsers.JSON.parse(jsonstr);
+
+    if (response.jsonrpc != '2.0')
+        throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
+                                 'Invalid JSON response');
+    // check for errors
+    if (response.error) {
+        var message = response.error.message;
+        if (response.error.data)
+            message += '\n\n' + response.error.data
+        throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
+                                 response.error.code + ' - ' +
+                                 message);
+    }
+    if (arguments.length == 0 && response.id != this.id)
+        throw new QuiX.Exception('QuiX.rpc.JSONRPCRequest',
+                                 'Invalid response ID');
+    return response.result;
+
+}
+
+QuiX.rpc.JSONRPCRequest.prototype._buildRequestBody = function(method_name
+                                                        /*, arg1, arg2, ...*/) {
+    this.id = ++QuiX.rpc.JSONRPCRequest._requestId;
+    var params = [];
+    for (var i=1; i<arguments.length; i++)
+        params.push(arguments[i]);
+    var request = {
+        jsonrpc : '2.0',
+        method : method_name,
+        params : params,
+        id : this.id
+    }
+    return QuiX.parsers.JSON.stringify(request);
+}

@@ -3,12 +3,13 @@
 		method="GET"
 		client="MSIE 6"
 		lang=".*"
-		action="ui/widget.js"
-		max-age="1200"/>
+        max-age="300"
+		action="ui/widget.js"/>
     <context path="ui/widget.js"
 			method="GET"
 			client=".*"
 			lang=".*"
+            max-age="300"
 			action="ui/widget.js">
 		<filter type="porcupine.filters.output.Gzip"/>
 	</context>
@@ -16,40 +17,47 @@
 		method="GET"
 		client=".*"
 		lang=".*"
+        max-age="300"
 		action="utils/date.js.psp"/>
 	<context path="ui/ReadFile.jar"
 		method="GET"
 		client=".*"
 		lang=".*"
+        max-age="300"
 		action="ui/ReadFile.jar"/>
 	<!-- QuiX default theme -->
 	<context path="themes/default/quix.css"
 		method="GET"
 		client=".*"
 		lang=".*"
+        max-age="300"
 		action="themes/default/quix.css.psp"/>
     <!-- html pages -->
 	<context match="(.*)\.htm"
 		method="GET"
 		client=".*"
 		lang=".*"
+        max-age="300"
 		action="$1.htm"/>
     <!-- Stylesheets -->
 	<context match="(.*)\.css"
 		method="GET"
 		client=".*"
 		lang=".*"
+        max-age="300"
 		action="$1.css"/>
 	<!-- QuiX Modules -->
 	<context match="(.*)\.js"
 		method="GET"
 		client="MSIE 6"
 		lang=".*"
+        max-age="300"
 		action="$1.js"/>
 	<context match="(.*)\.js"
             method="GET"
             client=".*"
             lang=".*"
+            max-age="300"
             action="$1.js">
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
@@ -59,7 +67,7 @@
 		client=".*"
 		lang=".*"
 		action="$1.swf"
-		max-age="1200"/>
+		max-age="300"/>
 	<!-- QuiX images-->
 	<context match="(.*)images/(.*)"
 		method="GET"
