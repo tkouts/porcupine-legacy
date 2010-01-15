@@ -381,7 +381,7 @@ QuiX.ui.Widget.prototype.getScrollWidth = function(/*memo*/) {
             tmp_memo = {};
         for (var i=0; i<this.widgets.length; i++)
             lengths.push(this.widgets[i]._calcLeft(tmp_memo) +
-                         this.widgets[i]._calcWidth(true, tmp_memo));
+                         this.widgets[i]._calcWidth(true, memo));
         sw = Math.max.apply(Math, lengths);
         memo[this._uniqueid + 'sw'] = sw;
     }
@@ -399,7 +399,7 @@ QuiX.ui.Widget.prototype.getScrollHeight = function(/*memo*/) {
             tmp_memo = {};
         for (var i=0; i<this.widgets.length; i++) {
             lengths.push(this.widgets[i]._calcTop(tmp_memo) +
-                         this.widgets[i]._calcHeight(true, tmp_memo));
+                         this.widgets[i]._calcHeight(true, memo));
         }
         sh = Math.max.apply(Math, lengths);
         memo[this._uniqueid + 'sh'] = sh;
