@@ -133,7 +133,14 @@ function MenuOption__onmouseover(evt, w) {
 
 function MenuOption__onclick(evt, w) {
 	if (w.type) w.select();
-	QuiX.cleanupOverlays();
+    if (QuiX.utils.BrowserInfo.family == 'ie' && !w.subMenu) {
+        // clear hover state
+        var dv = w.div.cloneNode(true);
+        w.div.parentNode.replaceChild(dv, w.div);
+        w.div = dv;
+    }
+    if (!w.subMenu)
+        QuiX.cleanupOverlays();
 }
 
 //context menu
