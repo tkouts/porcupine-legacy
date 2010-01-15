@@ -49,7 +49,7 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
 				oWidget[width_var] = 'this.parent._calcWidgetWidth()';
 		}
 	}
-	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+	return QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
 }
 
 QuiX.ui.Box.prototype._calcSize = function(height, offset, getHeight, memo) {
@@ -225,8 +225,8 @@ QuiX.ui.FlowBox.prototype.appendChild = function(w) {
 	w.destroy = FlowBoxWidget__destroy;
 	if (this.select) {
 		w.attachEvent('onmousedown',
-                      QuiX.getEventWrapper(FlowBox__selectItem,
-                      w._getHandler('onmousedown')));
+                      QuiX.wrappers.eventWrapper(FlowBox__selectItem,
+                                                 w._getHandler('onmousedown')));
 	}
 	w._setCommonProps();
 	if (!w.isHidden()) {

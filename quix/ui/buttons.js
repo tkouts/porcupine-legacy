@@ -4,8 +4,8 @@ Labels & Buttons
 QuiX.ui.Label = function(/*params*/) {
 	var params = arguments[0] || {};
 	params.padding = params.padding || '2,2,2,2';
-	params.onmousedown = QuiX.getEventWrapper(Label__onmousedown,
-		params.onmousedown);
+	params.onmousedown = QuiX.wrappers.eventWrapper(Label__onmousedown,
+                                                    params.onmousedown);
 	
 	this.base = QuiX.ui.Widget;
 	this.base(params);
@@ -235,12 +235,12 @@ QuiX.ui.Button = function(/*params*/) {
         display: params.display,
 		bgcolor: params.bgcolor || 'buttonface',
 		overflow: 'hidden',
-		onmouseout: QuiX.getEventWrapper(XButton__onmouseout,
-						params.onmouseout),
-		onmouseup: QuiX.getEventWrapper(XButton__onmouseup,
-						params.onmouseup),
-		onmousedown: QuiX.getEventWrapper(XButton__onmousedown,
-						params.onmousedown),
+		onmouseout: QuiX.wrappers.eventWrapper(XButton__onmouseout,
+                                               params.onmouseout),
+		onmouseup: QuiX.wrappers.eventWrapper(XButton__onmouseup,
+                                              params.onmouseup),
+		onmousedown: QuiX.wrappers.eventWrapper(XButton__onmousedown,
+                                                params.onmousedown),
 		onclick: params.onclick,
         onload: params.onload
 	});
@@ -364,16 +364,16 @@ QuiX.ui.FlatButton = function(/*params*/) {
 	params.padding = params.padding || '3,3,3,3';
 	params.overflow = 'hidden';
 	params.align = params.align || 'center';
-	params.onmouseover = QuiX.getEventWrapper(FlatButton__onmouseover,
-							params.onmouseover);
-	params.onmouseout = QuiX.getEventWrapper(FlatButton__onmouseout,
-							params.onmouseout);
-	params.onmousedown = QuiX.getEventWrapper(FlatButton__onmousedown,
-							params.onmousedown);
-	params.onmouseup = QuiX.getEventWrapper(FlatButton__onmouseup,
-							params.onmouseup);
-	params.onclick = QuiX.getEventWrapper(FlatButton__onclick,
-							params.onclick);
+	params.onmouseover = QuiX.wrappers.eventWrapper(FlatButton__onmouseover,
+                                                    params.onmouseover);
+	params.onmouseout = QuiX.wrappers.eventWrapper(FlatButton__onmouseout,
+                                                   params.onmouseout);
+	params.onmousedown = QuiX.wrappers.eventWrapper(FlatButton__onmousedown,
+                                                    params.onmousedown);
+	params.onmouseup = QuiX.wrappers.eventWrapper(FlatButton__onmouseup,
+                                                  params.onmouseup);
+	params.onclick = QuiX.wrappers.eventWrapper(FlatButton__onclick,
+                                                params.onclick);
 
 	this.base = QuiX.ui.Icon;
 	this.base(params);

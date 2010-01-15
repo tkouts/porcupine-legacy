@@ -35,7 +35,11 @@ BODY {
 }
 
 .field INPUT, .field TEXTAREA {
-    border:none
+    border:none;
+}
+
+.field INPUT:focus, .field TEXTAREA:focus {
+    background-color : #FFF684;
 }
 
 .field .optionselected {

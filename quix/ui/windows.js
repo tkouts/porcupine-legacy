@@ -14,10 +14,10 @@ QuiX.ui.Window = function(/*params*/) {
 	params.border = 1;
 	params.padding = '1,1,1,1';
 	params.opacity = (QuiX.effectsEnabled)?0:1;
-	params.onmousedown = QuiX.getEventWrapper(Window__onmousedown,
-		params.onmousedown);
-	params.oncontextmenu = QuiX.getEventWrapper(Window__oncontextmenu,
-		params.oncontextmenu);
+	params.onmousedown = QuiX.wrappers.eventWrapper(Window__onmousedown,
+                                                    params.onmousedown);
+	params.oncontextmenu = QuiX.wrappers.eventWrapper(Window__oncontextmenu,
+                                                      params.oncontextmenu);
 	params.overflow = (QuiX.utils.BrowserInfo.family == 'moz'
         && QuiX.utils.BrowserInfo.OS == 'MacOS')?'auto':'hidden';
 	this.base = QuiX.ui.Widget;

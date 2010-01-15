@@ -427,7 +427,7 @@ QuiX.createOutline = function(w) {
 }
 
 QuiX.getEventListener = function(f) {
-	if (typeof(f)!='function') {
+	if (typeof(f) != 'function') {
 		try {
 			f = eval(f);
 		}
@@ -438,18 +438,45 @@ QuiX.getEventListener = function(f) {
 	return(f);
 }
 
-QuiX.getEventWrapper = function(f1, f2) {
-	var wrapper;
-	f1 = QuiX.getEventListener(f1);
-	f2 = QuiX.getEventListener(f2);
-	wrapper = function(evt, w) {
-		var r1, r2 = null;
-		if (f1) r1 = f1(evt, w);
-		if (f2) r2 = f2(evt, w);
-		return (typeof(r1) != 'undefined')?r1:r1||r2;
-	}
-	return(wrapper);
-}
+QuiX.wrappers = {
+    eventWrapper : function(f1, f2) {
+        f1 = QuiX.getEventListener(f1);
+        f2 = QuiX.getEventListener(f2);
+        function wrapper(evt, w) {
+            var r1, r2 = null;
+            if (f1) r1 = f1(evt, w);
+            if (f2) r2 = f2(evt, w);
+            return (typeof(r1) != 'undefined')?r1:r1||r2;
+        }
+        return wrapper;
+    },
+    oneAtAtime : function(f1) {
+        var lock = false;
+        f1 = QuiX.getEventListener(f1);
+        function wrapper(evt, w) {
+            if (!lock) {
+                // acquire lock
+                lock = true;
+                if (QuiX.utils.BrowserInfo.family == 'ie') {
+                    // IE: we need to copy evt
+                    var evt_copy = {};
+                    for (var v in evt)
+                        evt_copy[v] = evt[v];
+                    evt = evt_copy;
+                }
+                window.setTimeout(function() {
+                    f1(evt, w);
+                    // release lock
+                    lock = false;
+                } ,1);
+            }
+        }
+        if (f1)
+            return wrapper;
+        else
+            return null;
+    }
+};
 
 QuiX.getImage = function(url) {
     var img;
@@ -894,7 +921,7 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
 	if (oNode.nodeType == 1) {
         var params = this.getNodeParams(oNode);
         if (oNode.namespaceURI == QuiX.namespace) {
-            var localName = QuiX.localName(oNode);
+            var localName = QuiX.localName(oNode).toLowerCase();
             switch(localName) {
                 case 'flatbutton':
                     oWidget = new QuiX.ui.FlatButton(params);

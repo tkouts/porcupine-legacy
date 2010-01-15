@@ -441,8 +441,8 @@ QuiX.ui.SelectList.prototype.addOption = function(params) {
 	params.width = '100%';
 	params.height = params.height || 24;
 	params.overflow = 'hidden';
-	params.onmousedown = QuiX.getEventWrapper(SelectOption__onmousedown,
-											  params.onmousedown);
+	params.onmousedown = QuiX.wrappers.eventWrapper(SelectOption__onmousedown,
+                                                    params.onmousedown);
 	var w = new QuiX.ui.Icon(params);
 	this.appendChild(w);
 	w.selected = false;

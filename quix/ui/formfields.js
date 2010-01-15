@@ -67,11 +67,13 @@ QuiX.ui.Field = function(/*params*/) {
 	this.type = params.type || 'text';
 	if (this.type == 'radio') {
 		this._value = params.value || '';
-		params.onclick = QuiX.getEventWrapper(Radio__click, params.onclick);
+		params.onclick = QuiX.wrappers.eventWrapper(Radio__click,
+                                                    params.onclick);
 		params.overflow = '';
 	}
 	if (this.type == 'checkbox')
-		params.onclick = QuiX.getEventWrapper(Check__click, params.onclick);
+		params.onclick = QuiX.wrappers.eventWrapper(Check__click,
+                                                    params.onclick);
 	params.height = params.height || 22;
 	params.padding = '0,0,0,0';
 	this.base(params);
