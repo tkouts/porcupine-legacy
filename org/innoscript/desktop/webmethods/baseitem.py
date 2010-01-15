@@ -218,9 +218,9 @@ def properties(self):
 def rename(self):
     "Displays the rename dialog"
     return {
-        'TITLE': self.displayName.value,
+        'TITLE': xml.xml_encode(self.displayName.value),
         'ID': self.id,
-        'DN': self.displayName.value,
+        'DN': xml.xml_encode(self.displayName.value),
     }
 
 @filters.i18n('org.innoscript.desktop.strings.resources')

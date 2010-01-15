@@ -27,13 +27,15 @@ generic.runApp = function(evt,w) {
 
 generic.getSecurity = function(tabcontrol, itab) {
 	var acl_datagrid = tabcontrol.tabs[itab].getWidgetsByType(DataGrid)[0];
-	var sObjectURI = tabcontrol.getParentByType(Form).action;
-	var rpc = new QuiX.rpc.JSONRPCRequest(sObjectURI);
-	rpc.oncomplete = function(req) {
-		acl_datagrid.dataSet = req.response;
-		acl_datagrid.refresh();
-	};
-	rpc.callmethod('getSecurity');
+    if (acl_datagrid.dataSet.length == 0) {
+        var sObjectURI = tabcontrol.getParentByType(Form).action;
+        var rpc = new QuiX.rpc.JSONRPCRequest(sObjectURI);
+        rpc.oncomplete = function(req) {
+            acl_datagrid.dataSet = req.response;
+            acl_datagrid.refresh();
+        };
+        rpc.callmethod('getSecurity');
+    }
 }
 
 generic.computeSize = function(obj, value) {

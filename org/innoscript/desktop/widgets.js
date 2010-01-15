@@ -5,7 +5,7 @@
 // Reference1 datatype QuiX control
 function Reference1(/*params*/) {
 	var params = arguments[0] || {};
-	this.base = Box;
+	this.base = QuiX.ui.Box;
 	
 	params.orientation = 'h';
 	params.spacing = params.spacing || 0;
@@ -31,7 +31,7 @@ function Reference1(/*params*/) {
 	});
 	this.appendChild(lbl);
 
-	var fld = new Field({
+	var fld = new QuiX.ui.Field({
 		readonly : true,
 		value : params.dn
 	});
@@ -58,7 +58,7 @@ function Reference1(/*params*/) {
 	this.redraw(true);
 }
 
-Reference1.prototype = new Box;
+Reference1.prototype = new QuiX.ui.Box;
 
 function Reference1__SelectObject(evt, btn) {
 	var oWindow = btn.getParentByType(Window);
