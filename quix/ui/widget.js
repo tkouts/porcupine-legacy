@@ -499,27 +499,32 @@ QuiX.ui.Widget.prototype.getTop = function() {
 QuiX.ui.Widget.prototype._calcSize = function(height, offset, getHeight, memo) {
     var value;
     if (memo && memo[this._uniqueid + height]) {
-        value = memo[this._uniqueid + height] - offset;
+        value = memo[this._uniqueid + height];
     }
     else {
         value = typeof(this[height]) == 'function'?
-            this[height](this):this[height];
+                this[height].apply(this, [memo]):this[height];
         if (value != null) {
             if (!isNaN(value))
-                value =  parseInt(value) - offset;
+                value =  parseInt(value);
             else if (value.slice(value.length-1) == '%') {
-                var perc = parseInt(value)/100;
-                value = (parseInt(this.parent[getHeight](false, memo) * perc)
-                    - offset) || 0;
+                var perc = parseInt(value) / 100;
+                value = (parseInt(this.parent[getHeight](false, memo) * perc)) || 0;
             }
-            else
-                value = (eval(value) - offset) || 0;
+            else {
+                if (!this['__' + height]) {
+                    // compile expression to a function
+                    var func = new Function('memo', 'return ' + value);
+                    this['__' + height] = func;
+                }
+                value = this['__' + height].apply(this, [memo]) || 0;
+            }
             if (typeof memo != 'undefined') {
-                memo[this._uniqueid + height] = value + offset;
+                memo[this._uniqueid + height] = value;
             }
         }
     }
-    return value;
+    return value - offset;
 }
 
 QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
@@ -529,25 +534,31 @@ QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
     }
     else {
         value = typeof(this[left]) == 'function'?
-            this[left](this):this[left];
+            this[left].apply(this, [memo]):this[left];
         if (value != null) {
             if (!isNaN(value))
-                value = parseInt(value) + offset;
+                value = parseInt(value);
             else if (value.slice(value.length-1) == '%') {
                 var perc = parseInt(value) / 100;
                 value = (this.parent[getWidth](false, memo) * perc) || 0;
             }
             else if (value == 'center')
                 value = parseInt((this.parent[getWidth](false, memo) / 2) -
-                    (this[getWidth](true, memo) / 2)) + offset || 0;
-            else
-                value = ((eval(value) + offset) || 0);
+                                 (this[getWidth](true, memo) / 2)) || 0;
+            else {
+                if (!this['__' + left]) {
+                    // compile expression to a function
+                    var func = new Function('memo', 'return ' + value);
+                    this['__' + left] = func;
+                }
+                value = this['__' + left].apply(this, [memo]) || 0;
+            }
 
             if (typeof memo != 'undefined')
                 memo[this._uniqueid + left] = value;
         }
     }
-    return value;
+    return value + offset;
 }
 
 QuiX.ui.Widget.prototype._calcHeight = function(b, memo) {

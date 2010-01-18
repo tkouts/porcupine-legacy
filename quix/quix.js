@@ -226,23 +226,30 @@ QuiX.bootLibraries = [
 QuiX.__init__ = function() {
     var boot_loader_url = QuiX.getThemeUrl() + 'images/boot_loader.gif';
     var boot_loader = new QuiX.Image(boot_loader_url);
+    var boot_completed = false;
+
     boot_loader.load(function() {
         boot_loader = QuiX.getImage(boot_loader_url);
         boot_loader.style.margin = '100px auto';
         boot_loader.style.display = 'block';
         boot_loader.style.textAlign = 'center';
         boot_loader.style.border = '1px solid silver';
-        document.body.appendChild(boot_loader);
+        if (!boot_completed)
+            document.body.appendChild(boot_loader);
     });
 
     QuiX.load(QuiX.bootLibraries,
         function() {
+            boot_completed = true;
             var root = document.body.removeChild(
                 document.getElementById("quix"));
             var parser = new QuiX.Parser();
             parser.oncomplete = function() {
+                try {
+                    // remove boot loader image
+                    QuiX.removeNode(boot_loader);
+                } catch(e) {}
                 // calculate scrollbars size
-                QuiX.removeNode(boot_loader);
                 var w1 = document.desktop.div.clientWidth;
                 var overflow = document.desktop.getOverflow()
                 document.desktop.div.style.overflow = 'scroll';
