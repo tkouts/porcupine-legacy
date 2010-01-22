@@ -377,10 +377,9 @@ QuiX.ui.Widget.prototype.getScrollWidth = function(/*memo*/) {
         sw = memo[this._uniqueid + 'sw'];
     }
     else {
-        var lengths = [],
-            tmp_memo = {};
+        var lengths = [];
         for (var i=0; i<this.widgets.length; i++)
-            lengths.push(this.widgets[i]._calcLeft(tmp_memo) +
+            lengths.push(this.widgets[i]._calcLeft(memo) +
                          this.widgets[i]._calcWidth(true, memo));
         sw = Math.max.apply(Math, lengths);
         memo[this._uniqueid + 'sw'] = sw;
@@ -395,10 +394,9 @@ QuiX.ui.Widget.prototype.getScrollHeight = function(/*memo*/) {
         sh = memo[this._uniqueid + 'sh'];
     }
     else {
-        var lengths = [],
-            tmp_memo = {};
+        var lengths = [];
         for (var i=0; i<this.widgets.length; i++) {
-            lengths.push(this.widgets[i]._calcTop(tmp_memo) +
+            lengths.push(this.widgets[i]._calcTop(memo) +
                          this.widgets[i]._calcHeight(true, memo));
         }
         sh = Math.max.apply(Math, lengths);
@@ -544,7 +542,7 @@ QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
             }
             else if (value == 'center')
                 value = parseInt((this.parent[getWidth](false, memo) / 2) -
-                                 (this[getWidth](true, memo) / 2)) || 0;
+                        (this[getWidth](true, memo) / 2)) || 0;
             else {
                 if (!this['__' + left]) {
                     // compile expression to a function
@@ -820,40 +818,19 @@ QuiX.ui.Widget.prototype._startDrag = function(x, y) {
 QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
     var container = QuiX.getParentNode(this.div);
     if (container && this.div.style.display != 'none') {
-        var browserFamily = QuiX.utils.BrowserInfo.family;
-        var is_safari = QuiX.utils.BrowserInfo.browser == 'Safari';
+        var memo = arguments[1] || {};
         var wdth = this.div.style.width;
         var hght = this.div.style.height;
-        var frag = null;
-        var memo = arguments[1] || {};
-        if ((browserFamily == 'moz' || browserFamily == 'ie') &&
-                this.div.clientWidth > 0) {
-            frag = document.createDocumentFragment();
-            frag.appendChild(QuiX.removeNode(this.div));
+
+        this._setCommonProps(memo);
+        if (this.div.style.position != '')
+            this._setAbsProps(memo);
+
+        for (var i=0; i<this.widgets.length; i++) {
+            if (bForceAll || this.widgets[i]._mustRedraw())
+                this.widgets[i].redraw(bForceAll, memo);
         }
-        else if (is_safari)
-            QuiX.removeNode(this.div);
-        try {
-            this._setCommonProps(memo);
-            if (this.div.style.position != '')
-                this._setAbsProps(memo);
-            for (var i=0; i<this.widgets.length; i++) {
-                if (bForceAll || this.widgets[i]._mustRedraw())
-                    this.widgets[i].redraw(bForceAll, memo);
-            }
-        }
-        finally {
-            if (frag || is_safari) {
-                container.appendChild(this.div);
-                frag = null;
-                if (browserFamily == 'ie') {
-                    // restore radios state in IE
-                    var radios = this.getWidgetsByAttribute('_checked');
-                    for (i=0; i<radios.length; i++)
-                        radios[i].div.firstChild.checked = radios[i]._checked;
-                }
-            }
-        }
+
         if ((wdth && wdth != this.div.style.width) ||
             (hght && hght != this.div.style.height)) {
             if (this._customRegistry.onresize)

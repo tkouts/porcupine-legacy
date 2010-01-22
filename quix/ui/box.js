@@ -87,12 +87,13 @@ QuiX.ui.Box.prototype._getWidgetPos = function(iPane, memo) {
 	var oWidget = this.widgets[iPane];
 	var boxalign =  oWidget.boxAlign || this.childrenAlign;
 	var w1 = (this.orientation=='h')?
-        this.getHeight(false, memo):this.getWidth(false, memo);
+        this._calcHeight(false, memo):this._calcWidth(false, memo);
 	var w2 = (this.orientation=='h')?
-        oWidget.getHeight(true, memo):oWidget.getWidth(true, memo);
+        oWidget._calcHeight(true, memo):oWidget._calcWidth(true, memo);
+    
 	switch (boxalign) {
 		case 'center':
-			return (w1 - w2)/2;
+			return (w1 - w2) / 2;
 		case 'right':
 		case 'bottom':
 			return (w1 - w2);
@@ -143,8 +144,8 @@ QuiX.ui.Box.prototype._calcWidgetLength = function(memo) {
 	var l = (this.orientation=='h')?
         this.getWidth(false, memo):this.getHeight(false, memo);
 	
-	var nl = (l - tl - ((this.widgets.length-1)*this.spacing)) / free_widgets;
-	return(nl>0?nl:0);
+	var nl = (l - tl - ((this.widgets.length-1) * this.spacing)) / free_widgets;
+	return nl>0?nl:0;
 }
 
 QuiX.ui.Box.prototype._calcWidgetWidth = function() {
