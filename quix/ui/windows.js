@@ -414,7 +414,7 @@ Window__onmousedown = function(evt, w) {
 		w.bringToFront();
 		QuiX.stopPropag(evt);
 	}
-	QuiX.cancelDefault(evt);
+	//QuiX.cancelDefault(evt);
 	QuiX.cleanupOverlays();
 }
 

@@ -19,7 +19,12 @@ QuiX.rpc = {};
 
 QuiX.rpc._cache = (function() {
     if (QuiX.persist && QuiX.persist.type) {
-        var cache = new QuiX.persist.Store('rpccache');
+        try {
+            var cache = new QuiX.persist.Store('rpccache');
+        }
+        catch(e) {
+            return null;
+        }
         return {
             get : function(key, callback) {
                 cache.get(key,
