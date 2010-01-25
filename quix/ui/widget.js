@@ -838,6 +838,12 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
                     parseInt(wdth),
                     parseInt(hght));
         }
+
+        if (QuiX.utils.BrowserInfo.family == 'ie') {
+            // IE: ie 8 requires visibility toggle in order to update DOM
+            this.div.style.visibility = 'hidden';
+            this.div.style.visibility = '';
+        }
     }
     return memo;
 }
