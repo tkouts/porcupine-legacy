@@ -359,19 +359,21 @@ def h_200_prepare(params, variables, for_object=None):
 
     select_from = params[1]
     for scope in select_from:
-        if len(scope[1]) == 1 \
-                and isinstance(scope[1][0], (bytes, str)) \
-                and scope[1][0][0] == '$' \
-                and scope[1][0][1:] not in variables:
-            # parameter
-            scope[1] = scope[1][0]
-        else:
-            # expression
-            container_id = evaluate_stack(scope[1], variables, for_object)
-            if container_id is not None:
-                scope[1] = container_id
+        if scope[0] != 2:
+            # not a subquery
+            if len(scope[1]) == 1 \
+                    and isinstance(scope[1][0], (bytes, str)) \
+                    and scope[1][0][0] == '$' \
+                    and scope[1][0][1:] not in variables:
+                # parameter
+                scope[1] = scope[1][0]
             else:
-                raise TypeError('OQL scopes should be immutable')
+                # expression
+                container_id = evaluate_stack(scope[1], variables, for_object)
+                if container_id is not None:
+                    scope[1] = container_id
+                else:
+                    raise TypeError('OQL scopes should be immutable')
     
     where_condition = params[2]
     select_range = params[5]
