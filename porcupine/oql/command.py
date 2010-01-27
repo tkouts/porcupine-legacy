@@ -15,47 +15,46 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #===============================================================================
 """
-OQL command object
+OQL command execution
 """
 #import cProfile
 
 from porcupine import exceptions
+from porcupine.core import cache
 from porcupine.core.oql import parser, core
+from porcupine.core.runtime import logger
 
-class OqlCommand(object):
-    def __init__(self):
-        self.__ast = []
-        self.oql_vars = {}
-        
-    def __parse(self, script):
-        if script:
-            p = parser.OqlParser()
-            self.__ast = p.parse(script)
+_QUERY_CACHE = cache.Cache(100)
 
-    def _execute(self):
-        result = []
-        for cmd in self.__ast:
-            cmd_code, args = cmd
-            cmd_handler = getattr(core, 'h_%s' % cmd_code)
-            ret = cmd_handler(args, self.oql_vars)
-            if ret is not None:
-                result.append(ret)
-        return result
-
-    def execute(self, oql_script):
+def execute(script, oql_vars={}):
+    if script:
         try:
-            self.__parse(oql_script)
-            #ret = []
-            #cProfile.runctx('ret = self._execute()', globals(), locals())
-            ret = self._execute()
-        
+            if script in _QUERY_CACHE:
+                prepared = _QUERY_CACHE[script]
+            else:
+                p = parser.OqlParser()
+                ast = p.parse(script)
+                prepared = core.prepare(ast)
+                _QUERY_CACHE[script] = prepared
+            #result = []
+            #cProfile.runctx('result = core.execute()', globals(), locals())
+            result = core.execute(prepared, oql_vars)
+
         except SyntaxError as e:
-            lineno = e[1]
-            errvalue = e[2]
-            script_lines = oql_script.split('\n')
+            lineno = e.args[1]
+            errvalue = e.args[2]
+            script_lines = script.split('\n')
+
             if lineno == 0:
                 lineno = len(script_lines)
                 errvalue = 'Unexpected end of OQL script'
+            else:
+                lineno = 1
+                for line in script_lines:
+                    if errvalue in line:
+                        break
+                    lineno += 1
+
             script_lines = ['   ' + ln for ln in script_lines]
             script_lines[lineno - 1] = '->' + script_lines[lineno - 1][2:]
             helper_string = '\n'.join(script_lines)
@@ -63,10 +62,28 @@ class OqlCommand(object):
                                          "OQL syntax error at line %d: '%s'" % \
                                          (lineno, errvalue))
             raise exceptions.OQLError(error_string)
-        except TypeError as e:
-            raise exceptions.InternalServerError(e.args[0])
-        
-        if len(ret) == 1:
-           ret = ret[0]
-        
-        return ret
+
+        if len(result) == 1:
+           result = result[0]
+
+        return result
+
+class OqlCommand(object):
+    """
+    Deprecated class
+    
+    For executing OQL queries use:
+    C{
+        from porcupine.oql import command
+        command.execute(cmd, vars)
+    }
+    """
+    def __init__(self):
+        logger.warning(
+            "DEPRECATION WARNING\n" +
+            "OqlCommand is deprecated.\n" +
+            "Use \"porcupine.oql.command.execute\" instead.")
+
+    def execute(self, oql_script, oql_vars={}):
+        return execute(oql_script, oql_vars)
+

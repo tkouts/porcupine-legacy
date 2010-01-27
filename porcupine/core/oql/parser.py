@@ -17,11 +17,8 @@
 """
 OQL Parser
 """
-from porcupine.core import cache
 from porcupine.core.yacc import lex, yacc
 from porcupine.core.oql import core
-
-QUERY_CACHE = cache.Cache(100)
 
 reserved = (
 #===============================================================================
@@ -82,23 +79,17 @@ for r in reserved:
 
 tokens = reserved + (
     'COMMENT', 'COLON',
-
     'COMMA', 'FUNCTION',
-    
     'EQ', 'NE', 'GT', 'GE', 'LT', 'LE',
-    
     'PLUS','MINUS','TIMES','DIVIDE',
-    
     'BOOLEAN',
-    
     'EXP',
-    
     'LPAREN','RPAREN', 'LSB', 'RSB',
-
     'INT', 'FLOAT', 'NAME', 'STRING',
 )
     
 # Tokens
+
 t_COLON             = r':'
 t_COMMA             = r','
 t_STRING            = r'\'([^\\\n]|(\\.))*?\''
@@ -182,7 +173,7 @@ def t_newline(t):
     t.lineno += t.value.count("\n")
 
 def t_error(t):
-    raise SyntaxError('', t.lineno, t.value[0])#, hex(ord(t.value[0])),)
+    raise SyntaxError('', t.lineno, t.value[0])
 
 
 class OqlParser:
@@ -207,18 +198,14 @@ class OqlParser:
         self.tokens = tokens
 
     def parse(self, command):
-        if command in QUERY_CACHE:
-            return QUERY_CACHE[command]
-        else:
-            my_lexer = lex.lex(optimize=1, debug=self.debug)
-            my_yacc = yacc.yacc(module=self,
-                                debug=self.debug,
-                                debugfile=self.debugfile,
-                                tabmodule=self.tabmodule)
-            my_lexer.input(command)
-            ast = my_yacc.parse(lexer=my_lexer)
-            QUERY_CACHE[command] = ast
-            return ast
+        my_lexer = lex.lex(optimize=1, debug=self.debug)
+        my_yacc = yacc.yacc(module=self,
+                            debug=self.debug,
+                            debugfile=self.debugfile,
+                            tabmodule=self.tabmodule)
+        my_lexer.input(command)
+        ast = my_yacc.parse(lexer=my_lexer)
+        return ast
         
 #===============================================================================
 # OQL PARSER RULES
@@ -373,21 +360,21 @@ class OqlParser:
 # scope grammar
 #===============================================================================
     def p_scope_1(self, p):
-        'scope : STRING'
-        p[0] = (0, p[1][1:-1])
+        'scope : expression'
+        p[0] = [0, p[1]]
 
     def p_scope_2(self, p):
         """
-        scope : SHALLOW LPAREN STRING RPAREN
-             | DEEP LPAREN STRING RPAREN
+        scope : SHALLOW LPAREN expression RPAREN
+              | DEEP LPAREN expression RPAREN
         """
-        p[0] = (int(p[1].upper()=='DEEP'), p[3][1:-1])
+        p[0] = [int(p[1].upper()=='DEEP'), p[3]]
         
     def p_scope_3(self, p):
         """
         scope : THIS COLON NAME
         """
-        p[0] = (2, p[3])
+        p[0] = [2, p[3]]
 
 #===============================================================================
 # object list grammar
