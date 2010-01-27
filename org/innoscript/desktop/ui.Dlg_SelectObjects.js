@@ -46,26 +46,38 @@ selectObjectsDialog.search = function(evt, w) {
 	var isDeep = oRect.getWidgetById('deep').getValue();
 	var sID = oTree.getSelection().getId();
 	var sFrom;
+
+    var vars = {SCOPE : sID};
 	
 	if (isDeep)
-		sFrom = "deep('" + sID + "')";
+		sFrom = "deep($SCOPE)";
 	else
-		sFrom = "'" + sID + "'";
+		sFrom = "$SCOPE";
 
-	var sCommand = "select id as value, __image__ as img, displayName as caption " +
+	var sCommand =
+        "select id as value, __image__ as img, displayName as caption " +
 		"from " + sFrom;
+    
 	var conditions = [];
-	if (cc!='*') conditions.push(selectObjectsDialog.getConditions(cc));
-	if (sName!='') conditions.push("'" + sName + "' in displayName");
-	if (sDesc!='') conditions.push("'" + sDesc + "' in description");
-	if (conditions.length>0) {
+	if (cc != '*')
+        conditions.push(selectObjectsDialog.getConditions(cc));
+	if (sName != '') {
+        conditions.push("$NAME in displayName");
+        vars.NAME = sName;
+    }
+	if (sDesc != '') {
+        conditions.push("$DESC in description");
+        vars.DESC = sDesc;
+    }
+
+	if (conditions.length > 0) {
 		sCommand += ' where ' + conditions.join(' and ');
 	}
 
 	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
 	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
 	rpc.callback_info = w;
-	rpc.callmethod('executeOqlCommand', sCommand);
+	rpc.callmethod('executeOqlCommand', sCommand, vars);
 }
 
 selectObjectsDialog.refreshList = function(treeNodeSelected) {
@@ -73,11 +85,12 @@ selectObjectsDialog.refreshList = function(treeNodeSelected) {
 	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
 	var cc = oDialog.attributes.CC;
 	var sOql = "select id as value, __image__ as img, displayName as caption " +
-		"from '" + treeNodeSelected.getId() + "'";
-	if (cc != '*') sOql += " where " + selectObjectsDialog.getConditions(cc);
+               "from $SCOPE";
+	if (cc != '*')
+        sOql += " where " + selectObjectsDialog.getConditions(cc);
 	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
 	rpc.callback_info = treeNodeSelected.tree;
-	rpc.callmethod('executeOqlCommand', sOql);
+	rpc.callmethod('executeOqlCommand', sOql, {SCOPE:treeNodeSelected.getId()});
 }
 
 selectObjectsDialog.getConditions = function(s) {

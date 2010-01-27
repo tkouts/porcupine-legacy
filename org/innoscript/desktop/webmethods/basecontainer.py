@@ -30,7 +30,7 @@ from porcupine import filters
 from porcupine import datatypes
 
 from porcupine.systemObjects import Container
-from porcupine.oql.command import OqlCommand
+from porcupine.oql import command
 from porcupine.utils import date, misc, permsresolver
 
 from org.innoscript.desktop.strings import resources
@@ -187,14 +187,13 @@ def selectobjects(self):
         'CC': sCC
     }
 
-    oCmd = OqlCommand()
-    sOql = "select * from '%s'" % self.id
+    sOql = "select * from $SCOPE"
     if sCC != '*':
         ccs = sCC.split('|')
         ccs = ["instanceof('%s')" % x for x in ccs]
         sConditions = " or ".join(ccs)
         sOql += " where %s" % sConditions
-    oRes = oCmd.execute(sOql)
+    oRes = command.execute(sOql, {'SCOPE': self.id})
 
     sOptions = ''
     for obj in oRes:

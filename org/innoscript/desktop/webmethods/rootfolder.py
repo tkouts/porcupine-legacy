@@ -25,7 +25,7 @@ from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
 
-from porcupine.oql.command import OqlCommand
+from porcupine.oql import command
 from org.innoscript.desktop.schema.common import RootFolder
 
 DESKSTOP_PANE = '''<rect height="-1" overflow="hidden">
@@ -100,10 +100,9 @@ def user_settings(self):
         params['RUN_MAXIMIZED_VALUE'] = 'false'
 
     # get applications
-    oCmd = OqlCommand()
     sOql = "select displayName,launchUrl,icon from 'apps' " + \
            "order by displayName asc"
-    apps = oCmd.execute(sOql)
+    apps = command.execute(sOql)
     
     sSelected = ''
     if autoRun == '':
@@ -202,10 +201,9 @@ def __blank__(self):
         params['BOTTOM'] = desktop_pane
     
     # get applications
-    oCmd = OqlCommand()
     sOql = "select launchUrl,displayName,icon from 'apps' " + \
            "order by displayName asc"
-    apps = oCmd.execute(sOql)
+    apps = command.execute(sOql)
     sApps = ''
     if len(apps) > 0:
         for app in apps:
@@ -222,13 +220,8 @@ def __blank__(self):
     return params
 
 @webmethods.remotemethod(of_type=RootFolder)
-def executeOqlCommand(self, command, range=None):
-    oCmd = OqlCommand()
-    oRes = oCmd.execute(command)
-    if range is None:
-        return [rec for rec in oRes]
-    else:
-        return [oRes[range[0]:range[1]], len(oRes)]
+def executeOqlCommand(self, cmd, vars={}):
+    return command.execute(cmd, vars)
 
 @webmethods.remotemethod(of_type=RootFolder)
 def logoff(self):

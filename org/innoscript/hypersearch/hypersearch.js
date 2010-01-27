@@ -44,19 +44,26 @@ hypersearch.search = function(evt, w)
     	results_list.dataSet = req.response;
     	results_list.refresh();
     }
-    rpc.callmethod('executeOqlCommand', query);
+    rpc.callmethod('executeOqlCommand', query[0], query[1]);
 
 }
 
 hypersearch.getSearchQuery = function(w) {
 	var query, conditions, date_from, date_to;
-	
-	var scope = "'" + w.getWidgetById('container_id').getValue() + "'";
+	var scope = w.getWidgetById('container_id').getValue();
+    
+    var oql_vars = {
+        SCOPE : scope
+    }
 	
 	if (w.getWidgetById('scope').getValue())
 	{
-		scope = 'deep(' + scope + ')';
+		scope = 'deep($SCOPE)';
 	}
+    else
+    {
+        scope = '$SCOPE'
+    }
 	
     query = "select id, parentid, __image__ as image, displayName, " +
 			"size, modified, modifiedBy from " + scope;
@@ -66,17 +73,22 @@ hypersearch.getSearchQuery = function(w) {
     var name = w.getWidgetById('name').getValue();
     var description = w.getWidgetById('description').getValue();
     var modified_mode = w.getWidgetById('modified')[0].getValue();
-    
-    if (name!='')
+
+    // displayName
+    if (name != '')
     {
-    	conditions.push("'" + name + "' in displayName");
+    	conditions.push("$DN in displayName");
+        oql_vars.DN = name;
     }
-    
-    if (description!='')
+
+    // descriprion
+    if (description != '')
     {
-    	conditions.push("'" + description + "' in description");
+    	conditions.push("$DESCR in description");
+        oql_vars.DESCR = description;
     }
-    
+
+    // modification date
     switch (modified_mode)
     {
     	case '1':
@@ -89,14 +101,15 @@ hypersearch.getSearchQuery = function(w) {
     		date_from.setMonth(date_to.getMonth()-1);
     		break;
     	case '3':
-    		date_from = w.getWidgetById('from').getValue();
     		date_to = w.getWidgetById('to').getValue();
+    		date_from = w.getWidgetById('from').getValue();
     }
     
     if (date_to)
     {
-		conditions.push("modified between date('" + date_from.toIso8601() +
-			"') and date('" + date_to.toIso8601() + "')");
+		conditions.push("modified between $DATE_FROM and &DATE_TO)");
+        oql_vars.DATE_FROM = date_from;
+        oql_vars.DATE_TO = date_to;
     }
     
     if (conditions.length > 0)
@@ -106,7 +119,7 @@ hypersearch.getSearchQuery = function(w) {
     
     query += ' order by modified desc';
     
-    return(query);
+    return([query, oql_vars]);
 }
 
 hypersearch.showObjectProperties = function(evt, w, o) {
