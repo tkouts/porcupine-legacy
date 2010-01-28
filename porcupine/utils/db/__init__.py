@@ -23,6 +23,7 @@ from porcupine import db
 from porcupine import context
 from porcupine.administration import offlinedb
 from porcupine.core.compat import str
+from porcupine.utils.date import Date
 
 _err_unsupported_index_type = -2334
 
@@ -34,6 +35,9 @@ def pack_value(value):
     """
     if isinstance(value, str):
         value = value.encode('utf-8')
+    elif isinstance(value, Date):
+        value = value.value
+    
     packed = None
     if type(value) == bytes:
         packed = struct.pack('%ds' % len(value), value)

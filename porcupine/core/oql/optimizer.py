@@ -172,9 +172,9 @@ def _optimize_conditions(conditions, variables, parent_op=None):
                         if op == '=':
                             lookup = [index, index_value]
                         elif op in ['<', '<=']:
-                            lookup = [index, (None, (index_value, '=' in op))]
+                            lookup = [index, (None, [index_value, '=' in op])]
                         elif op in ['>', '>=']:
-                            lookup = [index, ((index_value, '=' in op), None)]
+                            lookup = [index, ([index_value, '=' in op], None)]
                         optimized[0][0].append(lookup)
                 
                 if lookup is None:
@@ -221,10 +221,11 @@ def h_61_opt(params, variables):
         for expr in params[1:]:
             if len(expr) == 1 \
                     and isinstance(expr[0], (bytes, str)) \
-                    and expr[0][0] == '$':
+                    and expr[0][0] == '$' \
+                    and expr[0][1:] not in variables:
                 # parameter
                 bounds.append(expr[0])
             else:
                 bounds.append(evaluate_stack(expr[:], variables))
         if all(bounds):
-            return [params[0][0], ((bounds[0], True), (bounds[1], False))]
+            return [params[0][0], ([bounds[0], True], [bounds[1], False])]

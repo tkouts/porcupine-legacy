@@ -530,11 +530,11 @@ def h_200(prepared, variables, for_object=None):
                                     indexed_lookup[1] = variables[index_value[1:]]
                                 elif isinstance(index_value, tuple):
                                     # range cursor
-                                    for limit in index_value[:1]:
-                                        if limit is not None \
+                                    for limit in index_value:
+                                        if isinstance(limit, list) \
                                                 and isinstance(limit[0], str) \
                                                 and limit[0][0] == '$':
-                                            limit[0][0] = variables[limit[0][1:]]
+                                            limit[0] = variables[limit[0][1:]]
                         except KeyError as e:
                             raise NameError('Undefined variable "%s"' % e.args[0])
 
