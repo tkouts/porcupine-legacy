@@ -107,7 +107,7 @@ hypersearch.getSearchQuery = function(w) {
     
     if (date_to)
     {
-		conditions.push("modified between $DATE_FROM and &DATE_TO)");
+		conditions.push("modified between $DATE_FROM and $DATE_TO");
         oql_vars.DATE_FROM = date_from;
         oql_vars.DATE_TO = date_to;
     }
