@@ -167,7 +167,6 @@ QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
             }
             else
                 dom = xmlhttp.responseXML;
-
             QuiX.XHRPool.release(xmlhttp);
             self.parse(dom, oncomplete);
         }
@@ -510,9 +509,10 @@ QuiX.ui.Widget.prototype._calcSize = function(height, offset, getHeight, memo) {
                 value = (parseInt(this.parent[getHeight](false, memo) * perc)) || 0;
             }
             else {
-                if (!this['__' + height]) {
+                if (!this['__' + height] || this['__' + height].expr != value) {
                     // compile expression to a function
                     var func = new Function('memo', 'return ' + value);
+                    func.expr = value;
                     this['__' + height] = func;
                 }
                 value = this['__' + height].apply(this, [memo]) || 0;
@@ -544,9 +544,10 @@ QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
                 value = parseInt((this.parent[getWidth](false, memo) / 2) -
                         (this[getWidth](true, memo) / 2)) || 0;
             else {
-                if (!this['__' + left]) {
+                if (!this['__' + left] || this['__' + left].expr != value) {
                     // compile expression to a function
                     var func = new Function('memo', 'return ' + value);
+                    func.expr = value;
                     this['__' + left] = func;
                 }
                 value = this['__' + left].apply(this, [memo]) || 0;
@@ -1080,7 +1081,12 @@ function Widget__tooltipover(evt, w) {
         var x1 = evt.clientX;
         if (QuiX.dir == 'rtl')
             x1 = QuiX.transformX(x1);
-        var y1 = evt.clientY + 18;
+        var availHeight = parseInt(document.desktop.div.style.height);
+        var y1;
+        if(evt.clientY + 30 > availHeight)
+        	y1 = evt.clientY - 18;
+        else
+       		y1 = evt.clientY + 18;
         if (!w.__tooltipID) {
             w.__tooltipID = window.setTimeout(
                 function _tooltiphandler() {
