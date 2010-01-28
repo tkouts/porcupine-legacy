@@ -1081,12 +1081,14 @@ function Widget__tooltipover(evt, w) {
         var x1 = evt.clientX;
         if (QuiX.dir == 'rtl')
             x1 = QuiX.transformX(x1);
-        var availHeight = parseInt(document.desktop.div.style.height);
+
+        var availHeight = document.desktop.getHeight(true);
         var y1;
-        if(evt.clientY + 30 > availHeight)
-        	y1 = evt.clientY - 18;
+        if (evt.clientY + 30 > availHeight)
+        	y1 = evt.clientY - 30;
         else
        		y1 = evt.clientY + 18;
+
         if (!w.__tooltipID) {
             w.__tooltipID = window.setTimeout(
                 function _tooltiphandler() {
