@@ -563,7 +563,7 @@ QuiX.XHRPool = (
 		return ({
 			release : function(xhr) {
 				xhr.onreadystatechange = nullFunction;
-				xhr.abort();
+				//xhr.abort();
 				stack.push(xhr);
 			},
 			getInstance : function() {

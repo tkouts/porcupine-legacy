@@ -263,7 +263,7 @@ QuiX.ui.MultiFile = function(/*params*/) {
 	
 	var self = this;
 	if (!this.readonly) {
-		this.filecontrol = new File({maxfilesize:params.maxfilesize});
+		this.filecontrol = new QuiX.ui.File({maxfilesize:params.maxfilesize});
 		this.appendChild(this.filecontrol);
 		this.filecontrol.div.style.visibility = 'hidden';
 		this.filecontrol.onstatechange = function() {

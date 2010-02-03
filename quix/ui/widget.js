@@ -677,7 +677,8 @@ QuiX.ui.Widget.prototype.moveTo = function(x, y) {
     y = (isNaN(y))? this._calcTop(memo) : y + padding[2];
     this.div.style.left = x + 'px';
     this.div.style.top = y + 'px';
-    if (QuiX.utils.BrowserInfo.family == 'ie') {
+    if (QuiX.utils.BrowserInfo.family == 'ie'
+                && this.div.style.visibility == '') {
         // IE: ie 8 requires visibility toggle in order to update DOM
         this.div.style.visibility = 'hidden';
         this.div.style.visibility = '';
@@ -840,7 +841,8 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
                     parseInt(hght));
         }
 
-        if (QuiX.utils.BrowserInfo.family == 'ie') {
+        if (QuiX.utils.BrowserInfo.family == 'ie'
+                && this.div.style.visibility == '') {
             // IE: ie 8 requires visibility toggle in order to update DOM
             this.div.style.visibility = 'hidden';
             this.div.style.visibility = '';
