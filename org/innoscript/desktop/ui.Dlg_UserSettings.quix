@@ -2,7 +2,7 @@
 <dialog xmlns="http://www.innoscript.org/quix"
 		title="@@SETTINGS@@" resizable="false" close="true" minimize="true"
 		width="320" height="240" left="center" top="center">
-	<prop name="ORIGINAL_TASK_POS" value="$TASK_BAR_POS"/>
+	<prop name="ORIGINAL_TASK_POS" value="{=TASK_BAR_POS}"/>
 	<wbody>
 	 	<form action="./" method="applySettings">
 			<tabpane width="100%" height="100%">
@@ -14,32 +14,42 @@
 						 left="100"
 						 top="32"
 						 value="top"
-						 checked="$CHECKED_TOP"/>
-					<icon left="120" top="24" width="32" height="32" img="desktop/images/taskbar_top.gif" caption="@@TOP@@"/>
+						 checked="{=CHECKED_TOP}"/>
+					<icon left="120" top="24" width="32" height="32"
+                        img="desktop/images/taskbar_top.gif" caption="@@TOP@@"/>
 					<field id="barpos"
 						 name="TASK_BAR_POS"
 						 type="radio"
 						 left="100"
 						 top="72"
 						 value="bottom"
-						 checked="$CHECKED_BOTTOM"/>
-					<icon left="120" top="64" width="32" height="32" img="desktop/images/taskbar_bottom.gif" caption="@@BOTTOM@@"/>
+						 checked="{=CHECKED_BOTTOM}"/>
+					<icon left="120" top="64" width="32" height="32"
+                        img="desktop/images/taskbar_bottom.gif"
+                        caption="@@BOTTOM@@"/>
 				</tab>
                 <tab caption="@@AUTO_RUN@@">
                     <selectlist name="AUTO_RUN" width="100%" height="110">
-                    	$APPS
+                        <option caption="@@NONE_APP@@"
+                            selected="{=AUTO_RUN_NONE}" value=""/>
+                    	{:reduce APPS}
+                            <option img="{=icon}" caption="{=displayName}"
+                                value="{=launchUrl}" selected="{=selected}"/>
+                        {/:reduce}
                     </selectlist>
                     <field top="113"
                     	name="RUN_MAXIMIZED"
                     	width="230"
                     	height="20"
                     	caption="@@RUN_MAXIMIZED@@"
-                    	value="$RUN_MAXIMIZED_VALUE"
+                    	value="{=RUN_MAXIMIZED_VALUE}"
                     	type="checkbox"/>
                 </tab>
 			</tabpane>
 		</form>
 	</wbody>
-	<dlgbutton onclick="desktop.applyUserSettings" width="60" height="22" caption="@@APPLY@@"/>
-	<dlgbutton onclick="__closeDialog__" width="60" height="22" caption="@@CLOSE@@"/>
+	<dlgbutton onclick="desktop.applyUserSettings" width="60" height="22"
+        caption="@@APPLY@@"/>
+	<dlgbutton onclick="__closeDialog__" width="60" height="22"
+        caption="@@CLOSE@@"/>
 </dialog>

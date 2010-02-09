@@ -91,15 +91,6 @@ SECURITY_TAB = '''
 
 DATES_FORMAT = 'ddd, dd month yyyy h12:min:sec MM'
 
-def _getSecurity(forItem, user, rolesInherited=None):
-    # get user role
-    iUserRole = permsresolver.get_access(forItem, user)
-    if iUserRole == permsresolver.COORDINATOR:
-        rolesInherited = rolesInherited or forItem.inheritRoles
-        return SECURITY_TAB % str(rolesInherited).lower()
-    else:
-        return ''
-    
 def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
     attrlabel = '@@%s@@' % attrname
     sControl = ''
@@ -176,39 +167,41 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Item,
-                   template='../ui.Frm_AutoProperties.quix')
+                   template='../ui.Frm_AutoProperties.quix',
+                   template_engine='normal_template')
 def properties(self):
     "Displays a generic edit form based on the object's schema"
     sLang = context.request.get_lang()
     
     user = context.user
     iUserRole = permsresolver.get_access(self, user)
-    readonly = (iUserRole==1)
+    readonly = (iUserRole == permsresolver.READER)
+    admin = (iUserRole == permsresolver.COORDINATOR)
     modified = date.Date(self.modified)
     
     params = {
-        'ID': self.id,
-        'ICON': self.__image__,
-        'NAME': xml.xml_encode(self.displayName.value),
+        'URI' : self.id,
+        'ICON' : self.__image__,
+        'TITLE' : xml.xml_encode(self.displayName.value),
         'MODIFIED': modified.format(DATES_FORMAT, sLang),
         'MODIFIED_BY': xml.xml_encode(self.modifiedBy),
         'CONTENTCLASS': self.contentclass,
-        'PROPERTIES_TAB': '',
-        'EXTRA_TABS': '',
-        'SECURITY_TAB': _getSecurity(self, context.user),
-        'UPDATE_DISABLED': str(readonly).lower()
+        'PROPERTIES' : [],
+        'EXTRA_TABS': [],
+        'ADMIN' : admin,
+        'ROLES_INHERITED' : str(self.inheritRoles).lower(),
+        'ACTION_DISABLED': str(readonly).lower(),
+        'METHOD' : 'update'
     }
     # inspect item properties
-    sProperties = ''
     for attr_name in self.__props__:
         attr = getattr(self, attr_name)
         if isinstance(attr, datatypes.DataType):
             control, tab = \
                 _getControlFromAttribute(self, attr_name, attr, readonly)
-            sProperties += control
-            params['EXTRA_TABS'] += tab
+            params['PROPERTIES'].append(control)
+            params['EXTRA_TABS'].append(tab)
     
-    params['PROPERTIES'] = sProperties
     return params
 
 @filters.etag()

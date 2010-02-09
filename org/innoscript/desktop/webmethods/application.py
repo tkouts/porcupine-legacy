@@ -29,13 +29,15 @@ from org.innoscript.desktop.webmethods import baseitem
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Application,
-                   template='../ui.Frm_AppProperties.quix')
+                   template='../ui.Frm_AppProperties.quix',
+                   template_engine='normal_template')
 def properties(self):
     "Displays the application's properties form"
     sLang = context.request.get_lang()
     user = context.user
     iUserRole = permsresolver.get_access(self, user)
-    readonly = (iUserRole == 1)
+    readonly = (iUserRole == permsresolver.READER)
+    admin = (iUserRole == permsresolver.COORDINATOR)
     modified = date.Date(self.modified)
     return {
         'ID' : self.id,
@@ -47,6 +49,7 @@ def properties(self):
         'MODIFIED' : modified.format(baseitem.DATES_FORMAT, sLang),
         'MODIFIED_BY' : xml.xml_encode(self.modifiedBy),
         'CONTENTCLASS' : self.contentclass,
-        'SECURITY_TAB' : baseitem._getSecurity(self, context.user),
+        'ADMIN' : admin,
+        'ROLES_INHERITED' : str(self.inheritRoles).lower(),
         'READONLY' : str(readonly).lower()
     }

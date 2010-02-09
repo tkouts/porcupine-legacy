@@ -28,15 +28,6 @@ from porcupine import filters
 from porcupine.oql import command
 from org.innoscript.desktop.schema.common import RootFolder
 
-DESKSTOP_PANE = '''<rect height="-1" overflow="hidden">
-    <icon top="10" left="10" width="80" height="80" imgalign="top"
-                ondblclick="generic.openContainer" img="desktop/images/store.gif"
-                color="white" caption="%s">
-            <prop name="folderID" value=""></prop>
-    </icon>
-    %s
-</rect>'''
-
 @filters.runas('system')
 @webmethods.remotemethod(of_type=RootFolder)
 def login(self, username, password):
@@ -77,7 +68,8 @@ def about(self):
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=RootFolder,
-                   template='../ui.Dlg_UserSettings.quix')
+                   template='../ui.Dlg_UserSettings.quix',
+                   template_engine='normal_template')
 def user_settings(self):
     "Displays the user settings dialog"
     settings = context.user.settings
@@ -92,34 +84,22 @@ def user_settings(self):
         params['CHECKED_TOP'] = 'true'
         params['CHECKED_BOTTOM'] = 'false'
         
-    autoRun = settings.value.setdefault('AUTO_RUN', '')
+    autoRun = settings.value.get('AUTO_RUN', '')
         
-    if settings.value.setdefault('RUN_MAXIMIZED', False) == True:
+    if settings.value.get('RUN_MAXIMIZED', False):
         params['RUN_MAXIMIZED_VALUE'] = 'true'
     else:
         params['RUN_MAXIMIZED_VALUE'] = 'false'
 
     # get applications
-    sOql = "select displayName,launchUrl,icon from 'apps' " + \
+    sOql = "select displayName, launchUrl, icon," + \
+           "(if launchUrl = $L then 'true' else '') as selected from 'apps' " + \
            "order by displayName asc"
-    apps = command.execute(sOql)
+    params['APPS'] = command.execute(sOql, {'L' : autoRun})
     
-    sSelected = ''
+    params['AUTO_RUN_NONE'] = ''
     if autoRun == '':
-        sSelected = 'true'
-    
-    sApps = '<option caption="@@NONE_APP@@" selected="%s" value=""/>' \
-            % sSelected
-    if len(apps) > 0:
-        for app in apps:
-            if autoRun == app['launchUrl']:
-                sSelected = 'true'
-            else:
-                sSelected = 'false'
-            sApps += \
-             '<option img="%s" caption="%s" value="%s" selected="%s"/>' % \
-             (app['icon'], app['displayName'], app['launchUrl'], sSelected)
-    params['APPS'] = sApps
+        params['AUTO_RUN_NONE'] = 'true'
     
     return params
 
@@ -147,13 +127,14 @@ def __blank__(self):
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=RootFolder,
                    isPage=True,
-                   template='../ui.Desktop.quix')
+                   template='../ui.Desktop.quix',
+                   template_engine='normal_template')
 def __blank__(self):
     "Displays the desktop"
     oUser = context.user
-    
     params = {
         'USER' : oUser.displayName.value,
+        'ROOT_NAME' : self.displayName.value,
         'AUTO_RUN' : '',
         'RUN_MAXIMIZED' : 0,
         'SETTINGS_DISABLED' : '',
@@ -166,7 +147,7 @@ def __blank__(self):
         params['RUN_MAXIMIZED'] = \
             int(settings.value.setdefault('RUN_MAXIMIZED', False))
         taskbar_position = \
-            settings.value.setdefault('TASK_BAR_POS', 'bottom')
+            settings.value.get('TASK_BAR_POS', 'bottom')
     else:
         taskbar_position = 'bottom'
         params['SETTINGS_DISABLED'] = 'true'
@@ -179,43 +160,19 @@ def __blank__(self):
         params['PERSONAL_FOLDER'] = oUser.personalFolder.value
     
     # has the user access to recycle bin?
-    rb_icon = ''
     rb = db.get_item('rb')
     if rb:
-        rb_icon = '''
-            <icon top="80" left="10" width="80" height="80"
-                imgalign="top" ondblclick="generic.openContainer"
-                img="desktop/images/trashcan_full.gif" color="white"
-                caption="%s">
-                    <prop name="folderID" value="rb"></prop>
-            </icon>
-        ''' % rb.displayName.value
-    
-    desktop_pane = DESKSTOP_PANE % (self.displayName.value, rb_icon)
-    
-    if taskbar_position == 'bottom':
-        params['TOP'] = desktop_pane
-        params['BOTTOM'] = ''
+        params['RB_NAME'] = rb.displayName.value
     else:
-        params['TOP'] = ''
-        params['BOTTOM'] = desktop_pane
+        params['RB_NAME'] = None
+    
+    params['BOTTOM'] = taskbar_position == 'bottom'
+    params['TOP'] = not params['BOTTOM']
     
     # get applications
-    sOql = "select launchUrl,displayName,icon from 'apps' " + \
+    sOql = "select launchUrl, displayName, icon from 'apps' " + \
            "order by displayName asc"
-    apps = command.execute(sOql)
-    sApps = ''
-    if len(apps) > 0:
-        for app in apps:
-            sApps += '''<menuoption img="%s" caption="%s"
-                onclick="generic.runApp">
-                    <prop name="url" value="%s"></prop>
-                </menuoption>''' % \
-                (app['icon'], app['displayName'], app['launchUrl'])
-        params['APPS'] = sApps
-    else:
-        params['APPS'] = '<menuoption caption="@@EMPTY@@"' + \
-                         ' disabled="true"></menuoption>'
+    params['APPS'] = command.execute(sOql)
 
     return params
 

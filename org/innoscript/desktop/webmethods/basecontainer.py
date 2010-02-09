@@ -50,23 +50,28 @@ def list(self):
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Container,
                    template='../ui.Frm_AutoNew.quix',
-                   max_age=120)
+                   max_age=120,
+                   template_engine='normal_template')
 def new(self):
     "Displays a generic form for creating a new object"
     sCC = context.request.queryString['cc'][0]
     oNewItem = misc.get_rto_by_name(sCC)()
+    role = permsresolver.get_access(self, context.user)
     
     params = {
-        'CC': sCC,
-        'URI': self.id,
-        'ICON': oNewItem.__image__,
-        'PROPERTIES_TAB': '',
-        'EXTRA_TABS': '',
-        'SECURITY_TAB': baseitem._getSecurity(self, context.user, True)
+        'CC' : sCC,
+        'URI' : self.id,
+        'TITLE' : '@@CREATE@@ &quot;@@%s@@&quot;' % sCC,
+        'ICON' : oNewItem.__image__,
+        'PROPERTIES' : [],
+        'EXTRA_TABS' : [],
+        'ADMIN' : role == permsresolver.COORDINATOR,
+        'ROLES_INHERITED' : 'true',
+        'ACTION_DISABLED' : 'false',
+        'METHOD' : 'create'
     }
     
     # inspect item properties
-    sProperties = ''
     for attr_name in oNewItem.__props__:
         attr = getattr(oNewItem, attr_name)
         if isinstance(attr, datatypes.DataType):
@@ -75,11 +80,9 @@ def new(self):
                                                              attr,
                                                              False,
                                                              True)
-            sProperties += control
-            params['EXTRA_TABS'] += tab
-    
-    params['PROPERTIES'] = sProperties
-    
+            params['PROPERTIES'].append(control)
+            params['EXTRA_TABS'].append(tab)
+
     return params
 
 @webmethods.remotemethod(of_type=Container)

@@ -18,22 +18,24 @@
 Web methods for the apps' container class
 """
 from porcupine import context
-from porcupine import webmethods
 from porcupine import filters
+from porcupine import webmethods
+from porcupine.utils import permsresolver
 
 from org.innoscript.desktop.schema import common
-from org.innoscript.desktop.webmethods import baseitem
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=common.AppsFolder,
                    max_age=3600,
-                   template='../ui.Frm_AppNew.quix')
+                   template='../ui.Frm_AppNew.quix',
+                   template_engine='normal_template')
 def new(self):
     "Displays the form for creating a new application"
-    oApp = common.Application()
+    new_app = common.Application()
+    role = permsresolver.get_access(self, context.user)
     return {
-        'CC': oApp.contentclass,
-        'URI': self.id,
-        'ICON': oApp.__image__,
-        'SECURITY_TAB': baseitem._getSecurity(self, context.user, True)
+        'CC' : new_app.contentclass,
+        'URI' : self.id,
+        'ICON' : new_app.__image__,
+        'ADMIN' : role == permsresolver.COORDINATOR
     }

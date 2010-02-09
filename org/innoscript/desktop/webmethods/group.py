@@ -27,14 +27,16 @@ from org.innoscript.desktop.webmethods import baseitem
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Group,
-                   template='../ui.Frm_GroupProperties.quix')
+                   template='../ui.Frm_GroupProperties.quix',
+                   template_engine='normal_template')
 def properties(self):
     "Displays the group's properties form"
     sLang = context.request.get_lang()
 
     user = context.user
     iUserRole = permsresolver.get_access(self, user)
-    readonly = (iUserRole==1)
+    readonly = (iUserRole==permsresolver.READER)
+    admin = (iUserRole==permsresolver.COORDINATOR)
 
     params = {
         'ID' : self.id,
@@ -48,7 +50,9 @@ def properties(self):
         'CONTENTCLASS' : self.contentclass,
         'SELECT_FROM' : self.parentid,
         'REL_CC' : '|'.join(self.members.relCc),
-        'READONLY' : str(readonly).lower()
+        'READONLY' : str(readonly).lower(),
+        'ADMIN' : admin,
+        'ROLES_INHERITED' : str(self.inheritRoles).lower()
     }
 
     members_options = []
@@ -66,8 +70,6 @@ def properties(self):
                              policy.id,
                              xml.xml_encode(policy.displayName.value)]
     params['POLICIES'] = ';'.join(policies_options)
-    
-    params['SECURITY_TAB'] = baseitem._getSecurity(self, user)
     
     return params
 

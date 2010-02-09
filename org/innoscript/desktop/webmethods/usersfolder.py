@@ -20,18 +20,20 @@ Web methods for the users' container class
 from porcupine import context
 from porcupine import webmethods
 from porcupine import filters
+from porcupine.utils import permsresolver
 
 from org.innoscript.desktop.schema import security
-from org.innoscript.desktop.webmethods import baseitem
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=security.UsersFolder,
                    qs="cc=org.innoscript.desktop.schema.security.User",
                    template='../ui.Frm_UserNew.quix',
-                   max_age=1200)
+                   max_age=1200,
+                   template_engine='normal_template')
 def new(self):
     "Displays the form for creating a new user"
     oUser = security.User()
+    role = permsresolver.get_access(self, context.user)
     return {
         'CC' : oUser.contentclass,
         'URI' : self.id,
@@ -39,16 +41,18 @@ def new(self):
         'ICON' : oUser.__image__,
         'SELECT_FROM_POLICIES' : 'policies',
         'POLICIES_REL_CC' : '|'.join(oUser.policies.relCc),
-        'SECURITY_TAB' : baseitem._getSecurity(self, context.user, True)
+        'ADMIN' : role == permsresolver.COORDINATOR
     }
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=security.UsersFolder,
                    qs="cc=org.innoscript.desktop.schema.security.Group",
                    template='../ui.Frm_GroupNew.quix',
-                   max_age=1200)
+                   max_age=1200,
+                   template_engine='normal_template')
 def new(self):
     oGroup = security.Group()
+    role = permsresolver.get_access(self, context.user)
     return {
         'CC' : oGroup.contentclass,
         'URI' : self.id,
@@ -56,5 +60,5 @@ def new(self):
         'ICON' : oGroup.__image__,
         'SELECT_FROM_POLICIES' : 'policies',
         'POLICIES_REL_CC' : '|'.join(oGroup.policies.relCc),
-        'SECURITY_TAB' : baseitem._getSecurity(self, context.user, True)
+        'ADMIN' : role == permsresolver.COORDINATOR
     }

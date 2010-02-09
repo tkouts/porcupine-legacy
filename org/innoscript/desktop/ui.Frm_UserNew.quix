@@ -1,47 +1,67 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		title="New User" img="$ICON" resizable="false" close="true"
+		title="New User" img="{=ICON}" resizable="false" close="true"
 		width="380" height="300" left="30%" top="30%">
 	<script name="User Form Script" src="desktop/ui.Frm_User.js"/>
 	<script name="Generic Form Widgets" src="desktop/widgets.js" depends="10,14,15"/>
 	<wbody>
-		<form action="$URI" method="create">
-			<tabpane top="0" left="0" width="100%" height="100%">
+		<form action="{=URI}" method="create">
+			<tabpane width="100%" height="100%">
 				<tab caption="@@GENERAL@@">
-						<field name="CC" type="hidden" value="$CC"/>
+						<field name="CC" type="hidden" value="{=CC}"/>
 						
-						<label top="2" left="5" width="80" height="20" caption="@@displayName@@:"/>
-						<field id="displayName" name="displayName" left="95" top="0" width="72%"/>
+						<label top="2" left="5" width="80" height="20"
+                            caption="@@displayName@@:"/>
+						<field id="displayName" name="displayName"
+                            left="95" top="0" width="72%"/>
 	
-						<label top="29" left="5" width="80" height="20" caption="@@fullName@@:"/>
-						<field id="fullName" name="fullName" top="27" left="95" width="72%"/>
+						<label top="29" left="5" width="80" height="20"
+                            caption="@@fullName@@:"/>
+						<field id="fullName" name="fullName" top="27"
+                            left="95" width="72%"/>
 	
-						<label top="55" left="5" width="80" height="20" caption="@@description@@:"/>
-						<field id="description" name="description" top="53" left="95" width="72%"/>
+						<label top="55" left="5" width="80" height="20"
+                            caption="@@description@@:"/>
+						<field id="description" name="description" top="53"
+                            left="95" width="72%"/>
 
-						<label top="81" left="5" width="80" height="20" caption="@@email@@:"/>
-						<field id="description" name="email" top="80" left="95" width="72%"/>
+						<label top="81" left="5" width="80" height="20"
+                            caption="@@email@@:"/>
+						<field id="description" name="email" top="80"
+                            left="95" width="72%"/>
 					
 						<hr top="112" width="100%"/>
 						
-						<label top="126" left="5" width="100" height="20" caption="@@password@@:"/>
-						<field id="password" name="password" type="password" top="124" left="135" width="210"/>
+						<label top="126" left="5" width="100" height="20"
+                            caption="@@password@@:"/>
+						<field id="password" name="password" type="password"
+                            top="124" left="135" width="210"/>
 	
-						<label top="151" left="5" width="100" height="20" caption="@@REENTER_PASSWORD@@:"/>
-						<field id="password2" type="password" top="150" left="135" width="210"/>
+						<label top="151" left="5" width="100" height="20"
+                            caption="@@REENTER_PASSWORD@@:"/>
+						<field id="password2" type="password" top="150"
+                            left="135" width="210"/>
 				</tab>
 				<tab caption="@@memberof@@">
 					<custom classname="ReferenceN" width="100%" height="100%"
-						root="$URI" cc="$REL_CC" name="memberof"/>
+						root="{=URI}" cc="{=REL_CC}" name="memberof"/>
 				</tab>
 				<tab caption="@@policies@@">
 					<custom classname="ReferenceN" width="100%" height="100%"
-						root="$SELECT_FROM_POLICIES" cc="$POLICIES_REL_CC" name="policies"/>
+						root="{=SELECT_FROM_POLICIES}" cc="{=POLICIES_REL_CC}"
+                        name="policies"/>
 				</tab>
-				$SECURITY_TAB
+                {:if ADMIN}
+                    <tab caption="@@SECURITY@@" onactivate="generic.getSecurity">
+                        <custom classname="ACLEditor" width="100%"
+                            height="100%" rolesinherited="true"/>
+                    </tab>
+                {/:if}
 			</tabpane>
 		</form>
 	</wbody>
-	<dlgbutton onclick="formUser.createUser" width="70" height="22" caption="@@CREATE@@" default="true"/>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@CLOSE@@"/>
+	<dlgbutton onclick="formUser.createUser" width="70" height="22"
+        caption="@@CREATE@@" default="true"/>
+	<dlgbutton onclick="__closeDialog__" width="70" height="22"
+        caption="@@CLOSE@@"/>
 </dialog>

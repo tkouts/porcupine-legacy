@@ -1,5 +1,5 @@
 #===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#    Copyright (c) 2005-2010 Tassos Koutsovassilis, http://www.innoscript.org
 #
 #    This file is part of Porcupine.
 #    Porcupine is free software; you can redistribute it and/or modify
@@ -18,17 +18,60 @@
 Template languages processors
 """
 import io
+import os.path
 from string import Template
 
 from porcupine import exceptions
+from porcupine.core import normaltemplate
+from porcupine.core.normaltemplate import preprocessor
 
-def string_template(context, filename, vars):
+def _get_template_src(filename):
     try:
         f = io.open(filename, encoding='utf-8')
     except IOError:
         raise exceptions.NotFound('Template file "%s" is missing' % filename)
     try:
-        template = Template(f.read())
-        context.response.write(template.substitute(vars))
+        src = f.read()
     finally:
         f.close()
+    return src
+
+def string_template(context, filename, vars):
+    template = Template(_get_template_src(filename))
+    context.response.write(template.substitute(vars))
+
+_normal_cache = {}
+
+def normal_template(context, filename, vars):
+    src = _get_template_src(filename)
+
+    # extract data from base-template
+    src, data = preprocessor.extract_data(src)
+    if data:
+        for var in data:
+            cache_key = '%s#def%s' % (filename, var)
+            fn = _normal_cache.get(cache_key, None)
+            if fn is None:
+                fn = normaltemplate.compile(data[var])
+                _normal_cache[cache_key] = fn
+            vars[var] = fn(vars)
+
+    # detect super-template
+    super = preprocessor.get_template_path(src)
+    if super is not None:
+        super_path = '%s/%s' % (os.path.dirname(filename), super)
+        super_fn = _normal_cache.get(super_path, None)
+        if super_fn is None:
+            st_src = _get_template_src(super_path)
+            super_fn = normaltemplate.compile(st_src)
+            _normal_cache[super_path] = super_fn
+        src = super_fn(vars)
+        fn = normaltemplate.compile(src)
+    else:
+        fn = _normal_cache.get(filename, None)
+        if fn is None:
+            # compile
+            fn = normaltemplate.compile(src)
+            _normal_cache[filename] = fn
+
+    context.response.write(fn(vars))

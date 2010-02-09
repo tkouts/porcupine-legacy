@@ -29,13 +29,15 @@ from org.innoscript.desktop.webmethods import baseitem
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=User,
-                   template='../ui.Frm_UserProperties.quix')
+                   template='../ui.Frm_UserProperties.quix',
+                   template_engine='normal_template')
 def properties(self):
     "Displays the user's properties form"
     sLang = context.request.get_lang()
     user = context.user
     iUserRole = permsresolver.get_access(self, user)
-    readonly = (iUserRole==1)
+    readonly = (iUserRole==permsresolver.READER)
+    admin = (iUserRole==permsresolver.COORDINATOR)
     params = {
         'ID' : self.id,
         'ICON' : self.__image__,
@@ -50,7 +52,9 @@ def properties(self):
         'REL_CC' : '|'.join(self.memberof.relCc),
         'SELECT_FROM_POLICIES' : 'policies',
         'POLICIES_REL_CC' : '|'.join(self.policies.relCc),
-        'READONLY' : str(readonly).lower()
+        'READONLY' : str(readonly).lower(),
+        'ADMIN' : admin,
+        'ROLES_INHERITED' : str(self.inheritRoles).lower()
     }
     
     memberof_options = []
@@ -69,7 +73,6 @@ def properties(self):
                              xml.xml_encode(policy.displayName.value)]
     params['POLICIES'] = ';'.join(policies_options)
     
-    params['SECURITY_TAB'] = baseitem._getSecurity(self, user)
     return params
 
 @filters.etag()

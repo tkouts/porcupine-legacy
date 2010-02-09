@@ -1,23 +1,20 @@
-<?xml version="1.0"?>
-<dialog xmlns="http://www.innoscript.org/quix"
-		title="@@CREATE@@ &quot;@@$CC@@&quot;" img="$ICON" resizable="true"
-		close="true" width="400" height="420" left="30%" top="10%">
-	<script name="Generic Form Script" src="desktop/ui.Frm_Auto.js"/>
-	<script name="Generic Form Widgets" src="desktop/widgets.js" depends="10,14,15"/>
-	<wbody>
-		<form action="$URI" method="create">
-			<field name="CC" type="hidden" value="$CC"/>
-			<tabpane top="0" left="0" width="100%" height="100%">
-				<tab caption="@@PROPERTIES@@">
-					<vbox width="100%" height="100%">
-						$PROPERTIES
-					</vbox>
-				</tab>
-				$EXTRA_TABS
-				$SECURITY_TAB
-			</tabpane>
-		</form>
-	</wbody>
-	<dlgbutton onclick="generic.submitForm" width="70" height="22" caption="@@CREATE@@" default="true"/>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@CANCEL@@"/>
-</dialog>
+{#template itemproperties.templ.quix}
+
+{#def PROPERTIES_TAB}
+    <field name="CC" type="hidden" value="{=CC}"/>
+    <vbox width="100%" height="100%">
+        {:reduce PROPERTIES}
+            {=.}
+        {/:reduce}
+    </vbox>
+{/#def}
+
+{#def TABS}
+    {:reduce EXTRA_TABS}
+        {=.}
+    {/:reduce}
+{/#def}
+
+{#def OK_CAPTION}
+@@CREATE@@
+{/#def}
