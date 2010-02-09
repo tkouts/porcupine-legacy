@@ -940,15 +940,10 @@ class Shortcut(Item):
     L{get_target} method.
     """
     __image__ = "desktop/images/link.png"
-    #__props__ = Item.__props__ + ('target',)
-    __props__ = {
-        'target' : _TargetItem
-    }
+    __props__ = dict({
+            'target' : _TargetItem
+        }, **Item.__props__)
     
-#    def __init__(self):
-#        Item.__init__(self)
-#        self.target = _TargetItem()
-        
     @staticmethod
     def create(target):
         """Helper method for creating shortcuts of items.
