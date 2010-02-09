@@ -20,7 +20,7 @@
 #===============================================================================
 import re
 
-from normaltemplate import NormalTemplateError
+from . import NormalTemplateError
 
 _template_re = re.compile('\s*\{\#(template|t) (.*?)\}')
 _include_re = re.compile('\{#include (.*?)\}')
