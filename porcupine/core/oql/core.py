@@ -624,7 +624,7 @@ def h_200(prepared, variables, for_object=None):
     #print(len(results))
 
     if select_range:
-        results = results[slice(select_range[0]-1, select_range[1])]
+        results = results[slice(select_range[0] - 1, select_range[1])]
 
     results = ObjectSet(results)
     results.schema = schema
@@ -657,18 +657,14 @@ def select(container_id, deep, specifier, fields, variables,
         top -= len(results)
 
     if deep:
-        subfolders = db._db.query((('isCollection', True), ))
+        subfolders = db._db.query( (('isCollection', True), ) )
         subfolders.set_scope(container_id)
         for folder in subfolders:
-            c_specifier = [[c.duplicate(), conditions]
-                           for c, conditions in specifier]
             [l[0].set_scope(folder._id)
-             for l in c_specifier]
-            results1 = select(folder._id, deep, c_specifier,
+             for l in specifier]
+            results1 = select(folder._id, deep, specifier,
                               fields, variables, top=top,
                               top_accumulative=top_accumulative)
-            c_specifier.reverse()
-            [l[0].close() for l in c_specifier]
 
             results_len = len(results)
 
@@ -678,7 +674,6 @@ def select(container_id, deep, specifier, fields, variables,
                 if len(results) - results_len >= top:
                     break
                 top -= results_len
-
         subfolders.close()
 
     return results
