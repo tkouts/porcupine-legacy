@@ -164,8 +164,7 @@ class PorcupineThread(BaseServerThread):
                     rh.write_buffer(master_response)
                     return
 
-            e = exceptions.InternalServerError(
-                'Database is in read-only mode')
+            e = exceptions.InternalServerError('Database is in read-only mode')
             e.output_traceback = False
             e.emit(context, item)
             
