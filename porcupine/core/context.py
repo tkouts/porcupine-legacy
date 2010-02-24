@@ -26,14 +26,14 @@ class Context(local):
         # transaction
         self._trans = None
         # thread local storage of non-transactional open cursors
-        # used for duplicating cursors in order not avoid
-        # lockers starvation
         self._cursors = []
 
     def _reset(self):
         # close any cursors left opened
-        [c.close() for c in self._cursors]
+        while self._cursors:
+            self._cursors[0].close()
         self._cursors = []
+        self._trans = None
         # remove session
         if hasattr(self, 'session'):
             delattr(self, 'session')
