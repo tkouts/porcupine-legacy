@@ -33,22 +33,16 @@ class Cursor(BaseCursor):
         self.db = db_
         self.name = name
         self._get_cursor()
-        if context._trans is not None:
-            context._trans._cursors.append(self)
         self._get_flag = db.DB_NEXT
 
     def _get_cursor(self):
         if context._trans is not None:
             self._cursor = self.db.cursor(context._trans.txn,
                                           db.DB_READ_COMMITTED)
+            context._trans._cursors.append(self)
         else:
-            #if self.name in context._cursors:
-            #    self._cursor = context._cursors[self.name].dup()
-            #else:
-            #    self._cursor = self.db.cursor(None, db.DB_READ_COMMITTED)
-            #    context._cursors[self.name] = self._cursor
-            self._cursor = self.db.cursor(None, db.DB_READ_COMMITTED)
-            context._cursors.append(self._cursor)
+            self._cursor = self.db.cursor(None, db.DB_TXN_SNAPSHOT)
+            context._cursors.append(self)
         self._closed = False
 
     def duplicate(self):
@@ -106,8 +100,8 @@ class Cursor(BaseCursor):
         return size
 
     def _set(self):
+        is_set = False
         try:
-            is_set = False
             if self._reversed:
                 if self._value is not None:
                     # equality
@@ -174,11 +168,13 @@ class Cursor(BaseCursor):
                     else:
                         # move to first
                         is_set = bool(self._cursor.set_range(self._scope + b'_'))
-            return is_set
+
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             if context._trans is not None:
                 context._trans.abort()
             raise exceptions.DBRetryTransaction
+
+        return is_set
 
     def _eval(self, item):
         if hasattr(item, self.name):
@@ -236,7 +232,7 @@ class Cursor(BaseCursor):
             if context._trans is not None:
                 context._trans._cursors.remove(self)
             else:
-                context._cursors.remove(self._cursor)
+                context._cursors.remove(self)
             self._closed = True
             try:
                 self._close()
@@ -254,6 +250,8 @@ class Join(BaseCursor):
         self._db = primary_db
         if context._trans is not None:
             context._trans._cursors.append(self)
+        else:
+            context._cursors.append(self)
 
     def set_scope(self, scope):
         [c.set_scope(scope) for c in self._cur_list]
@@ -273,8 +271,6 @@ class Join(BaseCursor):
         cursors = list(zip(sizes, self._cur_list))
         cursors.sort()
         rte_cursors = [c[1] for c in cursors[1:]]
-        # close run-time evaluated cursors
-        [c.close() for c in rte_cursors]
         return cursors[0][1], rte_cursors
 
     def __iter__(self):
@@ -323,6 +319,8 @@ class Join(BaseCursor):
         [cur.close() for cur in self._cur_list]
         if context._trans:
             context._trans._cursors.remove(self)
+        else:
+            context._cursors.remove(self)
         try:
             self._close()
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):

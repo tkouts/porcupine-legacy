@@ -17,7 +17,6 @@
 """
 Porcupine Server BSDDB Transaction class
 """
-from porcupine import exceptions
 from porcupine.db.bsddb import db
 from porcupine.db.basetransaction import BaseTransaction
 
@@ -37,14 +36,12 @@ class Transaction(BaseTransaction):
         BaseTransaction._retry(self)
 
     def _close_cursors(self):
-        clean = True
         for c in self._cursors:
             try:
                 c._close()
             except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-                clean = False
+                pass
         self._cursors = []
-        return clean
 
     def commit(self):
         """
@@ -52,16 +49,9 @@ class Transaction(BaseTransaction):
 
         @return: None
         """
-        if len(self._cursors) > 0:
-            # some cursors are left open, just close them
-            if not self._close_cursors():
-                self.abort()
-                raise exceptions.DBRetryTransaction
-        #try:
+        while self._cursors:
+            self._cursors[0].close()
         self.txn.commit()
-        #except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
-        #    self.abort()
-        #    raise exceptions.DBRetryTransaction
         BaseTransaction.commit(self)
 
     def abort(self):

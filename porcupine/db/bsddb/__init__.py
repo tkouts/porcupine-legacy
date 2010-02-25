@@ -58,12 +58,17 @@ class DB(object):
         env_dir += '/'
     # cache size
     cache_size = settings['store'].get('cache_size', None)
+    # maximum concurrent transactions
+    # due to snapshot isolation this should be kept high enough
+    txn_max = settings['store'].get('max_tx', 1000)
     # transaction timeout
-    txn_timeout = settings['store'].get('tx_timeout', 0)
+    txn_timeout = settings['store'].get('tx_timeout', None)
     # shared memory key
     shm_key = settings['store'].get('shm_key', None)
-    # maintenance (checkpoint) thread
+    # maintenance (deadlock detector) thread
     _maintenance_thread = None
+    # checkpoint thread
+    _checkpoint_thread = None
 
     # log berkeleyDB version
     logger.info('BerkeleyDB version is %s' %
@@ -83,12 +88,14 @@ class DB(object):
         self._env = db.DBEnv()
         self._env.set_data_dir(self.dir)
         self._env.set_lg_dir(self.log_dir)
+        self._env.set_tx_max(self.txn_max)
 
-        if self.txn_timeout > 0:
-            self._env.set_timeout(self.txn_timeout, db.DB_SET_TXN_TIMEOUT)
-        else:
-            self._env.set_flags(db.DB_TXN_NOWAIT, 1)
-
+        if self.txn_timeout is not None:
+            if self.txn_timeout > 0:
+                self._env.set_timeout(self.txn_timeout, db.DB_SET_TXN_TIMEOUT)
+            else:
+                self._env.set_flags(db.DB_TXN_NOWAIT, 1)
+        
         if self.cache_size is not None:
             self._env.set_cachesize(*self.cache_size)
 
@@ -110,7 +117,8 @@ class DB(object):
                        db.DB_INIT_LOG | db.DB_INIT_TXN | db.DB_CREATE |
                        additional_flags)
 
-        db_flags = db.DB_THREAD | db.DB_AUTO_COMMIT
+        db_flags = db.DB_THREAD | db.DB_AUTO_COMMIT | db.DB_CREATE | \
+                   db.DB_MULTIVERSION
         db_mode = 0o660
 
         if rep_config:
@@ -143,13 +151,6 @@ class DB(object):
                          self.replication_service.client_startup_done):
                     time.sleep(0.02)
 
-            if self.replication_service.is_master():
-                db_flags |= db.DB_CREATE
-            else:
-                if int(rep_config['priority']) == 0:
-                    # the site will never be a MASTER
-                    db_flags = db.DB_RDONLY
-                
                 timeout = time.time() + 20
                 while time.time() < timeout and \
                         not (os.path.exists(
@@ -157,7 +158,6 @@ class DB(object):
                     time.sleep(0.02)
         else:
             self.replication_service = None
-            db_flags |= db.DB_CREATE
 
         # open items db
         while True:
@@ -202,9 +202,14 @@ class DB(object):
 
         maintain = kwargs.get('maintain', False)
         if maintain and self._maintenance_thread is None:
+            # start deadlock detector
             self._maintenance_thread = Thread(target=self.__maintain,
                                               name='DB maintenance thread')
             self._maintenance_thread.start()
+            # start checkpoint thread
+            self._checkpoint_thread = Thread(target=self.__checkpoint,
+                                             name='DB checkpoint thread')
+            self._checkpoint_thread.start()
     
     def is_open(self):
         return self._running
@@ -399,6 +404,14 @@ class DB(object):
                         % aborted)
             except db.DBError:
                  pass
+
+    def __checkpoint(self):
+        "checkpoint thread"
+        while self._running:
+            time.sleep(30.0)
+            # checkpoint every 512KB written
+            self._env.txn_checkpoint(512, 0)
+
             #stats = self._env.txn_stat()
             #print('txns: %d' % stats['nactive'])
             #print('max txns: %d' % stats['maxnactive'])
@@ -426,6 +439,8 @@ class DB(object):
             self._running = False
             if self._maintenance_thread is not None:
                 self._maintenance_thread.join()
+            if self._checkpoint_thread is not None:
+                self._checkpoint_thread.join()
             self._itemdb.close()
             self._docdb.close()
             # close indexes

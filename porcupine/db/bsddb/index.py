@@ -40,10 +40,7 @@ class DbIndex(BaseIndex):
                     mode = 0o660,
                     flags = db_flags
                 )
-                if db_flags != db.DB_RDONLY:
-                    flags = db.DB_CREATE
-                else:
-                    flags = 0
+                flags = db.DB_CREATE
                 if immutable:
                     if hasattr(db, 'DB_IMMUTABLE_KEY'):
                         flags |= db.DB_IMMUTABLE_KEY

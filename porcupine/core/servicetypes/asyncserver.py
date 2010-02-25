@@ -169,10 +169,6 @@ class BaseServer(BaseService, Dispatcher):
                                         self.done_queue.item_popped)
                 kwargs['sentinel'] = self.sentinel
 
-            # create max_tx multiprocessing semaphore
-            BaseTransaction._txn_max_s = \
-                multiprocessing.Semaphore(BaseTransaction.txn_max)
-
             # check if running in replicated environment
             from porcupine.db import _db
             rep_mgr = _db.get_replication_manager()
@@ -184,7 +180,7 @@ class BaseServer(BaseService, Dispatcher):
                 pname = '%s server process %d' % (self.name, i+1)
                 pconn, cconn = multiprocessing.Pipe()
                 p = SubProcess(pname, self.worker_threads, self.thread_class,
-                               cconn, BaseTransaction._txn_max_s, **kwargs)
+                               cconn, **kwargs)
                 p.start()
                 self.pipes.append(pconn)
                 self.worker_pool.append(p)
@@ -448,14 +444,13 @@ if multiprocessing:
                             ('session_manager', (), {'init_expiration':False})]
 
         def __init__(self, name, worker_threads, thread_class, connection,
-                     txn_max_s, request_queue=None, done_queue=None,
+                     request_queue=None, done_queue=None,
                      sentinel=None, socket=None, master=None):
             BaseService.__init__(self, name)
             multiprocessing.Process.__init__(self, name=name)
             self.worker_threads = worker_threads
             self.thread_class = thread_class
             self.connection = connection
-            self.txn_max_s = txn_max_s
             self.request_queue = request_queue
             self.done_queue = done_queue
             self.sentinel = sentinel
@@ -528,8 +523,6 @@ if multiprocessing:
         def run(self):
             # start runtime services
             BaseService.start(self)
-            # set tx_max multiprocessing semaphore
-            BaseTransaction._txn_max_s = self.txn_max_s
 
             # set initial site master
             if self.master is not None:
