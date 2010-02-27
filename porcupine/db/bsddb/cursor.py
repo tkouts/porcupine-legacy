@@ -41,7 +41,10 @@ class Cursor(BaseCursor):
                                           db.DB_READ_COMMITTED)
             context._trans._cursors.append(self)
         else:
-            self._cursor = self.db.cursor(None, db.DB_TXN_SNAPSHOT)
+            if context._snapshot_txn is None:
+                context._snapshot_txn = \
+                    _db._db_handle._env.txn_begin(None, db.DB_TXN_SNAPSHOT)
+            self._cursor = self.db.cursor(context._snapshot_txn)
             context._cursors.append(self)
         self._closed = False
 

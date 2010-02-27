@@ -68,7 +68,7 @@ class ReplicationService(object):
     def start(self):
         self.env.repmgr_set_local_site(*self.local_site.address)
         self.env.rep_set_priority(self.config['priority'])
-        self.env.rep_set_nsites(self.config['nsites'])
+        #self.env.rep_set_nsites(self.config['nsites'])
         if 'ack_policy' in self.config and \
                 hasattr(db, self.config['ack_policy']):
             self.env.repmgr_set_ack_policy(

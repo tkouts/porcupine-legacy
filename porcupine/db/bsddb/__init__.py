@@ -145,10 +145,10 @@ class DB(object):
                 self.replication_service.start()
 
                 # wait for client start-up
-                timeout = time.time() + 10
+                timeout = time.time() + 20
                 while time.time() < timeout and \
-                    not (self.replication_service.is_master() and
-                         self.replication_service.client_startup_done):
+                        not self.replication_service.is_master() and \
+                        not self.replication_service.client_startup_done:
                     time.sleep(0.02)
 
                 timeout = time.time() + 20
@@ -408,9 +408,10 @@ class DB(object):
     def __checkpoint(self):
         "checkpoint thread"
         while self._running:
-            time.sleep(30.0)
-            # checkpoint every 512KB written
-            self._env.txn_checkpoint(512, 0)
+            time.sleep(10.0)
+            if self.replication_service is None or self.replication_service.is_master():
+                # checkpoint every 512KB written
+                self._env.txn_checkpoint(512, 0)
 
             #stats = self._env.txn_stat()
             #print('txns: %d' % stats['nactive'])

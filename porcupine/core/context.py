@@ -25,6 +25,11 @@ class Context(local):
         self.user = None
         # transaction
         self._trans = None
+        # transaction used for read-only snapshot cursors
+        # in order to avoid:
+        # 1. lockers and txns starvation
+        # 2. REP_LOCKOUT on clients when master goes down
+        self._snapshot_txn = None
         # thread local storage of non-transactional open cursors
         self._cursors = []
 
@@ -32,7 +37,12 @@ class Context(local):
         # close any cursors left opened
         while self._cursors:
             self._cursors[0].close()
-        self._cursors = []
+        
+        #self._cursors = []
+        if self._snapshot_txn is not None:
+            self._snapshot_txn.abort()
+            self._snapshot_txn = None
+
         self._trans = None
         # remove session
         if hasattr(self, 'session'):
