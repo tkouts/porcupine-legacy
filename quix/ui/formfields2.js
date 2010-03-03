@@ -424,7 +424,8 @@ QuiX.ui.SelectList  = function(/*params*/) {
 	this.name = params.name;
 	this.div.className = 'field';
 	this.div.style.overflowX = 'hidden';
-	this.multiple = (params.multiple=="true")?true:false;
+	this.multiple = (params.multiple == 'true' ||
+                     params.multiple == true)? true:false;
 	this.posts = params.posts || "selected";
 	this.options = [];
 	this.selection = [];
