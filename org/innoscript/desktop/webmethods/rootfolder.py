@@ -199,3 +199,17 @@ def upload(self, chunk, fname):
         tmpfile.write(chunk)
         tmpfile.close()
     return fname
+
+@filters.requires_policy('uploadpolicy')
+@webmethods.webmethod(of_type=RootFolder, http_method='POST',
+                      content_type='plain/text')
+def http_upload(self):
+    form = context.request.form
+    file_data = form['Filedata']
+    fname = file_data.filename
+    data = file_data.value
+    fileno, fname = context.session.getTempFile()
+    os.write(fileno, data)
+    os.close(fileno)
+    temp_file = os.path.basename(fname)
+    context.response.write(temp_file)

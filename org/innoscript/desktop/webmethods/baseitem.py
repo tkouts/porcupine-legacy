@@ -47,7 +47,7 @@ AUTO_CONTROLS = {
         </rect>
         ''',
     datatypes.File: '''
-        <rect height="24">
+        <rect height="26">
             <label width="100" height="20" caption="%s:"/>
             <file name="%s" filename="%s" size="%d" href="%s"
                 width="this.parent.getWidth()-105"

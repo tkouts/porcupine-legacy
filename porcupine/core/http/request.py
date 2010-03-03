@@ -127,6 +127,11 @@ class HttpRequest(object):
                 # http form post
                 self.form = FieldStorage(fp=io.BytesIO(self.input),
                                          environ=self.serverVariables)
+                # required by swfupload
+                if '_state' in self.form:
+                    self.cookies.load(self.form['_state'].value)
+                elif '_state' in self.queryString:
+                    self.cookies.load(self.queryString['_state'][0])
 
     def get_lang(self):
         """Returns the preferred language of the client.

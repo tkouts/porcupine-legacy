@@ -219,6 +219,8 @@ QuiX.bootLibraries = [
     QuiX.baseUrl + 'persist/persist.js',
     // rpc
     QuiX.baseUrl + 'rpc/rpc.js',
+    // swfupload
+    QuiX.baseUrl + 'swfupload/swfupload.js',
     // theme css
     QuiX.getThemeUrl() + 'quix.css'
 ];
@@ -563,7 +565,7 @@ QuiX.XHRPool = (
 		return ({
 			release : function(xhr) {
 				xhr.onreadystatechange = nullFunction;
-				//xhr.abort();
+				xhr.abort();
 				stack.push(xhr);
 			},
 			getInstance : function() {

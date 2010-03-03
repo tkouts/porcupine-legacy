@@ -497,3 +497,13 @@ BODY {
     border-style : solid;
 	border-color: DarkGray;
 }
+
+.btnupload {
+    border-style : solid;
+    border-color : transparent;
+}
+
+.btnupload:hover {
+	border-color : ThreedHighlight ThreeDDarkShadow
+                   ThreeDDarkShadow ThreedHighlight;
+}
