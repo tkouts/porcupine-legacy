@@ -86,7 +86,10 @@ function Label__onmousedown(evt, w) {
 QuiX.ui.Link = function(/*params*/) {
     var params = arguments[0] || {};
     this.href = params.href;
-    this.target = params.target || '_blank';
+    if (typeof params.target != 'undefined')
+        this.target = params.target
+    else
+        this.target = '_blank';
     this.base = QuiX.ui.Label;
     this.base(params);
 }
