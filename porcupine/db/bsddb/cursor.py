@@ -37,8 +37,7 @@ class Cursor(BaseCursor):
 
     def _get_cursor(self):
         if context._trans is not None:
-            self._cursor = self.db.cursor(context._trans.txn,
-                                          db.DB_READ_COMMITTED)
+            self._cursor = self.db.cursor(context._trans.txn)
             context._trans._cursors.append(self)
         else:
             if context._snapshot_txn is None:

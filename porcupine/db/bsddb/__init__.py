@@ -69,6 +69,8 @@ class DB(object):
     _maintenance_thread = None
     # checkpoint thread
     _checkpoint_thread = None
+    # trickle thread
+    _trickle_thread = None
 
     # log berkeleyDB version
     logger.info('BerkeleyDB version is %s' %
@@ -152,7 +154,7 @@ class DB(object):
                     time.sleep(0.02)
 
                 timeout = time.time() + 20
-                while time.time() < timeout and \
+                while time.time() < timeout or \
                         not (os.path.exists(
                              os.path.join(self.dir, 'porcupine.db'))):
                     time.sleep(0.02)
@@ -210,7 +212,12 @@ class DB(object):
             self._checkpoint_thread = Thread(target=self.__checkpoint,
                                              name='DB checkpoint thread')
             self._checkpoint_thread.start()
-    
+            if hasattr(self._env, 'memp_trickle'):
+                # strart memp_trickle thread
+                self._trickle_thread = Thread(target=self.__trickle,
+                                              name='DB memp_trickle thread')
+                self._trickle_thread.start()
+
     def is_open(self):
         return self._running
 
@@ -393,11 +400,10 @@ class DB(object):
     def __maintain(self):
         "deadlock detection thread"
         while self._running:
-            time.sleep(0.05)
+            time.sleep(0.02)
             # deadlock detection
             try:
-                aborted = self._env.lock_detect(db.DB_LOCK_RANDOM,
-                                                db.DB_LOCK_CONFLICT)
+                aborted = self._env.lock_detect(db.DB_LOCK_YOUNGEST)
                 if aborted:
                     logger.critical(
                         "Deadlock: Aborted %d deadlocked transaction(s)"
@@ -405,13 +411,20 @@ class DB(object):
             except db.DBError:
                  pass
 
+    def __trickle(self):
+        "memp_trickle thread"
+        while self._running:
+            self._env.memp_trickle(95)
+            time.sleep(8)
+
     def __checkpoint(self):
         "checkpoint thread"
         while self._running:
-            time.sleep(10.0)
-            if self.replication_service is None or self.replication_service.is_master():
-                # checkpoint every 512KB written
-                self._env.txn_checkpoint(512, 0)
+            if self.replication_service is None \
+                    or self.replication_service.is_master():
+                # checkpoint every 2MB written
+                self._env.txn_checkpoint(2048, 0)
+            time.sleep(60)
 
             #stats = self._env.txn_stat()
             #print('txns: %d' % stats['nactive'])
@@ -438,10 +451,15 @@ class DB(object):
     def close(self):
         if self._running:
             self._running = False
+
+            # join threads
             if self._maintenance_thread is not None:
                 self._maintenance_thread.join()
             if self._checkpoint_thread is not None:
                 self._checkpoint_thread.join()
+            if self._trickle_thread is not None:
+                self._trickle_thread.join()
+
             self._itemdb.close()
             self._docdb.close()
             # close indexes
