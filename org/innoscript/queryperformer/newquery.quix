@@ -4,9 +4,6 @@
     <wbody>
         <vbox spacing="0" width="100%" height="100%">
             <toolbar height="34">
-                <tbbutton width="30" img="queryperformer/images/save22.gif"
-					onclick="queryPerformer.saveQuery"
-                	tooltip="Save"/>
                 <tbbutton width="30" img="queryperformer/images/execute22.gif"
 					onclick="queryPerformer.executeQuery"
                 	tooltip="Execute"/>

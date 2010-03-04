@@ -9,12 +9,6 @@ queryPerformer.newQuery = function(evt, w) {
     clientArea.parseFromUrl('queryperformer/newquery.quix');
 }
 
-queryPerformer.saveQuery = function(evt, w) {
-    var win = w.getParentByType(Window);
-    var file = win.parent.widgets[0];
-    file.saveTextFile( win.getTitle() + '.oql', win.getWidgetById('oqlquery').getValue() );
-}
-
 queryPerformer.executeQuery = function(evt, w) {
     var oWin = w.getParentByType(Window);
     var oPane = oWin.getWidgetById('resultsarea');
