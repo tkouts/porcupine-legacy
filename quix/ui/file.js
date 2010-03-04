@@ -65,7 +65,7 @@ QuiX.ui.File.prototype.customEvents =
 var File = QuiX.ui.File;
 
 QuiX.ui.File.onunload = function(obj) {
-    alert(obj.uploader.destroy());
+    obj.uploader.destroy();
 }
 
 QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
