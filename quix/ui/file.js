@@ -4,6 +4,7 @@ File Control
 QuiX.ui.File = function(/*params*/) {
 	var params = arguments[0] || {};
 
+    params.onunload = QuiX.ui.File.onunload;
 	params.height = params.height || 24;
 	this.name = params.name;
 	this.href = params.href;
@@ -62,6 +63,10 @@ QuiX.ui.File.prototype.customEvents =
     QuiX.ui.Box.prototype.customEvents.concat(['oncomplete']);
 // backwards compatibility
 var File = QuiX.ui.File;
+
+QuiX.ui.File.onunload = function(obj) {
+    alert(obj.uploader.destroy());
+}
 
 QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
     var action = params.multiple? SWFUpload.BUTTON_ACTION.SELECT_FILES:
@@ -204,6 +209,8 @@ QuiX.ui.File.prototype.onerror = function(e) {
 //multiple file uploader
 QuiX.ui.MultiFile = function(/*params*/) {
 	var params = arguments[0] || {};
+    params.onunload = QuiX.ui.File.onunload;
+    
 	this.name = params.name;
 	this.method = params.method;
 	this.readonly = (params.readonly == 'true' ||
