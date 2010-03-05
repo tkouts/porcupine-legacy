@@ -134,14 +134,13 @@ class DB(object):
                 is_multiprocess = services['main'].is_multiprocess or \
                                   services['management'].is_multiprocess
 
-                if is_multiprocess and (int(rep_config['priority']) > 0 or
-                        'site_address' not in rep_config):
+                if is_multiprocess and int(rep_config['priority']) > 0 \
+                        and db.version() < (4, 8):
                     self._env.close()
                     self.__remove_env()
                     raise exceptions.ConfigurationError(
-                        'Multiprocessing environments should not be ' +
-                        'master candidates and join an existing replication ' +
-                        'site only as clients.')
+                        'Multiprocessing master candidates ' +
+                        'require BerkeleyDB 4.8 or higher')
 
                 # start replication service
                 self.replication_service.start()
@@ -154,7 +153,7 @@ class DB(object):
                     time.sleep(0.02)
 
                 timeout = time.time() + 20
-                while time.time() < timeout or \
+                while time.time() < timeout and \
                         not (os.path.exists(
                              os.path.join(self.dir, 'porcupine.db'))):
                     time.sleep(0.02)

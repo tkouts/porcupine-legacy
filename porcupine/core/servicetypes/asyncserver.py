@@ -35,7 +35,6 @@ from threading import Thread, current_thread
 from porcupine.utils import misc
 from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
-from porcupine.db.basetransaction import BaseTransaction
 
 class BaseServerThread(Thread):
     def handle_request(self, request_handler):
@@ -173,6 +172,7 @@ class BaseServer(BaseService, Dispatcher):
             from porcupine.db import _db
             rep_mgr = _db.get_replication_manager()
             if rep_mgr is not None:
+                kwargs['local'] = rep_mgr.local_site
                 kwargs['master'] = rep_mgr.master
 
             # start worker processes
@@ -445,7 +445,7 @@ if multiprocessing:
 
         def __init__(self, name, worker_threads, thread_class, connection,
                      request_queue=None, done_queue=None,
-                     sentinel=None, socket=None, master=None):
+                     sentinel=None, socket=None, local=None, master=None):
             BaseService.__init__(self, name)
             multiprocessing.Process.__init__(self, name=name)
             self.worker_threads = worker_threads
@@ -457,6 +457,7 @@ if multiprocessing:
             self.socket = socket
             self.is_alive = True
             self.master = master
+            self.local = local
 
         def start(self):
             multiprocessing.Process.start(self)
@@ -490,7 +491,6 @@ if multiprocessing:
                     self.remove_runtime_service('db')
                 elif command == 'NEW_MASTER':
                     from porcupine.db import _db
-                    #print(self.name, params.address)
                     _db.get_replication_manager().master = params
                 elif command == 'RELOAD_PACKAGE':
                     try:
@@ -527,7 +527,9 @@ if multiprocessing:
             # set initial site master
             if self.master is not None:
                 from porcupine.db import _db
-                _db.get_replication_manager().master = self.master
+                rep_mgr = _db.get_replication_manager()
+                rep_mgr.master = self.master
+                rep_mgr.local_site = self.local
 
             # start server
             if self.socket is not None:

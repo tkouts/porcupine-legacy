@@ -63,9 +63,23 @@ class ReplicationService(object):
             self.master = self.local_site
 
     def is_master(self):
-        return self.local_site == self.master
+        return self.master is not None \
+               and self.local_site.address == self.master.address
 
     def start(self):
+        def event_notify(a, b, c):
+            if b == db.DB_EVENT_REP_MASTER:
+                self.master = self.local_site
+                # notify sub-processes
+                services.notify(('NEW_MASTER', self.local_site))
+                self.broadcast(MgtMessage('REP_NEW_MASTER', self.local_site))
+                logger.info('REP: Node elected as new MASTER')
+            elif b == db.DB_EVENT_REP_STARTUPDONE:
+                self.client_startup_done = True
+                logger.info('REP: Replication client startup is finished')
+
+        self.env.set_event_notify(event_notify)
+        
         if hasattr(db, 'DB_REP_CONF_BULK'):
             self.env.rep_set_config(db.DB_REP_CONF_BULK, 1)
         self.env.repmgr_set_local_site(*self.local_site.address)
@@ -76,18 +90,6 @@ class ReplicationService(object):
             self.env.repmgr_set_ack_policy(
                 getattr(db, self.config['ack_policy']))
 
-        def event_notify(a, b, c):
-            if b == db.DB_EVENT_REP_MASTER:
-                self.master = self.local_site
-                #print('MASTER')
-                self.broadcast(MgtMessage('REP_NEW_MASTER', self.local_site))
-                logger.info('REP: Node elected as new MASTER')
-            elif b == db.DB_EVENT_REP_STARTUPDONE:
-                self.client_startup_done = True
-                logger.info('REP: Replication client startup is finished')
-
-        self.env.set_event_notify(event_notify)
-        
         if 'site_address' in self.config:
             # join an existing site
             site_address = misc.get_address_from_string(
