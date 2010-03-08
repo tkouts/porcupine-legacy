@@ -421,9 +421,9 @@ class DB(object):
         while self._running:
             if self.replication_service is None \
                     or self.replication_service.is_master():
-                # checkpoint every 2MB written
-                self._env.txn_checkpoint(2048, 0)
-            time.sleep(60)
+                # checkpoint every 512KB written
+                self._env.txn_checkpoint(512, 0)
+            time.sleep(16)
 
             #stats = self._env.txn_stat()
             #print('txns: %d' % stats['nactive'])
