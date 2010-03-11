@@ -365,9 +365,9 @@ QuiX.ui.MultiFile.prototype.updateProgress = function(file, bytes_complete, tota
 	var pbar2 = this.attributes.pbars[1];
 	pbar1.setValue(this.attributes.bytesSent + bytes_complete);
     pbar1.widgets[1].setCaption(file.name);
-	pbar2.setValue(bytes_complete);
-	pbar2.widgets[1].setCaption(
-        parseInt((bytes_complete/total_bytes)*100) + '%');
+    var p = (bytes_complete/total_bytes) * 100;
+	pbar2.setValue(p);
+	pbar2.widgets[1].setCaption(parseInt(p) + '%');
 }
 
 QuiX.ui.MultiFile.prototype.uploadSuccess = function(file, server_data, response) {
