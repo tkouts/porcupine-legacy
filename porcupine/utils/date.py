@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Porcupine Date class"
 
 import time
@@ -26,66 +26,67 @@ from porcupine.core.compat import str
 from porcupine.utils import iso8601
 from porcupine.core.decorators import deprecated
 
+
 class Date(object):
     """
     Porcupine Date class
-    
+
     This class is a helper class for handling dates.
-    
+
     @ivar value: Floating point number expressed in seconds since the epoch
     @type value: float
     """
     resources = ResourceStrings({
-        '*' : Locale({
+        '*': Locale({
             # dates
-            'DAYS' : ['Monday',
-                      'Tuesday',
-                      'Wednesday',
-                      'Thursday',
-                      'Friday',
-                      'Saturday',
-                      'Sunday'],
-            'MONTHS' : ['January',
-                        'February',
-                        'March',
-                        'April',
-                        'May',
-                        'June',
-                        'July',
-                        'August',
-                        'September',
-                        'October',
-                        'November',
-                        'December'],
-            'AM' : 'AM',
-            'PM' : 'PM',
+            'DAYS': ['Monday',
+                     'Tuesday',
+                     'Wednesday',
+                     'Thursday',
+                     'Friday',
+                     'Saturday',
+                     'Sunday'],
+            'MONTHS': ['January',
+                       'February',
+                       'March',
+                       'April',
+                       'May',
+                       'June',
+                       'July',
+                       'August',
+                       'September',
+                       'October',
+                       'November',
+                       'December'],
+            'AM': 'AM',
+            'PM': 'PM',
         }),
-        'el' : Locale({
-            # dates 
-            'DAYS' : ['Δευτέρα',
-                      'Τρίτη',
-                      'Τετάρτη',
-                      'Πέμπτη',
-                      'Παρασκευή',
-                      'Σάββατο',
-                      'Κυριακή'],
-            'MONTHS' : ['Ιανουάριος',
-                        'Φεβρουάριος',
-                        'Μάρτιος',
-                        'Απρίλιος',
-                        'Μάϊος',
-                        'Ιούνιος',
-                        'Ιούλιος',
-                        'Αύγουστος',
-                        'Σεπτέμβριος',
-                        'Οκτώβριος',
-                        'Νοέμβριος',
-                        'Δεκέμβριος'],
-            'AM' : 'πμ',
-            'PM' : 'μμ',
+        'el': Locale({
+            # dates
+            'DAYS': ['Δευτέρα',
+                     'Τρίτη',
+                     'Τετάρτη',
+                     'Πέμπτη',
+                     'Παρασκευή',
+                     'Σάββατο',
+                     'Κυριακή'],
+            'MONTHS': ['Ιανουάριος',
+                       'Φεβρουάριος',
+                       'Μάρτιος',
+                       'Απρίλιος',
+                       'Μάϊος',
+                       'Ιούνιος',
+                       'Ιούλιος',
+                       'Αύγουστος',
+                       'Σεπτέμβριος',
+                       'Οκτώβριος',
+                       'Νοέμβριος',
+                       'Δεκέμβριος'],
+            'AM': 'πμ',
+            'PM': 'μμ',
         })
     })
-    
+
     def __init__(self, fTime=None):
         """
         @param fTime: a floating point number expressed
@@ -136,10 +137,10 @@ class Date(object):
     def format(self, format, locale='*'):
         """
         Convert the date to a string as specified by the format argument.
-        
+
         @param format: The following directives can be embedded in the
                        format string::
-            
+
                 -yyyy  four digit year
                 -yy    two digit year
                 -month full month
@@ -156,7 +157,7 @@ class Date(object):
         @type format: str
         @param locale: The locale string. If ommited the '*' is used.
         @type locale: str
-        
+
         @return: The formatted string
         @rtype: str
         """
@@ -188,31 +189,31 @@ class Date(object):
         if type(sDay) == bytes:
             # python 2.6
             sDay = sDay.decode('utf-8')
-        
+
         format = format.replace('yyyy', sYear)
         format = format.replace('yy', sYear[2:4])
-        
+
         format = format.replace('month', sMonth)
         format = format.replace('mmm', sMonth[:3])
         format = format.replace('mm', str(iMonth + 1))
-        
+
         format = format.replace('min', '%02d' % iMins)
         format = format.replace('sec', '%02d' % iSecs)
-        
+
         format = format.replace('ddd', sDay[:3])
         format = format.replace('dd', str(iDate))
         format = format.replace('day', sDay)
-        
+
         format = format.replace('h24', '%02d' % iHours)
         format = format.replace('h12', str(iHours12))
         format = format.replace('MM', ampm)
-        
+
         return format
 
     def to_iso_8601(self):
         """
         This method formats the date in the Iso8601 format
-        
+
         Sample output C{'2004-01-29T18:00:12Z'}
 
         @rtype: str

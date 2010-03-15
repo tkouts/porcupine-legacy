@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine output filters
 """
@@ -27,12 +27,13 @@ from porcupine.utils import misc
 from porcupine.filters.jsmin import JavascriptMinify
 from porcupine.filters.filter import PostProcessFilter
 
+
 class Gzip(PostProcessFilter):
     "Compresses the server's output using the gzip compression algorithm"
     cacheFolder = None
     staticLevel = 9
     dynamicLevel = 3
-    
+
     @staticmethod
     def compress(input, output, level):
         zfile = gzip.GzipFile(mode='wb', fileobj=output, compresslevel=level)
@@ -46,18 +47,18 @@ class Gzip(PostProcessFilter):
             Gzip.cacheFolder = config['cache']
             Gzip.staticLevel = int(config['static_compress_level'])
             Gzip.dynamicLevel = int(config['dynamic_compress_level'])
-        
+
         context.response.set_header('Content-Encoding', 'gzip')
         isStatic = (registration is not None and registration.type == 0)
-                
+
         if isStatic:
             filename = registration.context
             modified = hex(os.stat(filename)[8])[2:]
-            
+
             compfn = filename.replace(os.path.sep, '_')
             if os.name == 'nt':
                 compfn = compfn.replace(os.path.altsep, '_').replace(':', '')
-            
+
             glob_f = Gzip.cacheFolder + '/' + compfn
             compfn = glob_f + '#' + modified + '.gzip'
 
@@ -80,11 +81,13 @@ class Gzip(PostProcessFilter):
                 context.response.clear()
                 context.response.write(cache_file.read())
                 cache_file.close()
-                
+
         else:
             output = io.BytesIO()
-            Gzip.compress(context.response._get_body(), output, Gzip.dynamicLevel)
+            Gzip.compress(
+                context.response._get_body(), output, Gzip.dynamicLevel)
             context.response._body = output
+
 
 class I18n(PostProcessFilter):
     """
@@ -110,9 +113,11 @@ class I18n(PostProcessFilter):
             if isinstance(res, bytes):
                 # python 2.6
                 res = res.decode('utf-8')
-            output = output.replace(token, res.encode(context.response.charset))
+            output = output.replace(
+                token, res.encode(context.response.charset))
         context.response.clear()
         context.response.write(output)
+
 
 class JSMin(PostProcessFilter):
     """
@@ -123,7 +128,7 @@ class JSMin(PostProcessFilter):
 
     @staticmethod
     def compress(input, output):
-        input.seek(0);
+        input.seek(0)
         jsmin = JavascriptMinify()
         jsmin.minify(input, output)
 

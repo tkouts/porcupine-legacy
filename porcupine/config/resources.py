@@ -1,22 +1,23 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Server string localization classes"
 from porcupine.core import compat
 from porcupine.core.decorators import deprecated
+
 
 class Locale(dict):
     """This is a special dict type.
@@ -26,6 +27,7 @@ class Locale(dict):
     """
     def __getitem__(self, key):
         return self.get(key, key)
+
 
 class ResourceStrings(object):
     "This type is used for keeping localized string bundles."
@@ -49,24 +51,24 @@ class ResourceStrings(object):
     def get_resource(self, sName, sLocale):
         """Returns the string with the specified name in the
         given locale.
-        
+
         @param sName: The name of the string resource.
         @type sName: str
-        
+
         @param sLocale: The name of the locale.
         @type sLocale: str
-        
+
         @return: str
         """
         dctLocale = self.__resources.setdefault(sLocale, self.__resources['*'])
         return dctLocale[sName]
     getResource = deprecated(get_resource)
-        
+
     def get_locale(self, sLocale):
         """Returns the requested locale object. If the
         locale does not exist then the "*" locale is
         returned.
-        
+
         @param sLocale: The name of the locale.
         @type sLocale: str
 

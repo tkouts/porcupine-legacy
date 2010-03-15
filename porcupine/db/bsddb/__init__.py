@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine server Berkeley DB interface
 """
@@ -40,6 +40,7 @@ from porcupine.db.bsddb.cursor import Cursor, Join
 from porcupine.utils import misc
 from porcupine.utils.db import _err_unsupported_index_type, pack_value
 from porcupine.utils.db.backup import BackupFile
+
 
 class DB(object):
     "Berkeley DB database interface"
@@ -97,7 +98,7 @@ class DB(object):
                 self._env.set_timeout(self.txn_timeout, db.DB_SET_TXN_TIMEOUT)
             else:
                 self._env.set_flags(db.DB_TXN_NOWAIT, 1)
-        
+
         if self.cache_size is not None:
             self._env.set_cachesize(*self.cache_size)
 
@@ -108,7 +109,7 @@ class DB(object):
         # replication settings
         rep_config = settings['store'].get('rep_config', None)
         init_rep = kwargs.get('init_rep', False)
-        
+
         if rep_config and init_rep:
             # in replicated environments use non-durable transactions
             self._env.set_flags(db.DB_TXN_NOSYNC, 1)
@@ -127,7 +128,8 @@ class DB(object):
             from porcupine.db.bsddb.replication import ReplicationService
 
             # initialiaze replication service
-            self.replication_service = ReplicationService(self._env, rep_config)
+            self.replication_service = \
+                ReplicationService(self._env, rep_config)
 
             if init_rep:
                 # check multiprocessing
@@ -165,13 +167,11 @@ class DB(object):
             self._itemdb = db.DB(self._env)
             self._itemdb.set_pagesize(2048)
             try:
-                self._itemdb.open(
-                    'porcupine.db',
-                    'items',
-                    dbtype = db.DB_BTREE,
-                    mode = db_mode,
-                    flags = db_flags
-                )
+                self._itemdb.open('porcupine.db',
+                                  'items',
+                                  dbtype=db.DB_BTREE,
+                                  mode=db_mode,
+                                  flags=db_flags)
             except db.DBLockDeadlockError:
                 self._itemdb.close()
                 continue
@@ -181,13 +181,11 @@ class DB(object):
         while True:
             self._docdb = db.DB(self._env)
             try:
-                self._docdb.open(
-                    'porcupine.db',
-                    'docs',
-                    dbtype = db.DB_HASH,
-                    mode = db_mode,
-                    flags = db_flags
-                )
+                self._docdb.open('porcupine.db',
+                                 'docs',
+                                 dbtype=db.DB_HASH,
+                                 mode=db_mode,
+                                 flags=db_flags)
             except db.DBLockDeadlockError:
                 self._docdb.close()
                 continue
@@ -316,7 +314,7 @@ class DB(object):
 
     def query(self, conditions):
         cur_list = self.get_cursor_list(conditions)
-        if len(cur_list) ==  1:
+        if len(cur_list) == 1:
             return cur_list[0]
         else:
             c_join = Join(self._itemdb, cur_list)
@@ -361,7 +359,7 @@ class DB(object):
         os.remove(self.dir + 'porcupine.db')
         # index file
         os.remove(self.dir + 'porcupine.idx')
-        
+
     def truncate(self):
         # older versions of bsddb do not support truncate
         if hasattr(self._itemdb, 'truncate'):
@@ -374,7 +372,7 @@ class DB(object):
             self.__remove_files()
             # open db
             self.__init__()
-    
+
     def backup(self, output_file):
         # force checkpoint
         self._env.txn_checkpoint(0, 0, db.DB_FORCE)
@@ -384,7 +382,7 @@ class DB(object):
         # compact backup....
         backup = BackupFile(output_file)
         backup.add_files(backfiles)
-        
+
     def restore(self, bset):
         self.__remove_files()
         backup = BackupFile(bset)
@@ -408,7 +406,7 @@ class DB(object):
                         "Deadlock: Aborted %d deadlocked transaction(s)"
                         % aborted)
             except db.DBError:
-                 pass
+                pass
 
     def __trickle(self):
         "memp_trickle thread"

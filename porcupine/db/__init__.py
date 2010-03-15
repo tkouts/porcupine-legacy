@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine database package
 """
@@ -25,6 +25,7 @@ from porcupine import exceptions
 from porcupine.utils import permsresolver
 from porcupine.core import compat
 from porcupine.core.decorators import deprecated
+
 
 def get_item(oid, trans=None):
     """
@@ -45,6 +46,7 @@ def get_item(oid, trans=None):
         return item
 getItem = deprecated(get_item)
 
+
 def get_transaction():
     """
     Returns a transaction handle required for database updates.
@@ -59,6 +61,7 @@ def get_transaction():
             "Not in a transactional context. Use @db.transactional().")
     return txn
 getTransaction = deprecated(get_transaction)
+
 
 def requires_transactional_context(function):
     """
@@ -76,9 +79,11 @@ def requires_transactional_context(function):
     rtc_wrapper.__module__ = function.__module__
     return rtc_wrapper
 
+
 def transactional(auto_commit=False, nosync=False):
     _min_sleep_time = 0.072
     _max_sleep_time = 0.288
+
     def transactional_decorator(function):
         """
         This is the descriptor for making a function or a Web method
@@ -91,7 +96,7 @@ def transactional(auto_commit=False, nosync=False):
                 # TODO: abort txn in chained calls?
                 raise exceptions.DBReadOnly(
                     'Attempted write operation in read-only database.')
-            
+
             if context._trans is None:
                 txn = _db.get_transaction(nosync)
                 context._trans = txn
@@ -106,7 +111,7 @@ def transactional(auto_commit=False, nosync=False):
                 while retries < txn.txn_max_retries:
                     try:
                         if is_top_level:
-                            cargs = copy.deepcopy(args, {'_dup_ext_' : False})
+                            cargs = copy.deepcopy(args, {'_dup_ext_': False})
                             if retries > 0:
                                 time.sleep(sleep_time)
                                 sleep_time *= 2
@@ -134,8 +139,10 @@ def transactional(auto_commit=False, nosync=False):
             finally:
                 if is_top_level:
                     context._trans = None
-        compat.set_func_name(transactional_wrapper, compat.get_func_name(function))
-        compat.set_func_doc(transactional_wrapper, compat.get_func_doc(function))
+        compat.set_func_name(transactional_wrapper,
+                             compat.get_func_name(function))
+        compat.set_func_doc(transactional_wrapper,
+                            compat.get_func_doc(function))
         transactional_wrapper.__module__ = function.__module__
         return transactional_wrapper
     return transactional_decorator

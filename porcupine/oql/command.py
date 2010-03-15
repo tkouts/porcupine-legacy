@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 OQL command execution
 """
@@ -25,6 +25,7 @@ from porcupine.core.oql import parser, core
 from porcupine.core.runtime import logger
 
 _QUERY_CACHE = cache.Cache(100)
+
 
 def execute(script, oql_vars={}):
     if script:
@@ -58,20 +59,21 @@ def execute(script, oql_vars={}):
             script_lines = ['   ' + ln for ln in script_lines]
             script_lines[lineno - 1] = '->' + script_lines[lineno - 1][2:]
             helper_string = '\n'.join(script_lines)
-            error_string = '%s\n\n%s' % (helper_string,
-                                         "OQL syntax error at line %d: '%s'" % \
-                                         (lineno, errvalue))
+            error_string = '%s\n\n%s' % (
+                helper_string,
+                "OQL syntax error at line %d: '%s'" % (lineno, errvalue))
             raise exceptions.OQLError(error_string)
 
         if len(result) == 1:
-           result = result[0]
+            result = result[0]
 
         return result
+
 
 class OqlCommand(object):
     """
     Deprecated class
-    
+
     For executing OQL queries use:
     C{
         from porcupine.oql import command
@@ -86,4 +88,3 @@ class OqlCommand(object):
 
     def execute(self, oql_script, oql_vars={}):
         return execute(oql_script, oql_vars)
-

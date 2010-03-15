@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009 Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Porcupine Server BerkeleyDB database replication services"
 try:
     from bsddb3 import db
@@ -24,6 +24,7 @@ from porcupine.utils import misc
 from porcupine.core.runtime import logger
 from porcupine.config.services import services
 from porcupine.core.services.management import MgtMessage, MgtRequest
+
 
 class ReplicationService(object):
     master = None
@@ -79,7 +80,7 @@ class ReplicationService(object):
                 logger.info('REP: Replication client startup is finished')
 
         self.env.set_event_notify(event_notify)
-        
+
         if hasattr(db, 'DB_REP_CONF_BULK'):
             self.env.rep_set_config(db.DB_REP_CONF_BULK, 1)
         self.env.repmgr_set_local_site(*self.local_site.address)
@@ -95,7 +96,7 @@ class ReplicationService(object):
             site_address = misc.get_address_from_string(
                 self.config['site_address'])
             self.join_site(site_address)
-        
+
         # start replication manager
         self.env.repmgr_start(self.config['worker_threads'], self.role)
 
@@ -131,6 +132,7 @@ class ReplicationService(object):
     def add_remote_site(self, site):
         site_id = self.env.repmgr_add_remote_site(*site.address)
         self.sites[site_id] = site
+
 
 class Site(object):
     def __init__(self, repmgr_address, management_address, req_address):

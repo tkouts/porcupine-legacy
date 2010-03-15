@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine Berkeley DB cursor classes
 """
@@ -26,8 +26,10 @@ from porcupine.db.bsddb import db
 from porcupine.db.basecursor import BaseCursor
 from porcupine.utils.db import pack_value, str_long
 
+
 class Cursor(BaseCursor):
     "BerkeleyDB cursor class"
+
     def __init__(self, db_, name):
         BaseCursor.__init__(self)
         self.db = db_
@@ -132,8 +134,8 @@ class Cursor(BaseCursor):
                         scope, key = first[0].split(b'_', 1)
                         while scope > self._scope or \
                               (scope == self._scope and
-                                 (key > self._range._upper_value) - \
-                                 (key < self._range._upper_value) in cmp_range):
+                               (key > self._range._upper_value) - \
+                               (key < self._range._upper_value) in cmp_range):
                             first = self._cursor.get(db.DB_PREV_NODUP)
                             if first is None:
                                 return False
@@ -169,7 +171,8 @@ class Cursor(BaseCursor):
                         is_set = bool(first)
                     else:
                         # move to first
-                        is_set = bool(self._cursor.set_range(self._scope + b'_'))
+                        is_set = bool(
+                            self._cursor.set_range(self._scope + b'_'))
 
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             if context._trans is not None:
@@ -243,8 +246,10 @@ class Cursor(BaseCursor):
                     context._trans.abort()
                 raise exceptions.DBRetryTransaction
 
+
 class Join(BaseCursor):
     "Helper cursor for performing joins"
+
     def __init__(self, primary_db, cursor_list):
         BaseCursor.__init__(self)
         self._cur_list = cursor_list
