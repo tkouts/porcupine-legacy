@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 System top-level Porcupine content classes.
 Use these as base classes to create you own custom objects.
@@ -32,12 +32,14 @@ from porcupine.utils import misc, permsresolver
 from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
+
 class _Shortcuts(datatypes.RelatorN):
     "Data type for keeping the shortcuts IDs that an object has"
     relCc = ('porcupine.systemObjects.Shortcut',)
     relAttr = 'target'
     cascadeDelete = True
-    
+
+
 class _TargetItem(datatypes.Relator1):
     "The object ID of the target item of the shortcut."
     relCc = ('porcupine.systemObjects.Item',)
@@ -47,14 +49,15 @@ class _TargetItem(datatypes.Relator1):
 # deprecated datatype (used for backwards compatibility)
 displayName = datatypes.RequiredString
 
-#===============================================================================
+#==============================================================================
 # Porcupine server top level content classes
-#===============================================================================
+#==============================================================================
+
 
 class Cloneable(object):
     """
     Adds cloning capabilities to Porcupine Objects.
-    
+
     Adding I{Cloneable} to the base classes of a class
     makes instances of this class cloneable, allowing item copying.
     """
@@ -62,14 +65,14 @@ class Cloneable(object):
         clone = self.clone()
         if clear_inherited:
             clone.inheritRoles = False
-        
+
         user = context.user
         clone._owner = user._id
         clone._created = time.time()
         clone.modifiedBy = user.displayName.value
         clone.modified = time.time()
         clone._pid = target._id
-        
+
         db._db.handle_update(clone, None)
         db._db.put_item(clone)
         db._db.handle_post_update(clone, None)
@@ -82,7 +85,7 @@ class Cloneable(object):
         Creates an in-memory clone of the item.
         This is a shallow copy operation meaning that the item's
         references are not cloned.
-        
+
         @param dup_ext: Boolean indicating if the external
                         files and external datatypes should be
                         also duplicated
@@ -91,7 +94,7 @@ class Cloneable(object):
         @return: the clone object
         @rtype: L{GenericItem}
         """
-        clone = copy.deepcopy(self, {'_dup_ext_' : dup_ext})
+        clone = copy.deepcopy(self, {'_dup_ext_': dup_ext})
         clone._id = misc.generate_oid()
         return clone
 
@@ -113,14 +116,14 @@ class Cloneable(object):
         if target is None or target._isDeleted:
             raise exceptions.ObjectNotFound(
                 'The target container does not exist.')
-        
+
         contentclass = self.get_contentclass()
-        
+
         if self.isCollection and target.is_contained_in(self._id):
             raise exceptions.ContainmentError(
                 'Cannot copy item to destination.\n'
                 'The destination is contained in the source.')
-        
+
         # check permissions on target folder
         user = context.user
         user_role = permsresolver.get_access(target, user)
@@ -129,7 +132,7 @@ class Cloneable(object):
                 raise exceptions.ContainmentError(
                     'The target container does not accept '
                     'objects of type\n"%s".' % contentclass)
-            
+
             self._copy(target, clear_inherited=True)
             # update parent
             if self.isCollection:
@@ -144,10 +147,11 @@ class Cloneable(object):
                 'The user has insufficient permissions.')
     copyTo = deprecated(copy_to)
 
+
 class Movable(object):
     """
     Adds moving capabilities to Porcupine Objects.
-    
+
     Adding I{Movable} to the base classes of a class
     makes instances of this class movable, allowing item moving.
     """
@@ -155,7 +159,7 @@ class Movable(object):
     def move_to(self, target):
         """
         Moves the item to the designated target.
-        
+
         @param target: The id of the target container or the container object
                        itself
         @type target: str OR L{Container}
@@ -175,16 +179,16 @@ class Movable(object):
         if target is None or target._isDeleted:
             raise exceptions.ObjectNotFound(
                 'The target container does not exist.')
-        
+
         contentclass = self.get_contentclass()
-        
+
         user_role2 = permsresolver.get_access(target, user)
-        
+
         if self.isCollection and target.is_contained_in(self._id):
             raise exceptions.ContainmentError(
                 'Cannot move item to destination.\n'
                 'The destination is contained in the source.')
-        
+
         if (not(self._isSystem) and can_move and
                 user_role2 > permsresolver.READER):
             if contentclass not in target.containment:
@@ -216,10 +220,11 @@ class Movable(object):
                 'The user has insufficient permissions.')
     moveTo = deprecated(move_to)
 
+
 class Removable(object):
     """
     Makes Porcupine objects removable.
-    
+
     Adding I{Removable} to the base classes of a class
     makes instances of this type removable.
     Instances of this type can be either logically
@@ -229,12 +234,12 @@ class Removable(object):
     def _delete(self, _update_parent=True):
         """
         Deletes the item physically.
-        
+
         @return: None
         """
         db._db.handle_delete(self, True)
         db._db.delete_item(self)
-        
+
         if _update_parent and not self._isDeleted:
             # update container modification timestamp
             parent = db._db.get_item(self._pid)
@@ -246,7 +251,7 @@ class Removable(object):
                     parent._ni -= 1
                 parent.modified = time.time()
                 db._db.put_item(parent)
-        
+
         db._db.handle_post_delete(self, True)
 
         if self.isCollection:
@@ -261,7 +266,7 @@ class Removable(object):
     def delete(self):
         """
         Deletes the item permanently.
-        
+
         @return: None
         """
         user = context.user
@@ -270,7 +275,7 @@ class Removable(object):
         user_role = permsresolver.get_access(self_, user)
         can_delete = (user_role > permsresolver.AUTHOR) or \
             (user_role == permsresolver.AUTHOR and self_._owner == user._id)
-        
+
         if (not(self_._isSystem) and can_delete):
             # delete item physically
             self_._delete()
@@ -278,12 +283,12 @@ class Removable(object):
             raise exceptions.PermissionDenied(
                 'The object was not deleted.\n'
                 'The user has insufficient permissions.')
-    
+
     def _recycle(self, _update_parent=True):
         """
         Deletes an item logically.
         Bypasses security checks.
-        
+
         @return: None
         """
         is_deleted = self._isDeleted
@@ -303,7 +308,7 @@ class Removable(object):
                 parent._ni -= 1
             parent.modified = time.time()
             db._db.put_item(parent)
-        
+
         if not is_deleted:
             db._db.handle_post_delete(self, False)
 
@@ -317,7 +322,7 @@ class Removable(object):
         """
         Undeletes a logically deleted item.
         Bypasses security checks.
-        
+
         @return: None
         """
         self._isDeleted = int(self._isDeleted) - 1
@@ -334,13 +339,13 @@ class Removable(object):
                 parent._ni += 1
             parent.modified = time.time()
             db._db.put_item(parent)
-        
+
         if self.isCollection:
             cursor = db._db.get_children(self._id)
             cursor.enforce_permissions = False
             [child._undelete(False) for child in cursor]
             cursor.close()
-        
+
         db._db.put_item(self)
 
     @db.requires_transactional_context
@@ -348,7 +353,7 @@ class Removable(object):
         """
         Moves the item to the specified recycle bin.
         The item then becomes inaccessible.
-        
+
         @param rb_id: The id of the destination container, which must be
                       a L{RecycleBin} instance
         @type rb_id: str
@@ -356,12 +361,12 @@ class Removable(object):
         """
         user = context.user
         self_ = db._db.get_item(self._id)
-        
+
         user_role = permsresolver.get_access(self_, user)
         can_delete = (user_role > permsresolver.AUTHOR) or \
                      (user_role == permsresolver.AUTHOR and
                       self_._owner == user._id)
-        
+
         if (not(self_._isSystem) and can_delete):
             deleted = DeletedItem(self_)
             deleted._owner = user._id
@@ -369,24 +374,25 @@ class Removable(object):
             deleted.modifiedBy = user.displayName.value
             deleted.modified = time.time()
             deleted._pid = rb_id
-            
+
             # check recycle bin's containment
             recycle_bin = db._db.get_item(rb_id)
             if deleted.get_contentclass() not in recycle_bin.containment:
                 raise exceptions.ContainmentError(
                     'The target container does not accept '
                     'objects of type\n"%s".' % deleted.get_contentclass())
-            
+
             db._db.handle_update(deleted, None)
             db._db.put_item(deleted)
             db._db.handle_post_update(deleted, None)
-            
+
             # delete item logically
             self_._recycle()
         else:
             raise exceptions.PermissionDenied(
                 'The object was not deleted.\n'
                 'The user has insufficient permissions.')
+
 
 class _Elastic(object):
     """
@@ -421,7 +427,7 @@ class _Elastic(object):
                                if isinstance(self.__dict__[p],
                                              datatypes.DataType)])
             current_schema = set(self.__props__.keys())
-            
+
             for_addition = current_schema - item_schema
             # add new attributes
             [self.__getattr__(x) for x in for_addition]
@@ -443,9 +449,10 @@ class _Elastic(object):
 
             self._ssig = new_ssig
 
+
 class Composite(_Elastic):
     """Objects within Objects...
-    
+
     Think of this as an embedded item. This class is useful
     for implementing compositions. Instances of this class
     are embedded into other items.
@@ -455,7 +462,7 @@ class Composite(_Elastic):
     the security attribute of the object that embeds this object.
     Moreover, they do not have parent containers the way
     instances of L{GenericItem} have.
-    
+
     @type contentclass: str
     @type id: str
     @type security: dict
@@ -463,8 +470,7 @@ class Composite(_Elastic):
     """
     __image__ = "desktop/images/object.gif"
     __props__ = {
-        'displayName' : datatypes.RequiredString
-    }
+        'displayName': datatypes.RequiredString}
     _eventHandlers = []
 
     def __init__(self):
@@ -475,7 +481,7 @@ class Composite(_Elastic):
 
     def get_security(self):
         """Getter of L{security} property
-        
+
         @rtype: dict
         """
         return db._db.get_item(self._pid).security
@@ -483,7 +489,7 @@ class Composite(_Elastic):
 
     def get_id(self):
         """Getter of L{id} property
-        
+
         @rtype: str
         """
         return self._id
@@ -491,16 +497,17 @@ class Composite(_Elastic):
 
     def get_contentclass(self):
         """Getter of L{contentclass} property
-        
+
         @rtype: str
         """
         return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
     contentclass = property(get_contentclass)
 
+
 class GenericItem(_Elastic):
     """Generic Item
     The base class of all Porcupine objects.
-    
+
     @cvar __props__: A dict containing all the object's data types.
     @type __props__: dict
     @cvar _eventHandlers: A list containing all the object's event handlers.
@@ -511,8 +518,8 @@ class GenericItem(_Elastic):
     @type modifiedBy: str
     @ivar modified: The last modification date, handled by the server.
     @type modified: float
-    @ivar security: The object's security descriptor. This is a dictionary whose
-                    keys are the users' IDs and the values are the roles.
+    @ivar security: The object's security descriptor. This is a dictionary
+                    whose keys are the users' IDs and the values are the roles.
     @type security: dict
     @ivar inheritRoles: Indicates if the object's security
                         descriptor is identical to this of its parent
@@ -530,9 +537,8 @@ class GenericItem(_Elastic):
     """
     __image__ = "desktop/images/object.gif"
     __props__ = {
-        'displayName' : datatypes.RequiredString,
-        'description' : datatypes.String
-    }
+        'displayName': datatypes.RequiredString,
+        'description': datatypes.String}
     isCollection = False
     _eventHandlers = []
 
@@ -544,7 +550,7 @@ class GenericItem(_Elastic):
         self._isSystem = False
         self._isDeleted = 0
         self._created = 0
-        
+
         self.modifiedBy = ''
         self.modified = 0
         self.security = {}
@@ -577,9 +583,9 @@ class GenericItem(_Elastic):
         """
         if isinstance(parent, (str, bytes)):
             parent = db._db.get_item(parent)
-        
+
         contentclass = self.get_contentclass()
-        
+
         user = context.user
         user_role = permsresolver.get_access(parent, user)
         if user_role == permsresolver.READER:
@@ -599,7 +605,7 @@ class GenericItem(_Elastic):
             # user is not COORDINATOR
             self.inheritRoles = True
             self.security = parent.security
-        
+
         self._owner = user._id
         self._created = time.time()
         self.modifiedBy = user.displayName.value
@@ -616,11 +622,11 @@ class GenericItem(_Elastic):
         db._db.put_item(parent)
         db._db.handle_post_update(self, None)
     appendTo = deprecated(append_to)
-    
+
     def is_contained_in(self, item_id):
         """
         Checks if the item is contained in the specified container.
-        
+
         @param item_id: The id of the container
         @type item_id: str
         @rtype: bool
@@ -632,22 +638,22 @@ class GenericItem(_Elastic):
             item = db._db.get_item(item.parentid)
         return False
     isContainedIn = deprecated(is_contained_in)
-    
+
     def get_parent(self):
         """
-        Returns the parent container.
-                
+        Returns the parent container
+
         @return: the parent container object
         @rtype: type
         """
         return db.get_item(self._pid)
     getParent = deprecated(get_parent)
-    
+
     def get_all_parents(self):
         """
         Returns all the parents of the item traversing the
         hierarchy up to the root folder.
-        
+
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         parents = []
@@ -658,27 +664,27 @@ class GenericItem(_Elastic):
         parents.reverse()
         return ObjectSet(parents)
     getAllParents = deprecated(get_all_parents)
-    
+
     def get_contentclass(self):
         """Getter of L{contentclass} property
-        
+
         @rtype: str
         """
         return '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
     contentclass = property(get_contentclass, None, None,
                             "The type of the object")
-    
+
     def get_id(self):
         """Getter of L{id} property
-        
+
         @rtype: str
         """
         return self._id
     id = property(get_id, None, None, "The ID of the object")
-    
+
     def get_is_system(self):
         """Getter of L{issystem} property
-        
+
         @rtype: bool
         """
         return self._isSystem
@@ -686,45 +692,46 @@ class GenericItem(_Elastic):
                         "Indicates if this is a systemic object")
     isSystem = property(deprecated(get_is_system, "issystem"), None, None,
                         "Deprecated property. Use issystem instead.")
-    
+
     def get_owner(self):
         """Getter of L{owner} property
-        
+
         @rtype: type
         """
         return self._owner
     owner = property(get_owner, None, None, "The object's creator")
-    
+
     def get_created(self):
         """Getter of L{created} property
-        
+
         @rtype: float
         """
         return self._created
     created = property(get_created, None, None, "The creation date")
-    
+
     def get_parent_id(self):
         """Getter of L{parentid} property
-        
+
         @rtype: str
         """
         return self._pid
     parentid = property(get_parent_id, None, None,
                         "The ID of the parent container")
 
-#================================================================================
+#==============================================================================
 # Porcupine server system classes
-#================================================================================
+#==============================================================================
+
 
 class DeletedItem(GenericItem, Removable):
     """
     This is the type of items appended into a L{RecycleBin} class instance.
-    
+
     L{RecycleBin} containers accept objects of this type only.
     Normally, you won't ever need to instantiate an item of this
     type. Instantiations of this class are handled by the server
     internally when the L{Removable.recycle} method is called.
-    
+
     @ivar originalName: The display name of the deleted object.
     @type originalName: str
     @ivar originalLocation: The path to the location of the deleted item
@@ -737,10 +744,10 @@ class DeletedItem(GenericItem, Removable):
         self.inheritRoles = True
         self._deletedId = deleted_item._id
         self.__image__ = deleted_item.__image__
-        
+
         self.displayName.value = misc.generate_oid()
         self.description.value = deleted_item.description.value
-        
+
         parents = deleted_item.get_all_parents()
         full_path = '/'
         full_path += '/'.join([p.displayName.value for p in parents[:-1]])
@@ -750,13 +757,13 @@ class DeletedItem(GenericItem, Removable):
     def _restore(self, deleted, target):
         """
         Restores a logically deleted item to the designated target.
-        
+
         @return: None
         """
         # check permissions
         user = context.user
         user_role = permsresolver.get_access(target, user)
-        
+
         if user_role > permsresolver.READER:
             deleted._pid = target._id
             deleted.inheritRoles = False
@@ -769,7 +776,7 @@ class DeletedItem(GenericItem, Removable):
     def get_deleted_item(self):
         """
         Use this method to get the item that was logically deleted.
-            
+
         @return: the deleted item
         @rtype: L{GenericItem}
         """
@@ -797,7 +804,7 @@ class DeletedItem(GenericItem, Removable):
         """
         Restores the deleted item to its original location, if
         it still exists.
-        
+
         @return: None
         @raise L{porcupine.exceptions.ObjectNotFound}:
             If the original location or the original item no longer exists.
@@ -808,7 +815,7 @@ class DeletedItem(GenericItem, Removable):
     def restore_to(self, parent_id):
         """
         Restores the deleted object to the specified container.
-        
+
         @param parent_id: The ID of the container in which
                           the item will be restored
         @type parent_id: str
@@ -828,12 +835,12 @@ class DeletedItem(GenericItem, Removable):
             raise exceptions.ObjectNotFound(
                 'Cannot locate target container.\n'
                 'It seems that this container is deleted.')
-        
+
         if isinstance(deleted, Shortcut):
             contentclass = deleted.get_target_contentclass()
         else:
             contentclass = deleted.get_contentclass()
-        
+
         if contentclass and contentclass not in parent.containment:
             raise exceptions.ContainmentError(
                 'The target container does not accept '
@@ -858,7 +865,7 @@ class DeletedItem(GenericItem, Removable):
     def delete(self, _remove_deleted=True):
         """
         Deletes the deleted object permanently.
-        
+
         @param _remove_deleted: Leave as is
         @return: None
         """
@@ -869,24 +876,25 @@ class DeletedItem(GenericItem, Removable):
             if deleted is not None:
                 deleted._delete()
 
+
 class Item(GenericItem, Cloneable, Movable, Removable):
     """
     Simple item with no versioning capabilities.
-    
+
     Normally this is the base class of your custom Porcupine Objects
     if versioning is not required.
     Subclass the L{porcupine.systemObjects.Container} class if you want
     to create custom containers.
     """
     __props__ = dict({
-            'shortcuts' : _Shortcuts
-        }, **GenericItem.__props__)
+            'shortcuts': _Shortcuts},
+            **GenericItem.__props__)
 
     @db.requires_transactional_context
     def update(self):
         """
         Updates the item.
-        
+
         @return: None
         """
         old_item = db._db.get_item(self._id)
@@ -894,10 +902,10 @@ class Item(GenericItem, Cloneable, Movable, Removable):
             parent = db._db.get_item(self._pid)
         else:
             parent = None
-        
+
         user = context.user
         user_role = permsresolver.get_access(old_item, user)
-        
+
         if user_role > permsresolver.READER:
             # set security
             if user_role == permsresolver.COORDINATOR:
@@ -924,10 +932,11 @@ class Item(GenericItem, Cloneable, Movable, Removable):
             raise exceptions.PermissionDenied(
                     'The user does not have update permissions.')
 
+
 class Shortcut(Item):
     """
     Shortcuts act as pointers to other objects.
-    
+
     When adding a shortcut in a container the containment
     is checked against the target's content class and
     the shortcut's itself.
@@ -941,13 +950,13 @@ class Shortcut(Item):
     """
     __image__ = "desktop/images/link.png"
     __props__ = dict({
-            'target' : _TargetItem
-        }, **Item.__props__)
-    
+            'target': _TargetItem},
+            **Item.__props__)
+
     @staticmethod
     def create(target):
         """Helper method for creating shortcuts of items.
-        
+
         @param target: The id of the item or the item object itself
         @type parent: str OR L{Item}
         @return: L{Shortcut}
@@ -1008,10 +1017,10 @@ class Shortcut(Item):
                 'objects of type\n"%s".' % contentclass)
         else:
             return super(Shortcut, self).update()
-    
+
     def get_target(self):
         """Returns the target item.
-        
+
         @return: the target item or C{None} if the user
                  has no read permissions
         @rtype: L{Item} or NoneType
@@ -1022,10 +1031,10 @@ class Shortcut(Item):
             while target and isinstance(target, Shortcut):
                 target = target.target.get_item()
         return target
-    
+
     def get_target_contentclass(self):
         """Returns the content class of the target item.
-        
+
         @return: the fully qualified name of the target's
                  content class
         @rtype: str
@@ -1036,12 +1045,13 @@ class Shortcut(Item):
                 target = db._db.get_item(target.target.value)
             return target.get_contentclass()
 
+
 class Container(Item):
     """
     Generic container class.
-    
+
     Base class for all containers. Containers do not support versioning.
-    
+
     @cvar containment: a tuple of strings with all the content types of
                        Porcupine objects that this class instance can accept.
     @type containment: tuple
@@ -1055,15 +1065,15 @@ class Container(Item):
         Item.__init__(self)
         self._ni = 0
         self._nc = 0
-    
+
     def child_exists(self, name):
         """
         Checks if a child with the specified name is contained
         in the container.
-        
+
         @param name: The name of the child to check for
         @type name: str
-            
+
         @rtype: bool
         """
         item = db._db.get_child_by_name(self._id, name)
@@ -1072,11 +1082,11 @@ class Container(Item):
         else:
             return True
     childExists = deprecated(child_exists)
-    
+
     def get_child_id(self, name):
         """
         Given a name this function returns the ID of the child.
-        
+
         @param name: The name of the child
         @type name: str
         @return: The ID of the child if a child with the given name exists
@@ -1089,11 +1099,11 @@ class Container(Item):
             child_id = item._id
         return child_id
     getChildId = deprecated(get_child_id)
-    
+
     def get_child_by_name(self, name):
         """
         This method returns the child with the specified name.
-        
+
         @param name: The name of the child
         @type name: str
         @return: The child object if a child with the given name exists
@@ -1107,11 +1117,11 @@ class Container(Item):
                 return None
         return item
     getChildByName = deprecated(get_child_by_name)
-    
+
     def get_children(self, resolve_shortcuts=False):
         """
         This method returns all the children of the container.
-        
+
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         cursor = db._db.get_children(self._id)
@@ -1120,11 +1130,11 @@ class Container(Item):
         cursor.close()
         return children
     getChildren = deprecated(get_children)
-    
+
     def get_items(self, resolve_shortcuts=False):
         """
         This method returns the children that are not containers.
-        
+
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('isCollection', False), )
@@ -1135,11 +1145,11 @@ class Container(Item):
         cursor.close()
         return items
     getItems = deprecated(get_items)
-    
+
     def get_subfolders(self, resolve_shortcuts=False):
         """
         This method returns the children that are containers.
-        
+
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
         conditions = (('isCollection', True), )
@@ -1150,20 +1160,20 @@ class Container(Item):
         cursor.close()
         return subfolders
     getSubFolders = deprecated(get_subfolders)
-    
+
     def has_children(self):
         """
         Checks if the container has at least one non-container child.
-        
+
         @rtype: bool
         """
         return self._ni > 0
     hasChildren = deprecated(has_children)
-    
+
     def has_subfolders(self):
         """
         Checks if the container has at least one child container.
-        
+
         @rtype: bool
         """
         return self._nc > 0
@@ -1184,10 +1194,11 @@ class Container(Item):
     subfolders_count = property(get_subfolders_count, None, None,
                                 "The number of containers contained")
 
+
 class RecycleBin(Container):
     """
     Recycle bin class.
-    
+
     By default every I{RecycleBin} class instance is a system item.
     It cannot be deleted, copied, moved or recycled.
     """
@@ -1202,11 +1213,11 @@ class RecycleBin(Container):
     def empty(self):
         """
         This method empties the recycle bin.
-        
+
         What this method actually does is to call the
         L{DeletedItem.delete} method for every
         L{DeletedItem} instance contained in the bin.
-        
+
         @return: None
         """
         items = self.get_items()

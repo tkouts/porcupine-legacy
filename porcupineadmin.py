@@ -1,20 +1,20 @@
 #!/usr/bin/env python
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Administrative Tools utility for Porcupine Server"
 import getopt
 import socket
@@ -27,58 +27,67 @@ __usage__ = """
 DATABASE COMMANDS
 =================
 
-    Backup database:
-        $ python porcupineadmin.py -b -s SERVERNAME:SERVERPORT -f BACKUPFILE or
-        $ python porcupineadmin.py --backup --server=SERVERNAME:SERVERPORT --file=BACKUPFILE
-        
-    Restore database:
-        $ python porcupineadmin.py -r -s SERVERNAME:SERVERPORT -f BACKUPFILE or
-        $ python porcupineadmin.py --restore --server=SERVERNAME:SERVERPORT --file=BACKUPFILE
-        
-    Shrink database:
-        $ python porcupineadmin.py -h -s SERVERNAME:SERVERPORT or
-        $ python porcupineadmin.py --shrink --server=SERVERNAME:SERVERPORT
-        
-    Recover database:
-        $ python porcupineadmin.py -c or
-        $ python porcupineadmin.py --recover
-    
-    SERVERNAME:SERVERPORT - The management server address (i.e. localhost:6001)
-    BACKUPFILE - The server's local path to the backup file
+Backup database:
+  $ python porcupineadmin.py -b -s SERVERNAME:SERVERPORT -f BACKUPFILE or
+  $ python porcupineadmin.py --backup --server=SERVERNAME:SERVERPORT
+                             --file=BACKUPFILE
+
+Restore database:
+  $ python porcupineadmin.py -r -s SERVERNAME:SERVERPORT -f BACKUPFILE or
+  $ python porcupineadmin.py --restore --server=SERVERNAME:SERVERPORT
+                             --file=BACKUPFILE
+
+Shrink database:
+  $ python porcupineadmin.py -h -s SERVERNAME:SERVERPORT or
+  $ python porcupineadmin.py --shrink --server=SERVERNAME:SERVERPORT
+
+Recover database:
+  $ python porcupineadmin.py -c or
+  $ python porcupineadmin.py --recover
+
+SERVERNAME:SERVERPORT - The management server address (i.e. localhost:6001)
+BACKUPFILE - The server's local path to the backup file
+
 
 PACKAGE MANAGEMENT
 ==================
 
-    Install package:
-        $ python porcupineadmin.py -i -s SERVERNAME:SERVERPORT -f PPF_FILE or
-        $ python porcupineadmin.py --install --server=SERVERNAME:SERVERPORT --file=PPF_FILE
+Install package:
+  $ python porcupineadmin.py -i -s SERVERNAME:SERVERPORT -f PPF_FILE or
+  $ python porcupineadmin.py --install --server=SERVERNAME:SERVERPORT
+                             --file=PPF_FILE
 
-    Uninstall package:
-        $ python porcupineadmin.py -u -s SERVERNAME:SERVERPORT -f PPF_FILE or
-        $ python porcupineadmin.py --uninstall --server=SERVERNAME:SERVERPORT --file=PPF_FILE
+Uninstall package:
+  $ python porcupineadmin.py -u -s SERVERNAME:SERVERPORT -f PPF_FILE or
+  $ python porcupineadmin.py --uninstall --server=SERVERNAME:SERVERPORT
+                             --file=PPF_FILE
 
-    Create install package:
-        $ python porcupineadmin.py -p -s SERVERNAME:SERVERPORT -f INI_FILE or
-        $ python porcupineadmin.py --package --server=SERVERNAME:SERVERPORT --file=INI_FILE
+Create install package:
+  $ python porcupineadmin.py -p -s SERVERNAME:SERVERPORT -f INI_FILE or
+  $ python porcupineadmin.py --package --server=SERVERNAME:SERVERPORT
+                             --file=INI_FILE
 
-    SERVERNAME:SERVERPORT - The management server address (i.e. localhost:6001)
-    PPF_FILE - The server's local path to the ppf package
-    INI_FILE - The server's local path to the ini package description file
+SERVERNAME:SERVERPORT - The management server address (i.e. localhost:6001)
+PPF_FILE - The server's local path to the ppf package
+INI_FILE - The server's local path to the ini package description file
+
 
 REPLICATION
 ===========
 
-    Site info:
-        $ python porcupineadmin.py -t -s SERVERNAME:SERVERPORT
-        $ python porcupineadmin.py --siteinfo --server=SERVERNAME:SERVERPORT
+Site info:
+  $ python porcupineadmin.py -t -s SERVERNAME:SERVERPORT
+  $ python porcupineadmin.py --siteinfo --server=SERVERNAME:SERVERPORT
+
 
 OTHER COMMANDS
 ==============
 
-    Reload module tree:
-        $ python porcupineadmin.py -l MODULENAME -s SERVERNAME:SERVERPORT
-        $ python porcupineadmin.py --reload=MODULENAME --server=SERVERNAME:SERVERPORT
+Reload module tree:
+  $ python porcupineadmin.py -l MODULENAME -s SERVERNAME:SERVERPORT
+  $ python porcupineadmin.py --reload=MODULENAME --server=SERVERNAME:SERVERPORT
 """
+
 
 def usage():
     print(__usage__)
@@ -88,9 +97,9 @@ def usage():
 argv = sys.argv[1:]
 try:
     opts, args = getopt.getopt(argv, "brhcpiuts:f:l:",
-                               ["backup","restore","shrink",
-                                "recover","server=","file=",
-                                "reload=","package","install",
+                               ["backup", "restore", "shrink",
+                                "recover", "server=", "file=",
+                                "reload=", "package", "install",
                                 "uninstall", "siteinfo"])
 except getopt.GetoptError:
     usage()
@@ -101,7 +110,7 @@ file = ''
 data = ''
 
 if opts:
-    for opt, arg in opts:                
+    for opt, arg in opts:
         if opt in ('-b', '--backup'):
             command = 'DB_BACKUP'
         elif opt in ('-r', '--restore'):
@@ -130,7 +139,7 @@ else:
 
 if not command or (command != 'DB_RECOVER' and not address):
     usage()
-    
+
 try:
     if address:
         address = misc.get_address_from_string(address)

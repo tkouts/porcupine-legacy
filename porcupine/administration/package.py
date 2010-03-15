@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Porcupine Server Package Manager"
 import io
 import os
@@ -37,6 +37,7 @@ from porcupine.config import pubdirs
 from porcupine.config.services import services
 from porcupine.config.settings import settings
 from porcupine.core.compat import str
+
 
 class Package(object):
     tmp_folder = settings['global']['temp_folder']
@@ -142,7 +143,8 @@ class Package(object):
         exec(compile(open(filename).read(), name, 'exec'))
 
     def install(self):
-        logger.info('Installing [%s-%s] package...' % (self.name, self.version))
+        logger.info('Installing [%s-%s] package...' %
+                    (self.name, self.version))
         contents = self.package_file.getnames()
 
         # pre-install script
@@ -286,7 +288,8 @@ class Package(object):
                 # update published directories
                 if dir_name in pubdirs.dirs:
                     del pubdirs.dirs[dir_name]
-                    # remove published directory in multi-processing enviroments
+                    # remove published directory in
+                    # multi-processing enviroments
                     services.notify(('REMOVE_PUBDIR', dir_name))
 
                 dir_path = dir_node.getAttribute('path')
@@ -337,14 +340,10 @@ class Package(object):
                     dirsFile.write(dir_node.toxml('utf-8'))
                 dirsFile.write('</dirs>')
                 dirsFile.close()
-                self.package_files.append(
-                    (
-                        self.package_file.gettarinfo(
-                            dirsFile.name, os.path.basename(dirsFile.name)
-                        ),
-                        dirsFile.name
-                    )
-                )
+                self.package_files.append((
+                    self.package_file.gettarinfo(
+                        dirsFile.name, os.path.basename(dirsFile.name)),
+                    dirsFile.name))
             dirsConfig.close(False)
 
         # database items
@@ -390,6 +389,6 @@ class Package(object):
                 if fname[:len(self.tmp_folder)] == self.tmp_folder:
                     os.remove(fname)
             else:
-                if type(fname) == str: #unicode
+                if type(fname) == str:  # unicode
                     fname = fname.encode('utf-8')
                 self.package_file.add(fname)

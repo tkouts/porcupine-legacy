@@ -10,6 +10,7 @@ import time
 import win32serviceutil
 import win32service
 
+
 class PorcupineServerService(win32serviceutil.ServiceFramework):
     _svc_name_ = 'Porcupine'
     _svc_display_name_ = 'Porcupine Server'

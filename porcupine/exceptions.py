@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Porcupine Server Exception classes"
 import logging
 import sys
@@ -21,20 +21,26 @@ import traceback
 
 from string import Template
 
+
 class ConfigurationError(Exception):
     pass
+
 
 class ResponseEnd(Exception):
     pass
 
+
 class InternalRedirect(Exception):
     pass
+
 
 class DBRetryTransaction(Exception):
     pass
 
+
 class DBReadOnly(Exception):
     pass
+
 
 class PorcupineException(Exception):
     """Base class of all server related exceptions"""
@@ -43,7 +49,7 @@ class PorcupineException(Exception):
     severity = 0
     description = ''
     output_traceback = False
-    
+
     def __init__(self, info=''):
         self.info = info
 
@@ -57,7 +63,7 @@ class PorcupineException(Exception):
             code = self.code
             description = self.description
             request_type = context.request.type
-        
+
             if self.output_traceback:
                 tbk = traceback.format_exception(*sys.exc_info())
                 tbk = '\n'.join(tbk)
@@ -73,8 +79,10 @@ class PorcupineException(Exception):
             elif request_type == 'jsonrpc':
                 from porcupine.core.rpc import jsonrpc
                 context.response.content_type = 'application/json'
-                context.response.write(jsonrpc.error(self.rpc_code, description,
-                                                     info, context.request.id))
+                context.response.write(jsonrpc.error(self.rpc_code,
+                                                     description,
+                                                     info,
+                                                     context.request.id))
             else:
                 http_method = context.request.REQUEST_METHOD
                 browser = context.request.HTTP_USER_AGENT
@@ -94,9 +102,10 @@ class PorcupineException(Exception):
                     context.response.write(template.substitute(vars()))
                 finally:
                     f.close()
-        
+
     def __str__(self):
         return self.info
+
 
 # server exceptions
 class InternalServerError(PorcupineException):
@@ -105,54 +114,66 @@ class InternalServerError(PorcupineException):
     description = 'Internal Server Error'
     output_traceback = True
 
+
 class ContainmentError(InternalServerError):
     severity = logging.WARNING
     output_traceback = False
-        
+
+
 class ReferentialIntegrityError(InternalServerError):
     severity = logging.WARNING
     output_traceback = False
 
+
 class OQLError(InternalServerError):
     output_traceback = False
+
 
 class DBDeadlockError(InternalServerError):
     severity = logging.CRITICAL
     output_traceback = False
-    
+
     def __init__(self):
         InternalServerError.__init__(self,
             'Exceeded maximum retries for transcation.')
+
 
 class NotImplemented(PorcupineException):
     code = 501
     severity = logging.WARNING
     description = 'Not Implemented'
 
+
 class NotFound(PorcupineException):
     code = 404
     severity = logging.INFO
     description = 'Not Found'
-        
+
+
 class ObjectNotFound(NotFound):
     description = 'Object Not Found'
+
 
 class PermissionDenied(PorcupineException):
     code = 403
     description = 'Forbidden'
+
 
 # rpc exceptions
 class RPCParseError(InternalServerError):
     rpc_code = -32700
     description = 'Parse Error'
 
+
 class RPCInvalidRequestError(InternalServerError):
     rpc_code = -32600
     description = 'Invalid Request'
 
+
 class RPCMethodNotFound(NotFound):
     rpc_code = -32601
     description = 'Method Not Found'
+
 
 class RPCInvalidParams(InternalServerError):
     rpc_code = -32602

@@ -1,20 +1,20 @@
 #!/usr/bin/env python
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Porcupine Server"
 import sys
 import os
@@ -32,12 +32,13 @@ from porcupine.utils.misc import freeze_support
 __version__ = '0.6 build(20090402)'
 PID_FILE = 'conf/.pid'
 
+
 class Controller(object):
     def __init__(self):
         #self.shutdowninprogress = False
         self.running = False
         self.services = services.services
-    
+
     def start(self):
         try:
             runtime.logger.info('Server starting...')
@@ -45,7 +46,7 @@ class Controller(object):
             runtime.logger.info('Starting services...')
             services.start()
         except Exception as e:
-            runtime.logger.error(e, *(), **{'exc_info' : True})
+            runtime.logger.error(e, *(), **{'exc_info': True})
             # stop services
             services.stop()
             raise e
@@ -54,7 +55,7 @@ class Controller(object):
         self._asyn_thread = Thread(target=self._async_loop,
                                    name='Asyncore thread')
         self._asyn_thread.start()
-        
+
         self.running = True
 
         # record process id
@@ -64,7 +65,7 @@ class Controller(object):
         else:
             pidfile.write(str(os.getpid()))
         pidfile.close()
-        
+
         runtime.logger.info('Porcupine Server started succesfully')
         print('Porcupine Server v%s' % __version__)
         python_version = 'Python %s' % sys.version
@@ -85,7 +86,7 @@ certain conditions; See COPYING for more details.''')
                 print('Shutdown not completely clean...')
             else:
                 pass
-        
+
     def shutdown(self, arg1=None, arg2=None):
         print('Initiating shutdown...')
         runtime.logger.info('Initiating shutdown...')
@@ -94,10 +95,11 @@ certain conditions; See COPYING for more details.''')
         # stop services
         runtime.logger.info('Stopping services...')
         services.stop()
-        
+
         # join asyn thread
         asyncore.close_all()
         self._asyn_thread.join()
+
 
 def main(args):
     for arg in args:
@@ -142,6 +144,6 @@ def main(args):
 
     sys.exit()
 
-if __name__=='__main__':
+if __name__ == '__main__':
     freeze_support()
     main(sys.argv[1:])

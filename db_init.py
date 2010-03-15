@@ -6,6 +6,7 @@ from porcupine.administration import offlinedb
 from porcupine.utils.db import initialize_db
 from porcupine.utils.misc import freeze_support
 
+
 def init_db():
     import org.innoscript.desktop.schema.security
     # create system user
