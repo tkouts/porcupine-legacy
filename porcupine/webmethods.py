@@ -117,12 +117,13 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
         def execute(self, item, context):
             if context.request.type == 'xmlrpc':
                 rpc = xmlrpc
+                rq_body = context.request.input
                 context.response.content_type = 'application/xml'
             elif context.request.type == 'jsonrpc':
                 rpc = jsonrpc
+                rq_body = context.request.input.decode(context.request.charset)
 
-            context.request.id, args = rpc.loads(
-                context.request.input.decode(context.request.charset))
+            context.request.id, args = rpc.loads(rq_body)
 
             # execute method
             v = self.func(item, *args)
