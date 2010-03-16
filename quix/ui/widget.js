@@ -501,7 +501,7 @@ QuiX.ui.Widget.prototype._calcSize = function(height, offset, getHeight, memo) {
     else {
         value = typeof(this[height]) == 'function'?
                 this[height].apply(this, [memo]):this[height];
-        if (value != null) {
+        if (value) {
             if (!isNaN(value))
                 value =  parseInt(value);
             else if (value.slice(value.length-1) == '%') {
@@ -533,7 +533,7 @@ QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
     else {
         value = typeof(this[left]) == 'function'?
             this[left].apply(this, [memo]):this[left];
-        if (value != null) {
+        if (value) {
             if (!isNaN(value))
                 value = parseInt(value);
             else if (value.slice(value.length-1) == '%') {
@@ -1241,14 +1241,15 @@ QuiX.ui.Desktop.prototype = new QuiX.ui.Widget;
 var Desktop = QuiX.ui.Desktop;
 
 QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
-        mleft, mtop /*, mwidth, mheight*/) {
+        mleft, mtop /*, mwidth, mheight, container*/) {
     var sButtons = '';
     var handler;
     var oButton;
     var innHTML;
     var mwidth = arguments[6] || 240;
     var mheight = arguments[7] || 120;
-    
+    var container = arguments[8] || this;
+
     if (image) {
         QuiX.getImage(image);
         innHTML = '<td><img src="' + image + '"></img></td><td>' +
@@ -1268,7 +1269,7 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
         sButtons = '<dlgbutton onclick="__closeDialog__" caption="' +
         buttons + '" width="80" height="22"/>';
 
-    this.parseFromString('<dialog xmlns="http://www.innoscript.org/quix"' +
+    container.parseFromString('<dialog xmlns="http://www.innoscript.org/quix"' +
         ' title="' + mtitle + '" close="true"' +
         ' width="' + mwidth + '" height="' + mheight + '" left="' + mleft +
         '" top="' + mtop + '">' +
