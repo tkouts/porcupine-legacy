@@ -1138,11 +1138,11 @@ Array.prototype.removeItem = function(item) {
 }
 
 Array.prototype.sortByAttribute = function(prop) {
-    function sortfunc(a,b) {
+    function sortfunc(a, b) {
         var prop1 = a[prop];
         var prop2 = b[prop];
-        if (prop1<prop2 || !prop1) return -1
-        else if (prop1>prop2 || !prop2) return 1
+        if (prop1 < prop2 || !prop1) return -1
+        else if (prop1 > prop2 || !prop2) return 1
         else return 0
     }
     this.sort(sortfunc);
