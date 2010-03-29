@@ -204,7 +204,7 @@ QuiX.ui.Effect.prototype.stop = function() {
 		switch (this.type) {
 			case 'wipe-in':
 				var ev = this._reverse?this.begin:this.end;
-				if (ev==1)
+				if (ev == 1)
 					if (QuiX.utils.BrowserInfo.family == 'ie')
                         this.parent.div.style.cssText =
                             this.parent.div.style.cssText.replace(/CLIP:.*?;/i, '');
