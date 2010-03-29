@@ -45,7 +45,7 @@ QuiX.ui.ListView.prototype.customEvents =
 	QuiX.ui.Widget.prototype.customEvents.concat(['onselect', 'onrowprerender',
                                                   'onrendercomplete']);
 
-QuiX.ui.ListView.prototype.cellThreshold = 2000;
+QuiX.ui.ListView.cellThreshold = 2000;
 
 QuiX.ui.ListView.prototype._registerHandler = function(eventType, handler,
                                                        isCustom) {
@@ -481,7 +481,8 @@ QuiX.ui.ListView.prototype.refresh = function() {
 		this._orderBy = null;
 		this._sortOrder = null;
 	}
-	if (this.dataSet.length * this.columns.length > this.cellThreshold) {
+	if (this.dataSet.length * this.columns.length >
+            QuiX.ui.ListView.cellThreshold) {
 		if (this._timeout)
 			window.clearTimeout(this._timeout);
         var self = this;
@@ -570,7 +571,7 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
 QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value, obj) {
 	var elem, column, column_type;
 
-	if (value==undefined) {
+	if (value == undefined) {
 		//cell.innerHTML = this.nullText;
         QuiX.setInnerText(cell, this.nullText);
 		return;
@@ -580,7 +581,7 @@ QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value, obj) {
 		column = this.columns[cellIndex];
 		cell.align = column.columnAlign;
 		column_type = column.columnType;
-	
+
 		switch (column_type) {
 			case 'optionlist':
 				for (var i=0; i<column.options.length; i++) {
@@ -592,10 +593,12 @@ QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value, obj) {
 				}
 				return;
 			case 'img':
-				elem = QuiX.getImage(value);
-				elem.align = 'absmiddle';
-				elem.ondragstart = QuiX.cancelDefault;
-				cell.appendChild(elem);
+                if (value) {
+                    elem = QuiX.getImage(value);
+                    elem.align = 'absmiddle';
+                    elem.ondragstart = QuiX.cancelDefault;
+                    cell.appendChild(elem);
+                }
 				return;
 			case 'bool':
 				if (value) {
