@@ -219,8 +219,7 @@ def compile(src, options={}, template_name='normal-template'):
                 continue
 
         else: # plain text
-            code.append('%sres.append("""%s""")' % (intend,
-                                                    token.replace('"', r'\"')))
+            code.append('%sres.append(%r)' % (intend, token))
 
     if len(nesting) > 1:
         raise NormalTemplateError('Unbalanced "%s" tag, is not closed' %
