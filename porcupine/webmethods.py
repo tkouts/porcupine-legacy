@@ -63,8 +63,7 @@ def quixui(of_type, isPage=False, lang='', qs='',
 
                 context.response.content_type = 'text/html'
                 context.response.write(('''
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN"
-    "http://www.w3.org/TR/REC-html40/strict.dtd">
+<!DOCTYPE html>
 <html>
     <head>
         <script type="text/javascript" defer="defer" src="%s/__quix/quix.js">
