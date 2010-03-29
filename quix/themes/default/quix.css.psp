@@ -291,6 +291,10 @@ BODY {
 					ThreedHighlight ThreedDarkShadow;
 }
 
+.tabpane {
+    white-space : no-wrap;
+}
+
 .tabpane .tab {
 	background-color : #E5D9C8;
 	border-style : solid solid none solid;
