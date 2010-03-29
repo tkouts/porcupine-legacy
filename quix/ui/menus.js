@@ -1,21 +1,22 @@
 /************************
 Menus
 ************************/
+
 //menu option
+
 QuiX.ui.MenuOption = function(params) {
 	params.height = params.height || 21;
 	params.imgalign = 'left';
 	params.width = null;
 	params.overflow = 'visible';
 	params.padding = '4,0,3,2';
-	params.onmouseover = MenuOption__onmouseover;
+	params.onmouseover = QuiX.ui.MenuOption._onmouseover;
 	params.onclick = QuiX.wrappers.eventWrapper(params.onclick,
-                                                MenuOption__onclick);
-
+                                                QuiX.ui.MenuOption._onclick);
 	this.base = QuiX.ui.Icon;
 	this.base(params);
 	this.div.style.whiteSpace = 'nowrap';
-	this.setPosition('relative');
+    this.setPosition('relative');
 
 	this.subMenu = null;
 	this.type = params.type;
@@ -53,9 +54,9 @@ QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
 		bForceAll = true;
 	}
 	if (!this.img)
-		this.setPadding([24,8,3,2]);
+		this.setPadding([24,18,3,2]);
 	else
-		this.setPadding([5,8,3,2]);
+		this.setPadding([5,18,3,2]);
     
 	QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
 }
@@ -108,30 +109,30 @@ QuiX.ui.MenuOption.prototype.expand = function() {
 		this.parent.activeSub = this.subMenu;
 		this.subMenu.show(
 			this.parent,
-			this.getWidth(true),
-			this.getScreenTop() - this.parent.getScreenTop() );
+			this.div.offsetWidth,
+			this.getScreenTop() - this.parent.getScreenTop());
 		
-		if (this.subMenu.getScreenTop() + this.subMenu.height >
+		if (this.subMenu.getScreenTop() + this.subMenu.div.offsetHeight >
                 document.desktop.getHeight(true)) {
 			this.subMenu.top -= this.subMenu.getScreenTop() +
-                                this.subMenu.height -
+                                this.subMenu.div.offsetHeight -
                                 document.desktop.getHeight(true);
 			this.subMenu.redraw();
 		}
 		
-		if (this.subMenu.getScreenLeft() + this.subMenu.width >
+		if (this.subMenu.getScreenLeft() + this.subMenu.div.offsetWidth >
                 document.desktop.getWidth(true)) {
-			this.subMenu.left = - this.subMenu.width;
+			this.subMenu.left = - this.subMenu.div.offsetWidth;
 			this.subMenu.redraw();
 		}
 	}
 }
 
-function MenuOption__onmouseover(evt, w) {
+QuiX.ui.MenuOption._onmouseover = function(evt, w) {
 	w.expand();
 }
 
-function MenuOption__onclick(evt, w) {
+QuiX.ui.MenuOption._onclick = function(evt, w) {
 	if (w.type) w.select();
     if (QuiX.utils.BrowserInfo.family == 'ie' && !w.subMenu) {
         // clear hover state
@@ -144,11 +145,11 @@ function MenuOption__onclick(evt, w) {
 }
 
 //context menu
+
 QuiX.ui.ContextMenu = function(params, owner) {
 	this.base = QuiX.ui.Widget;
 	this.base({
 		id : params.id,
-		width : 100,
 		border : 1,
 		overflow : 'visible',
 		onmousedown : QuiX.stopPropag,
@@ -158,23 +159,23 @@ QuiX.ui.ContextMenu = function(params, owner) {
 	this.div.className = 'contextmenu';
 	if (QuiX.utils.BrowserInfo.family == 'moz'
             && QuiX.utils.BrowserInfo.OS == 'MacOS') {
-		var c = new QuiX.ui.Widget({
-			width : '100%',
-			height : '100%',
-			overflow : 'auto'
-		});
-		this.appendChild(c);
-		c = new QuiX.ui.Widget({
-			width : '100%',
-			height : '100%',
-			overflow : 'hidden'
-		});
-		this.appendChild(c);
+		this.appendChild(
+            new QuiX.ui.Widget({
+                width : '100%',
+                height : '100%',
+                overflow : 'auto'
+            }));
+		this.appendChild(
+            new QuiX.ui.Widget({
+                width : '100%',
+                height : '100%',
+                overflow : 'hidden'
+            }));
 	}
 	
 	var rect = new QuiX.ui.Widget({
 		width: '22',
-		height: '100%',
+		height: 'this.parent.div.clientHeight',
 		bgcolor: 'silver',
 		overflow: 'hidden'
 	});
@@ -185,7 +186,7 @@ QuiX.ui.ContextMenu = function(params, owner) {
 	this.target = null;
 	
 	owner.contextMenu = this;
-	owner.attachEvent('oncontextmenu', Widget__contextmenu);
+	owner.attachEvent('oncontextmenu', QuiX.ui.ContextMenu._oncotextmenu);
 	
 	this.activeSub = null;
 	this.isOpen = false;
@@ -194,7 +195,7 @@ QuiX.ui.ContextMenu = function(params, owner) {
 		var show_effect = new QuiX.ui.Effect({
 			id : '_eff_show',
 			type : 'wipe-in',
-			steps : 6,
+			steps : 8,
 			interval : 10
 		});
 		this.appendChild(show_effect);
@@ -215,30 +216,31 @@ QuiX.ui.ContextMenu.prototype.destroy = function() {
 }
 
 QuiX.ui.ContextMenu.prototype.redraw = function(bForceAll /*, memo*/) {
-	var oOption, optionWidth;
-	var iHeight = 0;
     var memo = arguments[1] || {};
-	
-	for (var i=0; i<this.options.length; i++) {
-		oOption = this.options[i];
-		if (oOption instanceof Icon) {
-			if (QuiX.utils.BrowserInfo.family == 'ie')
-                optionWidth = oOption.div.getElementsByTagName('SPAN')[0].offsetWidth + 26;
-			else
-				optionWidth = oOption.div.offsetWidth;
-			oOption.width = '100%';
-			if (optionWidth + 2 > this.width)
-				this.width = optionWidth + 16;
-		}
-		iHeight += oOption.div.offsetHeight;
-	}
-	
-	this.height = iHeight + 2;
-	
-	if (this.top + this.height > document.desktop.getHeight(true, memo))
-		this.top = this.top - this.height;
-	if (this.left + this.width > document.desktop.getWidth(true, memo))
-		this.left = this.left - this.width;
+
+    if (QuiX.utils.BrowserInfo.family == 'ie'
+            && QuiX.utils.BrowserInfo.version < 8) {
+        var oOption, optionWidth, iHeight = 0;
+        for (var i=0; i<this.options.length; i++) {
+            oOption = this.options[i];
+            if (oOption instanceof Icon) {
+                optionWidth = oOption.div.getElementsByTagName('SPAN')[0]
+                              .offsetWidth + 26;
+                oOption.width = '100%';
+                if (optionWidth + 2 > this.width)
+                    this.width = optionWidth + 16;
+            }
+            iHeight += oOption.div.offsetHeight;
+        }
+        this.height = iHeight + 2;
+    }
+    else
+        this.height = this.div.offsetHeight;
+
+	if (this.top + this.div.offsetHeight > document.desktop.getHeight(true, memo))
+		this.top = this.top - this.div.offsetHeight;
+	if (this.left + this.div.offsetWidth > document.desktop.getWidth(true, memo))
+		this.left = this.left - this.div.offsetWidth;
 
 	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
@@ -248,18 +250,17 @@ QuiX.ui.ContextMenu.prototype.show = function(w, x, y) {
 		var bShow = true;
 		if (this._customRegistry.onshow) {
 			var r = this._customRegistry.onshow(this);
-			bShow = (r==false)?false:true;
+			bShow = (r == false)? false:true;
 		}
 		if (bShow) {
 			this.left = x;
 			this.top = y;
 			w.appendChild(this);
-			this.div.style.zIndex = QuiX.maxz;
+			this.redraw(true);
 			if (QuiX.effectsEnabled) {
 				var effect = this.getWidgetById('_eff_show');
 				effect.play();
 			}
-			this.redraw();
 			if (w == document.desktop)
 				document.desktop.overlays.push(this);
 			this.isOpen = true;
@@ -289,9 +290,7 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
 	}
 	else {
 		oOption = new QuiX.ui.Widget({
-			width : 'this.parent.getWidth(false, memo) - 22',
 			height : 2,
-			left : (QuiX.dir != 'rtl')?22:-22,
 			border : 1,
 			overflow : 'hidden'
 		});
@@ -306,7 +305,24 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
 	return oOption;
 }
 
-function Widget__contextmenu(evt, w) {
+QuiX.ui.ContextMenu._showWidgetContextMenu = function (w, menu) {
+	var nx = w.getScreenLeft();
+	var ny = w.getScreenTop() + w.div.offsetHeight;
+
+	menu.show(document.desktop, nx, ny);
+
+	if (ny + menu.div.offsetHeight > document.desktop.getHeight(true)) {
+		menu.top = menu.owner.getScreenTop() - menu.div.offsetHeight;
+		menu.redraw();
+	}
+
+	if (nx + menu.div.offsetWidth > document.desktop.getWidth(true)) {
+		menu.left = menu.owner.getScreenLeft() + menu.owner.getWidth(true) - menu.div.offsetWidth;
+		menu.redraw();
+	}
+}
+
+QuiX.ui.ContextMenu._oncotextmenu = function(evt, w) {
     var x = evt.clientX;
     if (QuiX.dir == 'rtl')
         x = QuiX.transformX(x);
@@ -316,6 +332,7 @@ function Widget__contextmenu(evt, w) {
 }
 
 // Menu Bar
+
 QuiX.ui.MenuBar = function(/*params*/) {
 	var params = arguments[0] || {};
 	params.border = params.border || 1;
@@ -348,16 +365,16 @@ QuiX.ui.MenuBar.prototype.addRootMenu = function(params) {
 		border : 0,
 		padding : '8,8,3,4',
 		caption : params.caption,
-		onclick : Menu__click,
-		onmouseover : Menu__mouseover,
-		onmouseout : Menu__mouseout
+		onclick : QuiX.ui.MenuBar._menuonclick,
+		onmouseover : QuiX.ui.MenuBar._menuonmouseover,
+		onmouseout : QuiX.ui.MenuBar._menuonmouseout
 	});
 	this.appendChild(oMenu);
 	oMenu.div.className = 'menu';
 	oMenu.setPosition();
-	oMenu.destroy = Menu__destroy;
+	oMenu.destroy = QuiX.ui.MenuBar._menuDestroy;
 	oMenu.div.style.marginRight = this.spacing + 'px';
-	
+
 	this.menus.push(oMenu);
 
 	var oCMenu = new QuiX.ui.ContextMenu(params, oMenu);
@@ -365,42 +382,25 @@ QuiX.ui.MenuBar.prototype.addRootMenu = function(params) {
 	return(oCMenu);
 }
 
-function Menu__destroy() {
+QuiX.ui.MenuBar._menuDestroy = function() {
 	this.parent.menus.removeItem(this);
 	Label.prototype.destroy.apply(this, arguments);
 }
 
-function Menu__click(evt, w) {
+QuiX.ui.MenuBar._menuonclick = function(evt, w) {
 	w.div.className = 'menu selected';
-	showWidgetContextMenu(w, w.contextMenu);
+	QuiX.ui.ContextMenu._showWidgetContextMenu(w, w.contextMenu);
 	QuiX.stopPropag(evt);
 }
 
-function Menu__mouseover(evt, w) {
+QuiX.ui.MenuBar._menuonmouseover = function(evt, w) {
 	w.setBorderWidth(1);
 	w.setPadding([7,7,2,3]);
 	w.div.className = 'menu over';
 }
 
-function Menu__mouseout(evt, w) {
+QuiX.ui.MenuBar._menuonmouseout = function(evt, w) {
 	w.setBorderWidth(0);
 	w.setPadding([8,8,3,4]);
 	w.div.className = 'menu';
-}
-
-function showWidgetContextMenu(w, menu) {
-	var nx = w.getScreenLeft();
-	var ny = w.getScreenTop() + w.div.offsetHeight;
-
-	menu.show(document.desktop, nx, ny);
-	
-	if (ny + menu.height > document.desktop.getHeight(true)) {
-		menu.top = menu.owner.getScreenTop() - menu.getHeight(true);
-		menu.redraw();
-	}
-
-	if (nx + menu.width > document.desktop.getWidth(true)) {
-		menu.left = menu.owner.getScreenLeft() - menu.getWidth(true);
-		menu.redraw();
-	}
 }
