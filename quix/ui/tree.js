@@ -134,7 +134,7 @@ QuiX.ui.TreeNode.prototype._addExpandImg = function() {
 			img = QuiX.getImage('$THEME_URL$images/collapse.gif');
 		else
 			img = QuiX.getImage('$THEME_URL$images/expand.gif');
-		img.onclick = function(evt){
+		img.onclick = function(evt) {
 			oTreeNode.toggle()
 			QuiX.stopPropag(evt || event);
 		};
@@ -213,7 +213,6 @@ QuiX.ui.Tree = function(/*params*/) {
 	this.base(params);
 	
 	this.div.className = 'tree';
-    this.setPosition('relative');
 	if (params)
 		this.levelpadding = params.levelpadding || 14;
 	
