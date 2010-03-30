@@ -41,6 +41,23 @@ QuiX.ui.TabPane._tabClick = function(evt, tabButton) {
     tabButton.parent.activateTab(tabButton.container);
 }
 
+QuiX.ui.TabPane._tabOver = function(evt, tabButton) {
+    if (QuiX.dragging && !tabButton._dragtimer) {
+        tabButton._dragtimer = window.setTimeout(
+            function() {
+                tabButton._dragTimer = null;
+                tabButton.parent.activateTab(tabButton.container);
+            }, 1000);
+    }
+}
+
+QuiX.ui.TabPane._tabOut = function(evt, tabButton) {
+    if (tabButton._dragtimer) {
+        window.clearTimeout(tabButton._dragtimer);
+        tabButton._dragtimer = null;
+    }
+}
+
 QuiX.ui.TabPane.prototype.addTab = function(params) {
 	var oTab = new QuiX.ui.Icon({
 		border : 1,
@@ -51,7 +68,9 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
         img : params.img,
         bgcolor : params.bgcolor,
         color: params.color,
-		onclick : QuiX.ui.TabPane._tabClick
+		onclick : QuiX.ui.TabPane._tabClick,
+        onmouseover : QuiX.ui.TabPane._tabOver,
+        onmouseout : QuiX.ui.TabPane._tabOut
 	});
 	this.appendChild(oTab);
 	oTab.redraw();
