@@ -305,6 +305,11 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
 	return oOption;
 }
 
+QuiX.ui.ContextMenu.prototype.clearOptions = function() {
+    while (this.options.length > 0)
+        this.options[0].destroy();
+}
+
 QuiX.ui.ContextMenu._showWidgetContextMenu = function (w, menu) {
 	var nx = w.getScreenLeft();
 	var ny = w.getScreenTop() + w.div.offsetHeight;
