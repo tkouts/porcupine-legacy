@@ -2,7 +2,7 @@
 Menus
 ************************/
 
-//menu option
+// menu option
 
 QuiX.ui.MenuOption = function(params) {
 	params.height = params.height || 21;
@@ -144,7 +144,7 @@ QuiX.ui.MenuOption._onclick = function(evt, w) {
         QuiX.cleanupOverlays();
 }
 
-//context menu
+// context menu
 
 QuiX.ui.ContextMenu = function(params, owner) {
 	this.base = QuiX.ui.Widget;
@@ -217,6 +217,8 @@ QuiX.ui.ContextMenu.prototype.destroy = function() {
 
 QuiX.ui.ContextMenu.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
+
+    this.div.style.height = '';
 
     if (QuiX.utils.BrowserInfo.family == 'ie'
             && QuiX.utils.BrowserInfo.version < 8) {
