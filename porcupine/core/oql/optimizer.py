@@ -1,25 +1,26 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 OQL query optimization functions
 """
 from porcupine import db
 from porcupine.core.compat import str
 from porcupine.core.oql.core import evaluate_stack, operators2, operators1
+
 
 def optimize(select_from, where_condition,
              order_by, sort_order,
@@ -97,6 +98,7 @@ def optimize(select_from, where_condition,
 
     return optimized, select_top, top_accumulative, order_by
 
+
 def _optimize_conditions(conditions, variables, parent_op=None):
     op2 = None
     op = conditions[-1]
@@ -124,11 +126,13 @@ def _optimize_conditions(conditions, variables, parent_op=None):
                         for lookup in lookups:
                             if type(lookup[1]) == tuple:
                                 if lookup[1][0] is None and new_lookup[1][0]:
-                                    lookup[1] = (new_lookup[1][0], lookup[1][1])
+                                    lookup[1] = (new_lookup[1][0],
+                                                 lookup[1][1])
                                     is_optimized = True
                                     break
                                 elif lookup[1][1] is None and new_lookup[1][1]:
-                                    lookup[1] = (lookup[1][0], new_lookup[1][1])
+                                    lookup[1] = (lookup[1][0],
+                                                 new_lookup[1][1])
                                     is_optimized = True
                                     break
                 if not is_optimized:
@@ -166,7 +170,7 @@ def _optimize_conditions(conditions, variables, parent_op=None):
                     else:
                         # try to evaluate index value
                         index_value = evaluate_stack(conditions, variables)
-                    
+
                     if index_value is not None:
                         # we have an immutable value
                         if op == '=':
@@ -176,7 +180,7 @@ def _optimize_conditions(conditions, variables, parent_op=None):
                         elif op in ['>', '>=']:
                             lookup = [index, ([index_value, '=' in op], None)]
                         optimized[0][0].append(lookup)
-                
+
                 if lookup is None:
                     # query on an non-indexed attribute
                     # or on an indexed attribute with mutable value
@@ -205,6 +209,7 @@ def _optimize_conditions(conditions, variables, parent_op=None):
 
     return optimized
 
+
 def _pop_stack(stack):
     op = stack.pop()
     if type(op) == str:
@@ -213,6 +218,7 @@ def _pop_stack(stack):
             _pop_stack(stack)
         elif op in operators1:
             _pop_stack(stack)
+
 
 # BETWEEN optimizer
 def h_61_opt(params, variables):

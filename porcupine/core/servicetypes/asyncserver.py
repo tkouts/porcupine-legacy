@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine base classes for multi processing, multi threaded network servers
 """
@@ -36,9 +36,11 @@ from porcupine.utils import misc
 from porcupine.core.runtime import multiprocessing
 from porcupine.core.servicetypes.service import BaseService
 
+
 class BaseServerThread(Thread):
     def handle_request(self, request_handler):
         raise NotImplementedError
+
 
 class Dispatcher(asyncore.dispatcher):
     def __init__(self, request_queue, done_queue=None, socket_map=None):
@@ -83,10 +85,11 @@ class Dispatcher(asyncore.dispatcher):
             client_socket.setblocking(0)
             rh.activate(client_socket, self.socket_map)
 
+
 class BaseServer(BaseService, Dispatcher):
     "Base class for threaded TCP server using asynchronous sockets"
     type = 'TCPListener'
-    
+
     def __init__(self, name, address, worker_processes, worker_threads,
                  thread_class):
         # initialize base service
@@ -122,7 +125,7 @@ class BaseServer(BaseService, Dispatcher):
                 # create queues for communicating
                 request_queue = get_shared_queue(2048)
                 done_queue = get_shared_queue(2048)
-                self.sentinel = (-1 , b'EOF')
+                self.sentinel = (-1, b'EOF')
         else:
             request_queue = queue.Queue(worker_threads * 2)
 
@@ -177,7 +180,7 @@ class BaseServer(BaseService, Dispatcher):
 
             # start worker processes
             for i in list(range(self.worker_processes)):
-                pname = '%s server process %d' % (self.name, i+1)
+                pname = '%s server process %d' % (self.name, i + 1)
                 pconn, cconn = multiprocessing.Pipe()
                 p = SubProcess(pname, self.worker_threads, self.thread_class,
                                cconn, **kwargs)
@@ -188,13 +191,14 @@ class BaseServer(BaseService, Dispatcher):
             if self.request_queue is not None:
                 # start task dispatcher thread(s)
                 for i in range(8):
-                    t = Thread(target=self._task_dispatch,
-                               name='%s task dispatcher %d' % (self.name, i+1))
+                    t = Thread(
+                        target=self._task_dispatch,
+                        name='%s task dispatcher %d' % (self.name, i + 1))
                     t.start()
                     self.task_dispatchers.append(t)
         else:
             for i in range(self.worker_threads):
-                tname = '%s server thread %d' % (self.name, i+1)
+                tname = '%s server thread %d' % (self.name, i + 1)
                 t = self.thread_class(target=self._thread_loop, name=tname)
                 t.start()
                 self.worker_pool.append(t)
@@ -284,6 +288,7 @@ class BaseServer(BaseService, Dispatcher):
             self._stop_workers()
             # shut down runtime services
             BaseService.shutdown(self)
+
 
 class RequestHandler(asyncore.dispatcher):
     "Request handler object"
@@ -375,7 +380,7 @@ if multiprocessing:
                        Condition(queue.get_lock()),
                        Condition(queue.get_lock()))
             return queue
-            
+
         def init_queue(queue, qsize, item_pushed, item_popped):
             def get(self):
                 self.acquire()
@@ -516,7 +521,7 @@ if multiprocessing:
                         pass
 
                 self.connection.send(True)
-            
+
             self.connection.send(None)
             self.is_alive = False
 
@@ -534,7 +539,7 @@ if multiprocessing:
             # start server
             if self.socket is not None:
                 socket_map = {}
-                
+
                 # start server
                 self.request_queue = queue.Queue(self.worker_threads * 2)
                 self.done_queue = None
@@ -557,7 +562,7 @@ if multiprocessing:
 
             thread_pool = []
             for i in range(self.worker_threads):
-                tname = '%s thread %d' % (self.name, i+1)
+                tname = '%s thread %d' % (self.name, i + 1)
                 t = self.thread_class(target=self._thread_loop, name=tname)
                 thread_pool.append(t)
 

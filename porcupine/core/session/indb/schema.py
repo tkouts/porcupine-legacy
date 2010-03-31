@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine database session manager content classes
 """
@@ -25,11 +25,13 @@ from porcupine.systemObjects import Container, GenericItem
 from porcupine.core.session.genericsession import GenericSession
 from porcupine.core.decorators import deprecated
 
+
 class SessionsContainer(Container):
     """
     Container used for keeping active sessions
     """
     containment = ('porcupine.core.session.indb.schema.Session', )
+
 
 class Session(GenericItem, GenericSession):
     """
@@ -51,13 +53,13 @@ class Session(GenericItem, GenericSession):
     def get_value(self, name):
         return self.__data.get(name, None)
     getValue = deprecated(get_value)
-    
+
     @db.transactional(auto_commit=True, nosync=True)
     def remove_value(self, name):
         session = db._db.get_item(self._id)
         del session.__data[name]
         session.update()
-        
+
     def get_data(self):
         return(self.__data)
 
@@ -81,12 +83,12 @@ class Session(GenericItem, GenericSession):
         """
         if type(parent) == str:
             parent = db._db.get_item(parent)
-        
+
         if not(self.get_contentclass() in parent.containment):
             raise exceptions.ContainmentError(
                 'The target container does not accept ' +
                 'objects of type\n"%s".' % contentclass)
-        
+
         self._owner = 'system'
         self._created = time.time()
         self.modifiedBy = 'SYSTEM'

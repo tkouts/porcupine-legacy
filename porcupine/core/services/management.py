@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009 Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009 Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Porcupine Server management service"
 import os
 try:
@@ -31,12 +31,14 @@ from porcupine.administration.package import Package
 from porcupine.config.services import services
 from porcupine.utils import misc
 
+
 class MgtRequest(BaseRequest):
     def get_response(self, addr):
         resp = BaseRequest.get_response(self, addr)
         response = MgtMessage()
         response.load(resp)
         return response
+
 
 class MgtMessage(object):
     """
@@ -60,13 +62,15 @@ class MgtMessage(object):
         s = dumps(self.__msg)
         return(s)
 
+
 class ManagementServer(asyncserver.BaseServer):
     "Management Service"
     runtime_services = [('db', (), {'recover':1, 'maintain':1, 'init_rep':1})]
-    
+
     def __init__(self, name, address, processes, worker_threads):
         asyncserver.BaseServer.__init__(self, name, address, processes,
                                         worker_threads, ManagementThread)
+
 
 class ManagementThread(asyncserver.BaseServerThread):
     "Porcupine Server Management thread"
@@ -74,7 +78,7 @@ class ManagementThread(asyncserver.BaseServerThread):
         request = MgtMessage()
         request.load(rh.input_buffer)
         cmd = request.header
-        
+
         try:
             args = self.execute_command(cmd, request)
             if args:
@@ -82,7 +86,7 @@ class ManagementThread(asyncserver.BaseServerThread):
                 # send the response
                 rh.write_buffer(response.serialize())
         except:
-            logger.error('Management Error:', *(), **{'exc_info':1})
+            logger.error('Management Error:', *(), **{'exc_info': 1})
             error_msg = MgtMessage(-1,
                 'Internal server error. See server log for details.')
             rh.write_buffer(error_msg.serialize())
@@ -100,7 +104,7 @@ class ManagementThread(asyncserver.BaseServerThread):
                 finally:
                     services.unlock_db()
                 return (0, 'Database backup completed successfully.')
-            
+
             elif cmd == 'DB_RESTORE':
                 backup_set = request.data
                 if not os.path.exists(backup_set):
@@ -113,7 +117,7 @@ class ManagementThread(asyncserver.BaseServerThread):
                     services.open_db()
                     services.unlock_db()
                 return (0, 'Database restore completed successfully.')
-    
+
             elif cmd == 'DB_SHRINK':
                 iLogs = _db.shrink()
                 if iLogs:
@@ -205,9 +209,7 @@ class ManagementThread(asyncserver.BaseServerThread):
                     site = request.data
                     #print('adding remote site %s' % (site.address, ))
                     site_list = rep_mgr.sites.values() + [rep_mgr.local_site]
-                    rep_mgr.broadcast(
-                        MgtMessage('REP_ADD_REMOTE_SITE', site)
-                    )
+                    rep_mgr.broadcast(MgtMessage('REP_ADD_REMOTE_SITE', site))
                     rep_mgr.add_remote_site(site)
                     return (0, [rep_mgr.master, site_list])
                 else:

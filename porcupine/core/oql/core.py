@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 OQL Core Interpreter
 """
@@ -27,61 +27,57 @@ from porcupine.core.objectSet import ObjectSet
 from porcupine.utils import misc
 from porcupine.utils.date import Date
 
-NEG         = 1
+NEG = 1
 
-ARRAY       = 51
+ARRAY = 51
 
-FUNCTION    = 60
-BETWEEN     = 61
-IN          = 62
-HASATTR     = 63
-SLICE       = 64
-IF          = 65
-INSTANCEOF  = 66
-GETPARENT   = 67
+FUNCTION = 60
+BETWEEN = 61
+IN = 62
+HASATTR = 63
+SLICE = 64
+IF = 65
+INSTANCEOF = 66
+GETPARENT = 67
 
-CMD_ASSIGN  = 100
-OQL_SELECT  = 200
+CMD_ASSIGN = 100
+OQL_SELECT = 200
 
 # map operator symbols to corresponding operations
-opn2 = { 
-    '+' : lambda a,b: a + b,
-    '-' : lambda a,b: a - b,
-    '*' : lambda a,b: a * b,
-    '/' : lambda a,b: a / b,
-    '^' : lambda a,b: a ** b,
-    
-    '=' : lambda a,b: a == b,
-    '<>' : lambda a,b: a != b,
-    '<=' : lambda a,b: a <= b,
-    '>=' : lambda a,b: a >= b,
-    '>' : lambda a,b: a > b,
-    '<' : lambda a,b: a < b,
+opn2 = {'+': lambda a, b: a + b,
+        '-': lambda a, b: a - b,
+        '*': lambda a, b: a * b,
+        '/': lambda a, b: a / b,
+        '^': lambda a, b: a ** b,
 
-    'or' : lambda a,b: a or b,
-    'and' : lambda a,b: a and b,
-}
+        '=': lambda a, b: a == b,
+        '<>': lambda a, b: a != b,
+        '<=': lambda a, b: a <= b,
+        '>=': lambda a, b: a >= b,
+        '>': lambda a, b: a > b,
+        '<': lambda a, b: a < b,
+
+        'or': lambda a, b: a or b,
+        'and': lambda a, b: a and b}
 
 opn1 = {
-    "not": lambda a: not a
-}
+    "not": lambda a: not a}
 
 operators2 = frozenset(opn2.keys())
 operators1 = frozenset(opn1.keys())
 
-fn  = {
-    'len' : len,
-    'abs' : abs,
-    'str' : str,
-    'lower' : lambda a: a.lower(),
-    'upper' : lambda a: a.upper(),
-    'date' : lambda a: Date.from_iso_8601(a).value,
-    'trunc' : lambda a: int(a),
-    'round' : lambda a: int(a + 0.5),
-    'sgn' : lambda a: ((a < 0 and -1) or (a > 0 and 1) or 0),
-    'isnone' : lambda a,b: a or b,
-    'getattr' : lambda a,b: get_attribute(a, [b])
-}
+fn = {'len': len,
+      'abs': abs,
+      'str': str,
+      'lower': lambda a: a.lower(),
+      'upper': lambda a: a.upper(),
+      'date': lambda a: Date.from_iso_8601(a).value,
+      'trunc': lambda a: int(a),
+      'round': lambda a: int(a + 0.5),
+      'sgn': lambda a: ((a < 0 and -1) or (a > 0 and 1) or 0),
+      'isnone': lambda a, b: a or b,
+      'getattr': lambda a, b: get_attribute(a, [b])}
+
 
 def prepare(ast):
     prepared = []
@@ -96,6 +92,7 @@ def prepare(ast):
         prepared.append([cmd_code, cmd_prepared])
     return prepared
 
+
 def execute(prepared, vars, for_object=None):
     result = []
     for cmd in prepared:
@@ -105,6 +102,7 @@ def execute(prepared, vars, for_object=None):
         if cmd_result is not None:
             result.append(cmd_result)
     return result
+
 
 def evaluate_stack(stack, variables, for_object=None):
     if isinstance(stack, list):
@@ -138,7 +136,7 @@ def evaluate_stack(stack, variables, for_object=None):
             elif op == 'or' and op1:
                 return True
             op2 = evaluate_stack(stack, variables, for_object)
-            return opn2[op](op1,op2)
+            return opn2[op](op1, op2)
 
         elif op in operators1:
             op1 = evaluate_stack(stack, variables, for_object)
@@ -171,6 +169,7 @@ def evaluate_stack(stack, variables, for_object=None):
     else:
         return op
 
+
 def get_attribute(obj, name_list):
     try:
         attr_name = name_list.pop(0)
@@ -194,12 +193,14 @@ def get_attribute(obj, name_list):
 
         if len(name_list) > 0:
             if isinstance(obj, ObjectSet):
-                obj = tuple([get_attribute(item, name_list[:]) for item in obj])
+                obj = tuple([get_attribute(item, name_list[:])
+                             for item in obj])
             else:
                 obj = get_attribute(obj, name_list[:])
         return obj
     except AttributeError:
         return None
+
 
 def sort_list(list1, list2):
     pairs = list(zip(list1, list2))
@@ -207,17 +208,18 @@ def sort_list(list1, list2):
     res = [x[1] for x in pairs]
     return res
 
+
 def compute_aggregate(aggr, lst):
     #print(aggr, list)
-    if aggr=='COUNT':
+    if aggr == 'COUNT':
         return len(lst)
-    elif aggr=='MAX':
+    elif aggr == 'MAX':
         return max(lst)
-    elif aggr=='MIN':
+    elif aggr == 'MIN':
         return min(lst)
-    elif aggr=='SUM':
+    elif aggr == 'SUM':
         return sum(lst)
-    elif aggr=='AVG':
+    elif aggr == 'AVG':
         if lst:
             return sum(lst) / len(lst)
         else:
@@ -232,24 +234,28 @@ def compute_aggregate(aggr, lst):
                 return(lst[0])
         return None
 
-#===============================================================================
+
+#==============================================================================
 # unary minus command handler
-#===============================================================================
+#==============================================================================
 
 def h_1(params, variables, for_object):
     return(-evaluate_stack(params[:], variables, for_object))
 
-#===============================================================================
+
+#==============================================================================
 # array command handler
-#===============================================================================
-    
+#==============================================================================
+
 def h_51(params, variables, for_object):
     l = [evaluate_stack(x[:], variables, for_object) for x in params]
     return l
 
-#===============================================================================
+
+#==============================================================================
 # function command handler
-#===============================================================================
+#==============================================================================
+
 
 def h_60(params, variables, for_object):
     func = fn[params[0]]
@@ -258,18 +264,20 @@ def h_60(params, variables, for_object):
     f_args = [evaluate_stack(arg[:], variables, for_object) for arg in args]
     return func(*f_args)
 
-#===============================================================================
+
+#==============================================================================
 # BETWEEN command handler
-#===============================================================================
+#==============================================================================
 
 def h_61(params, variables, for_object):
     value, low, high = [evaluate_stack(expr[:], variables, for_object)
                         for expr in params]
     return low <= value < high
 
-#===============================================================================
+
+#==============================================================================
 # IN command handler
-#===============================================================================
+#==============================================================================
 
 def h_62(params, variables, for_object):
     value, iterable = [evaluate_stack(expr[:], variables, for_object)
@@ -279,17 +287,19 @@ def h_62(params, variables, for_object):
     except TypeError:
         return False
 
-#===============================================================================
+
+#==============================================================================
 # HASATTR command handler
-#===============================================================================
+#==============================================================================
 
 def h_63(params, variables, for_object):
     attr_name = evaluate_stack(params[0][:], variables, for_object)
     return hasattr(for_object, attr_name)
 
-#===============================================================================
+
+#==============================================================================
 # SLICE command handler
-#===============================================================================
+#==============================================================================
 
 def h_64(params, variables, for_object):
     expression = evaluate_stack(params[0][:], variables, for_object)
@@ -297,9 +307,10 @@ def h_64(params, variables, for_object):
     high = evaluate_stack(params[2][:], variables, for_object) or None
     return expression[low:high]
 
-#===============================================================================
+
+#==============================================================================
 # IF command handler
-#===============================================================================
+#==============================================================================
 
 def h_65(params, variables, for_object):
     test_expession = evaluate_stack(params[0][:], variables, for_object)
@@ -307,18 +318,20 @@ def h_65(params, variables, for_object):
         return evaluate_stack(params[1][:], variables, for_object)
     else:
         return evaluate_stack(params[2][:], variables, for_object)
-        
-#===============================================================================
+
+
+#==============================================================================
 # INSTANCEOF command handler
-#===============================================================================
+#==============================================================================
 
 def h_66(params, variables, for_object):
     className = evaluate_stack(params[0][:], variables, for_object)
     return isinstance(for_object, misc.get_rto_by_name(className))
 
-#===============================================================================
+
+#==============================================================================
 # GETPARENT command handler
-#===============================================================================
+#==============================================================================
 
 def h_67(params, variables, for_object):
     if (params):
@@ -327,23 +340,27 @@ def h_67(params, variables, for_object):
         obj = for_object
     return obj.get_parent()
 
-#===============================================================================
+
+#==============================================================================
 # assignment command handler
-#===============================================================================
+#==============================================================================
 
 def h_100_prepare(params, variables):
     value = evaluate_stack(params[1][:], variables)
     variables[params[0]] = value
     return [params[0], value]
 
+
 def h_100(params, variables, for_object):
     variables[params[0]] = params[1]
 
-#===============================================================================
+
+#==============================================================================
 # oql select command handler
-#===============================================================================
+#==============================================================================
 
 from porcupine.core.oql import optimizer
+
 
 def h_200_prepare(params, variables, for_object=None):
     select_fields = params[0][:]
@@ -374,7 +391,7 @@ def h_200_prepare(params, variables, for_object=None):
                     scope[1] = container_id
                 else:
                     raise TypeError('OQL scopes should be immutable')
-    
+
     where_condition = params[2]
     select_range = params[5]
 
@@ -420,25 +437,25 @@ def h_200_prepare(params, variables, for_object=None):
 
     # optimize field access
     for f in all_fields:
-        if type(f[0]) == str and f[0][0]!= "'" \
-                and f[0][0]!='$' and f[0] != '**':
+        if type(f[0]) == str \
+                and f[0][0] != "'" \
+                and f[0][0] != '$' \
+                and f[0] != '**':
             field_spec = f[0].split('.')
             aliases[f[1]] = (
                 eval('[lambda obj: get_attribute(obj, %s)]' % field_spec),
                 None, None)
 
-    prepared = {
-        'select_fields' : select_fields,
-        'field_names' : field_names,
-        'all_fields' : all_fields,
-        'select_from' : select_from,
-        'select_range' : select_range,
-        'where_condition' : where_condition,
-        'aliases' : aliases,
-        'order_by' : order_by,
-        'sort_order' : sort_order,
-        'group_by' : group_by
-    }
+    prepared = {'select_fields': select_fields,
+                'field_names': field_names,
+                'all_fields': all_fields,
+                'select_from': select_from,
+                'select_range': select_range,
+                'where_condition': where_condition,
+                'aliases': aliases,
+                'order_by': order_by,
+                'sort_order': sort_order,
+                'group_by': group_by}
 
     if for_object is None:
         # not being a subquery
@@ -454,6 +471,7 @@ def h_200_prepare(params, variables, for_object=None):
         prepared['order_by'] = ord
 
     return prepared
+
 
 def h_200(prepared, variables, for_object=None):
     select_fields = prepared['select_fields']
@@ -505,7 +523,7 @@ def h_200(prepared, variables, for_object=None):
                     object_id = variables[object_id[1:]]
                 except KeyError as e:
                     raise NameError('Undefined variable "%s"' % e.args[0])
-            
+
             obj = db.get_item(object_id)
             if obj is not None and obj.isCollection:
                 optimized = prepared['optimized']
@@ -513,7 +531,7 @@ def h_200(prepared, variables, for_object=None):
                 top_accumulative = prepared['top_accumulative']
 
                 #print(optimized)
-                
+
                 cp_optimized = copy.deepcopy(optimized)
                 # create cursors
                 for l in cp_optimized:
@@ -527,7 +545,8 @@ def h_200(prepared, variables, for_object=None):
                                 if isinstance(index_value, (bytes, str)) \
                                         and index_value[0] == '$':
                                     # equality cursor
-                                    indexed_lookup[1] = variables[index_value[1:]]
+                                    indexed_lookup[1] = \
+                                        variables[index_value[1:]]
                                 elif isinstance(index_value, tuple):
                                     # range cursor
                                     for limit in index_value:
@@ -536,7 +555,8 @@ def h_200(prepared, variables, for_object=None):
                                                 and limit[0][0] == '$':
                                             limit[0] = variables[limit[0][1:]]
                         except KeyError as e:
-                            raise NameError('Undefined variable "%s"' % e.args[0])
+                            raise NameError(
+                                'Undefined variable "%s"' % e.args[0])
 
                         l[0] = db._db.query(l[0])
                         l[0].set_scope(obj._id)
@@ -548,12 +568,12 @@ def h_200(prepared, variables, for_object=None):
                            variables,
                            top=select_top,
                            top_accumulative=top_accumulative)
-                
+
                 # close cursors
                 cp_optimized.reverse()
                 [l[0].close() for l in cp_optimized]
                 results |= r
-                
+
                 if select_top is not None and top_accumulative:
                     if len(results) >= select_top:
                         break
@@ -574,12 +594,13 @@ def h_200(prepared, variables, for_object=None):
                     group_dict[group_value].append(rec)
                 groups = [tuple(g) for g in group_dict.values()]
             else:
-                raise TypeError('GROUP BY clause is incompatible with SELECT *')
+                raise TypeError(
+                    'GROUP BY clause is incompatible with SELECT *')
         else:
             groups = [results]
-        
+
         results = []
-        
+
         if any(aggregates) or group_by:
             for ind, group in enumerate(groups):
                 group_sum = []
@@ -592,10 +613,10 @@ def h_200(prepared, variables, for_object=None):
                              for x in group
                              if x[aggr_index] is not None]))
                 groups[ind] = (tuple(group_sum),)
-        
+
         for group in groups:
             results.extend(group)
-        
+
         if order_by:
             # extract sort values
             istart = 1
@@ -607,11 +628,11 @@ def h_200(prepared, variables, for_object=None):
             # if it is descending reverse the result list
             if not sort_order:
                 results.reverse()
-    
+
     # remove aliases
     for alias in aliases:
         del variables[alias]
-    
+
     if select_fields:
         schema = field_names
         # truncate to keep only select fields
@@ -629,6 +650,7 @@ def h_200(prepared, variables, for_object=None):
     results = ObjectSet(results)
     results.schema = schema
     return results
+
 
 def select(container_id, deep, specifier, fields, variables,
            top=None, top_accumulative=False):
@@ -657,7 +679,7 @@ def select(container_id, deep, specifier, fields, variables,
         top -= len(results)
 
     if deep:
-        subfolders = db._db.query( (('isCollection', True), ) )
+        subfolders = db._db.query((('isCollection', True), ))
         subfolders.set_scope(container_id)
         for folder in subfolders:
             [l[0].set_scope(folder._id)

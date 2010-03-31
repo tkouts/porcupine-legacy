@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine database session manager
 """
@@ -24,6 +24,7 @@ from porcupine import db
 from porcupine.core.session.genericsessionmanager import GenericSessionManager
 from porcupine.core.session.indb import schema
 
+
 class SessionManager(GenericSessionManager):
     """
     Database session manager implementation class
@@ -32,7 +33,7 @@ class SessionManager(GenericSessionManager):
     session_container_id = '+sessions'
     _expire_thread = Thread(name='Session expriration thread',
                             target=None)
-    
+
     def __init__(self, timeout, **kwargs):
         GenericSessionManager.__init__(self, timeout)
         session_container = db._db.get_item(self.session_container_id)
@@ -52,7 +53,7 @@ class SessionManager(GenericSessionManager):
         session_container._created = ftime
         session_container.modified = ftime
         session_container.inheritRoles = False
-        session_container.security = {'administrators' : 8}
+        session_container.security = {'administrators': 8}
         db._db.put_item(session_container)
 
     def init_expiration_mechanism(self):

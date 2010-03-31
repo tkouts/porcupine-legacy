@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Base classes of decorators applied to web methods"
 import types
 import os.path
@@ -24,6 +24,7 @@ from porcupine import exceptions
 from porcupine import utils
 from porcupine.core import compat
 from porcupine.config.settings import settings
+
 
 def deprecated(function, member=None):
     """
@@ -41,6 +42,7 @@ def deprecated(function, member=None):
         return function(*args, **kwargs)
     compat.set_func_name(dep_wrapper, compat.get_func_name(function))
     return dep_wrapper
+
 
 class WebMethodDescriptor(object):
     def __init__(self, function, of_type, conditions,
@@ -61,10 +63,10 @@ class WebMethodDescriptor(object):
         # monkey patching
         self.of_type = of_type
         setattr(of_type, self.func_name, self)
-        
+
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
-    
+
     def __get__(self, item, item_class):
         def wm_wrapper(item, context):
             if utils.permsresolver.get_access(item, context.user) == 0:
@@ -82,17 +84,19 @@ class WebMethodDescriptor(object):
         except AttributeError:
             # python 3
             wm_wrapper.__dict__['cnd'] = self.conditions
-        return types.MethodType(wm_wrapper, item)#, item_class)
-    
+        return types.MethodType(wm_wrapper, item)  # , item_class)
+
     def execute(self, item, context):
         v = self.func(item)
         if self.template is not None:
-            func_dir = os.path.dirname(sys.modules[self.func.__module__].__file__)
+            func_dir = os.path.dirname(
+                sys.modules[self.func.__module__].__file__)
             template_processor = settings['templatelanguages'][self.t_engine]
             template_processor(
                 context,
                 '%s%s%s' % (func_dir, os.path.sep, self.template),
                 v)
+
 
 class WebMethodWrapper(object):
     def __init__(self, decorator):
@@ -101,9 +105,9 @@ class WebMethodWrapper(object):
         self.func_name = decorator.func_name
         self.conditions = decorator.conditions
         # monkey patching
-        self.of_type =  decorator.of_type
+        self.of_type = decorator.of_type
         setattr(self.of_type, self.func_name, self)
-        
+
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
@@ -117,8 +121,7 @@ class WebMethodWrapper(object):
         except AttributeError:
             # python 3
             wrapper.__dict__['cnd'] = self.conditions
-        return types.MethodType(wrapper, item)#, item_class)
-    
+        return types.MethodType(wrapper, item)  # , item_class)
+
     def get_wrapper(self):
         raise NotImplementedError
-  

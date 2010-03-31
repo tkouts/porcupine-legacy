@@ -1,21 +1,20 @@
-#===============================================================================
-#    Copyright 2005-2009 Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 "Request classes"
-
 import re
 import io
 from cgi import FieldStorage
@@ -38,17 +37,18 @@ from porcupine import context
 from porcupine.core.compat import str
 from porcupine.core.decorators import deprecated
 
+
 class HttpRequest(object):
     """Http request class
     @ivar serverVariables: The request environment
     @type serverVariables: dict
-    
+
     @ivar queryString: The query string parameters as lists.
     @type queryString: dict
 
     @ivar cookies: Contains the cookies sent by the client
     @type cookies: Cookie.SimpleCookie
-    
+
     @ivar input: The raw request input
     @type input: bytes
 
@@ -71,7 +71,7 @@ class HttpRequest(object):
         self.serverVariables = raw_request['env']
         self.serverVariables.setdefault('HTTP_ACCEPT_LANGUAGE', '')
         self.serverVariables.setdefault('HTTP_USER_AGENT', '')
-        
+
         path_info = self.serverVariables.get('PATH_INFO', '/')
         if type(path_info) == str:
             # python 3: convert to bytes
@@ -116,13 +116,16 @@ class HttpRequest(object):
                 if method_match:
                     self.method = method_match.groups()[0].decode(self.charset)
                     self.type = 'xmlrpc'
-            elif self.serverVariables['CONTENT_TYPE'][:16] == 'application/json':
+
+            elif self.serverVariables['CONTENT_TYPE'][:16] == \
+                    'application/json':
                 # jsonrpc request?
                 method_match = re.search(self._json_rpc_detect,
                                          self.input)
                 if method_match:
                     self.method = method_match.groups()[0].decode(self.charset)
                     self.type = 'jsonrpc'
+
             else:
                 # http form post
                 self.form = FieldStorage(fp=io.BytesIO(self.input),
@@ -138,7 +141,7 @@ class HttpRequest(object):
         If the session has a value of "lang" then this value is used.
         If not then the client's prefered language setting is used.
         If the client has multiple languages selected, the first is returned.
-        
+
         @rtype: str
         """
         lang = None
@@ -149,10 +152,10 @@ class HttpRequest(object):
         else:
             return self.serverVariables['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
     getLang = deprecated(get_lang)
-        
+
     def get_host(self):
         """Returns the name of the host.
-        
+
         @rtype: str
         """
         return(self.serverVariables["HTTP_HOST"])
@@ -160,7 +163,7 @@ class HttpRequest(object):
 
     def get_query_string(self):
         """Returns the full query string, including the '?'.
-        
+
         @rtype: str
         """
         if self.serverVariables['QUERY_STRING']:
@@ -168,10 +171,10 @@ class HttpRequest(object):
         else:
             return ''
     getQueryString = deprecated(get_query_string)
-        
+
     def get_protocol(self):
         """Returns the request's protocol (http or https).
-        
+
         @rtype: str
         """
         sProtocol = 'http'
@@ -183,14 +186,14 @@ class HttpRequest(object):
     def get_root_url(self):
         """Returns the site's root URL including the executing script.
         For instance, C{http://server/porcupine.py}
-        
+
         @rtype: str
         """
         return (self.get_protocol() + '://'
                 + self.serverVariables['HTTP_HOST']
                 + self.serverVariables['SCRIPT_NAME'])
     getRootUrl = deprecated(get_root_url)
-        
+
     def __getattr__(self, name):
         try:
             return self.serverVariables[name]
