@@ -1,4 +1,4 @@
-#===============================================================================
+#==============================================================================
 #  Copyright (c) 2010 Tassos Koutsovassilis, http://www.innoscript.org
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,7 +17,7 @@
 #  THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#===============================================================================
+#==============================================================================
 import re
 from cgi import escape
 from xml.sax.saxutils import quoteattr
@@ -44,9 +44,11 @@ except NameError:
     # python 3
     _str_filter = str
 
+
 class NormalTemplateError(Exception):
     "normal-template error class"
     pass
+
 
 def _xpath(path):
     if _xpath_invalid_chars.search(path):
@@ -62,6 +64,7 @@ def _xpath(path):
     else:
         return 'd%s' % _dict_get(path)
 
+
 def _dict_get(path):
     keys = path.split('.')
     if len(keys) > 1:
@@ -71,11 +74,13 @@ def _dict_get(path):
     snippet.append('.get("%s", None)' % keys[-1])
     return ''.join(snippet)
 
+
 def _unbalanced(tag, expected):
     err_msg = 'Unbalanced "%s" close tag' % tag
     if expected:
         err_msg += ', expecting "%s" close tag' % expected
     raise NormalTemplateError(err_msg)
+
 
 def _normal_wrapper(fn, filters):
     def nt(data):
@@ -83,20 +88,19 @@ def _normal_wrapper(fn, filters):
     return nt
 
 # Template filters. Add your own to this dictionary.
-filters = {
-    'str'   : _str_filter,
-    'html'  : escape,
-    'attr'  : quoteattr,
-    'uri'   : quote
-}
+filters = {'str': _str_filter,
+           'html': escape,
+           'attr': quoteattr,
+           'uri': quote}
 
 _compile = compile
+
 
 def compile(src, options={}, template_name='normal-template'):
     code = ['def nt(data, filters):',
             '%sd = data' % (_tab_size * ' '),
             '%sres = []' % (_tab_size * ' ')]
-    
+
     stack = ['data']
     nesting = ['']
     tokens = _token_re.split(src)
@@ -115,12 +119,12 @@ def compile(src, options={}, template_name='normal-template'):
     for token in tokens:
         if token == '':
             continue
-        
+
         intend = _tab_size * len(nesting) * ' '
 
         if _command_re.match(token):
 
-            if token[1] == ':': # open tag
+            if token[1] == ':':  # open tag
                 cmd, arg = (token[2:-1].split(' ') + [None])[:2]
 
                 if cmd == 'if':
@@ -162,18 +166,18 @@ def compile(src, options={}, template_name='normal-template'):
                         raise NormalTemplateError('Unbalanced "else" tag')
                     continue
 
-                elif cmd == 'lb': # output left curly bracket '}'
+                elif cmd == 'lb':  # output left curly bracket '}'
                     code.append('%sres.append("{")' % intend)
                     continue
 
-                elif cmd == 'rb': # output right curly bracket '}'
+                elif cmd == 'rb':  # output right curly bracket '}'
                     code.append('%sres.append("}")' % intend)
                     continue
 
-                elif cmd == '!': # comment
+                elif cmd == '!':  # comment
                     continue
 
-            elif token[1] == '/': # close tag
+            elif token[1] == '/':  # close tag
                 if token[2] == ':':
                     cmd = token[3:-1].split(' ')[0]
                     tag = nesting.pop()
@@ -199,7 +203,7 @@ def compile(src, options={}, template_name='normal-template'):
                         else:
                             _unbalanced('reduce', tag)
 
-            elif token[1] == '=': # interpolation
+            elif token[1] == '=':  # interpolation
                 parts = token[2:-1].split(' ')
                 pre = ''
                 post = ''
@@ -218,7 +222,7 @@ def compile(src, options={}, template_name='normal-template'):
                                                      pre, post))
                 continue
 
-        else: # plain text
+        else:  # plain text
             code.append('%sres.append(%r)' % (intend, token))
 
     if len(nesting) > 1:

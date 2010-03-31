@@ -1,4 +1,4 @@
-#===============================================================================
+#==============================================================================
 #  Copyright (c) 2010 Tassos Koutsovassilis, http://www.innoscript.org
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,7 +17,7 @@
 #  THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#===============================================================================
+#==============================================================================
 import re
 
 from . import NormalTemplateError
@@ -27,12 +27,14 @@ _include_re = re.compile('\{#include (.*?)\}')
 _block_re = re.compile(
     '\{\#(def|define|d) (.*?)\}([\s\S]*?)\{\/\#(def|define|d)(.*?)\}')
 
+
 def get_template_path(mt):
     match = _template_re.match(mt)
     if match is not None:
         return match.group(2)
     else:
         return None
+
 
 def expand_includes(mt):
     include = _include_re.search(mt)
@@ -45,15 +47,16 @@ def expand_includes(mt):
             raise NormalTemplateError('cannot include "' + path + '"')
 
         f.close()
-        
+
         mt = '%s%s%s' % (mt[:include.start()], inc_text, mt[include.end():])
         include = _include_re.search(mt)
-    
+
     return mt
+
 
 def extract_data(mt):
     data = {}
-    
+
     def _handler(match):
         data[match.group(2)] = match.group(3)
         return ''
