@@ -3,6 +3,7 @@ Field controls 2
 ************************/
 
 // combo box
+
 QuiX.ui.Combo = function(/*params*/) {
 	var params = arguments[0] || {};
 	params.bgcolor = params.bgcolor || 'white';
@@ -14,8 +15,8 @@ QuiX.ui.Combo = function(/*params*/) {
 	this.base(params);
 	
 	this.name = params.name;
-	this.editable = (params.editable=='true'||params.editable==true);
-	this.readonly = (params.readonly=='true'||params.readonly==true);
+	this.editable = (params.editable=='true' || params.editable==true);
+	this.readonly = (params.readonly=='true' || params.readonly==true);
 	this.menuHeight = parseInt(params.menuheight) || 100;
 	this.div.className = 'field';
 	this.selection = null;
@@ -29,8 +30,6 @@ QuiX.ui.Combo = function(/*params*/) {
 	this.div.appendChild(e);
 	e.onselectstart = QuiX.stopPropag;
 	
-	var oCombo = this;
-	
 	this.dropdown = new QuiX.ui.Widget({
 		border : 1,
 		onclick : function(evt, w) {
@@ -42,25 +41,28 @@ QuiX.ui.Combo = function(/*params*/) {
 	this.dropdown.minw = 60;
 	this.dropdown.minh = 50;
 	this.dropdown.div.className = 'combodropdown';
+
+    var self = this;
+
 	this.dropdown.close = function() {
 		document.desktop.overlays.removeItem(this);
-		oCombo.isExpanded = false;
+		self.isExpanded = false;
 		this.detach();
 	};
 	
 	var cont = new QuiX.ui.Widget({
 		width : '100%',
 		height: '100%',
-		overflow: 'auto',
+		overflow: 'hidden auto',
 		onmousedown : QuiX.cancelDefault
 	});
 	this.dropdown.appendChild(cont);
-	cont.div.style.overflowX = 'hidden';
+	//cont.div.style.overflowX = 'hidden';
 	this.options = cont.widgets;
 
 	var resizer = new QuiX.ui.Widget({
-		left : 'this.parent.getWidth(false, memo)-16',
-		top : 'this.parent.getHeight(false, memo)-16',
+		left : 'this.parent.getWidth(false, memo) - 16',
+		top : 'this.parent.getHeight(false, memo) - 16',
 		width : 16,
 		height : 16,
 		border : 0,
@@ -70,43 +72,48 @@ QuiX.ui.Combo = function(/*params*/) {
 	resizer.div.className = 'resize';
 	resizer.attachEvent('onclick', QuiX.stopPropag);
 	resizer.attachEvent('onmousedown', function(evt){
-		oCombo.dropdown._startResize(evt);
+		self.dropdown._startResize(evt);
 		QuiX.cancelDefault(evt);
 	});
 	
 	this.button = new QuiX.ui.Button({
-		left : 'this.parent.getWidth(false, memo)-20',
-		height : '100%', width : 20,
+		left : 'this.parent.getWidth(false, memo) - 20',
+		height : '100%',
+        width : 20,
 		img : params.img || '$THEME_URL$images/desc8.gif'
 	});
 	this.appendChild(this.button);
 	if (!this.readonly)
-		this.button.attachEvent('onclick', ComboBtn__onclick);
+		this.button.attachEvent('onclick', QuiX.ui.Combo._btn_onclick);
 	
 	if (this.editable) {
-		e.value = (params.value)?params.value:'';
+		e.value = (params.value)? params.value:'';
 		if (!this.readonly) {
 			e.onfocus = function() {
-				oCombo._old_value = this.value;
-			}
-			e.onblur = function() {
-				if (oCombo._old_value != this.value) {
-					if (oCombo._customRegistry.onchange)
-						QuiX.getEventListener(oCombo._customRegistry.onchange)
-                             (oCombo);
-				}
+				self._old_value = this.value;
 			}
 		}
-		else
+		else {
 			e.readonly = true;
+        }
 	}
 	else {
 		e.readOnly = true;
 		e.style.cursor = 'default';
 		this._set = false;
-		if (!this.readonly) e.onclick = ComboBtn__onclick;
+		if (!this.readonly)
+            e.onclick = QuiX.ui.Combo._btn_onclick;
 	}
-	
+
+    e.onblur = function() {
+        if (self.editable && !self.readonly && self._old_value != this.value) {
+            if (self._customRegistry.onchange)
+                self._customRegistry.onchange(self);
+        }
+        if (self._customRegistry.onblur)
+            self._customRegistry.onblur(self);
+    }
+
 	if (this._isDisabled)
 		this.disable();
 }
@@ -114,7 +121,7 @@ QuiX.ui.Combo = function(/*params*/) {
 QuiX.constructors['combo'] = QuiX.ui.Combo;
 QuiX.ui.Combo.prototype = new QuiX.ui.Widget;
 QuiX.ui.Combo.prototype.customEvents =
-    QuiX.ui.Widget.prototype.customEvents.concat(['onchange']);
+    QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 // backwards compatibility
 var Combo = QuiX.ui.Combo;
 
@@ -144,11 +151,11 @@ QuiX.ui.Combo.prototype.getValue = function() {
 }
 
 QuiX.ui.Combo.prototype.setValue = function(value) {
-	if (this.editable){
+	if (this.editable) {
 		this.div.firstChild.value = value;
 		if (this._old_value != value) {
 			if (this._customRegistry.onchange)
-				QuiX.getEventListener(this._customRegistry.onchange)(this);
+				this._customRegistry.onchange(this);
 		}		
 		this._old_value = value;
 	}
@@ -162,7 +169,7 @@ QuiX.ui.Combo.prototype.setValue = function(value) {
 		}
 		for (i=0; i<this.options.length; i++) {
 			opt = this.options[i];
-			opt_value = (opt.value!=undefined)?opt.value:opt.getCaption();
+			opt_value = (opt.value != undefined)? opt.value:opt.getCaption();
 			if (opt_value == value) {
 				this.selection = opt;
 				opt.selected = true;
@@ -171,8 +178,7 @@ QuiX.ui.Combo.prototype.setValue = function(value) {
                         && (value != old_value)
                         && this.div.clientWidth)
 					if (this._customRegistry.onchange)
-						QuiX.getEventListener(
-                            this._customRegistry.onchange)(this);
+						this._customRegistry.onchange(this);
 				break;
 			}
 		}
@@ -184,7 +190,8 @@ QuiX.ui.Combo.prototype.enable = function() {
 	if (this.div.firstChild) {
 		this.div.firstChild.disabled = false;
 		this.div.firstChild.style.backgroundColor = '';
-		if (!this.readonly) this.div.firstChild.onclick = ComboBtn__onclick;
+		if (!this.readonly)
+            this.div.firstChild.onclick = QuiX.ui.Combo._btn_onclick;
 	}
 	QuiX.ui.Widget.prototype.enable.apply(this, arguments);
 }
@@ -199,7 +206,7 @@ QuiX.ui.Combo.prototype.disable = function() {
 }
 
 QuiX.ui.Combo.prototype.selectOption = function(option) {
-	var value = (option.value!=undefined)?option.value:option.getCaption();
+	var value = (option.value!=undefined)? option.value:option.getCaption();
 	this.setValue(value);
 }
 
@@ -245,7 +252,8 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
 }
 
 QuiX.ui.Combo.prototype.destroy = function() {
-	if (this.isExpanded) this.dropdown.close();
+	if (this.isExpanded)
+        this.dropdown.close();
 	Widget.prototype.destroy.apply(this, arguments);
 }
 
@@ -268,16 +276,16 @@ QuiX.ui.Combo.prototype.addOption = function(params) {
 	this.dropdown.widgets[0].appendChild(opt);
 	if ((params.selected=='true' || params.selected == true) && !this.editable)
 		this.selectOption(opt);
-	opt.attachEvent('onclick', ComboOption__onclick);
+	opt.attachEvent('onclick', QuiX.ui.Combo._option_onclick);
 	opt.setPosition('relative');
 	return opt;
 }
 
-function ComboOption__onclick(evt, w) {
-	w.parent.parent.combo.selectOption(w);
+QuiX.ui.Combo._option_onclick = function(evt, option) {
+	option.parent.parent.combo.selectOption(option);
 }
 
-function ComboBtn__onclick(evt, w) {
+QuiX.ui.Combo._btn_onclick = function(evt, w) {
 	var oCombo;
 	if (w)
 		oCombo = w.parent
@@ -293,6 +301,7 @@ function ComboBtn__onclick(evt, w) {
 }
 
 // auto complete
+
 QuiX.ui.AutoComplete = function(/*params*/) {
 	var params = arguments[0] || {};
 	params.editable = true;
@@ -413,7 +422,8 @@ QuiX.ui.AutoComplete.prototype._captureKey = function(evt) {
 	}
 }
 
-// Select list
+// select list
+
 QuiX.ui.SelectList  = function(/*params*/) {
 	var params = arguments[0] || {};
 	params.bgcolor = params.bgcolor || 'white';
@@ -442,8 +452,9 @@ QuiX.ui.SelectList.prototype.addOption = function(params) {
 	params.width = '100%';
 	params.height = params.height || 24;
 	params.overflow = 'hidden';
-	params.onmousedown = QuiX.wrappers.eventWrapper(SelectOption__onmousedown,
-                                                    params.onmousedown);
+	params.onmousedown = QuiX.wrappers.eventWrapper(
+        QuiX.ui.SelectList._option_onmousedown,
+        params.onmousedown);
 	var w = new QuiX.ui.Icon(params);
 	this.appendChild(w);
 	w.selected = false;
@@ -531,7 +542,7 @@ QuiX.ui.SelectList.prototype.getValue = function() {
 	}
 }
 
-function SelectOption__onmousedown(evt, option) {
+QuiX.ui.SelectList._option_onmousedown = function(evt, option) {
 	var oSelectList = option.parent;
 	if (!oSelectList.multiple)
 		oSelectList.selectOption(option);

@@ -40,7 +40,7 @@ QuiX.ui.Form.prototype.submit = function(f_callback) {
 	
 	// send data
     var Rpc = (this.format == 'xml')?
-        QuiX.rpc.XMLRPCRequest:QuiX.rpc.JSONRPCRequest;
+              QuiX.rpc.XMLRPCRequest:QuiX.rpc.JSONRPCRequest;
 	var rpc = new Rpc(this.action);
 	rpc.oncomplete = submit_oncomplete;
 	rpc.callback_info = this;
@@ -67,13 +67,16 @@ QuiX.ui.Field = function(/*params*/) {
 	this.type = params.type || 'text';
 	if (this.type == 'radio') {
 		this._value = params.value || '';
-		params.onclick = QuiX.wrappers.eventWrapper(Radio__click,
-                                                    params.onclick);
+		params.onclick = QuiX.wrappers.eventWrapper(
+            QuiX.ui.Field._radio_onclick,
+            params.onclick);
 		params.overflow = '';
 	}
-	if (this.type == 'checkbox')
-		params.onclick = QuiX.wrappers.eventWrapper(Check__click,
-                                                    params.onclick);
+	else if (this.type == 'checkbox') {
+		params.onclick = QuiX.wrappers.eventWrapper(
+            QuiX.ui.Field._checkbox_onclick,
+            params.onclick);
+    }
 	params.height = params.height || 22;
 	params.padding = '0,0,0,0';
 	this.base(params);
@@ -82,7 +85,7 @@ QuiX.ui.Field = function(/*params*/) {
 	this.textAlign = params.textalign || 'left';
 	
 	var e;
-	var oField = this;
+	var self = this;
 	
 	switch (this.type) {
 		case 'checkbox':
@@ -117,9 +120,13 @@ QuiX.ui.Field = function(/*params*/) {
 			this.div.appendChild(e);
 
 			e.onchange = function() {
-				if (oField._customRegistry.onchange)
-					oField._customRegistry.onchange(oField);
+				if (self._customRegistry.onchange)
+					self._customRegistry.onchange(self);
 			}
+            e.onblur = function() {
+				if (self._customRegistry.onblur)
+					self._customRegistry.onblur(self);
+            }
 	}
 
 	e.onmousedown = QuiX.stopPropag;
@@ -138,7 +145,7 @@ QuiX.ui.Field.prototype = new QuiX.ui.Widget;
 var Field = QuiX.ui.Field;
 
 QuiX.ui.Field.prototype.customEvents =
-    QuiX.ui.Widget.prototype.customEvents.concat(['onchange']);
+    QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 
 QuiX.ui.Field.prototype.getValue = function() {
 	switch (this.type) {
@@ -273,14 +280,14 @@ QuiX.ui.Field.prototype._calcSize = function(height, offset, getHeight, memo) {
         return Widget.prototype._calcSize.apply(this, arguments);
 }
 
-function Check__click(evt, w) {
+QuiX.ui.Field._checkbox_onclick = function(evt, w) {
 	if (QuiX.getTarget(evt).tagName != 'INPUT')
 		w.div.firstChild.checked = !w.div.firstChild.checked;
 	if (w._customRegistry.onchange)
 		w._customRegistry.onchange(w);
 }
 
-function Radio__click(evt, w) {
+QuiX.ui.Field._radio_onclick = function(evt, w) {
 	var id = w.getId();
 	if (id) {
 		var checked = w.div.firstChild.checked;
@@ -328,14 +335,14 @@ QuiX.ui.Spin = function(/*params*/) {
 	upbutton = new QuiX.ui.Button({
 		left : "this.parent.getWidth(false, memo)-16",
 		height : '50%', width : 16,
-		onclick : SpinUp__onclick
+		onclick : QuiX.ui.Spin._btnup_onclick
 	});
 	this.appendChild(upbutton);
 
 	downbutton = new QuiX.ui.Button({
 		left : "this.parent.getWidth(false, memo)-16",
 		height : '50%', top : '50%', width : 16,
-		onclick : SpinDown__onclick
+		onclick : QuiX.ui.Spin._btndown_onclick
 	});
 	this.appendChild(downbutton);
 
@@ -346,7 +353,7 @@ QuiX.ui.Spin = function(/*params*/) {
 		e.onblur = function() {oSpin.validate();}
 	}
 	
-	this.attachEvent('onkeypress', Spin__onkeypress);
+	this.attachEvent('onkeypress', QuiX.ui.Spin._onkeypress);
 	
 	if (params.value)
 		e.value = parseInt(params.value);
@@ -413,14 +420,14 @@ QuiX.ui.Spin.prototype.setValue = function(value) {
 	}
 }
 
-function Spin__onkeypress(evt, w) {
+QuiX.ui.Spin._onkeypress = function(evt, w) {
 	var keycode = (QuiX.utils.BrowserInfo.family=='ie')?
         evt.keyCode:evt.charCode;
 	if (!(keycode>47 && keycode<58) && keycode!=0)
 		QuiX.cancelDefault(evt);
 }
 
-function SpinUp__onclick(evt, w) {
+QuiX.ui.Spin._btnup_onclick = function(evt, w) {
 	var oSpin = w.parent;
 	var val = oSpin.getValue() + oSpin.step;
 	if (!isNaN(val)) {
@@ -429,7 +436,7 @@ function SpinUp__onclick(evt, w) {
 	}
 }
 
-function SpinDown__onclick(evt, w) {
+QuiX.ui.Spin._btndown_onclick = function(evt, w) {
 	var oSpin = w.parent;
 	var val = oSpin.getValue() - oSpin.step;
 	if (!isNaN(val)) {

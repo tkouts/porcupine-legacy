@@ -7,13 +7,17 @@ QuiX.ui.DataGrid = function(/*params*/) {
 	params.multiple = true;
 	params.cellborder = params.cellborder || 1;
 	params.cellpadding = params.cellpadding || 2;
+    params.onmousedown = QuiX.wrappers.eventWrapper(
+        QuiX.ui.DataGrid._onmousedown,
+        params.onmousedown);
 
 	this.base = QuiX.ui.ListView;
 	this.base(params);
 	
 	this.name = params.name;
 	this.hasSelector = true;
-	this.editUndef = (params.editundef==false || params.editundef=='false')?false:true;
+	this.editUndef = 
+        !(params.editundef == false || params.editundef == 'false');
 }
 
 QuiX.constructors['datagrid'] = QuiX.ui.DataGrid;
@@ -23,8 +27,8 @@ var DataGrid = QuiX.ui.DataGrid;
 
 QuiX.ui.DataGrid.prototype.addHeader = function(params) {
 	var oHeader = QuiX.ui.ListView.prototype.addHeader.apply(this, arguments);
-	this.widgets[1].attachEvent('onclick', DataGrid__onclick);
-	this.widgets[1].attachEvent('onkeydown', DataGrid__onkeydown);
+	this.widgets[1].attachEvent('onclick', QuiX.ui.DataGrid._onclick);
+	this.widgets[1].attachEvent('onkeydown', QuiX.ui.DataGrid._onkeydown);
 	return oHeader;
 }
 
@@ -40,9 +44,9 @@ QuiX.ui.DataGrid.prototype.getValue = function(params) {
 
 QuiX.ui.DataGrid.prototype._removeEditWidget = function() {
 	if (this.attributes.__editwidget) {
-		this.attributes.__editwidget.destroy();
+        var w = this.attributes.__editwidget;
 		this.attributes.__editwidget = null;
-		this.detachEvent('onmousedown');
+		w.destroy();
 	}	
 }
 
@@ -54,18 +58,21 @@ QuiX.ui.DataGrid.prototype.disable = function() {
 QuiX.ui.DataGrid.prototype.refresh = function() {
 	this._removeEditWidget();
 	QuiX.ui.ListView.prototype.refresh.apply(this, arguments);
-    if (QuiX.utils.BrowserInfo.family == 'ie') //strange bug in IE8
+    if (QuiX.utils.BrowserInfo.family == 'ie')  // strange bug in IE8
         this.widgets[1].redraw();
 }
 
-QuiX.ui.DataGrid.prototype.edit = function(cell) {
-	var editValue, w2, w2_type;
+QuiX.ui.DataGrid.prototype.edit = function(cell /*, focus*/) {
+	var editValue,
+        focus = (arguments.length == 2)? arguments[1]:true,
+        w2 = null,
+        w2_type;
 	var idx = cell.cellIndex;
 	var ridx = QuiX.getParentNode(cell).rowIndex;
 	if (idx > 0 && idx < this.columns.length-1 && this.columns[idx].editable) {
 		editValue = this.dataSet[ridx][this.columns[idx].name];
 		if (typeof editValue == 'undefined' && !this.editUndef)
-			return;
+			return null;
         var left = cell.offsetLeft;
         if (QuiX.dir == 'rtl' && QuiX.utils.BrowserInfo.family != 'op') {
             left -= this.widgets[1].div.scrollWidth -
@@ -78,7 +85,7 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 					left : left,
 					width : cell.offsetWidth,
 					height : cell.offsetHeight,
-					onchange : DataGrid__update
+					onchange : QuiX.ui.DataGrid._update
 				});
 			
 				var options = this.columns[idx].options;
@@ -102,24 +109,26 @@ QuiX.ui.DataGrid.prototype.edit = function(cell) {
 					type : w2_type
 				});
 				if (w2_type == 'checkbox')
-					w2.attachEvent('onchange', DataGrid__update)
+					w2.attachEvent('onchange', QuiX.ui.DataGrid._update)
 				else
-					w2.attachEvent('onkeyup', DataGrid__update)
+					w2.attachEvent('onkeyup', QuiX.ui.DataGrid._update)
 		}
         // do not perform rtl xform
         w2._xformed = true;
         this.widgets[1].appendChild(w2);
+
 		w2.redraw();
         w2.div.scrollIntoView(false);
-		if (w2.focus) w2.focus();
+		if (focus && w2.focus)
+            w2.focus();
 		this.attributes.__editwidget = w2;
 		this.attributes.__rowindex = ridx;
 		this.attributes.__cellindex = idx;
-		this.attachEvent('onmousedown', DataGrid__onmousedown);
 	}
+    return w2;
 }
 
-function DataGrid__onclick(evt, w) {
+QuiX.ui.DataGrid._onclick = function(evt, w) {
 	var target = QuiX.getTarget(evt);
 	while (target && target.tagName != 'TD')
 		target = QuiX.getParentNode(target);
@@ -127,7 +136,7 @@ function DataGrid__onclick(evt, w) {
 		w.parent.edit(target);
 }
 
-function DataGrid__onkeydown(evt, w) {
+QuiX.ui.DataGrid._onkeydown = function(evt, w) {
 	if (evt.keyCode == 9) {
 		var dg = w.parent; 
 		var r = dg.attributes.__rowindex;
@@ -142,7 +151,7 @@ function DataGrid__onkeydown(evt, w) {
 						current_cell = rows[r-1].cells[dg.columns.length-2];
 					else
 						current_cell = rows[rows.length-1].cells[dg.columns.length-2];
-				}				
+				}
 			} while (!dg.columns[current_cell.cellIndex].editable)
 		}
 		else {
@@ -156,13 +165,21 @@ function DataGrid__onkeydown(evt, w) {
 				}
 			} while (!dg.columns[current_cell.cellIndex].editable)
 		}
-		dg._removeEditWidget();
-		dg.edit(current_cell);
+        var cur_w = dg.attributes.__editwidget;
+		dg.edit(current_cell, QuiX.utils.BrowserInfo.family != 'op');
+		if (QuiX.utils.BrowserInfo.family == 'op') {
+            window.setTimeout(
+                function() {
+                    dg.attributes.__editwidget.focus();
+                }, 0);
+        }
+        if (cur_w)
+            cur_w.destroy();
 		QuiX.cancelDefault(evt);
 	}
 }
 
-function DataGrid__update(evt, w) {
+QuiX.ui.DataGrid._update = function(evt, w) {
 	w = w || evt;
 	var dg = w.parent.parent;
 	if (dg.attributes.__editwidget) {
@@ -175,8 +192,6 @@ function DataGrid__update(evt, w) {
 	}
 }
 
-function DataGrid__onmousedown(evt, w) {
-	w.attributes.__editwidget.destroy();
-	w.attributes.__editwidget = null;
-	w.detachEvent('onmousedown');
+QuiX.ui.DataGrid._onmousedown = function(evt, dg) {
+    dg._removeEditWidget();
 }

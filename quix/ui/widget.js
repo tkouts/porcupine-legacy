@@ -58,18 +58,21 @@ QuiX.ui.Widget = function(/*params*/) {
     this.setPosition('absolute');
 
     if (params.tooltip) {
-        params.onmouseover = QuiX.wrappers.eventWrapper(Widget__tooltipover,
-                                                        params.onmouseover);
-        params.onmouseout = QuiX.wrappers.eventWrapper(Widget__tooltipout,
-                                                       params.onmouseout);
+        params.onmouseover = QuiX.wrappers.eventWrapper(
+            QuiX.ui.Widget._onmouseover,
+            params.onmouseover);
+        params.onmouseout = QuiX.wrappers.eventWrapper(
+            QuiX.ui.Widget._onmouseout,
+            params.onmouseout);
     }
     if (typeof params.opacity != 'undefined') {
         this.setOpacity(parseFloat(params.opacity));
     }
     this.dragable = (params.dragable == 'true' || params.dragable == true);
-    if (this.dragable){
-        params.onmousedown = QuiX.wrappers.eventWrapper(Widget__startdrag,
-                                                        params.onmousedown);
+    if (this.dragable) {
+        params.onmousedown = QuiX.wrappers.eventWrapper(
+            QuiX.ui.Widget._startDrag,
+            params.onmousedown);
     }
     this.dropable = (params.dropable == 'true' || params.dropable == true);
 
@@ -84,11 +87,15 @@ QuiX.constructors['rect'] = QuiX.ui.Widget;
 // backwards compatibility
 var Widget = QuiX.ui.Widget;
 
-QuiX.ui.Widget.prototype.appendChild = function(w /*, p*/) {
+QuiX.ui.Widget.prototype.appendChild = function(w /*, p, index*/) {
     var p = arguments[1] || this;
+    var index = arguments[2] || null;
     p.widgets.push(w);
     w.parent = p;
-    p.div.appendChild(w.div);
+    if (index != null)
+        p.div.insertBefore(w.div, p.div.childNodes[index]);
+    else
+        p.div.appendChild(w.div);
     if (QuiX.utils.BrowserInfo.family == 'ie' && w.height=='100%' &&
             w.width=='100%')
         p.setOverflow('hidden');
@@ -804,8 +811,8 @@ QuiX.ui.Widget.prototype._startDrag = function(x, y) {
     QuiX.tmpWidget = dragable;
     QuiX.dragable = this;
 
-    document.desktop.attachEvent('onmouseover', Widget__detecttarget);
-    document.desktop.attachEvent('onmousemove', Widget__drag);
+    document.desktop.attachEvent('onmouseover', QuiX.ui.Widget._detectTarget);
+    document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
 }
 
 QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
@@ -831,7 +838,6 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
                     parseInt(wdth),
                     parseInt(hght));
         }
-
         QuiX._ieDomUpdate(this.div);
     }
     return memo;
@@ -908,13 +914,11 @@ QuiX.ui.Widget.prototype.previousSibling = function() {
 
 //events sub-system
 QuiX.ui.Widget.prototype.supportedEvents = [
-    'onmousedown','onmouseup',
-    'onmousemove','onmouseover','onmouseout',
-    'onkeypress','onkeyup','onkeydown',
-    'onclick','ondblclick','onscroll'];
+    'onmousedown', 'onmouseup', 'onmousemove', 'onmouseover', 'onmouseout',
+    'onkeypress', 'onkeyup', 'onkeydown', 'onclick', 'ondblclick', 'onscroll'];
 
-QuiX.ui.Widget.prototype.customEvents = ['onload','onunload',
-    'onresize','ondrop'];
+QuiX.ui.Widget.prototype.customEvents = ['onload', 'onunload',
+    'onresize', 'ondrop'];
 
 if (QuiX.utils.BrowserInfo.family != 'op')
     QuiX.ui.Widget.prototype.supportedEvents.push('oncontextmenu');
@@ -1064,7 +1068,22 @@ QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, chr*/) {
     }
 }
 
-function Widget__tooltipover(evt, w) {
+QuiX.ui.Widget.prototype._showTooltip = function(x, y) {
+    var tooltip = new QuiX.ui.Label({
+        left : x,
+        top : y,
+        caption : this.tooltip,
+        border : 1,
+        bgcolor : 'lightyellow',
+        wrap : true
+    });
+    tooltip.div.className = 'tooltip';
+    document.desktop.appendChild(tooltip);
+    tooltip.redraw();
+    this.__tooltip  = tooltip;
+}
+
+QuiX.ui.Widget._onmouseover = function(evt, w) {
     if (!QuiX.dragging) {
         var x1 = evt.clientX;
         if (QuiX.dir == 'rtl')
@@ -1080,13 +1099,13 @@ function Widget__tooltipover(evt, w) {
         if (!w.__tooltipID) {
             w.__tooltipID = window.setTimeout(
                 function _tooltiphandler() {
-                    Widget__showtooltip(w, x1, y1);
+                    w._showTooltip(x1, y1);
                 }, 1000);
         }
     }
 }
 
-function Widget__tooltipout(evt, w) {
+QuiX.ui.Widget._onmouseout = function(evt, w) {
     window.clearTimeout(w.__tooltipID);
     w.__tooltipID = 0;
     if (w.__tooltip) {
@@ -1095,29 +1114,14 @@ function Widget__tooltipout(evt, w) {
     }
 }
 
-function Widget__showtooltip(w, x, y) {
-    var tooltip = new QuiX.ui.Label({
-        left : x,
-        top : y,
-        caption : w.tooltip,
-        border : 1,
-        bgcolor : 'lightyellow',
-        wrap : true
-    });
-    tooltip.div.className = 'tooltip';
-    document.desktop.appendChild(tooltip);
-    tooltip.redraw();
-    w.__tooltip  = tooltip;
-}
-
-function Widget__startdrag(evt, w) {
+QuiX.ui.Widget._startDrag = function(evt, w) {
     if (QuiX.getMouseButton(evt) == 0) {
         var x = evt.clientX;
         if (QuiX.dir == 'rtl')
             x = QuiX.transformX(x);
         var y = evt.clientY;
         var el = QuiX.getTarget(evt);
-        document.desktop.attachEvent('onmouseup', Widget__enddrag);
+        document.desktop.attachEvent('onmouseup', QuiX.ui.Widget._enddrag);
         QuiX.dragTimer = window.setTimeout(
             function _draghandler() {
                 w._startDrag(x, y, el)
@@ -1129,14 +1133,14 @@ function Widget__startdrag(evt, w) {
     }
 }
 
-function Widget__drag(evt, desktop) {
+QuiX.ui.Widget._drag = function(evt, desktop) {
     var x = evt.clientX + 2;
     if (QuiX.dir == 'rtl')
         x = QuiX.transformX(x)
     QuiX.tmpWidget.moveTo(x, evt.clientY + 2);
 }
 
-function Widget__enddrag(evt, desktop) {
+QuiX.ui.Widget._enddrag = function(evt, desktop) {
     if (QuiX.dragTimer != 0) {
         window.clearTimeout(QuiX.dragTimer);
         QuiX.dragTimer = 0;
@@ -1161,7 +1165,7 @@ function Widget__enddrag(evt, desktop) {
     }
 }
 
-function Widget__detecttarget(evt, desktop) {
+QuiX.ui.Widget._detectTarget = function(evt, desktop) {
     var w = QuiX.getTargetWidget(evt);
     while (w && !w.dropable)
         w = w.parent;
@@ -1183,15 +1187,15 @@ QuiX.ui.Desktop = function(params, root) {
     params.width = 'document.documentElement.clientWidth';
     params.height = 'document.documentElement.clientHeight';
     params.overflow = params.overflow  || 'hidden';
-    params.onmousedown = Desktop__onmousedown;
+    params.onmousedown = QuiX.ui.Desktop._onmousedown;
     if (QuiX.utils.BrowserInfo.family != 'op')
-        params.oncontextmenu = Desktop__oncontextmenu;
+        params.oncontextmenu = QuiX.ui.Desktop._oncontextmenu;
     this.base(params);
     if (QuiX.utils.BrowserInfo.family == 'ie') {
         this.setPosition();
-        this.div.onselectstart = function(){
+        this.div.onselectstart = function() {
             return false
-            };
+        };
     }
     this._setCommonProps();
     this.div.innerHTML =
@@ -1276,12 +1280,12 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
     );
 }
 
-function Desktop__onmousedown(evt, w) {
+QuiX.ui.Desktop._onmousedown = function(evt, w) {
     QuiX.cleanupOverlays();
     QuiX.cancelDefault(evt);
     return false;
 }
 
-function Desktop__oncontextmenu(evt, w) {
+QuiX.ui.Desktop._oncontextmenu = function(evt, w) {
     QuiX.cancelDefault(evt);
 }
