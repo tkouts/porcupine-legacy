@@ -155,7 +155,7 @@ class User(GenericUser):
         if type(password) == str:
             password = password.encode('utf-8')
         md = hashlib.md5(password)
-        hex_digest = md.hexdigest()
+        hex_digest = md.hexdigest().encode()
         return hex_digest == self.password.value
 
 class SystemUser(system.Item):
