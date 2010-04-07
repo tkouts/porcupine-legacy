@@ -231,7 +231,7 @@ class Password(DataType):
         if value != self._value:
             if type(value) == str:
                 value = value.encode('utf-8')
-            self._value = hashlib.md5(value).hexdigest()
+            self._value = hashlib.md5(value).hexdigest().encode()
     value = property(get_value, set_value)
 
 
