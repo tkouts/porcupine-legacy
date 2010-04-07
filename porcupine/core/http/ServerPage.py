@@ -66,11 +66,7 @@ def execute(context, filename):
                 codeMatch = re.match(PSP_TAGS, codeFragment)
                 if codeMatch is None:
                     # pure HTML
-                    # remove whitespaces
-                    #codeFragment = codeFragment.strip() + '\n'
-                    codeFragment = codeFragment.replace("'", "\\'")
-                    execCode += intend + \
-                        'Response.write(\'\'\'%s\'\'\')\n' % codeFragment
+                    execCode += intend + 'Response.write(%r)\n' % codeFragment
                 else:
                     # pure Python
                     # remove PSP tags
