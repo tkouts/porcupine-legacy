@@ -1137,7 +1137,8 @@ QuiX.ui.Widget._drag = function(evt, desktop) {
     var x = evt.clientX + 2;
     if (QuiX.dir == 'rtl')
         x = QuiX.transformX(x)
-    QuiX.tmpWidget.moveTo(x, evt.clientY + 2);
+    if (QuiX.tmpWidget)
+        QuiX.tmpWidget.moveTo(x, evt.clientY + 2);
 }
 
 QuiX.ui.Widget._enddrag = function(evt, desktop) {
