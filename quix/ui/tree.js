@@ -1,13 +1,17 @@
-/************************
-Tree node
-************************/
+// tree node
 
 QuiX.ui.TreeNode = function(/*params*/) {
 	var params = arguments[0] || {};
 	params.display = 'none';
 	params.padding = '13,0,1,1';
 	params.onmousedown = QuiX.cancelDefault;
-	
+	params.onmouseover = QuiX.wrappers.eventWrapper(
+        QuiX.ui.TreeNode._onmouseover,
+        params.onmouseover);
+	params.onmouseout = QuiX.wrappers.eventWrapper(
+        QuiX.ui.TreeNode._onmouseout,
+        params.onmouseout);
+
 	this.base = QuiX.ui.Widget;
 	this.base(params);
 
@@ -204,9 +208,26 @@ QuiX.ui.TreeNode.prototype.enable = function() {
 	QuiX.ui.Widget.prototype.enable.apply(this, arguments);
 }
 
-/************************
-Tree
-************************/
+QuiX.ui.TreeNode._onmouseover = function(evt, treeNode) {
+    if (QuiX.dragging && !treeNode._dragtimer && treeNode.hasChildren()
+            && !treeNode.isExpanded) {
+        treeNode._dragtimer = window.setTimeout(
+            function() {
+                treeNode._dragTimer = null;
+                treeNode.toggle();
+            }, 1000);
+    }
+}
+
+QuiX.ui.TreeNode._onmouseout = function(evt, treeNode) {
+    if (treeNode._dragtimer) {
+        window.clearTimeout(treeNode._dragtimer);
+        treeNode._dragtimer = null;
+    }
+}
+
+// tree
+
 QuiX.ui.Tree = function(/*params*/) {
     var params = arguments[0] || {};
 	this.base = QuiX.ui.Widget;
@@ -248,9 +269,8 @@ QuiX.ui.Tree.prototype.getSelection = function() {
 	return this.selectedWidget;
 }
 
-/************************
-Folder tree
-************************/
+// folder tree
+
 QuiX.ui.FolderTree = function(params) {
 	this.base = QuiX.ui.Tree;
 	this.base(params);
