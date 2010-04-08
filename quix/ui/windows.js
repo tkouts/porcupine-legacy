@@ -536,7 +536,7 @@ QuiX.ui.Dialog._buttonHolderRedraw = function(bForceAll /*, memo*/) {
 	var iOffset = 0;
 	for (var i=0; i<this.widgets.length; i++) {
 		this.widgets[i].left = iOffset;
-		iOffset += this.widgets[i].getWidth(true, memo) + 8;
+		iOffset += this.widgets[i]._calcWidth(true, memo) + 8;
 	}
 	this.width = iOffset;
 	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
