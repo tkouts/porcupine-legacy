@@ -81,12 +81,11 @@ class DataType(object):
             else:
                 safe_type_name = '"%s"' % self._safetype.__name__
             raise TypeError(
-               'Invalid data type for "%s". Got "%s" instead of %s.' %
-               (self.__class__.__name__, self.value.__class__.__name__,
-                safe_type_name))
+                self.__class__.__name__,
+               'Got "%s" instead of "%s."' %
+               (self.value.__class__.__name__, safe_type_name))
         if self.isRequired and not self.value:
-            raise ValueError(
-               '"%s" attribute is mandatory' % self.__class__.__name__)
+            raise ValueError(self.__class__.__name__, 'Attribute is mandatory')
 
 
 class String(DataType):
@@ -220,8 +219,7 @@ class Password(DataType):
 
     def validate(self):
         if self.isRequired and self._value == self._blank:
-            raise ValueError(
-               '"%s" attribute is mandatory' % self.__class__.__name__)
+            raise ValueError(self.__class__.__name__, 'Attribute is mandatory')
         DataType.validate(self)
 
     def get_value(self):
@@ -486,8 +484,7 @@ class Text(ExternalAttribute):
 
     def validate(self):
         if self.isRequired and self._size == 0:
-            raise ValueError(
-               '"%s" attribute is mandatory' % self.__class__.__name__)
+            raise ValueError(self.__class__.__name__, 'Attribute is mandatory')
 
 
 class RequiredText(Text):
@@ -531,7 +528,8 @@ class RequiredFile(File):
 
 
 class ExternalFile(String):
-    """Datatype for linking external files. Its value
+    """
+    Datatype for linking external files. Its value
     is a string which contains the path to the file.
     """
     _eventHandler = dteventhandlers.ExternalFileEventHandler

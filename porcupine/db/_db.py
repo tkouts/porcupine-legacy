@@ -125,7 +125,16 @@ def handle_update(item, old_item):
             attr = getattr(item, attr_name)
         except AttributeError:
             continue
-        attr.validate()
+
+        try:
+            attr.validate()
+        except (TypeError, ValueError) as e:
+            # we got a validation error
+            # replace attr type with attr name for a more
+            # informative message
+            e.args = (attr_name, ) + e.args[1:]
+            raise
+
         if attr._eventHandler:
             if old_item:
                 # it is an update
