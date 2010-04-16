@@ -145,8 +145,9 @@ QuiX.ui.Icon.prototype.setImageURL = function(s) {
     if (s != this.img) {
         this.img = s;
         if (this.imageElement)
-            if (QuiX.utils.BrowserInfo.family == 'ie')
-                this.redraw(true);
+            if (QuiX.utils.BrowserInfo.family == 'ie' &&
+                    this.div.clientWidth == 0) {
+                this.redraw(true);}
             else
                 this.imageElement.src = s;
     }
