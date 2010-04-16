@@ -88,7 +88,8 @@ class HttpResponse(object):
 
     def clear(self):
         "Clears the response body."
-        self._body.truncate(0)
+        self._body.close()
+        self._body = io.BytesIO()
 
     def set_header(self, header, value):
         """Sets a response HTTP header.
