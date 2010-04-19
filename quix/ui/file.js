@@ -51,6 +51,7 @@ QuiX.ui.File = function(/*params*/) {
             btn.div.className = 'btnupload';
             self.appendChild(btn);
         }
+        btn.attachEvent('onmousedown', QuiX.stopPropag);
         btn.div.innerHTML = '<span id="' + btn._uniqueid + '"></span>';
         self.uploader = QuiX.ui.File._getUploader(
             self, btn._uniqueid, params);
@@ -253,6 +254,7 @@ QuiX.ui.MultiFile = function(/*params*/) {
         this.appendChild(this.addButton);
         this.addButton.div.className = 'btnupload';
     }
+    this.addButton.attachEvent('onmousedown', QuiX.stopPropag);
 
     params.multiple = true;
     params.img = params.img || QuiX.getThemeUrl() + 'images/add16.gif';
