@@ -67,20 +67,16 @@ class Gzip(PostProcessFilter):
                 oldfiles = glob.glob(glob_f + '*.gzip')
                 [os.remove(old) for old in oldfiles]
 
-                output = io.BytesIO()
-                Gzip.compress(context.response._get_body(), output,
+                output = io.FileIO(compfn, 'wb')
+                Gzip.compress(context.response._get_body(),
+                              output,
                               Gzip.staticLevel)
+                output.close()
 
-                context.response._body = output
-
-                cache_file = open(compfn, 'wb')
-                cache_file.write(output.getvalue())
-                cache_file.close()
-            else:
-                cache_file = open(compfn, 'rb')
-                context.response.clear()
-                context.response.write(cache_file.read())
-                cache_file.close()
+            context.response.clear()
+            cache_file = io.FileIO(compfn)
+            context.response.write(cache_file.read())
+            cache_file.close()
 
         else:
             output = io.BytesIO()

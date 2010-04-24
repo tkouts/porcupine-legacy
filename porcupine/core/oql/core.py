@@ -377,20 +377,22 @@ def h_200_prepare(params, variables, for_object=None):
     select_from = params[1]
     for scope in select_from:
         if scope[0] != 2:
-            # not a subquery
-            if len(scope[1]) == 1 \
-                    and isinstance(scope[1][0], (bytes, str)) \
-                    and scope[1][0][0] == '$' \
-                    and scope[1][0][1:] not in variables:
-                # parameter
-                scope[1] = scope[1][0]
-            else:
-                # expression
-                container_id = evaluate_stack(scope[1], variables, for_object)
-                if container_id is not None:
-                    scope[1] = container_id
+            # not a this:... query
+            if isinstance(scope[1], list):
+                if len(scope[1]) == 1 \
+                        and isinstance(scope[1][0], (bytes, str)) \
+                        and scope[1][0][0] == '$' \
+                        and scope[1][0][1:] not in variables:
+                    # parameter
+                    scope[1] = scope[1][0]
                 else:
-                    raise TypeError('OQL scopes should be immutable')
+                    # expression
+                    container_id = evaluate_stack(scope[1], variables,
+                                                  for_object)
+                    if container_id is not None:
+                        scope[1] = container_id
+                    else:
+                        raise TypeError('OQL scopes should be immutable')
 
     where_condition = params[2]
     select_range = params[5]
@@ -428,7 +430,7 @@ def h_200_prepare(params, variables, for_object=None):
     if select_fields:
         # add _id in order for set operations work correctly
         # an aggregate type of None will prevent aggregation
-        flds = [x[0] for x in select_fields]
+        flds = [x[1] for x in select_fields]
         if 'id' not in flds and '_id' not in flds:
             select_fields.append(['_id', '_id', None])
         all_fields = select_fields + order_by + group_by
@@ -438,9 +440,9 @@ def h_200_prepare(params, variables, for_object=None):
     # optimize field access
     for f in all_fields:
         if type(f[0]) == str \
-                and f[0][0] != "'" \
-                and f[0][0] != '$' \
-                and f[0] != '**':
+                and f[0][0] not in "'$" \
+                and f[0] != '**' \
+                and f[1] not in aliases:
             field_spec = f[0].split('.')
             aliases[f[1]] = (
                 eval('[lambda obj: get_attribute(obj, %s)]' % field_spec),
@@ -485,6 +487,7 @@ def h_200(prepared, variables, for_object=None):
     sort_order = prepared['sort_order']
     group_by = prepared['group_by']
 
+    variables = variables.copy()
     variables.update(aliases)
 
     aggregates = [x[2] for x in all_fields]
