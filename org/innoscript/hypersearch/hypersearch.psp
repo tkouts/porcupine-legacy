@@ -20,7 +20,7 @@
 	<wbody>
 		<splitter width="100%" height="100%">
 			<vbox padding="8,8,8,8" width="220"
-					id="search_criteria" overflow="auto" minw="180">
+					id="search_criteria" overflow="auto" minw="220">
 				<label height="22" caption="@@SEARCH_IN@@"/>
 				<hbox height="24">
 					<field id="container_name" value="<%Response.write(container_title)%>"/>
