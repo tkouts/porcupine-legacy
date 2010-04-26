@@ -112,7 +112,7 @@ QuiX.ui.Widget.prototype.disable = function() {
         this.div.style.cursor = 'default';
         this._isDisabled = true;
         if (this.__tooltip || this.__tooltipID)
-            Widget__tooltipout(null, this);
+            QuiX.ui.Widget._onmouseout(null, this);
         this._detachEvents();
         for (var i=0; i<this.widgets.length; i++) {
             this.widgets[i].disable();

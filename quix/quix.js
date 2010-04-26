@@ -669,7 +669,7 @@ QuiX.removeWidget = function(w) {
 	var parentElement;
 	
 	if (w.__tooltip || w.__tooltipID)
-		Widget__tooltipout(null, w);
+		QuiX.ui.Widget._onmouseout(null, w);
 	if (w._customRegistry.onunload)
 		w._customRegistry.onunload(w);
 	while (w.widgets.length>0)
