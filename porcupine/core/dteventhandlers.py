@@ -115,6 +115,13 @@ class CompositionEventHandler(DatatypeEventHandler):
         else:
             db._db.delete_item(composite)
 
+    @staticmethod
+    def on_undelete(item, attr):
+        for id in attr.value:
+            composite = db._db.get_item(id)
+            composite._isDeleted = 0
+            db._db.handle_undelete(composite)
+            db._db.put_item(composite)
 
 class RelatorNEventHandler(DatatypeEventHandler):
     "RelatorN datatype event handler"
