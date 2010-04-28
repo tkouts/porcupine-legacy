@@ -418,7 +418,8 @@ class _Elastic(object):
             setattr(self, name, attr)
             return attr
         else:
-            raise AttributeError
+            raise AttributeError("'%s' object has no attribute '%s'" %
+                                 (self.__class__.__name__, name))
 
     def _update_schema(self):
         new_ssig = hash(tuple(self.__props__.keys()))
