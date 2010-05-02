@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Porcupine Desktop web methods for base item content types
 =========================================================
@@ -79,8 +79,7 @@ AUTO_CONTROLS = {
             <custom classname="ReferenceN" width="100%%" height="100%%"
                 root="" cc="%s" name="%s" disabled="%s" value="%s"/>
         </tab>
-        '''
-}
+        '''}
 
 SECURITY_TAB = '''
 <tab caption="@@SECURITY@@" onactivate="generic.getSecurity">
@@ -91,11 +90,12 @@ SECURITY_TAB = '''
 
 DATES_FORMAT = 'ddd, dd month yyyy h12:min:sec MM'
 
+
 def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
     attrlabel = '@@%s@@' % attrname
     sControl = ''
     sTab = ''
-    
+
     if isinstance(attr, datatypes.String):
         sControl = AUTO_CONTROLS[datatypes.String] % \
             (attrlabel, attrname,
@@ -106,12 +106,12 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
             (attrlabel, attrname,
              str(attr.value).lower(),
              str(readonly).lower())
-        
+
     elif isinstance(attr, datatypes.Date):
         sControl = AUTO_CONTROLS[datatypes.Date] % \
             (attrlabel, attrname,
              attr.to_iso_8601(), str(readonly).lower())
-        
+
     elif isinstance(attr, datatypes.File):
         if isNew:
             href = ''
@@ -120,15 +120,13 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
         sControl = AUTO_CONTROLS[datatypes.File] % (
             attrlabel, attrname,
             attr.filename, len(attr), href,
-            str(readonly).lower()
-        )
-        
+            str(readonly).lower())
+
     elif isinstance(attr, datatypes.Text):
         sTab = AUTO_CONTROLS[datatypes.Text] % (
             attrlabel, attrname, str(readonly).lower(),
-            xml.xml_encode(attr.value)
-        )
-        
+            xml.xml_encode(attr.value))
+
     elif isinstance(attr, datatypes.Reference1):
         oRefItem = attr.get_item()
         if oRefItem:
@@ -143,9 +141,8 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
             attrname,
             refid,
             refname,
-            sReadonly
-        )
-        
+            sReadonly)
+
     elif isinstance(attr, datatypes.ReferenceN):
         options = []
         rel_items = attr.get_items()
@@ -153,16 +150,16 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
             options += [xml.xml_encode(item.__image__),
                         item.id,
                         xml.xml_encode(item.displayName.value)]
-        
+
         sTab = AUTO_CONTROLS[datatypes.ReferenceN] % (
             attrlabel,
             '|'.join(attr.relCc),
             attrname,
             str(readonly).lower(),
-            ';'.join(options)
-        )
-    
+            ';'.join(options))
+
     return (sControl, sTab)
+
 
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
@@ -172,27 +169,26 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
 def properties(self):
     "Displays a generic edit form based on the object's schema"
     sLang = context.request.get_lang()
-    
+
     user = context.user
     iUserRole = permsresolver.get_access(self, user)
     readonly = (iUserRole == permsresolver.READER)
     admin = (iUserRole == permsresolver.COORDINATOR)
     modified = date.Date(self.modified)
-    
+
     params = {
-        'URI' : self.id,
-        'ICON' : self.__image__,
-        'TITLE' : xml.xml_encode(self.displayName.value),
+        'URI': self.id,
+        'ICON': self.__image__,
+        'TITLE': xml.xml_encode(self.displayName.value),
         'MODIFIED': modified.format(DATES_FORMAT, sLang),
         'MODIFIED_BY': xml.xml_encode(self.modifiedBy),
         'CONTENTCLASS': self.contentclass,
-        'PROPERTIES' : [],
+        'PROPERTIES': [],
         'EXTRA_TABS': [],
-        'ADMIN' : admin,
-        'ROLES_INHERITED' : str(self.inheritRoles).lower(),
+        'ADMIN': admin,
+        'ROLES_INHERITED': str(self.inheritRoles).lower(),
         'ACTION_DISABLED': str(readonly).lower(),
-        'METHOD' : 'update'
-    }
+        'METHOD': 'update'}
     # inspect item properties
     for attr_name in self.__props__:
         attr = getattr(self, attr_name)
@@ -201,8 +197,9 @@ def properties(self):
                 _getControlFromAttribute(self, attr_name, attr, readonly)
             params['PROPERTIES'].append(control)
             params['EXTRA_TABS'].append(tab)
-    
+
     return params
+
 
 @filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
@@ -213,13 +210,13 @@ def rename(self):
     return {
         'TITLE': xml.xml_encode(self.displayName.value),
         'ID': self.id,
-        'DN': xml.xml_encode(self.displayName.value),
-    }
+        'DN': xml.xml_encode(self.displayName.value)}
+
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=GenericItem,
                    max_age=3600,
-                   template='../ui.Dlg_SelectContainer.quix') 
+                   template='../ui.Dlg_SelectContainer.quix')
 def selectcontainer(self):
     "Displays a dialog for selecting the destination container"
     rootFolder = db.get_item('')
@@ -227,8 +224,7 @@ def selectcontainer(self):
         'ROOT_ID': '/',
         'ROOT_IMG': rootFolder.__image__,
         'ROOT_DN': rootFolder.displayName.value,
-        'ID': self.id,
-    }
+        'ID': self.id}
     sAction = context.request.queryString['action'][0]
     params['TITLE'] = '@@%s@@' % sAction.upper()
     if sAction != 'select_folder':
@@ -258,7 +254,8 @@ def update(self, data):
             # see if the user has uploaded a new file
             if data[prop]['tempfile']:
                 oAttr.filename = data[prop]['filename']
-                sPath = context.server.temp_folder + '/' + data[prop]['tempfile']
+                sPath = (context.server.temp_folder + '/' +
+                         data[prop]['tempfile'])
                 oAttr.load_from_file(sPath)
         elif isinstance(oAttr, datatypes.Date):
             oAttr.value = data[prop].value
@@ -269,6 +266,7 @@ def update(self, data):
     self.update()
     return True
 
+
 @webmethods.remotemethod(of_type=Item)
 @db.transactional(auto_commit=True)
 def rename(self, newName):
@@ -276,6 +274,7 @@ def rename(self, newName):
     self.displayName.value = newName
     self.update()
     return True
+
 
 @filters.etag()
 @webmethods.remotemethod(of_type=Item)
@@ -291,9 +290,9 @@ def getSecurity(self):
         l.append({
             'id': sID,
             'displayName': dn,
-            'role': str(self.security[sID])
-        })
+            'role': str(self.security[sID])})
     return l
+
 
 @webmethods.remotemethod(of_type=Item)
 @db.transactional(auto_commit=True)
@@ -301,17 +300,20 @@ def copyTo(self, targetid):
     self.copy_to(targetid)
     return True
 
+
 @webmethods.remotemethod(of_type=Item)
 @db.transactional(auto_commit=True)
 def moveTo(self, targetid):
     self.move_to(targetid)
     return True
 
+
 @webmethods.remotemethod(of_type=GenericItem)
 @db.transactional(auto_commit=True)
 def delete(self):
     self.recycle('rb')
     return True
+
 
 @webmethods.remotemethod(of_type=GenericItem)
 @db.transactional(auto_commit=True)

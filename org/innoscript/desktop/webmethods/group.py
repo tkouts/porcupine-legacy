@@ -1,19 +1,19 @@
-#===============================================================================
-#    Copyright 2005-2009, Tassos Koutsovassilis
+#==============================================================================
+#   Copyright 2005-2009, Tassos Koutsovassilis
 #
-#    This file is part of Porcupine.
-#    Porcupine is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU Lesser General Public License as published by
-#    the Free Software Foundation; either version 2.1 of the License, or
-#    (at your option) any later version.
-#    Porcupine is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Lesser General Public License for more details.
-#    You should have received a copy of the GNU Lesser General Public License
-#    along with Porcupine; if not, write to the Free Software
-#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#===============================================================================
+#   This file is part of Porcupine.
+#   Porcupine is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU Lesser General Public License as published by
+#   the Free Software Foundation; either version 2.1 of the License, or
+#   (at your option) any later version.
+#   Porcupine is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU Lesser General Public License for more details.
+#   You should have received a copy of the GNU Lesser General Public License
+#   along with Porcupine; if not, write to the Free Software
+#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#==============================================================================
 """
 Web methods for the group content class
 """
@@ -25,6 +25,7 @@ from porcupine.utils import date, xml, permsresolver
 from org.innoscript.desktop.schema.security import Group
 from org.innoscript.desktop.webmethods import baseitem
 
+
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Group,
                    template='../ui.Frm_GroupProperties.quix',
@@ -35,25 +36,25 @@ def properties(self):
 
     user = context.user
     iUserRole = permsresolver.get_access(self, user)
-    readonly = (iUserRole==permsresolver.READER)
-    admin = (iUserRole==permsresolver.COORDINATOR)
+    readonly = (iUserRole == permsresolver.READER)
+    admin = (iUserRole == permsresolver.COORDINATOR)
 
     params = {
-        'ID' : self.id,
-        'ICON' : self.__image__,
-        'SELECT_FROM_POLICIES' : 'policies',
-        'POLICIES_REL_CC' : '|'.join(self.policies.relCc),
-        'NAME' : xml.xml_encode(self.displayName.value),
-        'DESCRIPTION' : xml.xml_encode(self.description.value),
-        'MODIFIED' : date.Date(self.modified).format(baseitem.DATES_FORMAT, sLang),
-        'MODIFIED_BY' : xml.xml_encode(self.modifiedBy),
-        'CONTENTCLASS' : self.contentclass,
-        'SELECT_FROM' : self.parentid,
-        'REL_CC' : '|'.join(self.members.relCc),
-        'READONLY' : str(readonly).lower(),
-        'ADMIN' : admin,
-        'ROLES_INHERITED' : str(self.inheritRoles).lower()
-    }
+        'ID': self.id,
+        'ICON': self.__image__,
+        'SELECT_FROM_POLICIES': 'policies',
+        'POLICIES_REL_CC': '|'.join(self.policies.relCc),
+        'NAME': xml.xml_encode(self.displayName.value),
+        'DESCRIPTION': xml.xml_encode(self.description.value),
+        'MODIFIED': date.Date(self.modified).format(
+            baseitem.DATES_FORMAT, sLang),
+        'MODIFIED_BY': xml.xml_encode(self.modifiedBy),
+        'CONTENTCLASS': self.contentclass,
+        'SELECT_FROM': self.parentid,
+        'REL_CC': '|'.join(self.members.relCc),
+        'READONLY': str(readonly).lower(),
+        'ADMIN': admin,
+        'ROLES_INHERITED': str(self.inheritRoles).lower()}
 
     members_options = []
     members = self.members.get_items()
@@ -70,6 +71,5 @@ def properties(self):
                              policy.id,
                              xml.xml_encode(policy.displayName.value)]
     params['POLICIES'] = ';'.join(policies_options)
-    
-    return params
 
+    return params
