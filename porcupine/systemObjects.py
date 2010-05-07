@@ -423,7 +423,7 @@ class _Elastic(object):
 
     def _update_schema(self):
         new_ssig = hash(tuple(self.__props__.keys()))
-        if self._ssig != new_ssig:
+        if not hasattr(self, '_ssig') or self._ssig != new_ssig:
             item_schema = set([p for p in self.__dict__
                                if isinstance(self.__dict__[p],
                                              datatypes.DataType)])
