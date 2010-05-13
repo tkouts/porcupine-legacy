@@ -19,9 +19,10 @@
 #  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #==============================================================================
 import unittest
-
-from normaltemplate import *
-from normaltemplate import NormalTemplateError
+try:
+    from . import NormalTemplateError, compile, filters
+except ValueError:
+    from __init__ import NormalTemplateError, compile, filters
 
 
 class NormalTemplateTestCases(unittest.TestCase):
