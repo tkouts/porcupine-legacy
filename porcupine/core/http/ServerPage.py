@@ -18,6 +18,9 @@
 import os
 import re
 import marshal
+import glob
+import imp
+import binascii
 
 from porcupine import exceptions
 
@@ -36,16 +39,17 @@ def execute(context, filename):
             'The file "%s" can not be found' % filename)
 
     sMod = hex(sMod)[2:]
+    magic = binascii.hexlify(imp.get_magic())
 
     sFileWithoutExtension = \
         re.search(PSP_REMOVE_EXTENSION, filename).groups()[0]
-    compiledFileName = sFileWithoutExtension + '#' + sMod + '.bin'
+    compiledFileName = '{0}#{1}-{2}.bin'.format(sFileWithoutExtension,
+                                                sMod, magic)
 
     try:
         pspBinaryFile = open(compiledFileName, 'rb')
     except IOError:
         # remove old compiled files
-        import glob
         oldFiles = glob.glob(sFileWithoutExtension + '*.bin')
         for oldFile in oldFiles:
             os.remove(oldFile)
