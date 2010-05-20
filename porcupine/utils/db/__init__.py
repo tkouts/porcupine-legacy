@@ -204,6 +204,8 @@ def initialize_db():
     guest.displayName.value = 'GUEST'
     guest._isSystem = True
     guest.description.value = 'Guest account'
+    guest.inheritRoles = False
+    guest.security = {'everyone': 1, 'administrators': 8}
     guest.append_to('users')
     sys.stdout.write('[OK]\n')
 
