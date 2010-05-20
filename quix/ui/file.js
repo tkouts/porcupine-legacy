@@ -1,15 +1,14 @@
-/************************
-File Control
-************************/
+// file uploader
+
 QuiX.ui.File = function(/*params*/) {
-	var params = arguments[0] || {};
+    var params = arguments[0] || {};
 
     params.onunload = QuiX.ui.File.onunload;
-	params.height = params.height || 24;
-	this.name = params.name;
-	this.href = params.href;
-	this.readonly = (params.readonly == 'true' ||
-					 params.readonly == true)? true:false;
+    params.height = params.height || 24;
+    this.name = params.name;
+    this.href = params.href;
+    this.readonly = (params.readonly == 'true' ||
+                     params.readonly == true)? true:false;
 
     if (params.filename) {
         this.file = {
@@ -18,8 +17,8 @@ QuiX.ui.File = function(/*params*/) {
         }
     }
 
-	this.base = QuiX.ui.Box;
-	this.base(params);
+    this.base = QuiX.ui.Box;
+    this.base(params);
 
     var f = new QuiX.ui.Link({
             caption : this._getCaption(),
@@ -31,11 +30,11 @@ QuiX.ui.File = function(/*params*/) {
     this.appendChild(f);
     f.div.className = 'field';
 
-	params.multiple = false;
+    params.multiple = false;
     params.btnlpadding = params.btnlpadding || 3;
     params.btntpadding = params.btntpadding || params.height - 22;
 
-	var self = this;
+    var self = this;
     this.attachEvent('onload', function() {
         var btn;
         if (params.placeholder) {
@@ -88,7 +87,8 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
         button_height : '100%',
         button_window_mode : 'transparent',
         button_action : action,
-        button_image_url: params.img || QuiX.getThemeUrl() + 'images/transp.gif',
+        button_image_url: params.img || QuiX.getThemeUrl() +
+                          'images/transp.gif',
         button_disabled : (params.readonly == 'true' ||
                            params.readonly == true)? true:false,
         
@@ -122,7 +122,7 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
 }
 
 QuiX.ui.File.prototype.openDocument = function() {
-	window.location.href = this.href;
+    window.location.href = this.href;
 }
 
 QuiX.ui.File.prototype.fileSelected = function(file) {
@@ -137,9 +137,10 @@ QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
                     this.file.name + '" ' +
                     'width="240" height="90" left="center" top="center">' +
                 '<wbody>' +
-                    '<progressbar width="90%" height="20" left="center" top="center" ' +
-                            'maxvalue="' + this.file.size + '">' +
-                        '<label align="center" width="100%" height="100%" caption="0%"/>' +
+                    '<progressbar width="90%" height="20" left="center" ' +
+                            'top="center" maxvalue="' + this.file.size + '">' +
+                        '<label align="center" width="100%" height="100%" ' +
+                        'caption="0%"/>' +
                     '</progressbar>' +
                 '</wbody>' +
                 '<dlgbutton width="70" height="22" caption="' +
@@ -160,10 +161,11 @@ QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
     }
 }
 
-QuiX.ui.File.prototype.updateProgress = function(file, bytes_complete, total_bytes) {
-	var pbar = this.attributes.pbar;
-	pbar.setValue(bytes_complete);
-	pbar.widgets[1].setCaption(
+QuiX.ui.File.prototype.updateProgress =
+function(file, bytes_complete, total_bytes) {
+    var pbar = this.attributes.pbar;
+    pbar.setValue(bytes_complete);
+    pbar.widgets[1].setCaption(
         parseInt((bytes_complete / pbar.maxvalue) * 100) + '%');
 }
 
@@ -173,16 +175,16 @@ QuiX.ui.File.prototype.uploadSuccess = function(file, server_data, response) {
 
 QuiX.ui.File.prototype.uploadComplete = function(file) {
     this.widgets[0].setCaption(file.name);
-	this.attributes.pbar.getParentByType(Dialog).close();
-	if (this._customRegistry.oncomplete)
-			this._customRegistry.oncomplete(this);
+    this.attributes.pbar.getParentByType(Dialog).close();
+    if (this._customRegistry.oncomplete)
+            this._customRegistry.oncomplete(this);
 }
 
 QuiX.ui.File.prototype._getCaption = function() {
     var caption = '';
     if (this.file)
         caption = this.file.name;
-	return caption;
+    return caption;
 }
 
 QuiX.ui.File.prototype.getValue = function() {
@@ -207,36 +209,37 @@ QuiX.ui.File.prototype.onerror = function(e) {
     QuiX.displayError(e);
 }
 
-//multiple file uploader
+// multiple file uploader
+
 QuiX.ui.MultiFile = function(/*params*/) {
-	var params = arguments[0] || {};
+    var params = arguments[0] || {};
     params.onunload = QuiX.ui.File.onunload;
     
-	this.name = params.name;
-	this.method = params.method;
-	this.readonly = (params.readonly == 'true' ||
-					 params.readonly == true)? true:false;
-	
-	this.base = QuiX.ui.Widget;
-	this.base(params);
-	this.selectlist = new QuiX.ui.SelectList({
-		width : '100%',
-		height : 'this.parent.getHeight(false, memo) - 24',
+    this.name = params.name;
+    this.method = params.method;
+    this.readonly = (params.readonly == 'true' ||
+                     params.readonly == true)? true:false;
+    
+    this.base = QuiX.ui.Widget;
+    this.base(params);
+    this.selectlist = new QuiX.ui.SelectList({
+        width : '100%',
+        height : 'this.parent.getHeight(false, memo) - 24',
         multiple : true,
-		ondblclick : this.downloadFile
-	});
-	this.appendChild(this.selectlist);
-	
-	this.removeButton = new QuiX.ui.FlatButton({
-		width : 24,
-		height : 24,
-		img : '$THEME_URL$images/remove16.gif',
-		top : 'this.parent.getHeight(false, memo) - 24',
-		left : 'this.parent.getWidth(false, memo) - 24',
+        ondblclick : this.downloadFile
+    });
+    this.appendChild(this.selectlist);
+    
+    this.removeButton = new QuiX.ui.FlatButton({
+        width : 24,
+        height : 24,
+        img : '$THEME_URL$images/remove16.gif',
+        top : 'this.parent.getHeight(false, memo) - 24',
+        left : 'this.parent.getWidth(false, memo) - 24',
         onclick : this.removeSelectedFiles,
-		disabled : this.readonly
-	});
-	this.appendChild(this.removeButton);
+        disabled : this.readonly
+    });
+    this.appendChild(this.removeButton);
 
     if (params.placeholder) {
         this.addButton = document.desktop.getWidgetById(params.placeholder);
@@ -266,7 +269,7 @@ QuiX.ui.MultiFile = function(/*params*/) {
             self.uploader = QuiX.ui.File._getUploader(
                 self, self.addButton._uniqueid, params);
     });
-	this.files = [];
+    this.files = [];
     this.upload_queue = [];
     this.total_bytes = 0;
 }
@@ -279,8 +282,8 @@ QuiX.ui.MultiFile.prototype.customEvents =
 var MultiFile = QuiX.ui.MultiFile;
 
 QuiX.ui.MultiFile.prototype.reset = function() {
-	this.files = [];
-	this.selectlist.clear();
+    this.files = [];
+    this.selectlist.clear();
 }
 
 QuiX.ui.MultiFile.prototype.fileSelected = function(f) {
@@ -295,13 +298,14 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
             '<dialog xmlns="http://www.innoscript.org/quix" title="" ' +
                     'width="240" height="140" left="center" top="center">' +
                 '<wbody>' +
-                    '<progressbar width="90%" height="24" left="center" top="20" ' +
-                            'maxvalue="' + this.total_bytes + '">' +
+                    '<progressbar width="90%" height="24" left="center" ' +
+                            'top="20" maxvalue="' + this.total_bytes + '">' +
                         '<label align="center" width="100%" height="100%"/>' +
                     '</progressbar>' +
-                    '<progressbar width="90%" height="24" left="center" top="50" ' +
-                            'maxvalue="100">' +
-                        '<label align="center" width="100%" height="100%" caption="0%"/>' +
+                    '<progressbar width="90%" height="24" left="center" ' +
+                            'top="50" maxvalue="100">' +
+                        '<label align="center" width="100%" height="100%" ' +
+                        'caption="0%"/>' +
                     '</progressbar>' +
                 '</wbody>' +
                 '<dlgbutton width="70" height="22" caption="CANCEL"/>' +
@@ -327,52 +331,54 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
 }
 
 QuiX.ui.MultiFile.prototype.removeSelectedFiles = function(evt, btn) {
-	var mf = btn.parent
-	mf.selectlist.removeSelected();
-	mf.files = [];
-	var opts = mf.selectlist.options;
-	for (var i=0; i<opts.length; i++) {
-		mf.files.push(opts[i].attributes.fileinfo);
-	}
+    var mf = btn.parent
+    mf.selectlist.removeSelected();
+    mf.files = [];
+    var opts = mf.selectlist.options;
+    for (var i=0; i<opts.length; i++) {
+        mf.files.push(opts[i].attributes.fileinfo);
+    }
 }
 
 QuiX.ui.MultiFile.prototype.getValue = function() {
-	return this.files;
+    return this.files;
 }
 
 QuiX.ui.MultiFile.prototype.addFile = function(params) {
-	var fileinfo = {
+    var fileinfo = {
         id : params.id || '',
         filename : params.name || params.filename,
         temp_file : params.tmpfile || ''
     }
     this.files.push(fileinfo);
     
-	var opt = this.selectlist.addOption({
-		caption : fileinfo.filename,
-		value : fileinfo.id,
-		img : params.img || '$THEME_URL$images/document.gif'
-	});
-	opt.attributes.fileinfo = fileinfo;
+    var opt = this.selectlist.addOption({
+        caption : fileinfo.filename,
+        value : fileinfo.id,
+        img : params.img || '$THEME_URL$images/document.gif'
+    });
+    opt.attributes.fileinfo = fileinfo;
 }
 
 QuiX.ui.MultiFile.prototype.downloadFile = function(evt, w) {
-	if (w.selection.length == 1 && w.selection[0].value)
-		window.location.href = QuiX.root + w.selection[0].value +
+    if (w.selection.length == 1 && w.selection[0].value)
+        window.location.href = QuiX.root + w.selection[0].value +
                                '?cmd=' + w.parent.method;
 }
 
-QuiX.ui.MultiFile.prototype.updateProgress = function(file, bytes_complete, total_bytes) {
-	var pbar1 = this.attributes.pbars[0];
-	var pbar2 = this.attributes.pbars[1];
-	pbar1.setValue(this.attributes.bytesSent + bytes_complete);
+QuiX.ui.MultiFile.prototype.updateProgress =
+function(file, bytes_complete, total_bytes) {
+    var pbar1 = this.attributes.pbars[0];
+    var pbar2 = this.attributes.pbars[1];
+    pbar1.setValue(this.attributes.bytesSent + bytes_complete);
     pbar1.widgets[1].setCaption(file.name);
     var p = (bytes_complete/total_bytes) * 100;
-	pbar2.setValue(p);
-	pbar2.widgets[1].setCaption(parseInt(p) + '%');
+    pbar2.setValue(p);
+    pbar2.widgets[1].setCaption(parseInt(p) + '%');
 }
 
-QuiX.ui.MultiFile.prototype.uploadSuccess = function(file, server_data, response) {
+QuiX.ui.MultiFile.prototype.uploadSuccess =
+function(file, server_data, response) {
     this.upload_queue[0].tmpfile = server_data;
     this.upload_queue[0].img = '$THEME_URL$images/file_temporary.gif';
 }

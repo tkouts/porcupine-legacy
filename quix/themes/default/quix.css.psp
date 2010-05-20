@@ -29,6 +29,10 @@ BODY {
 	border-color : red;
 }
 
+#_hl SPAN {
+	background-color : yellow;
+}
+
 .field {
 	border-style : solid;
 	border-color: DarkGray;

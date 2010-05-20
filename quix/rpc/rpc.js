@@ -1,4 +1,4 @@
-//==============================================================================
+//=============================================================================
 //  Copyright 2005-2009 Tassos Koutsovassilis and contributors
 //
 //  This file is part of Porcupine.
@@ -13,7 +13,7 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with Porcupine; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//==============================================================================
+//=============================================================================
 
 QuiX.rpc = {};
 
@@ -156,7 +156,7 @@ function(method_name /*, arg1, arg2, ...*/) {
             throw new QuiX.Exception('QuiX.rpc.BaseRPCRequest.callMethod',
                                      'Invalid RPC method name "' +
                                      method_name + '"');
-	}
+    }
     catch (e) {
         QuiX.removeLoader();
         this.onerror(e);

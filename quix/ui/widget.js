@@ -1003,10 +1003,10 @@ QuiX.ui.Widget.prototype.attachEvent = function(eventType, f) {
     var isCustom = this.customEvents.hasItem(eventType);
     var registry = (isCustom)?this._customRegistry:this._registry;
     // opera oncontextmenu patch
-    if (eventType == 'onclick'
+    if (eventType == 'onmousedown'
             && this.customEvents.hasItem('oncontextmenu')
-            && this._getHandler('onclick_')) {
-        eventType = 'onclick_';
+            && this._getHandler('onmousedown_')) {
+        eventType = 'onmousedown_';
         isCustom = true;
     }
     //
@@ -1018,15 +1018,18 @@ QuiX.ui.Widget.prototype.attachEvent = function(eventType, f) {
         if (eventType == 'oncontextmenu'
                 && isCustom
                 && !this._getHandler('oncontextmenu')
-                && !this._getHandler('onclick_')) {
-            this._customRegistry.onclick_ = this._registry.onclick;
-            this.attachEvent('onclick',
+                && !this._getHandler('onmousedown_')) {
+            this._customRegistry.onmousedown_ = this._registry.onmousedown;
+            this.attachEvent('onmousedown',
                 function(evt, w) {
                     var r;
-                    if (w._customRegistry.onclick_)
-                        r = w._customRegistry.onclick(evt, w);
-                    if (evt.ctrlKey && w._customRegistry.oncontextmenu)
+                    if (w._customRegistry.onmousedown_)
+                        r = w._customRegistry.onmousedown(evt, w);
+                    if (evt.ctrlKey && w._customRegistry.oncontextmenu) {
+                        QuiX.cleanupOverlays();
                         w._customRegistry.oncontextmenu(evt, w);
+                        QuiX.stopPropag(evt);
+                    }
                     return r;
                 });
         }
@@ -1049,10 +1052,10 @@ QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, chr*/) {
     var registry = null;
     var chr = arguments[1] || '_';
     // opera on contextmenu patch
-    if (eventType == 'onclick'
+    if (eventType == 'onmousedown'
             && this.customEvents.hasItem('oncontextmenu')
-            && this._getHandler('onclick_')) {
-        eventType = 'onclick_';
+            && this._getHandler('onmousedown_')) {
+        eventType = 'onmousedown_';
     }
     //
     if (this._registry[eventType]) {
@@ -1115,7 +1118,7 @@ QuiX.ui.Widget._onmouseout = function(evt, w) {
 }
 
 QuiX.ui.Widget._startDrag = function(evt, w) {
-    if (QuiX.getMouseButton(evt) == 0) {
+    if (QuiX.getMouseButton(evt) == 0 && !evt.ctrlKey) {
         var x = evt.clientX;
         if (QuiX.dir == 'rtl')
             x = QuiX.transformX(x);
@@ -1180,7 +1183,8 @@ QuiX.ui.Widget._detectTarget = function(evt, desktop) {
     }
 }
 
-//Desktop class
+// desktop
+
 QuiX.ui.Desktop = function(params, root) {
     QuiX.dir = params.dir || '';
     this.base = QuiX.ui.Widget;
@@ -1200,7 +1204,7 @@ QuiX.ui.Desktop = function(params, root) {
     }
     this._setCommonProps();
     this.div.innerHTML =
-        '<p align="right" style="color:#666666;margin:0px;">QuiX v' +
+        '<p align="right" style="color:#666;margin:0px;">QuiX v' +
         QuiX.version + '</p>';
     root.appendChild(this.div);
     this.div.className = 'desktop';

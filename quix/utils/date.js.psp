@@ -1,4 +1,4 @@
-//==============================================================================
+//=============================================================================
 //  Copyright 2005-2009, Tassos Koutsovassilis
 //
 //  This file is part of Porcupine.
@@ -13,21 +13,21 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with Porcupine; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//==============================================================================
+//=============================================================================
 <%
-	from porcupine.utils.date import Date
-	resources = Date.resources
+    from porcupine.utils.date import Date
+    resources = Date.resources
 
-	sLang = Request.get_lang()
-	lstMonths = resources.get_resource("MONTHS", sLang)
-	lstDays = resources.get_resource("DAYS", sLang)
-	sMonths = ','.join(['"' + x + '"' for x in lstMonths])
-	sDays = ','.join(['"' + x + '"' for x in lstDays[-1:] + lstDays[:-1]])
+    sLang = Request.get_lang()
+    lstMonths = resources.get_resource("MONTHS", sLang)
+    lstDays = resources.get_resource("DAYS", sLang)
+    sMonths = ','.join(['"' + x + '"' for x in lstMonths])
+    sDays = ','.join(['"' + x + '"' for x in lstDays[-1:] + lstDays[:-1]])
 
-	sAM = resources.get_resource("AM", sLang)
-	sPM = resources.get_resource("PM", sLang)
+    sAM = resources.get_resource("AM", sLang)
+    sPM = resources.get_resource("PM", sLang)
 
-	Response.content_type = 'application/x-javascript'
+    Response.content_type = 'application/x-javascript'
 %>
 
 Date.prototype.Months = [<%Response.write(sMonths)%>];
@@ -36,40 +36,46 @@ Date.prototype.AM = '<%Response.write(sAM)%>';
 Date.prototype.PM = '<%Response.write(sPM)%>';
 
 Date.prototype.toUtc = function() {
-	return new Date(
-		this.getTime() + (
-		this.getTimezoneOffset() * 60000));
+    return new Date(this.getTime() + (this.getTimezoneOffset() * 60000));
 }
 
 Date.prototype.toLocal = function() {
-	return new Date(
-		this.getTime() - (
-		this.getTimezoneOffset() * 60000));
+    return new Date(this.getTime() - (this.getTimezoneOffset() * 60000));
 }
 
 Date.prototype.format = function(format) {
     var dateString = format;
-    dateString = dateString.replace( new RegExp("yyyy", "gi"), this.getFullYear() );
-    dateString = dateString.replace( new RegExp("yy", "gi"), new String( this.getFullYear() ).substring(2,4) );
-    dateString = dateString.replace( new RegExp("month", "gi"), this.Months[this.getMonth()] );
-    dateString = dateString.replace( new RegExp("mon", "gi"), new String( this.Months[this.getMonth()] ).substring(0,3) );
-    dateString = dateString.replace( new RegExp("mmm", "gi"), (this.getMonth() + 1) );
+    dateString = dateString.replace(new RegExp("yyyy", "gi"),
+                                    this.getFullYear());
+    dateString = dateString.replace(
+        new RegExp("yy", "gi"),
+        new String(this.getFullYear()).substring(2,4));
+    dateString = dateString.replace(new RegExp("month", "gi"),
+                                    this.Months[this.getMonth()]);
+    dateString = dateString.replace(
+        new RegExp("mon", "gi"),
+        new String(this.Months[this.getMonth()]).substring(0,3));
+    dateString = dateString.replace(new RegExp("mmm", "gi"),
+                                    (this.getMonth() + 1));
 
-    var hh = new String( this.getHours() );
+    var hh = new String(this.getHours());
     if (hh.length == 1) hh = "0" + hh;
-    dateString = dateString.replace( new RegExp("hh", "gi"),  hh );
+    dateString = dateString.replace(new RegExp("hh", "gi"), hh);
 
-    var mm = new String( this.getMinutes() );
+    var mm = new String(this.getMinutes());
     if (mm.length == 1) mm = "0" + mm;
-    dateString = dateString.replace( new RegExp("mm", "gi"), mm );
+    dateString = dateString.replace(new RegExp("mm", "gi"), mm);
 
     var ss = new String( this.getSeconds() );
     if (ss.length == 1) ss = "0" + ss;
 
-    dateString = dateString.replace( new RegExp("ss", "gi"), ss );
-    dateString = dateString.replace( new RegExp("ddd", "gi"), new String( this.Days[this.getDay()] ).substring(0,3) );
-    dateString = dateString.replace( new RegExp("dd", "gi"), this.getDate() );
-    dateString = dateString.replace( new RegExp("day", "gi"), this.Days[this.getDay()] );
+    dateString = dateString.replace(new RegExp("ss", "gi"), ss);
+    dateString = dateString.replace(
+        new RegExp("ddd", "gi"),
+        new String(this.Days[this.getDay()] ).substring(0,3));
+    dateString = dateString.replace(new RegExp("dd", "gi"), this.getDate());
+    dateString = dateString.replace(new RegExp("day", "gi"),
+                                    this.Days[this.getDay()]);
 
     tz = this.getTimezoneOffset();
     timezone = "";
@@ -79,12 +85,12 @@ Date.prototype.format = function(format) {
         timezone = "GMT";
     else
         timezone = "GMT+" + tz / 60;
-    dateString = dateString.replace( new RegExp("timezone", "gi"), timezone );
+    dateString = dateString.replace(new RegExp("timezone", "gi"), timezone);
 
-    var minutes = new String( this.getMinutes() );
+    var minutes = new String(this.getMinutes());
     if (minutes.length == 1) minutes = "0" + minutes;//pad if single digit
-    var time24 = new String( this.getHours() + ":" + minutes );
-    dateString = dateString.replace( new RegExp("time24", "gi"), time24 );
+    var time24 = new String(this.getHours() + ":" + minutes);
+    dateString = dateString.replace(new RegExp("time24", "gi"), time24);
 
     var time;
     var ampm;
@@ -98,35 +104,35 @@ Date.prototype.format = function(format) {
         ampm = this.PM;
     }
     time = new String(hour + ":" + minutes + " " + ampm);
-    dateString = dateString.replace( new RegExp("time", "gi"), time );
+    dateString = dateString.replace(new RegExp("time", "gi"), time);
 
     return dateString;
 }
 
 Date.prototype.toIso8601 = function() {
-	var s = doYear(this.getUTCFullYear()) + "-" +
-			doZero(this.getUTCMonth() + 1) + "-" +
-			doZero(this.getUTCDate()) + "T" +
-			doZero(this.getUTCHours()) + ":" +
-			doZero(this.getUTCMinutes()) + ":" +
-			doZero(this.getUTCSeconds()) + "." +
+    var s = doYear(this.getUTCFullYear()) + "-" +
+            doZero(this.getUTCMonth() + 1) + "-" +
+            doZero(this.getUTCDate()) + "T" +
+            doZero(this.getUTCHours()) + ":" +
+            doZero(this.getUTCMinutes()) + ":" +
+            doZero(this.getUTCSeconds()) + "." +
             doZero(this.getUTCMilliseconds()) + "Z";
-	return(s);
+    return(s);
 
-	function doZero(nr) {
-		nr = new String("0" + nr);
-		return nr.substr(nr.length-2, 2);
-	}
+    function doZero(nr) {
+        nr = new String("0" + nr);
+        return nr.substr(nr.length-2, 2);
+    }
 
-	function doYear(year) {
-		if (year > 9999 || year < 0)
-			throw new QuiX.Exception('Date.toIso8601',
+    function doYear(year) {
+        if (year > 9999 || year < 0)
+            throw new QuiX.Exception('Date.toIso8601',
                                      'Malformed date string. ' +
-									 'Unsupported year: ' + year);
+                                     'Unsupported year: ' + year);
 
-		year = new String("0000" + year)
-		return year.substr(year.length-4, 4);
-	}
+        year = new String("0000" + year)
+        return year.substr(year.length-4, 4);
+    }
 }
 
 Date._iso8601Re =

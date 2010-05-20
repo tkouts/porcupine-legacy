@@ -1,4 +1,4 @@
-//==============================================================================
+//=============================================================================
 //    Lightweight rich text editor
 //
 //    Original License Information:
@@ -18,14 +18,14 @@
 //    You should have received a copy of the GNU General Public License along
 //    with this program; if not, write to the Free Software Foundation, Inc.,
 //    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//==============================================================================
+//=============================================================================
 
 QuiX.ui.RichText = function(/*params*/) {
-	var params = arguments[0] || {};
+    var params = arguments[0] || {};
     params.orientation = 'v';
     params.spacing = 0;
-	this.base = QuiX.ui.Box;
-	this.base(params);
+    this.base = QuiX.ui.Box;
+    this.base(params);
 
     var toolbarItems = params.toolbaritems ||
         'bold,italic,hyperlink,insertunorderedlist,' +
@@ -214,351 +214,351 @@ QuiX.ui.RichText.prototype.redraw = function(bForceAll /*, memo*/) {
 }
 
 QuiX.ui.RichText.prototype.cleanPaste = function() {
-	if (this.autoClean) {
-		var matchedHead = "";
-		var matchedTail = "";
-		var newContent = this.doc.body.innerHTML;
-		var newContentStart = 0;
-		var newContentFinish = 0;
-		var newSnippet = "";
-		var tempNode = ce("div");
+    if (this.autoClean) {
+        var matchedHead = "";
+        var matchedTail = "";
+        var newContent = this.doc.body.innerHTML;
+        var newContentStart = 0;
+        var newContentFinish = 0;
+        var newSnippet = "";
+        var tempNode = ce("div");
         var i, value;
-		/* Find start of both strings that matches */
+        /* Find start of both strings that matches */
         while (newContent.charAt(newContentStart) ==
                this.pasteCache.charAt(newContentStart)) {
             matchedHead += this.pasteCache.charAt(newContentStart);
             newContentStart++;
         }
-		/* If newContentStart is inside a HTML tag,
+        /* If newContentStart is inside a HTML tag,
          * move to opening brace of tag */
-		for (i = newContentStart; i >= 0; i--) {
-			if (newContent.charAt(i) == "<") {
-				newContentStart = i;
-				matchedHead = newContent.substring(0, newContentStart);
-				break;
-			}
-			else if(newContent.charAt(i) == ">") {
-				break;
-			}
-		}
-		newContent = newContent.reverse();
-		this.pasteCache = this.pasteCache.reverse();
-		/* Find end of both strings that matches */
+        for (i = newContentStart; i >= 0; i--) {
+            if (newContent.charAt(i) == "<") {
+                newContentStart = i;
+                matchedHead = newContent.substring(0, newContentStart);
+                break;
+            }
+            else if(newContent.charAt(i) == ">") {
+                break;
+            }
+        }
+        newContent = newContent.reverse();
+        this.pasteCache = this.pasteCache.reverse();
+        /* Find end of both strings that matches */
         while (newContent.charAt(newContentFinish) ==
                this.pasteCache.charAt(newContentFinish)) {
             matchedTail += this.pasteCache.charAt(newContentFinish);
             newContentFinish++;
         }
-		/* If newContentFinish is inside a HTML tag,
+        /* If newContentFinish is inside a HTML tag,
          * move to closing brace of tag */
-		for (i = newContentFinish; i >= 0; i--) {
-			if (newContent.charAt(i) == ">") {
-				newContentFinish = i;
-				matchedTail = newContent.substring(0, newContentFinish);
-				break;
-			}
-			else if(newContent.charAt(i) == "<") {
-				break;
-			}
-		}
-		matchedTail = matchedTail.reverse();
-		/* If there's no difference in pasted content */
-		if (newContentStart == newContent.length - newContentFinish) {
-			return false;
-		}
-		newContent = newContent.reverse();
+        for (i = newContentFinish; i >= 0; i--) {
+            if (newContent.charAt(i) == ">") {
+                newContentFinish = i;
+                matchedTail = newContent.substring(0, newContentFinish);
+                break;
+            }
+            else if(newContent.charAt(i) == "<") {
+                break;
+            }
+        }
+        matchedTail = matchedTail.reverse();
+        /* If there's no difference in pasted content */
+        if (newContentStart == newContent.length - newContentFinish) {
+            return false;
+        }
+        newContent = newContent.reverse();
 
-		newSnippet = newContent.substring(newContentStart,
+        newSnippet = newContent.substring(newContentStart,
                                           newContent.length - newContentFinish);
-        
-		newSnippet = this._validTags(newSnippet);
 
-		/* Replace opening bold tags with strong */
-		newSnippet = newSnippet.replace(/<b(\s+|>)/g, "<strong$1");
-		/* Replace closing bold tags with closing strong */
-		newSnippet = newSnippet.replace(/<\/b(\s+|>)/g, "</strong$1");
+        newSnippet = this._validTags(newSnippet);
 
-		/* Replace italic tags with em */
-		newSnippet = newSnippet.replace(/<i(\s+|>)/g, "<em$1");
-		/* Replace closing italic tags with closing em */
-		newSnippet = newSnippet.replace(/<\/i(\s+|>)/g, "</em$1");
+        /* Replace opening bold tags with strong */
+        newSnippet = newSnippet.replace(/<b(\s+|>)/g, "<strong$1");
+        /* Replace closing bold tags with closing strong */
+        newSnippet = newSnippet.replace(/<\/b(\s+|>)/g, "</strong$1");
 
-		/* Strip out unaccepted attributes */
-		newSnippet = newSnippet.replace(/<[^>]*>/g,
+        /* Replace italic tags with em */
+        newSnippet = newSnippet.replace(/<i(\s+|>)/g, "<em$1");
+        /* Replace closing italic tags with closing em */
+        newSnippet = newSnippet.replace(/<\/i(\s+|>)/g, "</em$1");
+
+        /* Strip out unaccepted attributes */
+        newSnippet = newSnippet.replace(/<[^>]*>/g,
             function(match)	{
-				match = match.replace(/ ([^=]+)="[^"]*"/g,
+                match = match.replace(/ ([^=]+)="[^"]*"/g,
                     function (match2, attributeName) {
-						if (attributeName == "alt" || attributeName == "href" ||
+                        if (attributeName == "alt" || attributeName == "href" ||
                             attributeName == "src" || attributeName == "title")
-						{
-							return match2;
-						}
-						return "";
-					});
-				return match;
-			});
-		tempNode.innerHTML = newSnippet;
-		this._acceptableChildren(tempNode);
-		value = matchedHead + tempNode.innerHTML + matchedTail;
+                        {
+                            return match2;
+                        }
+                        return "";
+                    });
+                return match;
+            });
+        tempNode.innerHTML = newSnippet;
+        this._acceptableChildren(tempNode);
+        value = matchedHead + tempNode.innerHTML + matchedTail;
 
-		/* Final cleanout for MS Word cruft */
-		value = value.replace(/<\?xml[^>]*>/g, "");
-		value = value.replace(/<[^ >]+:[^>]*>/g, "");
-		value = value.replace(/<\/[^ >]+:[^>]*>/g, "");
+        /* Final cleanout for MS Word cruft */
+        value = value.replace(/<\?xml[^>]*>/g, "");
+        value = value.replace(/<[^ >]+:[^>]*>/g, "");
+        value = value.replace(/<\/[^ >]+:[^>]*>/g, "");
         value = value.replace(/&lt;!--[^>]+--&gt;/g, "");
-        
+
         this.doc.body.innerHTML	= value;
-		if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
-			this.convertSPANs();
-		}
-	}
-	return true;
+        if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
+            this.convertSPANs();
+        }
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype.cleanSource = function() {
-	var theHTML = "";
-	if (this.wysiwyg) {
-		theHTML = this.doc.body.innerHTML;
-	}
-	else {
-		theHTML = this.field.getValue();
-	}
+    var theHTML = "";
+    if (this.wysiwyg) {
+        theHTML = this.doc.body.innerHTML;
+    }
+    else {
+        theHTML = this.field.getValue();
+    }
 
-	theHTML = this._validTags(theHTML);
+    theHTML = this._validTags(theHTML);
 
-	/* Remove leading and trailing whitespace */
-	theHTML = theHTML.replace(/^\s+/, "");
-	theHTML = theHTML.replace(/\s+$/, "");
+    /* Remove leading and trailing whitespace */
+    theHTML = theHTML.replace(/^\s+/, "");
+    theHTML = theHTML.replace(/\s+$/, "");
 
-	/* Remove style attribute inside any tag */
-	theHTML = theHTML.replace(/ style="[^"]*"/g, "");
+    /* Remove style attribute inside any tag */
+    theHTML = theHTML.replace(/ style="[^"]*"/g, "");
 
-	/* Replace improper BRs */
-	theHTML = theHTML.replace(/<br>/g, "<br />");
+    /* Replace improper BRs */
+    theHTML = theHTML.replace(/<br>/g, "<br />");
 
-	/* Remove BRs right before the end of blocks */
-	theHTML = theHTML.replace(/<br \/>\s*<\/(h1|h2|h3|h4|h5|h6|li|p)/g, "</$1");
+    /* Remove BRs right before the end of blocks */
+    theHTML = theHTML.replace(/<br \/>\s*<\/(h1|h2|h3|h4|h5|h6|li|p)/g, "</$1");
 
-	/* Replace improper IMGs */
-	theHTML = theHTML.replace(/(<img [^>]+[^\/])>/g, "$1 />");
+    /* Replace improper IMGs */
+    theHTML = theHTML.replace(/(<img [^>]+[^\/])>/g, "$1 />");
 
-	/* Remove empty tags */
-	theHTML = theHTML.replace(/(<[^\/]>|<[^\/][^>]*[^\/]>)\s*<\/[^>]*>/g, "");
+    /* Remove empty tags */
+    theHTML = theHTML.replace(/(<[^\/]>|<[^\/][^>]*[^\/]>)\s*<\/[^>]*>/g, "");
 
-	if (this.wysiwyg) {
-		this.doc.body.innerHTML = theHTML;
-	}
-	this.field.setValue(theHTML);
-	return true;
+    if (this.wysiwyg) {
+        this.doc.body.innerHTML = theHTML;
+    }
+    this.field.setValue(theHTML);
+    return true;
 }
 
 QuiX.ui.RichText.prototype.convertSPANs = function(theSwitch) {
     var j, theChildren;
-	if (theSwitch) {
-		/* Replace styled spans with their semantic equivalent */
-		var theSPANs = this.doc.getElementsByTagName("span");
-		while(theSPANs.length > 0) {
-			theChildren = new Array();
-			var theReplacementElement = null;
-			var theParentElement = null;
-			for (j=0; j<theSPANs[0].childNodes.length; j++) {
-				theChildren.push(theSPANs[0].childNodes[j].cloneNode(true));
-			}
-			/* Detect type of span style */
-			switch (theSPANs[0].getAttribute("style")) {
-				case "font-weight: bold;":
-					theReplacementElement = this.doc.createElement("strong");
-					theParentElement = theReplacementElement;
-					break;
-				case "font-style: italic;":
-					theReplacementElement = this.doc.createElement("em");
-					theParentElement = theReplacementElement;
-					break;
-				case "font-weight: bold; font-style: italic;":
-					theParentElement = this.doc.createElement("em");
-					theReplacementElement = this.doc.createElement("strong");
-					theReplacementElement.appendChild(theParentElement);
-					break;
-				case "font-style: italic; font-weight: bold;":
-					theParentElement = this.doc.createElement("strong");
-					theReplacementElement = this.doc.createElement("em");
-					theReplacementElement.appendChild(theParentElement);
-					break;
-				default:
-					this._replaceNodeWithChildren(theSPANs[0]);
-					break;
-			}
-			if (theReplacementElement != null) {
-				for (j=0; j<theChildren.length; j++) {
-					theParentElement.appendChild(theChildren[j]);
-				}
-				theSPANs[0].parentNode.replaceChild(theReplacementElement,
+    if (theSwitch) {
+        /* Replace styled spans with their semantic equivalent */
+        var theSPANs = this.doc.getElementsByTagName("span");
+        while(theSPANs.length > 0) {
+            theChildren = new Array();
+            var theReplacementElement = null;
+            var theParentElement = null;
+            for (j=0; j<theSPANs[0].childNodes.length; j++) {
+                theChildren.push(theSPANs[0].childNodes[j].cloneNode(true));
+            }
+            /* Detect type of span style */
+            switch (theSPANs[0].getAttribute("style")) {
+                case "font-weight: bold;":
+                    theReplacementElement = this.doc.createElement("strong");
+                    theParentElement = theReplacementElement;
+                    break;
+                case "font-style: italic;":
+                    theReplacementElement = this.doc.createElement("em");
+                    theParentElement = theReplacementElement;
+                    break;
+                case "font-weight: bold; font-style: italic;":
+                    theParentElement = this.doc.createElement("em");
+                    theReplacementElement = this.doc.createElement("strong");
+                    theReplacementElement.appendChild(theParentElement);
+                    break;
+                case "font-style: italic; font-weight: bold;":
+                    theParentElement = this.doc.createElement("strong");
+                    theReplacementElement = this.doc.createElement("em");
+                    theReplacementElement.appendChild(theParentElement);
+                    break;
+                default:
+                    this._replaceNodeWithChildren(theSPANs[0]);
+                    break;
+            }
+            if (theReplacementElement != null) {
+                for (j=0; j<theChildren.length; j++) {
+                    theParentElement.appendChild(theChildren[j]);
+                }
+                theSPANs[0].parentNode.replaceChild(theReplacementElement,
                                                     theSPANs[0]);
-			}
-			theSPANs = this.doc.getElementsByTagName("span");
-		}
-	}
-	else {
+            }
+            theSPANs = this.doc.getElementsByTagName("span");
+        }
+    }
+    else {
         var theSpan;
-		/* Replace em and strong tags with styled spans */
-		var theEMs = this.doc.getElementsByTagName("em");
-		while(theEMs.length > 0) {
-			theChildren = new Array();
-			theSpan = this.doc.createElement("span");
-			theSpan.setAttribute("style", "font-style: italic;");
+        /* Replace em and strong tags with styled spans */
+        var theEMs = this.doc.getElementsByTagName("em");
+        while(theEMs.length > 0) {
+            theChildren = new Array();
+            theSpan = this.doc.createElement("span");
+            theSpan.setAttribute("style", "font-style: italic;");
 
-			for (j=0; j<theEMs[0].childNodes.length; j++) {
-				theChildren.push(theEMs[0].childNodes[j].cloneNode(true));
-			}
+            for (j=0; j<theEMs[0].childNodes.length; j++) {
+                theChildren.push(theEMs[0].childNodes[j].cloneNode(true));
+            }
 
-			for (j=0; j<theChildren.length; j++) {
-				theSpan.appendChild(theChildren[j]);
-			}
-			theEMs[0].parentNode.replaceChild(theSpan, theEMs[0]);
-			theEMs = this.doc.getElementsByTagName("em");
-		}
-		var theSTRONGs = this.doc.getElementsByTagName("strong");
-		while(theSTRONGs.length > 0) {
-			theChildren = new Array();
-			theSpan = this.doc.createElement("span");
-			theSpan.setAttribute("style", "font-weight: bold;");
+            for (j=0; j<theChildren.length; j++) {
+                theSpan.appendChild(theChildren[j]);
+            }
+            theEMs[0].parentNode.replaceChild(theSpan, theEMs[0]);
+            theEMs = this.doc.getElementsByTagName("em");
+        }
+        var theSTRONGs = this.doc.getElementsByTagName("strong");
+        while(theSTRONGs.length > 0) {
+            theChildren = new Array();
+            theSpan = this.doc.createElement("span");
+            theSpan.setAttribute("style", "font-weight: bold;");
 
-			for (j=0; j < theSTRONGs[0].childNodes.length; j++) {
-				theChildren.push(theSTRONGs[0].childNodes[j].cloneNode(true));
-			}
+            for (j=0; j < theSTRONGs[0].childNodes.length; j++) {
+                theChildren.push(theSTRONGs[0].childNodes[j].cloneNode(true));
+            }
 
-			for (j=0; j < theChildren.length; j++) {
-				theSpan.appendChild(theChildren[j]);
-			}
-			theSTRONGs[0].parentNode.replaceChild(theSpan, theSTRONGs[0]);
-			theSTRONGs = this.doc.getElementsByTagName("strong");
-		}
-	}
-	return true;
+            for (j=0; j < theChildren.length; j++) {
+                theSpan.appendChild(theChildren[j]);
+            }
+            theSTRONGs[0].parentNode.replaceChild(theSpan, theSTRONGs[0]);
+            theSTRONGs = this.doc.getElementsByTagName("strong");
+        }
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype.detectPaste = function(e) {
-	if (e.ctrlKey && e.keyCode == 86 && this.wysiwyg && !this.locked) {
-		var self = this;
-		this.pasteCache = this.doc.body.innerHTML;
+    if (e.ctrlKey && e.keyCode == 86 && this.wysiwyg && !this.locked) {
+        var self = this;
+        this.pasteCache = this.doc.body.innerHTML;
         this.locked = true;
-		setTimeout(function() {
+        setTimeout(function() {
             self.cleanPaste();
             self.locked = false;
             return true;
         }, 100);
-	}
-	return true;
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype.initEdit = function() {
-	var self = this;
+    var self = this;
     this.doc.designMode = 'on';
-	if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
-		this.convertSPANs(false);
-	}
+    if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
+        this.convertSPANs(false);
+    }
     QuiX.addEvent(this.doc, "onmouseup",
-                  function() {
-                      QuiX.cleanupOverlays();
-                      self._updateToolbarState(self);
-                      return true;
-                  });
+        function() {
+            QuiX.cleanupOverlays();
+            self._updateToolbarState(self);
+            return true;
+        });
     QuiX.addEvent(this.doc, "onkeyup",
-                  function() {
-                      self._updateToolbarState(self);
-                      return true;
-                  });
+        function() {
+            self._updateToolbarState(self);
+            return true;
+        });
     QuiX.addEvent(this.doc, "onkeydown",
-                  function(e){
-                      QuiX.cleanupOverlays();
-                      self.detectPaste(e);
-                      return true;
-                  });
-	this.locked = false;
-	return true;
+        function(e){
+            QuiX.cleanupOverlays();
+            self.detectPaste(e);
+            return true;
+        });
+    this.locked = false;
+    return true;
 }
 
 QuiX.ui.RichText.prototype.newParagraph = function(elementArray,
                                                    succeedingElement) {
-	var theBody = this.doc.body;
-	var theParagraph = this.doc.createElement("p");
-	for (var i = 0; i < elementArray.length; i++) {
-		theParagraph.appendChild(elementArray[i]);
-	}
-	if (typeof(succeedingElement) != "undefined") {
-		theBody.insertBefore(theParagraph, succeedingElement);
-	}
-	else {
-		theBody.appendChild(theParagraph);
-	}
-	return true;
+    var theBody = this.doc.body;
+    var theParagraph = this.doc.createElement("p");
+    for (var i = 0; i < elementArray.length; i++) {
+        theParagraph.appendChild(elementArray[i]);
+    }
+    if (typeof(succeedingElement) != "undefined") {
+        theBody.insertBefore(theParagraph, succeedingElement);
+    }
+    else {
+        theBody.appendChild(theParagraph);
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype.paragraphise = function() {
-	if (this.insertParagraphs && this.wysiwyg) {
-		var theBody = this.doc.body;
+    if (this.insertParagraphs && this.wysiwyg) {
+        var theBody = this.doc.body;
         var nodes = theBody.childNodes;
         var i;
-		/* Remove all text nodes containing just whitespace */
-		for (i=0; i < nodes.length; i++) {
-			if (nodes[i].nodeName.toLowerCase() == "#text" &&
-				nodes[i].data.search(/^\s*$/) != -1)
-			{
-				theBody.removeChild(nodes[i]);
-				i--;
-			}
-		}
-		var removedElements = new Array();
-		for (i=0; i < nodes.length; i++) {
-			if (this._isInline(nodes[i].nodeName)) {
-				removedElements.push(nodes[i].cloneNode(true));
-				theBody.removeChild(nodes[i]);
-				i--;
-			}
-			else if (nodes[i].nodeName.toLowerCase() == "br") {
-				if (i + 1 < nodes.length) {
-					/* If the current break tag is followed by another
+        /* Remove all text nodes containing just whitespace */
+        for (i=0; i < nodes.length; i++) {
+            if (nodes[i].nodeName.toLowerCase() == "#text" &&
+                nodes[i].data.search(/^\s*$/) != -1)
+            {
+                theBody.removeChild(nodes[i]);
+                i--;
+            }
+        }
+        var removedElements = new Array();
+        for (i=0; i < nodes.length; i++) {
+            if (this._isInline(nodes[i].nodeName)) {
+                removedElements.push(nodes[i].cloneNode(true));
+                theBody.removeChild(nodes[i]);
+                i--;
+            }
+            else if (nodes[i].nodeName.toLowerCase() == "br") {
+                if (i + 1 < nodes.length) {
+                    /* If the current break tag is followed by another
                      * break tag */
-					if (nodes[i+1].nodeName.toLowerCase() == "br") {
-						/* Remove consecutive break tags */
-						while (i < nodes.length &&
+                    if (nodes[i+1].nodeName.toLowerCase() == "br") {
+                        /* Remove consecutive break tags */
+                        while (i < nodes.length &&
                                nodes[i].nodeName.toLowerCase() == "br")
-						{
-							theBody.removeChild(nodes[i]);
-						}
+                        {
+                            theBody.removeChild(nodes[i]);
+                        }
 
-						if (removedElements.length > 0) {
-							this.newParagraph(removedElements, nodes[i]);
-							removedElements = new Array();
-						}
-					}
-					/* If the break tag appears before a block element */
-					else if (!this._isInline(nodes[i+1].nodeName)) {
-						theBody.removeChild(nodes[i]);
-					}
-					else if (removedElements.length > 0) {
-						removedElements.push(nodes[i].cloneNode(true));
-						theBody.removeChild(nodes[i]);
-					}
-					else {
-						theBody.removeChild(nodes[i]);
-					}
-					i--;
-				}
-				else {
-					theBody.removeChild(nodes[i]);
-				}
-			}
-			else if (removedElements.length > 0) {
-				this.newParagraph(removedElements, nodes[i]);
-				removedElements = new Array();
-			}
-		}
-		if (removedElements.length > 0) {
-			this.newParagraph(removedElements);
-		}
-	}
-	return true;
+                        if (removedElements.length > 0) {
+                            this.newParagraph(removedElements, nodes[i]);
+                            removedElements = new Array();
+                        }
+                    }
+                    /* If the break tag appears before a block element */
+                    else if (!this._isInline(nodes[i+1].nodeName)) {
+                        theBody.removeChild(nodes[i]);
+                    }
+                    else if (removedElements.length > 0) {
+                        removedElements.push(nodes[i].cloneNode(true));
+                        theBody.removeChild(nodes[i]);
+                    }
+                    else {
+                        theBody.removeChild(nodes[i]);
+                    }
+                    i--;
+                }
+                else {
+                    theBody.removeChild(nodes[i]);
+                }
+            }
+            else if (removedElements.length > 0) {
+                this.newParagraph(removedElements, nodes[i]);
+                removedElements = new Array();
+            }
+        }
+        if (removedElements.length > 0) {
+            this.newParagraph(removedElements);
+        }
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype._updateInput = function() {
@@ -581,11 +581,11 @@ QuiX.ui.RichText.prototype._updateAnchorsTarget = function() {
 }
 
 QuiX.ui.RichText.prototype.switchMode = function() {
-	if (!this.locked) {
+    if (!this.locked) {
         var i, btn;
-		this.locked = true;
-		/* Switch to HTML source */
-		if (this.wysiwyg) {
+        this.locked = true;
+        /* Switch to HTML source */
+        if (this.wysiwyg) {
             this._updateInput();
             this.frame.hide();
             this.field.show();
@@ -599,11 +599,11 @@ QuiX.ui.RichText.prototype.switchMode = function() {
                     }
                 }
             }
-			this.wysiwyg = false;
-			this.locked = false;
-		}
-		/* Switch to WYSIWYG */
-		else {
+            this.wysiwyg = false;
+            this.locked = false;
+        }
+        /* Switch to WYSIWYG */
+        else {
             if (!this.readonly) {
                 for (i=0; i<this.toolbar.widgets.length; i++) {
                     btn = this.toolbar.widgets[i];
@@ -616,16 +616,16 @@ QuiX.ui.RichText.prototype.switchMode = function() {
             this.field.hide();
             if (QuiX.utils.BrowserInfo.family == 'ie')
                 this.writeDocument(this.field.getValue());
-			this.wysiwyg = true;
-		}
+            this.wysiwyg = true;
+        }
         this.redraw();
-	}
-	return true;
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype.writeDocument = function(documentContent) {
     this.doc.body.innerHTML = documentContent;
-	return true;
+    return true;
 }
 
 QuiX.ui.RichText.prototype._setButtonState = function(id , state) {
@@ -646,19 +646,19 @@ QuiX.ui.RichText.prototype._setButtonState = function(id , state) {
 QuiX.ui.RichText.prototype._getSelectionRange = function() {
     var selection;
     var range = null;
-	if (this.doc.selection) {
+    if (this.doc.selection) {
         selection = this.doc.selection;
-		range = selection.createRange();
-	}
-	else {
-		try	{
-			selection = this.frame.frame.contentWindow.getSelection();
-		}
-		catch (e) {
-			return false;
-		}
-		range = selection.getRangeAt(0);
-	}
+        range = selection.createRange();
+    }
+    else {
+        try	{
+            selection = this.frame.frame.contentWindow.getSelection();
+        }
+        catch (e) {
+            return false;
+        }
+        range = selection.getRangeAt(0);
+    }
     return range;
 }
 
@@ -674,121 +674,121 @@ QuiX.ui.RichText.prototype._isAcceptedElementName = function(n) {
 }
 
 QuiX.ui.RichText.prototype._acceptableChildren = function(theNode) {
-	var theChildren = theNode.childNodes;
+    var theChildren = theNode.childNodes;
     var i;
-	for (i=0; i<theChildren.length; i++) {
-		if (!this._isAcceptedElementName(theChildren[i].nodeName)) {
-			if (!this._isInline(theChildren[i].nodeName)) {
-				if (theNode.nodeName.toLowerCase() == "p") {
-					this._acceptableChildren(
+    for (i=0; i<theChildren.length; i++) {
+        if (!this._isAcceptedElementName(theChildren[i].nodeName)) {
+            if (!this._isInline(theChildren[i].nodeName)) {
+                if (theNode.nodeName.toLowerCase() == "p") {
+                    this._acceptableChildren(
                         this._replaceNodeWithChildren(theNode));
-					return true;
-				}
-				this._changeNodeType(theChildren[i], "p");
-			}
-			else {
-				this._replaceNodeWithChildren(theChildren[i]);
-			}
-			i = -1;
-		}
-	}
-	for (i=0; i < theChildren.length; i++) {
-		this._acceptableChildren(theChildren[i]);
-	}
-	return true;
+                    return true;
+                }
+                this._changeNodeType(theChildren[i], "p");
+            }
+            else {
+                this._replaceNodeWithChildren(theChildren[i]);
+            }
+            i = -1;
+        }
+    }
+    for (i=0; i < theChildren.length; i++) {
+        this._acceptableChildren(theChildren[i]);
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype._replaceNodeWithChildren = function(theNode) {
-	var theChildren = new Array();
-	var theParent = theNode.parentNode;
+    var theChildren = new Array();
+    var theParent = theNode.parentNode;
     var i;
-	if (theParent != null) {
-		for (i = 0; i < theNode.childNodes.length; i++) {
-			theChildren.push(theNode.childNodes[i].cloneNode(true));
-		}
-		for (i = 0; i < theChildren.length; i++) {
-			theParent.insertBefore(theChildren[i], theNode);
-		}
-		theParent.removeChild(theNode);
-		return theParent;
-	}
-	return true;
+    if (theParent != null) {
+        for (i = 0; i < theNode.childNodes.length; i++) {
+            theChildren.push(theNode.childNodes[i].cloneNode(true));
+        }
+        for (i = 0; i < theChildren.length; i++) {
+            theParent.insertBefore(theChildren[i], theNode);
+        }
+        theParent.removeChild(theNode);
+        return theParent;
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype._changeNodeType = function(theNode, nodeType) {
-	var theChildren = new Array();
-	var theNewNode = document.createElement(nodeType);
-	var theParent = theNode.parentNode;
+    var theChildren = new Array();
+    var theNewNode = document.createElement(nodeType);
+    var theParent = theNode.parentNode;
     var i;
-	if (theParent != null) {
-		for (i=0; i < theNode.childNodes.length; i++) {
-			theChildren.push(theNode.childNodes[i].cloneNode(true));
-		}
-		for (i=0; i < theChildren.length; i++) {
-			theNewNode.appendChild(theChildren[i]);
-		}
-		theParent.replaceChild(theNewNode, theNode);
-	}
-	return true;
+    if (theParent != null) {
+        for (i=0; i < theNode.childNodes.length; i++) {
+            theChildren.push(theNode.childNodes[i].cloneNode(true));
+        }
+        for (i=0; i < theChildren.length; i++) {
+            theNewNode.appendChild(theChildren[i]);
+        }
+        theParent.replaceChild(theNewNode, theNode);
+    }
+    return true;
 }
 
 QuiX.ui.RichText.prototype._validTags = function(theString) {
-	/* Replace uppercase element names with lowercase */
-	theString = theString.replace(/<[^> ]*/g,
+    /* Replace uppercase element names with lowercase */
+    theString = theString.replace(/<[^> ]*/g,
         function(match){return match.toLowerCase();});
 
-	/* Replace uppercase attribute names with lowercase */
-	theString = theString.replace(/<[^>]*>/g,
+    /* Replace uppercase attribute names with lowercase */
+    theString = theString.replace(/<[^>]*>/g,
         function(match) {
-			match = match.replace(/ [^=]+=/g,
+            match = match.replace(/ [^=]+=/g,
                 function(match2) {
                     return match2.toLowerCase();
                 });
-			return match;
-		});
+            return match;
+        });
 
-	/* Put quotes around unquoted attributes */
-	theString = theString.replace(/<[^>]*>/g,
+    /* Put quotes around unquoted attributes */
+    theString = theString.replace(/<[^>]*>/g,
         function(match) {
-			match = match.replace(/( [^=]+=)([^"][^ >]*)/g, "$1\"$2\"");
-			return match;
-		});
+            match = match.replace(/( [^=]+=)([^"][^ >]*)/g, "$1\"$2\"");
+            return match;
+        });
 
-	return theString;
+    return theString;
 }
 
 /* Action taken when toolbar item activated */
 QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
     //return;
-	var theWidgEditor = (btn.parent.owner || btn).parent.parent;
-	var theIframe = theWidgEditor.frame.frame;
-	var theSelection = "";
+    var theWidgEditor = (btn.parent.owner || btn).parent.parent;
+    var theIframe = theWidgEditor.frame.frame;
+    var theSelection = "";
     var theRange = null;
     var action = btn.getId();
-	/* If somehow a button other than "HTML source" is clicked
+    /* If somehow a button other than "HTML source" is clicked
      * while viewing HTML source, ignore click */
-	if (!theWidgEditor.wysiwyg && action != "htmlsource") {
-		return;
-	}
-	switch (action) {
-		case "formatblock":
-			theWidgEditor.doc.execCommand(action, false, btn.attributes.block);
-			break;
-		case "htmlsource":
-			theWidgEditor.switchMode();
-			break;
-		case "hyperlink":
+    if (!theWidgEditor.wysiwyg && action != "htmlsource") {
+        return;
+    }
+    switch (action) {
+        case "formatblock":
+            theWidgEditor.doc.execCommand(action, false, btn.attributes.block);
+            break;
+        case "htmlsource":
+            theWidgEditor.switchMode();
+            break;
+        case "hyperlink":
             theRange = theWidgEditor._getSelectionRange();
-			if (btn.value == "off") {
-				theWidgEditor.doc.execCommand("Unlink", false, null);
-			}
-			else {
-				if (theWidgEditor.doc.selection) {
-					theSelection = theWidgEditor._getSelectionRange().text;
-				}
-				else {
-					theSelection = theIframe.contentWindow.getSelection();
-				}
+            if (btn.value == "off") {
+                theWidgEditor.doc.execCommand("Unlink", false, null);
+            }
+            else {
+                if (theWidgEditor.doc.selection) {
+                    theSelection = theWidgEditor._getSelectionRange().text;
+                }
+                else {
+                    theSelection = theIframe.contentWindow.getSelection();
+                }
                 if (theSelection == "")	{
                     theWidgEditor._setButtonState("hyperlink", "off");
                     document.desktop.msgbox(
@@ -800,17 +800,17 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
                 }
                 document.desktop.parseFromString(
                     '<dialog xmlns="http://www.innoscript.org/quix"\
-                            title="Enter Hyperlink URL" padding="4,4,4,4"\
-                            width="240" height="90" left="center" top="center">\
-                        <wbody>\
-                            <field id="url" width="100%" value="http://"/>\
-                        </wbody>\
-                        <dlgbutton width="70" height="22"\
-                            onclick="__closeDialog__" caption="' +
-                            document.desktop.attributes.OK + '"/>\
-                        <dlgbutton width="70" height="22"\
-                            onclick="__closeDialog__" caption="' +
-                            document.desktop.attributes.CANCEL + '"/>\
+                        title="Enter Hyperlink URL" padding="4,4,4,4"\
+                        width="240" height="90" left="center" top="center">\
+                      <wbody>\
+                        <field id="url" width="100%" value="http://"/>\
+                      </wbody>\
+                      <dlgbutton width="70" height="22"\
+                        onclick="__closeDialog__" caption="' +
+                        document.desktop.attributes.OK + '"/>\
+                      <dlgbutton width="70" height="22"\
+                        onclick="__closeDialog__" caption="' +
+                        document.desktop.attributes.CANCEL + '"/>\
                     </dialog>',
                     function(dlg) {
                         var url = dlg.getWidgetById('url');
@@ -826,26 +826,26 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
                             }
                         });
                     });
-			}
-			return;
-		case "image":
+            }
+            return;
+        case "image":
             theRange = theWidgEditor._getSelectionRange();
             document.desktop.parseFromString(
                 '<dialog xmlns="http://www.innoscript.org/quix" \
-                        title="Enter Image details" padding="4,4,4,4"\
-                        width="240" height="120" left="center" top="center">\
-                    <wbody>\
-                        <label caption="Url:" width="30"/>\
-                        <field id="url" left="34" width="186" value="http://"/>\
-                        <label caption="Alt:" top="32" width="36"/>\
-                        <field id="alt" top="30" left="34" width="186"/>\
-                    </wbody>\
-                    <dlgbutton width="70" height="22"\
-                        onclick="__closeDialog__" caption="' +
-                        document.desktop.attributes.OK + '"/>\
-                    <dlgbutton width="70" height="22"\
-                        onclick="__closeDialog__" caption="' +
-                        document.desktop.attributes.CANCEL + '"/>\
+                    title="Enter Image details" padding="4,4,4,4"\
+                    width="240" height="120" left="center" top="center">\
+                  <wbody>\
+                    <label caption="Url:" width="30"/>\
+                    <field id="url" left="34" width="186" value="http://"/>\
+                    <label caption="Alt:" top="32" width="36"/>\
+                    <field id="alt" top="30" left="34" width="186"/>\
+                  </wbody>\
+                  <dlgbutton width="70" height="22"\
+                    onclick="__closeDialog__" caption="' +
+                    document.desktop.attributes.OK + '"/>\
+                  <dlgbutton width="70" height="22"\
+                    onclick="__closeDialog__" caption="' +
+                    document.desktop.attributes.CANCEL + '"/>\
                 </dialog>',
                 function(dlg) {
                     var url = dlg.getWidgetById('url');
@@ -866,7 +866,8 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
                             }
                             /* Mozilla selections */
                             else {
-                                var theImageNode = theWidgEditor.doc.createElement("img");
+                                var theImageNode =
+                                    theWidgEditor.doc.createElement("img");
                                 theImageNode.src = url.getValue();
                                 theImageNode.alt = alt;
                                 theRange.insertNode(theImageNode);
@@ -875,22 +876,22 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
                     });
                 });
             return;
-		default:
-			theWidgEditor.doc.execCommand(action, false, null);
-			/* If toolbar item was turned on */
-			if (theWidgEditor.doc.queryCommandState(action, false, null)) {
-				theWidgEditor._setButtonState(action, "on");
-			}
-			else {
-				theWidgEditor._setButtonState(action, "off");
-			}
-	}
-	if (theWidgEditor.wysiwyg == true) {
-		theIframe.contentWindow.focus();
-	}
-	else {
-		theWidgEditor.field.focus();
-	}
+        default:
+            theWidgEditor.doc.execCommand(action, false, null);
+            /* If toolbar item was turned on */
+            if (theWidgEditor.doc.queryCommandState(action, false, null)) {
+                theWidgEditor._setButtonState(action, "on");
+            }
+            else {
+                theWidgEditor._setButtonState(action, "off");
+            }
+    }
+    if (theWidgEditor.wysiwyg == true) {
+        theIframe.contentWindow.focus();
+    }
+    else {
+        theWidgEditor.field.focus();
+    }
 }
 
 QuiX.ui.RichText.prototype._updateToolbarState = function(theWidgEditor) {
@@ -909,90 +910,90 @@ QuiX.ui.RichText.prototype._updateToolbarState = function(theWidgEditor) {
 
 /* Check the nesting of the current cursor position/selection */
 QuiX.ui.RichText.prototype._updateToolbar = function(theWidgEditor) {
-	var theParentNode = null;
-	var theLevel = 0;
+    var theParentNode = null;
+    var theLevel = 0;
     var theRange = theWidgEditor._getSelectionRange();
 
-	/* Turn off all the buttons */
+    /* Turn off all the buttons */
     var toggles = theWidgEditor.toolbar.
                   getWidgetsByAttributeValue('type', 'toggle', true);
-	for (var i=0; i<toggles.length; i++) {
+    for (var i=0; i<toggles.length; i++) {
         if (toggles[i].value == 'on')
             toggles[i].toggle();
-	}
+    }
     /*clear block format*/
     var selected = theWidgEditor.toolbar.getWidgetById('format').contextMenu.
                    getWidgetsByAttributeValue('selected', true, true);
     if (selected.length)
         selected[0].selected = false;
-    
-	/* IE selections */
-	if (theWidgEditor.doc.selection) {
-		try	{
-			theParentNode = theRange.parentElement();
-		}
-		catch (e) {
-			return;
-		}
-	}
-	/* Mozilla selections */
-	else {
-		theParentNode = theRange.commonAncestorContainer;
-	}
-	while (theParentNode.nodeType == 3) {
-		theParentNode = theParentNode.parentNode;
-	}
-	while (theParentNode.nodeName.toLowerCase() != "body") {
-		switch (theParentNode.nodeName.toLowerCase()) {
-			case "a":
-				theWidgEditor._setButtonState("hyperlink", "on");
-				break;
-			case "em":
+
+    /* IE selections */
+    if (theWidgEditor.doc.selection) {
+        try	{
+            theParentNode = theRange.parentElement();
+        }
+        catch (e) {
+            return;
+        }
+    }
+    /* Mozilla selections */
+    else {
+        theParentNode = theRange.commonAncestorContainer;
+    }
+    while (theParentNode.nodeType == 3) {
+        theParentNode = theParentNode.parentNode;
+    }
+    while (theParentNode.nodeName.toLowerCase() != "body") {
+        switch (theParentNode.nodeName.toLowerCase()) {
+            case "a":
+                theWidgEditor._setButtonState("hyperlink", "on");
+                break;
+            case "em":
                 theWidgEditor._setButtonState("italic", "on");
-				break;
-			case "li":
-				break;
-			case "ol":
+                break;
+            case "li":
+                break;
+            case "ol":
                 theWidgEditor._setButtonState("insertorderedlist", "on");
                 theWidgEditor._setButtonState("insertunorderedlist", "off");
-				break;
-			case "span":
-				if (theParentNode.getAttribute("style") ==
+                break;
+            case "span":
+                if (theParentNode.getAttribute("style") ==
                         "font-weight: bold;")
                 {
                     theWidgEditor._setButtonState("bold", "on");
-				}
-				else if (theParentNode.getAttribute("style") ==
+                }
+                else if (theParentNode.getAttribute("style") ==
                         "font-style: italic;")
                 {
                     theWidgEditor._setButtonState("italic", "on");
-				}
-				else if (theParentNode.getAttribute("style") ==
+                }
+                else if (theParentNode.getAttribute("style") ==
                         "font-weight: bold; font-style: italic;")
                 {
                     theWidgEditor._setButtonState("bold", "on");
                     theWidgEditor._setButtonState("italic", "on");
-				}
-				else if (theParentNode.getAttribute("style") ==
+                }
+                else if (theParentNode.getAttribute("style") ==
                         "font-style: italic; font-weight: bold;")
                 {
                     theWidgEditor._setButtonState("bold", "on");
                     theWidgEditor._setButtonState("italic", "on");
-				}
-				break;
-			case "strong":
+                }
+                break;
+            case "strong":
                 theWidgEditor._setButtonState("bold", "on");
-				break;
-			case "ul":
+                break;
+            case "ul":
                 theWidgEditor._setButtonState("insertunorderedlist", "on");
                 theWidgEditor._setButtonState("insertorderedlist", "off");
-				break;
-			default:
+                break;
+            default:
                 theWidgEditor._setButtonState(
                     'format',
                     "<" + theParentNode.nodeName.toLowerCase() + ">");
-		}
-		theParentNode = theParentNode.parentNode;
-		theLevel++;
-	}
+        }
+        theParentNode = theParentNode.parentNode;
+        theLevel++;
+    }
 }
