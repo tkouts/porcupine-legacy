@@ -304,8 +304,9 @@ class ReferenceN(DataType):
 
         @rtype: L{ObjectSet<porcupine.core.objectSet.ObjectSet>}
         """
-        return ObjectSet(filter(None, [db.get_item(id)
-                                       for id in self.value]))
+        items = [db.get_item(id) for id in self.value]
+        return ObjectSet([item for item in items
+                          if item is not None])
     getItems = deprecated(get_items)
 
 
@@ -339,6 +340,14 @@ class Relator1(Reference1):
     relAttr = ''
     cascadeDelete = False
 
+    def get_item(self):
+        item = None
+        if self.value:
+            item = db.get_item(self.value)
+            if self.relAttr not in item.__props__:
+                return None
+        return item
+    getItem = deprecated(get_item)
 
 class RequiredRelator1(Relator1):
     "Mandatory L{Relator1} data type."
@@ -369,6 +378,13 @@ class RelatorN(ReferenceN):
     relAttr = ''
     respectsReferences = False
     cascadeDelete = False
+
+    def get_items(self):
+        items = [db.get_item(id) for id in self.value]
+        return ObjectSet([item for item in items
+                          if item is not None and
+                          self.relAttr in item.__props__])
+    getItems = deprecated(get_items)
 
 
 class RequiredRelatorN(RelatorN):

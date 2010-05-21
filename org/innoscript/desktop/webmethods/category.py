@@ -19,14 +19,12 @@ Web methods for the category content class
 """
 from porcupine import webmethods
 from porcupine.utils import date
-from porcupine import filters
 
 from org.innoscript.desktop.schema.common import Category
 from org.innoscript.desktop.webmethods.basecontainer \
     import getInfo as s_getInfo
 
 
-@filters.etag()
 @webmethods.remotemethod(of_type=Category)
 def getInfo(self):
     "Retutns info about the category's contents"

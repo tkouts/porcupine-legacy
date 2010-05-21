@@ -161,7 +161,6 @@ def _getControlFromAttribute(item, attrname, attr, readonly, isNew=False):
     return (sControl, sTab)
 
 
-@filters.etag()
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=Item,
                    template='../ui.Frm_AutoProperties.quix',

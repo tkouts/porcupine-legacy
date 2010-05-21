@@ -123,6 +123,7 @@ class CompositionEventHandler(DatatypeEventHandler):
             db._db.handle_undelete(composite)
             db._db.put_item(composite)
 
+
 class RelatorNEventHandler(DatatypeEventHandler):
     "RelatorN datatype event handler"
 
@@ -137,23 +138,24 @@ class RelatorNEventHandler(DatatypeEventHandler):
 
         # get previous value
         if old_attr:
-            prvValue = set(old_attr.value)
-            noAccessList = RelatorNEventHandler._get_no_access_ids(old_attr)
+            prv_value = set(old_attr.value)
+            no_access_list = [id for id in old_attr.value
+                              if db.get_item(id) is None]
         else:
-            prvValue = set()
-            noAccessList = []
+            prv_value = set()
+            no_access_list = []
 
         # get current value
-        currentValue = set(new_attr.value + noAccessList)
+        current_value = set(new_attr.value + no_access_list)
 
-        if currentValue != prvValue:
+        if current_value != prv_value:
             # calculate added references
-            ids_added = list(currentValue - prvValue)
+            ids_added = list(current_value - prv_value)
             if ids_added:
                 RelatorNEventHandler._add_references(new_attr, ids_added,
                                                      item._id)
             # calculate removed references
-            ids_removed = list(prvValue - currentValue)
+            ids_removed = list(prv_value - current_value)
             if ids_removed:
                 RelatorNEventHandler._remove_references(new_attr, ids_removed,
                                                         item._id)
@@ -188,14 +190,20 @@ class RelatorNEventHandler(DatatypeEventHandler):
         from porcupine.datatypes import Relator1, RelatorN
         for id in ids:
             ref_item = db._db.get_item(id)
-            if ref_item is not None and isinstance(ref_item,
-                                               tuple([misc.get_rto_by_name(cc)
-                                                      for cc in attr.relCc])):
+            if (ref_item is not None and
+                    isinstance(ref_item,
+                               tuple([misc.get_rto_by_name(cc)
+                                      for cc in attr.relCc]))):
+                if attr.relAttr not in ref_item.__props__:
+                    raise AttributeError(
+                        "'%s' object has no attribute '%s'" %
+                        (ref_item.__class__.__name__, attr.relAttr))
                 ref_attr = getattr(ref_item, attr.relAttr)
                 if isinstance(ref_attr, RelatorN):
                     ref_attr.value.append(oid)
                 elif isinstance(ref_attr, Relator1):
                     ref_attr.value = oid
+                #ref_item._update_schema()
                 ref_attr.validate()
                 db._db.put_item(ref_item)
             else:
@@ -215,14 +223,9 @@ class RelatorNEventHandler(DatatypeEventHandler):
                     pass
             elif isinstance(ref_attr, Relator1):
                 ref_attr.value = ''
+            #ref_item._update_schema()
             ref_attr.validate()
             db._db.put_item(ref_item)
-
-    @staticmethod
-    def _get_no_access_ids(attr):
-        ids = [id for id in attr.value
-               if db.get_item(id) is None]
-        return ids
 
 
 class Relator1EventHandler(DatatypeEventHandler):
@@ -236,14 +239,14 @@ class Relator1EventHandler(DatatypeEventHandler):
     def on_update(item, new_attr, old_attr):
         # get previous value
         if old_attr:
-            prvValue = old_attr.value
+            prv_value = old_attr.value
         else:
-            prvValue = ''
+            prv_value = ''
 
-        if new_attr.value != prvValue:
+        if new_attr.value != prv_value:
             if new_attr.value:
                 Relator1EventHandler._add_reference(new_attr, item._id)
-            if old_attr and prvValue:
+            if old_attr and prv_value:
                 # remove old reference
                 Relator1EventHandler._remove_reference(old_attr, item._id)
 
@@ -272,9 +275,14 @@ class Relator1EventHandler(DatatypeEventHandler):
     def _add_reference(attr, oid):
         from porcupine.datatypes import Relator1, RelatorN
         ref_item = db._db.get_item(attr.value)
-        if ref_item is not None and isinstance(ref_item,
-                                           tuple([misc.get_rto_by_name(cc)
-                                                  for cc in attr.relCc])):
+        if (ref_item is not None and
+                isinstance(ref_item,
+                           tuple([misc.get_rto_by_name(cc)
+                                  for cc in attr.relCc]))):
+            if attr.relAttr not in ref_item.__props__:
+                raise AttributeError(
+                    "'%s' object has no attribute '%s'" %
+                    (ref_item.__class__.__name__, attr.relAttr))
             ref_attr = getattr(ref_item, attr.relAttr)
             if isinstance(ref_attr, RelatorN):
                 ref_attr.value.append(oid)
