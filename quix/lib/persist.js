@@ -29,7 +29,7 @@
     if (typeof GearsFactory != 'undefined') {
         factory = new GearsFactory();
     }
-    else {
+    else if (window.ActiveXObject) {
         try {
             factory = new ActiveXObject('Gears.Factory');
             if (factory.getBuildInfo().indexOf('ie_mobile') != -1) {
@@ -37,16 +37,16 @@
             }
         }
         catch(e) {
-            if ((typeof navigator.mimeTypes != 'undefined') &&
-                    navigator.mimeTypes["application/x-googlegears"]) {
-                factory = document.createElement("object");
-                factory.style.display = "none";
-                factory.width = 0;
-                factory.height = 0;
-                factory.type = "application/x-googlegears";
-                document.documentElement.appendChild(factory);
-            }
         }
+    }
+    if ((typeof navigator.mimeTypes != 'undefined') &&
+            navigator.mimeTypes["application/x-googlegears"]) {
+        factory = document.createElement("object");
+        factory.style.display = "none";
+        factory.width = 0;
+        factory.height = 0;
+        factory.type = "application/x-googlegears";
+        document.documentElement.appendChild(factory);
     }
     if (!factory) {
         return;
@@ -192,7 +192,7 @@ QuiX.persist = (function() {
         },
         flash: {
             id: '_persist_flash',
-            path: QuiX.baseUrl + 'persist/persist.swf',
+            path: QuiX.baseUrl + 'lib/persist.swf',
             size: {
                 w: 1,
                 h: 1

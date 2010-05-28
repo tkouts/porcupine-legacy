@@ -212,7 +212,7 @@ QuiX.modules = [
 QuiX.tags = {
     'desktop':-1, 'xhtml':-1, 'script':-1, 'prop':-1, 'stylesheet':-1,
     'rect':-1, 'module':-1, 'custom':-1,
-    
+
     'window':0, 'dialog':0,
     'menubar':1, 'menu':1, 'menuoption':1, 'contextmenu':1,
     'splitter':2,
@@ -233,15 +233,14 @@ QuiX.tags = {
 };
 
 QuiX.bootLibraries = [
-    // utils
-    QuiX.baseUrl + 'utils/utils.js',
-    QuiX.baseUrl + 'utils/date.js',
+    // libs
+    QuiX.baseUrl + 'lib/extensions.js',
+    QuiX.baseUrl + 'lib/utils.js',
+    QuiX.baseUrl + 'lib/parsers_hashlib.js',
+    QuiX.baseUrl + 'lib/persist.js',
+    QuiX.baseUrl + 'lib/rpc.js',
     // base widget
     QuiX.baseUrl + 'ui/widget.js',
-    // persistence
-    QuiX.baseUrl + 'persist/persist.js',
-    // rpc
-    QuiX.baseUrl + 'rpc/rpc.js',
     // swfupload
     QuiX.baseUrl + 'swfupload/swfupload.js',
     // theme css
@@ -282,7 +281,7 @@ QuiX.__init__ = function() {
                 QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
                 document.desktop.setOverflow(overflow);
             }
-            parser.parse(QuiX.domFromElement(root));
+            parser.parse(QuiX.parsers.domFromElement(root));
         }
     );
 }
@@ -432,7 +431,7 @@ QuiX.createOutline = function(w) {
     var macff = QuiX.utils.BrowserInfo.family == 'moz' &&
                 QuiX.utils.BrowserInfo.OS == 'MacOS';
     var fl = (macff)?'auto':'hidden';
-    
+
     var o = new QuiX.ui.Widget({
         left : w.getLeft(),
         top : w.getTop(),
@@ -441,7 +440,7 @@ QuiX.createOutline = function(w) {
         border : 2,
         overflow : fl
     });
-    
+
     if (macff) {
         var inner = new QuiX.ui.Widget({
             width : '100%',
@@ -450,15 +449,15 @@ QuiX.createOutline = function(w) {
         });
         o.appendChild(inner);
     }
-    
+
     var t = QuiX.getImage(QuiX.getThemeUrl() + 'images/transp.gif');
     t.style.width = '100%';
     t.style.height = '100%';
     ((macff)?inner:o).div.appendChild(t);
-    
+
     w.parent.appendChild(o);
     o.redraw();
-        
+
     //calculate size because minw/minh procedure can
     //depend on it's children size
     o.minw = (typeof w.minw == "function")?w.minw(w):w.minw;
@@ -631,7 +630,6 @@ QuiX.getTextNodes = function(el){
     return textnodes;
 }
 
-
 QuiX.contains = function(w, reText) {
     var text = w.div.innerHTML.replace(QuiX._strip_tags_re, '');
     return new RegExp(reText, 'gi').test(text);
@@ -696,36 +694,18 @@ QuiX.getInnerText = function(node) {
     return text;
 }
 
-QuiX.domFromString = function(s) {
-    var dom = null;
-    if (window.DOMParser)
-        dom = (new DOMParser).parseFromString(s, 'text/xml');
-    else if (window.ActiveXObject) {
-        dom = new ActiveXObject("msxml2.domdocument");
-        dom.loadXML(s);
-    }
-    return dom;
-}
-
-QuiX.domFromElement = function(el) {
-    if (el.XMLDocument)
-        return el.XMLDocument;
-    else
-        return QuiX.domFromString(el.innerHTML);
-}
-
 QuiX.localName = function(node) {
     if (node.localName)
         return node.localName;
     else {
         var tokens = node.tagName.split(':');
-        return (tokens.length==1)?tokens[0]:tokens[1];
+        return (tokens.length == 1)? tokens[0]:tokens[1];
     }
 }
 
 QuiX.removeWidget = function(w) {
     var parentElement;
-    
+
     if (w.__tooltip || w.__tooltipID)
         QuiX.ui.Widget._onmouseout(null, w);
     if (w._customRegistry.onunload)
@@ -739,13 +719,13 @@ QuiX.removeWidget = function(w) {
     }
     if (w.parent)
         w.parent.widgets.removeItem(w);
-    
+
     w._detachEvents();
-    
+
     parentElement = QuiX.getParentNode(w.div);
     if (parentElement)
         QuiX.removeNode(w.div);
-    
+
     w.div.widget = null;
     for (var v in w)
         w[v] = null;
@@ -854,7 +834,7 @@ QuiX.measureWidget = function(w, dim) {
     if (w[other] != 'auto')
         div.style[other] = w[other_func](true) + 'px';
     div.innerHTML = w.div.innerHTML;
-    // required by safari
+    // required by webkit
     var imgs = div.getElementsByTagName('IMG');
     if (imgs.length > 0)
         imgs[imgs.length - 1].style.height = '';
@@ -900,7 +880,7 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
             this.__customPrio--;
         }
     }
-    
+
     for (i=0; i<oNode.childNodes.length; i++) {
         this.detectModules(oNode.childNodes[i]);
     }
@@ -1137,361 +1117,3 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
     }
     return oWidget;
 }
-
-//=============================================================================
-// RPC Parsers
-//=============================================================================
-QuiX.parsers = {};
-
-// XML-RPC
-QuiX.parsers.XMLRPC = {};
-
-QuiX.parsers.XMLRPC.stringify = function(obj) {
-    if (obj == null || obj == undefined || (typeof obj == "number" &&
-                                            !isFinite(obj)))
-        return false.toXMLRPC();
-    else {
-        if (!obj.toXMLRPC) {
-            var retstr = "<struct>";
-            for (var prop in obj) {
-                if(typeof obj[prop] != "function") {
-                    retstr += "<member><name>" + prop + "</name><value>" +
-                              QuiX.parsers.XMLRPC.stringify(obj[prop]) +
-                              "</value></member>";
-                }
-            }
-            retstr += "</struct>";
-            return retstr;
-        }
-        else
-            return obj.toXMLRPC();
-    }
-}
-
-QuiX.parsers.XMLRPC.parse = function(xml) {
-    function getNode(data, len) {
-        var nc = 0; //nodeCount
-        if (data != null) {
-            for (var i=0; i<data.childNodes.length; i++) {
-                if(data.childNodes[i].nodeType == 1) {
-                    if(nc == len)
-                        return data.childNodes[i];
-                    else
-                        nc++
-                }
-            }
-        }
-        return false;
-    }
-    function toObject(data) {
-        var ret, i, elem;
-        switch (data.tagName) {
-            case "string":
-                return (data.firstChild)?
-                       data.firstChild.nodeValue.toString():"";
-                break;
-            case "int":
-            case "i4":
-            case "double":
-                return (data.firstChild)?
-                       new Number(data.firstChild.nodeValue):0;
-                break;
-            case "dateTime.iso8601":
-                return Date.parseIso8601(data.firstChild.nodeValue);
-                break;
-            case "array":
-                data = getNode(data, 0);
-                if (data && data.tagName == "data") {
-                    ret = [];
-                    for (i=0; i<data.childNodes.length; ++i) {
-                        elem = data.childNodes[i];
-                        if (elem.nodeType == 1) ret.push(toObject(elem));
-                    }
-                    return ret;
-                }
-                else
-                    throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
-                                             'Bad array.');
-                break;
-            case "struct":
-                ret = {};
-                for (i=0; i<data.childNodes.length; ++i) {
-                    elem = data.childNodes[i];
-                    if (elem.nodeType == 1) {
-                        if(elem.tagName == "member")
-                            ret[getNode(elem,0).firstChild.nodeValue] =
-                                toObject(getNode(elem, 1));
-                        else
-                            throw new QuiX.Exception(
-                                    'QuiX.parsers.XMLRPC.parse',
-                                    "'member' element expected, found '" +
-                                    elem.tagName + "' instead");
-                    }
-                }
-                return ret;
-                break;
-            case "boolean":
-                return Boolean(isNaN(parseInt(data.firstChild.nodeValue))?
-                    (data.firstChild.nodeValue == "true"):
-                    parseInt(data.firstChild.nodeValue));
-                break;
-            case "value":
-                var child = getNode(data, 0);
-                return (!child)? ((data.firstChild)?
-                    data.firstChild.nodeValue.toString():""):toObject(child);
-                break;
-            case "nil":
-                return null;
-            default:
-                throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
-                                         'Invalid tag name: ' + data.tagName);
-        }
-    }
-
-    if (typeof xml === 'string')
-        xml = QuiX.domFromString(xml);
-
-    //Check for XMLRPC Errors
-    var rpcErr = xml.getElementsByTagName("fault");
-    if (rpcErr.length > 0) {
-        rpcErr = toObject(getNode(rpcErr[0], 0));
-        throw new QuiX.Exception(
-            'QuiX.parsers.XMLRPC.parse',
-            rpcErr.faultCode + ' - ' + rpcErr.faultString);
-    }
-    //handle result
-    var main = xml.getElementsByTagName("param");
-    if (main.length == 0) {
-        throw new QuiX.Exception('QuiX.parsers.XMLRPC.parse',
-                                 '"param" element is missing');
-    }
-    var data = toObject(getNode(main[0], 0));
-    return data;
-}
-
-String.prototype.toXMLRPC = function() {
-    return "<string>" + this.xmlEncode() + "</string>";
-}
-
-Number.prototype.toXMLRPC = function() {
-    if (this == parseInt(this)) {
-        return "<int>" + this + "</int>";
-    }
-    else if(this == parseFloat(this)) {
-        return "<double>" + this + "</double>";
-    }
-    else {
-        return false.toXMLRPC();
-    }
-}
-
-Boolean.prototype.toXMLRPC = function() {
-    if (this==true) return "<boolean>1</boolean>";
-    else return "<boolean>0</boolean>";
-}
-
-Date.prototype.toXMLRPC = function() {
-    var d = "<dateTime.iso8601>" + this.toIso8601() + "</dateTime.iso8601>";
-    return(d);
-}
-
-Array.prototype.toXMLRPC = function() {
-    var retstr = "<array><data>";
-    for (var i=0; i<this.length; i++) {
-        retstr += "<value>" + QuiX.parsers.XMLRPC.stringify(this[i]) +
-                  "</value>";
-    }
-    return retstr + "</data></array>";
-}
-
-// JSON Parser
-QuiX.parsers.JSON = {};
-
-(function() {
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        gap, indent,
-        meta = { // table of character substitutions
-            '\b': '\\b',
-            '\t': '\\t',
-            '\n': '\\n',
-            '\f': '\\f',
-            '\r': '\\r',
-            '"' : '\\"',
-            '\\': '\\\\'
-        },
-        rep;
-
-    function quote(string) {
-        escapable.lastIndex = 0;
-        return escapable.test(string) ?
-            '"' + string.replace(escapable, function (a) {
-                var c = meta[a];
-                return typeof c === 'string' ? c :
-                    '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-            }) + '"' :
-            '"' + string + '"';
-    }
-
-    function str(key, holder) {
-        var i,          // The loop counter.
-            k,          // The member key.
-            v,          // The member value.
-            length,
-            mind = gap,
-            partial,
-            value = holder[key];
-        if (value && typeof value === 'object' &&
-                typeof value.toJSON === 'function') {
-            value = value.toJSON(key);
-        }
-        if (typeof rep === 'function') {
-            value = rep.call(holder, key, value);
-        }
-        switch (typeof value) {
-            case 'string':
-                return quote(value);
-            case 'number':
-                return isFinite(value) ? String(value) : 'null';
-            case 'boolean':
-            case 'null':
-                return String(value);
-            case 'object':
-                if (!value) {
-                    return 'null';
-                }
-                gap += indent;
-                partial = [];
-                if (Object.prototype.toString.apply(value)==='[object Array]') {
-                    length = value.length;
-                    for (i = 0; i < length; i += 1) {
-                        partial[i] = str(i, value) || 'null';
-                    }
-                    v = partial.length === 0 ? '[]' :
-                        gap ? '[\n' + gap +
-                                partial.join(',\n' + gap) + '\n' +
-                                    mind + ']' :
-                              '[' + partial.join(',') + ']';
-                    gap = mind;
-                    return v;
-                }
-                if (rep && typeof rep === 'object') {
-                    length = rep.length;
-                    for (i = 0; i < length; i += 1) {
-                        k = rep[i];
-                        if (typeof k === 'string') {
-                            v = str(k, value);
-                            if (v) {
-                                partial.push(quote(k) + (gap ? ': ':':') + v);
-                            }
-                        }
-                    }
-                }
-                else {
-                    for (k in value) {
-                        if (Object.hasOwnProperty.call(value, k)) {
-                            v = str(k, value);
-                            if (v) {
-                                partial.push(quote(k) + (gap ? ': ':':') + v);
-                            }
-                        }
-                    }
-                }
-                v = partial.length === 0 ? '{}' :
-                    gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
-                            mind + '}' : '{' + partial.join(',') + '}';
-                gap = mind;
-                return v;
-        }
-    }
-
-    function dateReviver (key, value) {
-        if (typeof value === 'string') {
-            if (Date._iso8601Re.test(value)) {
-                return Date.parseIso8601(value);
-            }
-        }
-        return value;
-    }
-
-    QuiX.parsers.JSON.stringify = function (value, replacer, space) {
-        var i;
-        gap = '';
-        indent = '';
-        if (typeof space === 'number') {
-            for (i=0; i<space; i+=1) {
-                indent += ' ';
-            }
-        }
-        else if (typeof space === 'string') {
-            indent = space;
-        }
-        rep = replacer;
-        if (replacer && typeof replacer !== 'function' &&
-                (typeof replacer !== 'object' ||
-                 typeof replacer.length !== 'number')) {
-            throw new QuiX.Exception('QuiX.parsers.JSON.stringify',
-                                     'Invalid replacer');
-        }
-        return str('', {'': value});
-    }
-
-    QuiX.parsers.JSON.parse = function (text, reviver) {
-        var j;
-        if (typeof reviver === 'undefined')
-            reviver = dateReviver;
-        function walk(holder, key) {
-            var k, v, value = holder[key];
-            if (value && typeof value === 'object') {
-                for (k in value) {
-                    if (Object.hasOwnProperty.call(value, k)) {
-                        v = walk(value, k);
-                        if (v !== undefined) {
-                            value[k] = v;
-                        }
-                        else {
-                            delete value[k];
-                        }
-                    }
-                }
-            }
-            return reviver.call(holder, key, value);
-        }
-        cx.lastIndex = 0;
-        if (cx.test(text)) {
-            text = text.replace(cx, function (a) {
-                return '\\u' +
-                    ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-            });
-        }
-        if (/^[\],:{}\s]*$/.
-test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').
-replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
-replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-            j = eval('(' + text + ')');
-            return typeof reviver === 'function' ?
-                walk({'': j}, '') : j;
-        }
-        throw new QuiX.Exception('QuiX.parsers.JSON.stringify',
-                                 'Invalid JSON string');
-    }
-})();
-
-
-Date.prototype.toJSON = function (key) {
-    // normally this should be used
-    // return this.toIso8601();
-    // but in order to accomodate the Python
-    // json parser using an object hook
-    // we encode dates in a somehow different way
-    return {
-        __date__ : true,
-        value : this.toIso8601()
-    }
-};
-
-String.prototype.toJSON =
-Number.prototype.toJSON =
-Boolean.prototype.toJSON = function (key) {
-    return this.valueOf();
-};

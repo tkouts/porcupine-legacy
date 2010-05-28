@@ -146,7 +146,7 @@ QuiX.ui.Widget.prototype.parse = function(dom, callback) {
 
 QuiX.ui.Widget.prototype.parseFromString = function(s /*, oncomplete*/) {
     var oncomplete = arguments[1] || null;
-    this.parse(QuiX.domFromString(s), oncomplete);
+    this.parse(QuiX.parsers.domFromString(s), oncomplete);
 }
 
 QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
@@ -162,7 +162,7 @@ QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
                 // use rpc cache for caching responses
                 var status = xmlhttp.status;
                 if (status == 304) { //Not modified
-                    dom = QuiX.domFromString(xmlhttp._cached);
+                    dom = QuiX.parsers.domFromString(xmlhttp._cached);
                 }
                 else {
                     var etag = xmlhttp.getResponseHeader('Etag');

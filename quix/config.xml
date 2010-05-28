@@ -13,18 +13,13 @@
 			action="ui/widget.js">
 		<filter type="porcupine.filters.output.Gzip"/>
 	</context>
-	<context path="utils/date.js"
+	<context path="lib/extensions.js"
 		method="GET"
 		client=".*"
 		lang=".*"
         max-age="300"
-		action="utils/date.js.psp"/>
-	<context path="ui/ReadFile.jar"
-		method="GET"
-		client=".*"
-		lang=".*"
-        max-age="300"
-		action="ui/ReadFile.jar"/>
+		action="lib/extensions.js.psp"/>
+
 	<!-- QuiX default theme -->
 	<context path="themes/default/quix.css"
 		method="GET"
@@ -32,6 +27,7 @@
 		lang=".*"
         max-age="300"
 		action="themes/default/quix.css.psp"/>
+
     <!-- html pages -->
 	<context match="(.*)\.htm"
 		method="GET"
@@ -39,6 +35,7 @@
 		lang=".*"
         max-age="300"
 		action="$1.htm"/>
+
     <!-- Stylesheets -->
 	<context match="(.*)\.css"
 		method="GET"
@@ -46,6 +43,7 @@
 		lang=".*"
         max-age="300"
 		action="$1.css"/>
+
 	<!-- QuiX Modules -->
 	<context match="(.*)\.js"
 		method="GET"
@@ -61,6 +59,7 @@
             action="$1.js">
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
+
 	<!-- Flash files -->
 	<context match="(.*)\.swf"
 		method="GET"
@@ -68,6 +67,7 @@
 		lang=".*"
 		action="$1.swf"
 		max-age="300"/>
+
 	<!-- QuiX images-->
 	<context match="(.*)images/(.*)"
 		method="GET"
