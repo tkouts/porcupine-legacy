@@ -81,7 +81,6 @@ QuiX.rpc.BaseRPCRequest._onstatechange = function() {
     if (this.readyState == 4) {
         var response = null;
         var status = this.status;
-
         // parse response...
         try {
             if (status == 304 || status == 0) { //Not modified
@@ -128,7 +127,7 @@ QuiX.rpc.BaseRPCRequest.prototype.onerror = function(e) {
 QuiX.rpc.BaseRPCRequest.prototype.callmethod =
 function(method_name /*, arg1, arg2, ...*/) {
     if (this._validateMethodName(method_name)) {
-        var args = Array.prototype.concat.apply([], arguments);
+        var args = Array.prototype.slice.call(arguments);
         var request = this._parser.packRequest(this.id, method_name,
                                                args.slice(1, args.length));
 
