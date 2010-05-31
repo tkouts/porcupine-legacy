@@ -63,7 +63,7 @@ QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
         this.url = url || '.';
         this.response = null;
         this.use_cache = true;
-		this.id = ++QuiX.rpc._requestId;
+        this.id = ++QuiX.rpc._requestId;
 
         // events
         this.onreadystatechange = null;
@@ -137,8 +137,8 @@ function(method_name /*, arg1, arg2, ...*/) {
         xmlhttp.open('POST', this.url, this.async);
         xmlhttp.setRequestHeader('Content-Type', this._contentType);
         xmlhttp.onreadystatechange = function() {
-			QuiX.rpc.BaseRPCRequest._onstatechange.apply(this);
-		}
+            QuiX.rpc.BaseRPCRequest._onstatechange.apply(this);
+        }
 
         if (this.use_cache) {
             this.key = QuiX.hashlib.hex_md5(
@@ -173,7 +173,7 @@ QuiX.rpc.XMLRPCRequest = function(url /*, async*/) {
     var async = arguments[1] || true;
     this.base = QuiX.rpc.BaseRPCRequest;
     this.base(url, async);
-	this.type = 'xml-rpc';
+    this.type = 'xml-rpc';
     this._contentType = 'text/xml';
     this._parser = QuiX.parsers.XMLRPC;
 }
@@ -195,7 +195,7 @@ QuiX.rpc.JSONRPCRequest = function(url /*, async*/) {
     var async = arguments[1] || true;
     this.base = QuiX.rpc.BaseRPCRequest;
     this.base(url, async);
-	this.type = 'json-rpc';
+    this.type = 'json-rpc';
     this._contentType = 'application/json';
     this._parser = QuiX.parsers.JSONRPC2;
 }
