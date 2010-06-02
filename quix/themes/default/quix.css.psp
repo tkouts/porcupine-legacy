@@ -29,6 +29,10 @@ BODY {
     border-color: red;
 }
 
+.outline>div {
+    background-color: black;
+}
+
 #_hl SPAN {
     background-color: yellow;
 }

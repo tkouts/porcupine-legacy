@@ -341,6 +341,13 @@ QuiX.Exception = function(name, msg) {
 QuiX.Exception.prototype = new Error
 
 QuiX.displayError = function(e) {
+    var msg = e.name + '\n\n' + e.message;
+    if (e.stack) {
+        msg += '\n\n' + e.stack;
+    }
+    if (e.lineNumber && e.fileName) {
+        msg += '\nFile: "' + e.fileName + '" Line: ' + e.lineNumber;
+    }
     document.desktop.parseFromString(
         '<dialog xmlns="http://www.innoscript.org/quix" title="Error" \
                 resizable="true" close="true" width="560" height="240" \
@@ -351,8 +358,7 @@ QuiX.displayError = function(e) {
                         img="$THEME_URL$images/error32.gif"/> \
                     <rect padding="4,4,4,4" overflow="auto"><xhtml><![CDATA[ \
                         <pre style="color:red;font-size:12px; \
-                            font-family:monospace;padding-left:4px">' +
-                            e.name + '\n\n' + e.message +
+                            font-family:monospace;padding-left:4px">' + msg +
                         '</pre>]]></xhtml> \
                     </rect> \
                 </hbox> \
@@ -438,18 +444,17 @@ QuiX.createOutline = function(w) {
         top : w.getTop(),
         width : w.getWidth(true),
         height : w.getHeight(true),
-        border : 2,
+        border : 1,
         overflow : fl
     });
 
-    if (macff) {
-        var inner = new QuiX.ui.Widget({
-            width : '100%',
-            height : '100%',
-            overflow : 'hidden'
-        });
-        o.appendChild(inner);
-    }
+    var inner = new QuiX.ui.Widget({
+        width : '100%',
+        height : '100%',
+        opacity: .2,
+        overflow : 'hidden'
+    });
+    o.appendChild(inner);
 
     var t = QuiX.getImage(QuiX.getThemeUrl() + 'images/transp.gif');
     t.style.width = '100%';
@@ -940,12 +945,23 @@ QuiX.Parser.prototype.beginRender = function() {
     this.__onload.reverse();
     while (this.__onload.length > 0) {
         on_load = this.__onload.pop();
-        on_load[0](on_load[1]);
+        try {
+            on_load[0](on_load[1]);
+        }
+        catch(e) {
+            this.onerror(e);
+        }
     }
     widget.redraw(true);
     this.dom = null;
-    if (this.oncomplete)
-        this.oncomplete(widget);
+    if (this.oncomplete) {
+        try {
+            this.oncomplete(widget);
+        }
+        catch(e) {
+            this.onerror(e);
+        }
+    }
 }
 
 QuiX.Parser.prototype.render = function() {
