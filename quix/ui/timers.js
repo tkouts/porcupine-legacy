@@ -1,6 +1,3 @@
-/************************
-Timer widget
-************************/
 
 // timer
 
@@ -23,7 +20,7 @@ QuiX.ui.Timer = function(/*params*/) {
     else if (params.interval)
         this.interval = parseInt(params.interval);
 
-    this.auto = (params.auto==true || params.auto=='true');
+    this.auto = (params.auto == true || params.auto == 'true');
     
     if (this.auto) {
         if (this.interval) {
@@ -113,6 +110,8 @@ QuiX.ui.Effect = function(/*params*/) {
 
     }
     this.steps = parseInt(params.steps) || 5;
+    // linear animations as default
+    this.ease = parseFloat(params.ease) || 1;
     this._step = 0;
     this._reverse = false;
     this.base = QuiX.ui.Timer;
@@ -134,8 +133,8 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
     switch (this.type) {
         case 'slide-x':
         case 'slide-y':
-            var f = (this.type=='slide-x')?'_calcLeft':'_calcTop';
-            var v = (this.type=='slide-x')?'left':'top';
+            var f = (this.type == 'slide-x')?'_calcLeft':'_calcTop';
+            var v = (this.type == 'slide-x')?'left':'top';
             this.parent[v] = this.begin;
             begin = this.parent[f]();
             this.parent[v] = this.end;
@@ -152,15 +151,17 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
         end = tmp;
     }
 
-    stepping = (end - begin) / this.steps;
     if (this._step == this.steps) {
         if (this._reverse)
             value = this.begin;
         else
             value = this.end;
     }
-    else
-        value = begin + (stepping * this._step);
+    else {
+        value = begin +
+                (Math.pow(((1 / this.steps) * this._step),
+                          this.ease) * (end - begin));
+    }
 
     var h, w;
     // apply value
@@ -207,9 +208,11 @@ QuiX.ui.Effect.prototype.stop = function() {
             case 'wipe-in':
                 var ev = this._reverse?this.begin:this.end;
                 if (ev == 1)
-                    if (QuiX.utils.BrowserInfo.family == 'ie')
-                        this.parent.div.style.cssText =
-                            this.parent.div.style.cssText.replace(/CLIP:.*?;/i, '');
+                    if (QuiX.utils.BrowserInfo.family == 'ie') {
+                        with (this.parent.div.style) {
+                            cssText = cssText.replace(/CLIP:.*?;/i, '');
+                        }
+                    }
                     else
                         this.parent.div.style.clip = '';
         }
