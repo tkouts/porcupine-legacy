@@ -1,4 +1,4 @@
-//==============================================================================
+//=============================================================================
 //  Copyright 2005-2009 Tassos Koutsovassilis and Contributors
 //
 //  This file is part of Porcupine.
@@ -13,9 +13,10 @@
 //  You should have received a copy of the GNU Lesser General Public License
 //  along with Porcupine; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//==============================================================================
+//=============================================================================
 
-//Widget class
+// widget class
+
 QuiX.ui.Widget = function(/*params*/) {
     var params = arguments[0] || {};
     this.left = params.left || 0;
@@ -240,8 +241,8 @@ QuiX.ui.Widget.prototype.getWidgetsByAttribute = function(attr_name, shallow) {
     return this.query('w[param] != undefined', attr_name, shallow);
 }
 
-QuiX.ui.Widget.prototype.getWidgetsByAttributeValue = function(attr_name, value,
-        shallow) {
+QuiX.ui.Widget.prototype.getWidgetsByAttributeValue =
+function(attr_name, value, shallow) {
     return this.query('w[param[0]] == param[1]', [attr_name, value], shallow);
 }
 
@@ -433,7 +434,7 @@ QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
                         this.div.style.overflow == 'scroll';
         if (!has_scrollbar && (this.div.style.overflowX == 'auto'
                                || this.div.style.overflow == 'auto')
-               && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
+                && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
             has_scrollbar = true;
         }
         memo[this._uniqueid + 'gh'][2] = has_scrollbar;
@@ -466,9 +467,9 @@ QuiX.ui.Widget.prototype.getWidth = function(b /*, memo*/) {
         has_scrollbar = this.div.style.overflowY == 'scroll' ||
                         this.div.style.overflow == 'scroll';
         if (!has_scrollbar
-                 && (this.div.style.overflowY == 'auto'
-                     || this.div.style.overflow == 'auto')
-                 && this._calcHeight(true, memo) < this.getScrollHeight(memo)) {
+                && (this.div.style.overflowY == 'auto'
+                    || this.div.style.overflow == 'auto')
+                && this._calcHeight(true, memo) < this.getScrollHeight(memo)) {
             has_scrollbar = true;
         }
         memo[this._uniqueid + 'gw'][2] = has_scrollbar;
@@ -500,33 +501,57 @@ QuiX.ui.Widget.prototype.getTop = function() {
     return rg;
 }
 
-QuiX.ui.Widget.prototype._calcSize = function(height, offset, getHeight, memo) {
+QuiX.ui.Widget.prototype._calcSize =
+function(height, offset, getHeight, memo) {
     var value;
     if (memo && memo[this._uniqueid + height]) {
         value = memo[this._uniqueid + height];
     }
     else {
-        value = typeof(this[height]) == 'function'?
-                this[height].apply(this, [memo]):this[height];
-        if (value) {
-            if (!isNaN(value))
-                value =  parseInt(value);
-            else if (value.slice(value.length-1) == '%') {
-                var perc = parseInt(value) / 100;
-                value = (parseInt(this.parent[getHeight](false, memo) * perc)) || 0;
+        if (this[height] == 'auto') {
+            var value = 0, w_length;
+            var padding_offset = (height == 'height')? 2:0;
+            var padding = this.getPadding();
+            var length_func = (height == 'height')? '_calcHeight':'_calcWidth';
+            var offset_func = (height == 'height')? '_calcTop':'_calcLeft';
+
+            for (var i = 0; i < this.widgets.length; i++) {
+                w_length = this.widgets[i][offset_func](memo) +
+                           this.widgets[i][length_func](true, memo);
+                value = Math.max(value, w_length);
             }
-            else {
-                if (!this['__' + height] || this['__' + height].expr != value) {
-                    // compile expression to a function
-                    var func = new Function('memo', 'return ' + value);
-                    func.expr = value;
-                    this['__' + height] = func;
+
+            value = value + padding[padding_offset] +
+                    padding[padding_offset + 1] + 2 * this.getBorderWidth();
+        }
+        else {
+            value = (typeof this[height] == 'function')?
+                    this[height].apply(this, [memo]) : this[height];
+            if (value) {
+                if (!isNaN(value)) {
+                    value = parseInt(value);
                 }
-                value = this['__' + height].apply(this, [memo]) || 0;
+                else {
+                    if (value.slice(value.length - 1) == '%') {
+                        var perc = parseInt(value) / 100;
+                        value = parseInt(this.parent[getHeight](false, memo)
+                                         * perc) || 0;
+                    }
+                    else {
+                        if (!this['__' + height] ||
+                                this['__' + height].expr != value) {
+                            // compile expression to a function
+                            var func = new Function('memo', 'return ' + value);
+                            func.expr = value;
+                            this['__' + height] = func;
+                        }
+                        value = this['__' + height].apply(this, [memo]) || 0;
+                    }
+                }
             }
-            if (typeof memo != 'undefined') {
-                memo[this._uniqueid + height] = value;
-            }
+        }
+        if (typeof memo != 'undefined') {
+            memo[this._uniqueid + height] = value;
         }
     }
     return value - offset;
