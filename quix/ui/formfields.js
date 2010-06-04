@@ -18,8 +18,6 @@ QuiX.ui.Form = function(/*params*/) {
 
 QuiX.constructors['form'] = QuiX.ui.Form;
 QuiX.ui.Form.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Form = QuiX.ui.Form;
 
 QuiX.ui.Form.prototype.getElements = function() {
     return this.getWidgetsByAttribute('getValue');
@@ -147,8 +145,6 @@ QuiX.ui.Field = function(/*params*/) {
 
 QuiX.constructors['field'] = QuiX.ui.Field;
 QuiX.ui.Field.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Field = QuiX.ui.Field;
 
 QuiX.ui.Field.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
@@ -285,7 +281,7 @@ QuiX.ui.Field.prototype._calcSize = function(height, offset, getHeight, memo) {
         return value - offset;
     }
     else
-        return Widget.prototype._calcSize.apply(this, arguments);
+        return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
 }
 
 QuiX.ui.Field._checkbox_onclick = function(evt, w) {
@@ -385,8 +381,6 @@ QuiX.constructors['spinbutton'] = QuiX.ui.Spin;
 QuiX.ui.Spin.prototype = new QuiX.ui.Widget;
 QuiX.ui.Spin.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange']);
-// backwards compatibility
-var Spin = QuiX.ui.Spin;
 
 QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild) {

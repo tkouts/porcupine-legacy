@@ -19,8 +19,6 @@ QuiX.ui.Splitter = function(/*params*/) {
 
 QuiX.constructors['splitter'] = QuiX.ui.Splitter;
 QuiX.ui.Splitter.prototype = new QuiX.ui.Box;
-// backwards compatibility
-var Splitter = QuiX.ui.Splitter;
 
 QuiX.ui.Splitter.prototype.appendChild = function(w) {
     if (this.panes.length > 0) {

@@ -1,7 +1,7 @@
 function selectObjectsDialog() {}
 
 selectObjectsDialog.showFolders = function(evt, w) {
-	var dialog = w.getParentByType(Dialog);
+	var dialog = w.getParentByType(QuiX.ui.Dialog);
 	var main_box = dialog.body.getWidgetById('vbox_main');
 	var btn_search = dialog.body.getWidgetById('btn_search');
 
@@ -19,7 +19,7 @@ selectObjectsDialog.showFolders = function(evt, w) {
 }
 
 selectObjectsDialog.showSearch = function(evt, w) {
-	var dialog = w.getParentByType(Dialog);
+	var dialog = w.getParentByType(QuiX.ui.Dialog);
 	var main_box = dialog.body.getWidgetById('vbox_main');
 	var btn_folders = dialog.body.getWidgetById('btn_folders');
 
@@ -37,10 +37,10 @@ selectObjectsDialog.showSearch = function(evt, w) {
 }
 
 selectObjectsDialog.search = function(evt, w) {
-	var oDialog = w.getParentByType(Dialog);
+	var oDialog = w.getParentByType(QuiX.ui.Dialog);
 	var cc = oDialog.attributes.CC;
 	var oRect = w.parent;
-	var oTree = w.getParentByType(Box).getWidgetById('tree');
+	var oTree = w.getParentByType(QuiX.ui.Box).getWidgetById('tree');
 	var sName = oRect.getWidgetById('displayName').getValue();
 	var sDesc = oRect.getWidgetById('description').getValue();
 	var isDeep = oRect.getWidgetById('deep').getValue();
@@ -81,7 +81,7 @@ selectObjectsDialog.search = function(evt, w) {
 }
 
 selectObjectsDialog.refreshList = function(treeNodeSelected) {
-	var oDialog = treeNodeSelected.tree.getParentByType(Dialog);
+	var oDialog = treeNodeSelected.tree.getParentByType(QuiX.ui.Dialog);
 	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
 	var cc = oDialog.attributes.CC;
 	var sOql = "select id as value, __image__ as img, displayName as caption " +
@@ -101,7 +101,7 @@ selectObjectsDialog.getConditions = function(s) {
 }
 
 selectObjectsDialog.refreshList_oncomplete = function(req) {
-	var oDialog = req.callback_info.getParentByType(Dialog);
+	var oDialog = req.callback_info.getParentByType(QuiX.ui.Dialog);
 	var oSelect = oDialog.getWidgetById("selection");
 	var oItems = req.response;
 	oSelect.clear();

@@ -3,7 +3,6 @@
 		title="{=NAME}" img="{=ICON}"
         resizable="false" close="true" align="right"
 		width="380" height="300" left="30%" top="30%">
-	<script name="Generic Functions" src="desktop/generic.js"/>
 	<script name="Generic Form Widgets" src="desktop/widgets.js"
         depends="10,14,15"/>
 	<wbody>

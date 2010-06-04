@@ -85,8 +85,6 @@ QuiX.ui.Widget = function(/*params*/) {
 }
 
 QuiX.constructors['rect'] = QuiX.ui.Widget;
-// backwards compatibility
-var Widget = QuiX.ui.Widget;
 
 QuiX.ui.Widget.prototype.appendChild = function(w /*, p, index*/) {
     var p = arguments[1] || this;
@@ -1257,8 +1255,6 @@ QuiX.ui.Desktop = function(params, root) {
 
 QuiX.constructors['desktop'] = QuiX.ui.Desktop;
 QuiX.ui.Desktop.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Desktop = QuiX.ui.Desktop;
 
 QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
         mleft, mtop /*, mwidth, mheight, container*/) {

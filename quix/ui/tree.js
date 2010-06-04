@@ -43,8 +43,6 @@ QuiX.ui.TreeNode = function(/*params*/) {
 
 QuiX.constructors['treenode'] = QuiX.ui.TreeNode;
 QuiX.ui.TreeNode.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var TreeNode = QuiX.ui.TreeNode;
 
 QuiX.ui.TreeNode.prototype.appendChild = function (w) {
     w.tree = this.tree;
@@ -90,7 +88,7 @@ QuiX.ui.TreeNode.prototype.redraw = function(bForceAll /*, memo*/) {
     this._putImage();
     if (this.hasChildren())
         this._addExpandImg();
-    if (this.parent instanceof TreeNode) {
+    if (this.parent instanceof QuiX.ui.TreeNode) {
         //sub node
         if (!this.parent._hasChildren) {
             this.parent._addExpandImg();
@@ -244,8 +242,6 @@ QuiX.ui.Tree = function(/*params*/) {
 
 QuiX.constructors['tree'] = QuiX.ui.Tree;
 QuiX.ui.Tree.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Tree = QuiX.ui.Tree;
 
 QuiX.ui.Tree.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onexpand', 'onselect']);
@@ -283,8 +279,6 @@ QuiX.ui.FolderTree = function(params) {
 
 QuiX.constructors['foldertree'] = QuiX.ui.FolderTree;
 QuiX.ui.FolderTree.prototype = new QuiX.ui.Tree;
-// backwards compatibility
-var FolderTree = QuiX.ui.FolderTree;
 
 QuiX.ui.FolderTree.prototype.loadSubfolders = function(treeNode) {
     var sID = treeNode.getId() || '';

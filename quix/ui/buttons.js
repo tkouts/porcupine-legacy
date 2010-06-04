@@ -36,8 +36,6 @@ QuiX.ui.Label = function(/*params*/) {
 
 QuiX.constructors['label'] = QuiX.ui.Label;
 QuiX.ui.Label.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Label = QuiX.ui.Label;
 
 QuiX.ui.Label.prototype._calcSize = function(height, offset, getHeight, memo) {
     if (this[height] == 'auto' &&
@@ -49,7 +47,7 @@ QuiX.ui.Label.prototype._calcSize = function(height, offset, getHeight, memo) {
         return value - offset;
     }
     else
-        return Widget.prototype._calcSize.apply(this, arguments);
+        return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
 }
 
 QuiX.ui.Label.prototype.setCaption = function(s) {
@@ -138,8 +136,6 @@ QuiX.ui.Icon = function(/*params*/) {
 
 QuiX.constructors['icon'] = QuiX.ui.Icon;
 QuiX.ui.Icon.prototype = new QuiX.ui.Label;
-// backwards compatibility
-var Icon = QuiX.ui.Icon;
 
 QuiX.ui.Icon.prototype.setImageURL = function(s) {
     if (s != this.img) {
@@ -290,8 +286,6 @@ QuiX.ui.Button = function(/*params*/) {
 
 QuiX.constructors['button'] = QuiX.ui.Button;
 QuiX.ui.Button.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var XButton = QuiX.ui.Button;
 
 QuiX.ui.Button.prototype._calcSize =
 function(height, offset, getHeight, memo) {
@@ -328,7 +322,7 @@ function(height, offset, getHeight, memo) {
         return value - offset;
     }
     else
-        return Widget.prototype._calcSize.apply(this, arguments);
+        return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
 }
 
 QuiX.ui.Button.prototype.setCaption = function(s) {
@@ -425,8 +419,6 @@ QuiX.ui.FlatButton = function(/*params*/) {
 
 QuiX.constructors['flatbutton'] = QuiX.ui.FlatButton;
 QuiX.ui.FlatButton.prototype = new QuiX.ui.Icon;
-// backwards compatibility
-var FlatButton = QuiX.ui.FlatButton;
 
 QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Icon.prototype.redraw.apply(this, arguments);

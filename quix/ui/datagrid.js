@@ -22,8 +22,6 @@ QuiX.ui.DataGrid = function(/*params*/) {
 
 QuiX.constructors['datagrid'] = QuiX.ui.DataGrid;
 QuiX.ui.DataGrid.prototype = new QuiX.ui.ListView;
-// backwards compatibility
-var DataGrid = QuiX.ui.DataGrid;
 
 QuiX.ui.DataGrid.prototype.addHeader = function(params) {
     var oHeader = QuiX.ui.ListView.prototype.addHeader.apply(this, arguments);

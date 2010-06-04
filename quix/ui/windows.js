@@ -5,7 +5,7 @@ Windows & Dialogs
 // generic event handlers
 
 function __closeDialog__(evt, w) {
-    w.getParentByType(Window).close();
+    w.getParentByType(QuiX.ui.Window).close();
 }
 
 // window
@@ -123,8 +123,6 @@ QuiX.constructors['window'] = QuiX.ui.Window;
 QuiX.ui.Window.prototype = new QuiX.ui.Widget;
 QuiX.ui.Window.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onclose']);
-// backwards compatibility
-var Window = QuiX.ui.Window;
 
 QuiX.ui.Window.prototype.setIcon = function(sUrl) {
     var icon = this.title.getWidgetById('_t');
@@ -366,9 +364,9 @@ QuiX.ui.Window.prototype.bringToFront = function() {
     QuiX.cleanupOverlays();
     if (this.div.style.zIndex < this.parent.maxz) {
         var sw, dt, i;
-        var macff = QuiX.utils.BrowserInfo.family == 'moz'
-            && QuiX.utils.BrowserInfo.OS == 'MacOS';
-        Widget.prototype.bringToFront.apply(this, arguments);
+        var macff = (QuiX.utils.BrowserInfo.family == 'moz' &&
+                     QuiX.utils.BrowserInfo.OS == 'MacOS');
+        QuiX.ui.Widget.prototype.bringToFront.apply(this, arguments);
         if (macff) {
             dt = document.desktop;
             //hide scrollbars
@@ -435,7 +433,7 @@ QuiX.ui.Window._onminimize = function(eff) {
 }
 
 QuiX.ui.Window._onmmaximize = function(w) {
-    if (!(w instanceof Window))
+    if (!(w instanceof QuiX.ui.Window))
         w = w.parent;
     for (var i=1; i<w.widgets[0].widgets.length; i++)
         w.widgets[0].widgets[i].show();
@@ -492,8 +490,6 @@ QuiX.ui.Dialog = function(/*params*/) {
 
 QuiX.constructors['dialog'] = QuiX.ui.Dialog;
 QuiX.ui.Dialog.prototype = new QuiX.ui.Window;
-// backwards compatibility
-var Dialog = QuiX.ui.Dialog;
 
 QuiX.ui.Dialog.prototype.setButtonsAlign = function(sAlign) {
     var left;

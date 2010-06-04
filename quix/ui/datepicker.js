@@ -38,8 +38,6 @@ QuiX.ui.Datepicker = function(/*params*/) {
 
 QuiX.constructors['datepicker'] = QuiX.ui.Datepicker;
 QuiX.ui.Datepicker.prototype = new QuiX.ui.Combo;
-// backwards compatibility
-var Datepicker = QuiX.ui.Datepicker;
 
 QuiX.ui.Datepicker.prototype.getValue = function() {
     return this._dt;
@@ -283,10 +281,10 @@ QuiX.ui.Datepicker._fill = function(box) {
     oDatepicker.month.button.attachEvent('onclick',
                                          QuiX.ui.Datepicker._month_onclick);
 
-    box.getWidgetsByType(FlatButton)[0].attachEvent(
+    box.getWidgetsByType(QuiX.ui.FlatButton)[0].attachEvent(
         'onclick',
         QuiX.ui.Datepicker._prev_onclick);
-    box.getWidgetsByType(FlatButton)[1].attachEvent(
+    box.getWidgetsByType(QuiX.ui.FlatButton)[1].attachEvent(
         'onclick',
         QuiX.ui.Datepicker._next_onclick);
 

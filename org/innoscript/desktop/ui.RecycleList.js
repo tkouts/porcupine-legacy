@@ -40,8 +40,8 @@ recycleBin.getContainerInfo = function(w) {
 
 recycleBin.showProperties = function(evt, w) {
 	var win_elem = (w.parent.owner)?w.parent.owner:w;
-	var win = win_elem.getParentByType(Window);
-	var oList = win.getWidgetsByType(ListView)[0];
+	var win = win_elem.getParentByType(QuiX.ui.Window);
+	var oList = win.getWidgetsByType(QuiX.ui.ListView)[0];
 	var oItem = oList.getSelection();
 	
 	win.showWindow(QuiX.root + 
@@ -59,12 +59,12 @@ recycleBin.showProperties = function(evt, w) {
 }
 
 recycleBin.refresh = function(evt, w) {
-	var win = w.getParentByType(Window);
+	var win = w.getParentByType(QuiX.ui.Window);
 	recycleBin.getContainerInfo(win);
 }
 
 recycleBin.restoreTo = function(evt, w) {
-	var win = w.parent.owner.getParentByType(Window);
+	var win = w.parent.owner.getParentByType(QuiX.ui.Window);
 	var oList = win.getWidgetById("itemslist");
 	var action = w.attributes.action;
 	
@@ -96,7 +96,7 @@ recycleBin._onerror = function(e) {
 recycleBin.restoreItem = function(evt, w) {
 	var win, items, title;
 	if (w.parent.owner) {
-		win = w.parent.owner.getParentByType(Window);
+		win = w.parent.owner.getParentByType(QuiX.ui.Window);
 		items = win.getWidgetById("itemslist").getSelection();
 		title = w.getCaption();
 	}
@@ -110,7 +110,7 @@ recycleBin.restoreItem = function(evt, w) {
 	items.reverse();
 	
 	var _startRestoring = function(w) {
-		var w = w.callback_info || w;
+		w = w.callback_info || w;
 		var pb = w.getWidgetById("pb");
 		if (items.length > 0) {
 			var item = items.pop();
@@ -131,12 +131,12 @@ recycleBin.restoreItem = function(evt, w) {
 }
 
 recycleBin.deleteItem = function(evt, w) {
-	var win = w.parent.owner.getParentByType(Window);
+	var win = w.parent.owner.getParentByType(QuiX.ui.Window);
 	var sCaption = w.getCaption();
 	var desktop = document.desktop;
 
 	var _deleteItem = function(evt, w) {
-		w.getParentByType(Dialog).close();
+		w.getParentByType(QuiX.ui.Dialog).close();
 		var items = win.getWidgetById("itemslist").getSelection();
 		if (!(items instanceof Array)) items = [items];
 		items.reverse();
@@ -176,11 +176,11 @@ recycleBin.deleteItem = function(evt, w) {
 recycleBin.empty = function(evt, w) {
 	var desktop = document.desktop;
 	var win_elem = (w.parent.owner)?w.parent.owner:w;
-	var win = win_elem.getParentByType(Window);
+	var win = win_elem.getParentByType(QuiX.ui.Window);
 	var rbid = win.attributes.FolderID;
 	
 	var _empty = function(evt, w) {
-		w.getParentByType(Dialog).close();
+		w.getParentByType(QuiX.ui.Dialog).close();
 		var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + rbid);
 		rpc.oncomplete = function(req) {
 			recycleBin.getContainerInfo(win);

@@ -13,8 +13,6 @@ QuiX.ui.HR = function(/*params*/) {
 
 QuiX.constructors['hr'] = QuiX.ui.HR;
 QuiX.ui.HR.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var HR = QuiX.ui.HR;
 
 // iframe
 
@@ -28,7 +26,7 @@ QuiX.ui.IFrame = function(/*params*/) {
     this.frame = ce("IFRAME");
     this.frame.frameBorder = 0;
     this.frame.name = params.name || '';
-    QuiX.addEvent(this.frame, 'onload', IFrame.prototype._onload);
+    QuiX.addEvent(this.frame, 'onload', QuiX.ui.IFrame.prototype._onload);
     this.frame.src = params.src || "";
     this.frame.style.width = "100%";
     this.frame.style.height = "100%";
@@ -39,8 +37,6 @@ QuiX.constructors['iframe'] = QuiX.ui.IFrame;
 QuiX.ui.IFrame.prototype = new QuiX.ui.Widget;
 QuiX.ui.IFrame.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['ondocumentload']);
-// backwards compatibility
-var IFrame = QuiX.ui.IFrame;
 
 QuiX.ui.IFrame.prototype.redraw = function(bForceAll /*, memo*/) {
     this.frame.style.visibility = 'hidden';
@@ -122,8 +118,6 @@ QuiX.ui.GroupBox = function(/*params*/) {
 
 QuiX.constructors['groupbox'] = QuiX.ui.GroupBox;
 QuiX.ui.GroupBox.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var GroupBox = QuiX.ui.GroupBox;
 
 QuiX.ui.GroupBox.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onstatechange']);
@@ -213,8 +207,6 @@ QuiX.ui.Slider = function(/*params*/) {
 
 QuiX.constructors['slider'] = QuiX.ui.Slider;
 QuiX.ui.Slider.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Slider = QuiX.ui.Slider;
 
 QuiX.ui.Slider.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange']);
@@ -306,8 +298,6 @@ QuiX.ui.ProgressBar = function(/*params*/) {
 
 QuiX.constructors['progressbar'] = QuiX.ui.ProgressBar;
 QuiX.ui.ProgressBar.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var ProgressBar = QuiX.ui.ProgressBar;
 
 QuiX.ui.ProgressBar.prototype._update = function() {
     this.bar.width = parseInt((this.value / this.maxvalue) * 100) + '%';

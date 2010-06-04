@@ -18,8 +18,6 @@ QuiX.ui.Box = function(/*params*/) {
 
 QuiX.constructors['box'] = QuiX.ui.Box;
 QuiX.ui.Box.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Box = QuiX.ui.Box;
 
 QuiX.ui.Box._destroy = function() {
     var oBox = this.parent;
@@ -100,7 +98,7 @@ QuiX.ui.Box.prototype._calcSize = function(height, offset, getHeight, memo) {
         return value - offset;
     }
     else
-        return Widget.prototype._calcSize.apply(this, arguments);
+        return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
 }
 
 QuiX.ui.Box.prototype._getWidgetPos = function(iPane, memo) {
@@ -228,8 +226,6 @@ QuiX.ui.FlowBox = function(/*params*/) {
 
 QuiX.constructors['flowbox'] = QuiX.ui.FlowBox;
 QuiX.ui.FlowBox.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var FlowBox = QuiX.ui.FlowBox;
 
 QuiX.ui.FlowBox._destroy = function() {
     var fb = this.parent;

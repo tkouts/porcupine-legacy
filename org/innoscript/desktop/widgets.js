@@ -42,7 +42,7 @@ function Reference1(/*params*/) {
 		width : 20,
 		height : 20,
 		disabled : params.disabled,
-		onclick : Reference1__SelectObject
+		onclick : Reference1._selectobject
 	});
 	this.appendChild(btn1);
 	
@@ -51,7 +51,7 @@ function Reference1(/*params*/) {
 		width : 20,
 		height : 20,
 		disabled : params.disabled,
-		onclick : Reference1__Clear		
+		onclick : Reference1._clear		
 	});
 	this.appendChild(btn2);
 	
@@ -60,33 +60,33 @@ function Reference1(/*params*/) {
 
 Reference1.prototype = new QuiX.ui.Box;
 
-function Reference1__SelectObject(evt, btn) {
-	var oWindow = btn.getParentByType(Window);
+Reference1._selectobject = function(evt, btn) {
+	var oWindow = btn.getParentByType(QuiX.ui.Window);
 	var oTarget = btn.parent;
 	
 	oWindow.showWindow(oTarget.root + '?cmd=selectobjects&cc=' +
 		oTarget.cc + '&multiple=false',
 		function(dlg) {
 			dlg.attributes.control = oTarget;
-			dlg.attachEvent("onclose", Reference1__fill);
+			dlg.attachEvent("onclose", Reference1._fill);
 		}
 	);
 }
 
-function Reference1__Clear(evt, btn) {
-	var fields = btn.parent.getWidgetsByType(Field);
+Reference1._clear = function(evt, btn) {
+	var fields = btn.parent.getWidgetsByType(QuiX.ui.Field);
 	fields[0].setValue('');
 	fields[1].setValue('');
 }
 
-function Reference1__fill(dlg) {
+Reference1._fill = function(dlg) {
 	if (dlg.buttonIndex == 0) {
 		var target = dlg.attributes.control;
 		var source = dlg.getWidgetById('selection');
 		
 		for (var i=0; i<source.options.length; i++) {
 			var oOption = source.options[i];
-			var fields = target.getWidgetsByType(Field);
+			var fields = target.getWidgetsByType(QuiX.ui.Field);
 			if (oOption.selected) {
 				fields[0].setValue(oOption.value);
 				fields[1].setValue(oOption.getCaption());
@@ -134,7 +134,7 @@ function ReferenceN(/*params*/) {
 		width : 70,
 		height : 22,
 		caption : '@@ADD@@...',
-		onclick : ReferenceN__SelectObject
+		onclick : ReferenceN._selectobject
 	});
 	rect.appendChild(btn1);
 	
@@ -143,7 +143,7 @@ function ReferenceN(/*params*/) {
 		width : 70,
 		height : 22,
 		caption : '@@REMOVE@@',
-		onclick : ReferenceN__clear
+		onclick : ReferenceN._clear
 	});
 	rect.appendChild(btn2);
 	
@@ -152,27 +152,28 @@ function ReferenceN(/*params*/) {
 
 ReferenceN.prototype = new QuiX.ui.Box;
 
-function ReferenceN__SelectObject(evt, btn) {
-	var oWindow = btn.getParentByType(Window);
+ReferenceN._selectobject = function(evt, btn) {
+	var oWindow = btn.getParentByType(QuiX.ui.Window);
 	var oTarget = btn.parent.parent;
-	
+
 	oWindow.showWindow(oTarget.root + '?cmd=selectobjects&cc=' +
 		oTarget.cc + '&multiple=true',
 		function(dlg) {
 			dlg.attributes.control = oTarget;
-			dlg.attachEvent("onclose", ReferenceN__fill);
+			dlg.attachEvent("onclose", ReferenceN._fill);
 		}
 	);
 }
 
-function ReferenceN__clear(evt, btn) {
-	var oSelectList = btn.parent.parent.getWidgetsByType(SelectList)[0];
+ReferenceN._clear = function(evt, btn) {
+	var oSelectList = btn.parent.parent.getWidgetsByType(QuiX.ui.SelectList)[0];
 	oSelectList.removeSelected();
 }
 
-function ReferenceN__fill(dlg) {
+ReferenceN._fill = function(dlg) {
 	if (dlg.buttonIndex == 0) {
-		var target = dlg.attributes.control.getWidgetsByType(SelectList)[0];
+		var target = dlg.attributes.control.getWidgetsByType(
+			QuiX.ui.SelectList)[0];
 		var source = dlg.getWidgetById('selection');
 		
 		for (var i=0; i<source.options.length; i++) {
@@ -207,7 +208,7 @@ function ACLEditor(/*params*/) {
 		height : 24,
 		caption : '@@ROLES_INHERITED@@',
 		value : rolesInherited,
-		onclick : ACLEditor__riclick
+		onclick : ACLEditor._rionclick
 	});
 	this.appendChild(ri);
 	
@@ -254,7 +255,7 @@ function ACLEditor(/*params*/) {
 		width : 56,
 		height : 22,
 		caption : '@@ADD@@',
-		onclick : ACLEditor__selectUsers
+		onclick : ACLEditor._selectusers
 	});
 	rect.appendChild(btn1);
 	
@@ -264,7 +265,7 @@ function ACLEditor(/*params*/) {
 		width : 56,
 		height : 22,
 		caption : '@@REMOVE@@',
-		onclick : ACLEditor__removeEntries
+		onclick : ACLEditor._removeentries
 	});
 	rect.appendChild(btn2);
 	
@@ -273,27 +274,28 @@ function ACLEditor(/*params*/) {
 
 ACLEditor.prototype = new QuiX.ui.Box;
 
-function ACLEditor__riclick(evt, check) {
+ACLEditor._rionclick = function(evt, check) {
 	var _aclbox = check.parent.widgets[1];
 	if (!check.getValue()) _aclbox.enable();
 	else _aclbox.disable();
 }
 
-function ACLEditor__selectUsers(evt, btn) {
-	var oWindow = btn.getParentByType(Window);
+ACLEditor._selectusers = function(evt, btn) {
+	var oWindow = btn.getParentByType(QuiX.ui.Window);
 	var oTarget = btn.parent.parent;
 	
 	oWindow.showWindow('users?cmd=selectobjects&cc=*&multiple=true',
 		function(dlg) {
 			dlg.attributes.control = oTarget;
-			dlg.attachEvent("onclose", ACLEditor__addSelectedUsers);
+			dlg.attachEvent("onclose", ACLEditor._addusers);
 		}
 	);
 }
 
-function ACLEditor__addSelectedUsers(dlg) {
+ACLEditor._addusers = function(dlg) {
 	if (dlg.buttonIndex == 0) {
-		var target = dlg.attributes.control.getWidgetsByType(DataGrid)[0];
+		var target = dlg.attributes.control.getWidgetsByType(
+			QuiX.ui.DataGrid)[0];
 		var source = dlg.getWidgetById('selection');
 		
 		for (var i=0; i<source.options.length; i++) {
@@ -310,7 +312,8 @@ function ACLEditor__addSelectedUsers(dlg) {
 	}
 }
 
-function ACLEditor__removeEntries(evt, btn) {
-	var oDataGrid = btn.parent.parent.getWidgetsByType(DataGrid)[0];
+ACLEditor._removeentries = function(evt, btn) {
+	var oDataGrid = btn.parent.parent.getWidgetsByType(
+		QuiX.ui.DataGrid)[0];
 	oDataGrid.removeSelected();
 }

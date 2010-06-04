@@ -21,12 +21,13 @@ usermgmnt.users_loaded = function(req) {
 }
 
 usermgmnt.refreshUsersList = function(evt, w) {
-    oUserList = w.getParentByType(Window).body.getWidgetsByType(ListView)[0];
+    oUserList = w.getParentByType(QuiX.ui.Window).body
+				.getWidgetsByType(QuiX.ui.ListView)[0];
     usermgmnt.getUsers(oUserList);
 }
 
 usermgmnt.newUser = function(evt, w) {
-    var oWin = w.parent.owner.parent.owner.getParentByType(Window);
+    var oWin = w.parent.owner.parent.owner.getParentByType(QuiX.ui.Window);
     var oUserList = w.parent.owner.parent.owner.parent.parent.parent.getWidgetById('userslist');
     var sFolder = QuiX.root + oUserList.attributes.FolderID;
     oWin.showWindow(sFolder + '?cmd=new&cc=org.innoscript.desktop.schema.security.User',
@@ -37,12 +38,12 @@ usermgmnt.newUser = function(evt, w) {
 }
 
 usermgmnt.deleteItem = function(evt, w) {
-    var win = w.parent.owner.getParentByType(Window);
+    var win = w.parent.owner.getParentByType(QuiX.ui.Window);
     var sCaption = w.getCaption();
     var desktop = document.desktop;
 
     _deleteItem = function(evt, w) {
-        w.getParentByType(Dialog).close();
+        w.getParentByType(QuiX.ui.Dialog).close();
         var items = win.getWidgetById("userslist").getSelection();
         if (!(items instanceof Array)) items = [items];
         items.reverse();
@@ -80,7 +81,7 @@ usermgmnt.deleteItem = function(evt, w) {
 }
 
 usermgmnt.newGroup = function(evt, w) {
-    var oWin = w.parent.owner.parent.owner.getParentByType(Window);
+    var oWin = w.parent.owner.parent.owner.getParentByType(QuiX.ui.Window);
     var oUserList = oWin.getWidgetById('userslist');
     var sFolder = QuiX.root + oUserList.attributes.FolderID;
     oWin.showWindow(sFolder + '?cmd=new&cc=org.innoscript.desktop.schema.security.Group',
@@ -91,17 +92,18 @@ usermgmnt.newGroup = function(evt, w) {
 }
 
 usermgmnt.applyFilter = function(evt, w) {
-    var userlist = w.parent.owner.getParentByType(Window).getWidgetById('userslist');
+    var userlist = w.parent.owner.getParentByType(QuiX.ui.Window)
+					.getWidgetById('userslist');
     userlist.attributes.filter = w.attributes.CC;
     usermgmnt.getUsers(userlist);
 }
 
 usermgmnt.exitApp = function(evt, w) {
-    w.parent.owner.getParentByType(Window).close();
+    w.parent.owner.getParentByType(QuiX.ui.Window).close();
 }
 
 usermgmnt.usersListMenu_show = function(menu) {
-    var oUserList = menu.owner.getWidgetsByType(ListView)[0];
+    var oUserList = menu.owner.getWidgetsByType(QuiX.ui.ListView)[0];
     
     if (oUserList.selection.length == 1)
         menu.options[4].enable();
@@ -120,13 +122,14 @@ usermgmnt.usersListMenu_show = function(menu) {
 } 
 
 usermgmnt.showProperties = function(evt, w) {
-    var oUserList = w.parent.owner.getWidgetsByType(ListView)[0];
-    generic.showObjectProperties(evt, w, oUserList.getSelection(), usermgmnt.refreshWindow);
+    var oUserList = w.parent.owner.getWidgetsByType(QuiX.ui.ListView)[0];
+    generic.showObjectProperties(evt, w, oUserList.getSelection(),
+								 usermgmnt.refreshWindow);
 }
 
 usermgmnt.refreshWindow = function(w) {
 	if (w.buttonIndex == 0) {
-        var oUserList = w.opener.getWidgetsByType(ListView)[0];
+        var oUserList = w.opener.getWidgetsByType(QuiX.ui.ListView)[0];
         usermgmnt.getUsers(oUserList);
 	}
 }
@@ -137,14 +140,14 @@ usermgmnt.loadItem = function(evt, w) {
 }
 
 usermgmnt.showResetPasswordDialog = function(evt, w) {
-    var oWindow = w.parent.owner.getParentByType(Window);
-    var oUserList = w.parent.owner.getWidgetsByType(ListView)[0];
+    var oWindow = w.parent.owner.getParentByType(QuiX.ui.Window);
+    var oUserList = w.parent.owner.getWidgetsByType(QuiX.ui.ListView)[0];
     var user_url = QuiX.root + oUserList.getSelection().id;
     oWindow.showWindow(user_url + '?cmd=resetpsw');
 }
 
 usermgmnt.resetPassword = function(evt, w) {
-    var oDialog = w.getParentByType(Dialog);
+    var oDialog = w.getParentByType(QuiX.ui.Dialog);
     var user_uri = oDialog.attributes.UserURI;
     var sPass1 = oDialog.body.getWidgetById('password1').getValue();
     var sPass2 = oDialog.body.getWidgetById('password2').getValue();

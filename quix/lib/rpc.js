@@ -176,8 +176,6 @@ QuiX.rpc.XMLRPCRequest = function(url /*, async*/) {
     this._contentType = 'text/xml';
     this._parser = QuiX.parsers.XMLRPC;
 }
-// backwards compatibility
-var XMLRPCRequest = QuiX.rpc.XMLRPCRequest;
 
 QuiX.rpc.XMLRPCRequest.prototype = new QuiX.rpc.BaseRPCRequest;
 

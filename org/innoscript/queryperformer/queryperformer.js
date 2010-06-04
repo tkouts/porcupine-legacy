@@ -1,16 +1,17 @@
 function queryPerformer() {}
 
 queryPerformer.exitApp = function(evt, w) {
-    w.parent.owner.getParentByType(Window).close();
+    w.parent.owner.getParentByType(QuiX.ui.Window).close();
 }
 
 queryPerformer.newQuery = function(evt, w) {
-    var clientArea = w.parent.owner.getParentByType(Window).getWidgetById('clientArea');
+    var clientArea = w.parent.owner.getParentByType(QuiX.ui.Window)
+						.getWidgetById('clientArea');
     clientArea.parseFromUrl('queryperformer/newquery.quix');
 }
 
 queryPerformer.executeQuery = function(evt, w) {
-    var oWin = w.getParentByType(Window);
+    var oWin = w.getParentByType(QuiX.ui.Window);
     var oPane = oWin.getWidgetById('resultsarea');
     sQuery = oWin.getWidgetById('oqlquery').getValue();
     
@@ -22,12 +23,13 @@ queryPerformer.executeQuery = function(evt, w) {
 
 queryPerformer.executeQuery_oncomplete = function(req) {
 	var oPane = req.callback_info;
-	var oWin = oPane.getParentByType(Window);
+	var oWin = oPane.getParentByType(QuiX.ui.Window);
 	var oResults = req.response;
     var options;
 	oPane.clear();
     if (oResults.length > 0) {
-        options = oWin.getParentByType(Window).getWidgetById('clientArea').attributes;
+        options = oWin.getParentByType(QuiX.ui.Window)
+					.getWidgetById('clientArea').attributes;
         oPane.parseFromString(
             '<tree xmlns="http://www.innoscript.org/quix"\
                 onexpand="queryPerformer.expandNode"\
@@ -56,7 +58,8 @@ queryPerformer.showProps = function(w) {
     var obj = w.attributes.obj;
     if (obj) {
         var oAttr, dataset = [];
-        var oList = w.getParentByType(Splitter).getWidgetById('proplist');
+        var oList = w.getParentByType(QuiX.ui.Splitter)
+					.getWidgetById('proplist');
         for (var attr in obj) {
             oAttr = obj[attr];
             if (typeof(oAttr) != 'function')
@@ -76,12 +79,13 @@ queryPerformer.expandNode = function(w) {
     var obj = w.attributes.obj;
     if (w.childNodes.length==0) {
         if (obj instanceof Array) {
-            queryPerformer.expandArray(w, obj, w.getParentByType(Window).parent.attributes);
+            queryPerformer.expandArray(w, obj,
+				w.getParentByType(QuiX.ui.Window).parent.attributes);
         } else {
             for (var attr in obj) {
                 oAttr = obj[attr];
                 if (typeof(oAttr) != 'function' && (oAttr instanceof Array)) {
-                    oNode = new TreeNode({
+                    oNode = new QuiX.ui.TreeNode({
                          haschildren:(oAttr.length>0),
                          caption: attr,
                          disabled:(oAttr.length==0)
@@ -91,7 +95,7 @@ queryPerformer.expandNode = function(w) {
                     oNode.redraw();
                 }
                 else if (oAttr.constructor == Object) {
-                    oNode = new TreeNode({
+                    oNode = new QuiX.ui.TreeNode({
                         haschildren:true,
                         caption: attr
                     });
@@ -101,7 +105,7 @@ queryPerformer.expandNode = function(w) {
                 }
             }
             if (w.childNodes.length == 0) {
-                oNode = new TreeNode ({
+                oNode = new QuiX.ui.TreeNode ({
                     haschildren: false,
                     caption: 'Empty',
                     disabled: true
@@ -118,8 +122,9 @@ queryPerformer.expandArray = function(w, array, options) {
     var tree_caption = options.tree_caption;
     for (var i=0; i<array.length; i++) {
         nodeimg = (options.use_image)?array[i][options.tree_image]:null;
-        caption = (array[i][tree_caption])?array[i][tree_caption]:'Object ' + i.toString();
-        treeNode = new TreeNode({
+        caption = (array[i][tree_caption])?
+					array[i][tree_caption]:'Object ' + i.toString();
+        treeNode = new QuiX.ui.TreeNode({
             haschildren : (array.length>0),
             img : nodeimg,
             caption : caption,
@@ -148,12 +153,13 @@ queryPerformer.getType = function(obj) {
 }
 
 queryPerformer.showSettings = function(evt, w) {
-    var win = w.parent.owner.getParentByType(Window);
+    var win = w.parent.owner.getParentByType(QuiX.ui.Window);
     var ca = win.getWidgetById("clientArea");
     win.showWindow('queryperformer/options.quix',
     	function(dlg) {
     		dlg.setTitle(w.getCaption());
-    		dlg.getWidgetById('tree_caption').setValue(ca.attributes.tree_caption);
+    		dlg.getWidgetById('tree_caption').setValue(
+				ca.attributes.tree_caption);
     		dlg.getWidgetById('use_image').setValue(ca.attributes.use_image);
     		var tree_img = dlg.getWidgetById('tree_image');
     		if (ca.attributes.use_image)
@@ -173,7 +179,7 @@ queryPerformer.toggleUseImage = function(evt, w) {
 }
 
 queryPerformer.applyPreferences = function(evt, w) {
-    var win = w.getParentByType(Window);
+    var win = w.getParentByType(QuiX.ui.Window);
     var appWin = win.opener;
     var ca = appWin.getWidgetById('clientArea');
     ca.attributes.tree_caption = win.getWidgetById('tree_caption').getValue();

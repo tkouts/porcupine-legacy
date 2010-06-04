@@ -28,8 +28,6 @@ QuiX.ui.Toolbar = function(/*params*/) {
 
 QuiX.constructors['toolbar'] = QuiX.ui.Toolbar;
 QuiX.ui.Toolbar.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Toolbar = QuiX.ui.Toolbar;
 
 QuiX.ui.Toolbar.prototype._getOffset = function(oButton, memo) {
     var offset = 0;
@@ -72,7 +70,7 @@ QuiX.ui.Toolbar._destroy = function() {
     if (this.base)
         this.base.prototype.destroy.apply(this, arguments);
     else
-        Widget.prototype.destroy.apply(this, arguments);
+        QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
     parent.redraw();
 }
 
@@ -92,8 +90,6 @@ QuiX.ui.OutlookBar = function(/*params*/) {
 
 QuiX.constructors['outlookbar'] = QuiX.ui.OutlookBar;
 QuiX.ui.OutlookBar.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var OutlookBar = QuiX.ui.OutlookBar;
 
 QuiX.ui.OutlookBar.prototype.addPane = function(params) {
     var header = new QuiX.ui.Label({

@@ -15,8 +15,6 @@ QuiX.ui.TabPane = function(/*params*/) {
 
 QuiX.constructors['tabpane'] = QuiX.ui.TabPane;
 QuiX.ui.TabPane.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var TabPane = QuiX.ui.TabPane;
 
 QuiX.ui.TabPane._destroyTab = function() {
     var oTab = this.parent;
@@ -33,7 +31,7 @@ QuiX.ui.TabPane._destroyTab = function() {
     }
     oTab.tabs.splice(idx, 1);
     this.tabButton.destroy();
-    Widget.prototype.destroy.apply(this, arguments);
+    QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 }
 
 QuiX.ui.TabPane._tabClick = function(evt, tabButton) {

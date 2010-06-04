@@ -24,12 +24,10 @@ QuiX.ui.MenuOption = function(params) {
 }
 
 QuiX.ui.MenuOption.prototype = new QuiX.ui.Icon;
-// backwards compatibility
-var MenuOption = QuiX.ui.MenuOption;
 
 QuiX.ui.MenuOption.prototype.addOption = function(params) {
     if (!this.subMenu)
-        this.subMenu = new ContextMenu({}, this);
+        this.subMenu = new QuiX.ui.ContextMenu({}, this);
     return this.subMenu.addOption(params);
 }
 
@@ -206,8 +204,6 @@ QuiX.constructors['contextmenu'] = QuiX.ui.ContextMenu;
 QuiX.ui.ContextMenu.prototype = new QuiX.ui.Widget;
 QuiX.ui.ContextMenu.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onshow', 'onclose']);
-// backwards compatibility
-var ContextMenu = QuiX.ui.ContextMenu;
 
 QuiX.ui.ContextMenu.prototype.destroy = function() {
     this.owner.detachEvent('oncontextmenu');
@@ -225,7 +221,7 @@ QuiX.ui.ContextMenu.prototype.redraw = function(bForceAll /*, memo*/) {
         var oOption, optionWidth, iHeight = 0;
         for (var i=0; i<this.options.length; i++) {
             oOption = this.options[i];
-            if (oOption instanceof Icon) {
+            if (oOption instanceof QuiX.ui.Icon) {
                 optionWidth = oOption.div.getElementsByTagName('SPAN')[0]
                               .offsetWidth + 26;
                 oOption.width = '100%';
@@ -298,7 +294,7 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
             border : 1,
             overflow : 'hidden'
         });
-        oOption.destroy = MenuOption.prototype.destroy;
+        oOption.destroy = QuiX.ui.MenuOption.prototype.destroy;
         oOption.div.className = 'separator';
         oOption.setPosition('relative');
     }
@@ -359,8 +355,6 @@ QuiX.ui.MenuBar = function(/*params*/) {
 
 QuiX.constructors['menubar'] = QuiX.ui.MenuBar;
 QuiX.ui.MenuBar.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var MBar = QuiX.ui.MenuBar;
 
 QuiX.ui.MenuBar.prototype.redraw = function(bForceAll /*, memo*/) {
     for (var i=0; i<this.menus.length; i++) {
@@ -394,7 +388,7 @@ QuiX.ui.MenuBar.prototype.addRootMenu = function(params) {
 
 QuiX.ui.MenuBar._menuDestroy = function() {
     this.parent.menus.removeItem(this);
-    Label.prototype.destroy.apply(this, arguments);
+    QuiX.ui.Label.prototype.destroy.apply(this, arguments);
 }
 
 QuiX.ui.MenuBar._menuonclick = function(evt, w) {

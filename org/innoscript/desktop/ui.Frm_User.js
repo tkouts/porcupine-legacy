@@ -1,7 +1,8 @@
 function formUser() {}
 
 formUser.createUser = function(evt, w) {
-	var oForm = w.getParentByType(Dialog).getWidgetsByType(Form)[0];
+	var oForm = w.getParentByType(QuiX.ui.Dialog)
+				.getWidgetsByType(QuiX.ui.Form)[0];
 	var sPass1 = oForm.getWidgetById('password').getValue();
 	var sPass2 = oForm.getWidgetById('password2').getValue();
 	if (sPass1 != sPass2) {

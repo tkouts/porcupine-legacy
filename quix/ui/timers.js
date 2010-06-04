@@ -34,8 +34,6 @@ QuiX.ui.Timer = function(/*params*/) {
 
 QuiX.constructors['timer'] = QuiX.ui.Timer;
 QuiX.ui.Timer.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var Timer = QuiX.ui.Timer;
 
 QuiX.ui.Timer.prototype.start = function() {
     if (!this._timerid) {
@@ -120,8 +118,6 @@ QuiX.ui.Effect = function(/*params*/) {
 
 QuiX.constructors['effect'] = QuiX.ui.Effect;
 QuiX.ui.Effect.prototype = new QuiX.ui.Timer;
-// backwards compatibility
-var Effect = QuiX.ui.Effect;
 
 QuiX.ui.Effect.prototype.customEvents =
     QuiX.ui.Timer.prototype.customEvents.concat(['oncomplete']);

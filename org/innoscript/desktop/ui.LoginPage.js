@@ -1,7 +1,7 @@
 function login() {}
 
 login.login = function (evt, btn) {
-	var login_dialog = btn.getParentByType(Dialog);
+	var login_dialog = btn.getParentByType(QuiX.ui.Dialog);
 	var sUser = login_dialog.getWidgetById('user').getValue();
 	var sPassword = login_dialog.getWidgetById('password').getValue();
 	var sLoginServiceUrl = login_dialog.attributes.ServiceURI;
@@ -21,7 +21,7 @@ login.login_oncomplete = function(req) {
 	}
 	else {
 		req.callback_info.enable();
-		var oDialog = req.callback_info.getParentByType(Dialog);
+		var oDialog = req.callback_info.getParentByType(QuiX.ui.Dialog);
 		document.desktop.msgbox(oDialog.attributes.FailMsgTitle, 
 			oDialog.attributes.FailMsg,
 			document.desktop.attributes.CLOSE,
@@ -32,6 +32,6 @@ login.login_oncomplete = function(req) {
 
 login.login_onerror = function(e) {
 	this.callback_info.enable();
-	this.callback_info.getParentByType(Dialog).setStatus('');
+	this.callback_info.getParentByType(QuiX.ui.Dialog).setStatus('');
     QuiX.displayError(e);
 }

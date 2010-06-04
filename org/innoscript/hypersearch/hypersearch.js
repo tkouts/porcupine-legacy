@@ -2,7 +2,7 @@ function hypersearch() {}
 
 hypersearch.selectFolder = function(evt, w)
 {
-	var win = w.getParentByType(Window);
+	var win = w.getParentByType(QuiX.ui.Window);
 	win.showWindow(QuiX.root + '?cmd=selectcontainer&action=select_folder',
 		function(w)
 		{
@@ -37,7 +37,8 @@ hypersearch.updateModifiedMode = function(evt, w)
 hypersearch.search = function(evt, w)
 {
 	var query = hypersearch.getSearchQuery(w.parent.parent);
-	var results_list = w.getParentByType(Window).getWidgetById('searchresults');
+	var results_list = w.getParentByType(QuiX.ui.Window)
+						.getWidgetById('searchresults');
 
     var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
     rpc.oncomplete = function(req) {

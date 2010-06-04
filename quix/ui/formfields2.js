@@ -121,8 +121,6 @@ QuiX.constructors['combo'] = QuiX.ui.Combo;
 QuiX.ui.Combo.prototype = new QuiX.ui.Widget;
 QuiX.ui.Combo.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
-// backwards compatibility
-var Combo = QuiX.ui.Combo;
 
 QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild) {
@@ -134,7 +132,7 @@ QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
 }
 
 QuiX.ui.Combo.prototype._setCommonProps = function(memo) {
-    Widget.prototype._setCommonProps.apply(this, arguments);
+    QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
     this._adjustFieldSize(memo);
 }
 
@@ -253,7 +251,7 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
 QuiX.ui.Combo.prototype.destroy = function() {
     if (this.isExpanded)
         this.dropdown.close();
-    Widget.prototype.destroy.apply(this, arguments);
+    QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 }
 
 QuiX.ui.Combo.prototype.setBgColor = function(color) {
@@ -326,8 +324,6 @@ QuiX.ui.AutoComplete = function(/*params*/) {
 
 QuiX.constructors['autocomplete'] = QuiX.ui.AutoComplete;
 QuiX.ui.AutoComplete.prototype = new QuiX.ui.Combo;
-// backwards compatibility
-var AutoComplete = QuiX.ui.AutoComplete;
 
 QuiX.ui.AutoComplete.prototype._getSelection = function(evt) {
     var sel = this.dropdown.widgets[0].getWidgetsByClassName('option over');
@@ -443,8 +439,6 @@ QuiX.ui.SelectList  = function(/*params*/) {
 
 QuiX.constructors['selectlist'] = QuiX.ui.SelectList;
 QuiX.ui.SelectList.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var SelectList = QuiX.ui.SelectList;
 
 QuiX.ui.SelectList.prototype.addOption = function(params) {
     params.imgalign = 'left';

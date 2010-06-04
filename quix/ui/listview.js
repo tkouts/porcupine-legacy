@@ -36,8 +36,6 @@ QuiX.ui.ListView = function(/*params*/) {
 
 QuiX.constructors['listview'] = QuiX.ui.ListView;
 QuiX.ui.ListView.prototype = new QuiX.ui.Widget;
-// backwards compatibility
-var ListView = QuiX.ui.ListView;
 
 QuiX.ui.ListView.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onselect', 'onrowprerender',

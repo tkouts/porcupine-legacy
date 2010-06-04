@@ -61,8 +61,6 @@ QuiX.constructors['file'] = QuiX.ui.File;
 QuiX.ui.File.prototype = new QuiX.ui.Box;
 QuiX.ui.File.prototype.customEvents =
     QuiX.ui.Box.prototype.customEvents.concat(['oncomplete']);
-// backwards compatibility
-var File = QuiX.ui.File;
 
 QuiX.ui.File.onunload = function(obj) {
     obj.uploader.destroy();
@@ -148,7 +146,7 @@ QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
             '</dialog>',
             function(dlg) {
                 self.attributes.pbar =
-                    dlg.getWidgetsByType(ProgressBar)[0];
+                    dlg.getWidgetsByType(QuiX.ui.ProgressBar)[0];
                 dlg.buttons[0].attachEvent('onclick',
                     function (evt, w) {
                         self.uploader.cancelUpload(null, false);
@@ -175,7 +173,7 @@ QuiX.ui.File.prototype.uploadSuccess = function(file, server_data, response) {
 
 QuiX.ui.File.prototype.uploadComplete = function(file) {
     this.widgets[0].setCaption(file.name);
-    this.attributes.pbar.getParentByType(Dialog).close();
+    this.attributes.pbar.getParentByType(QuiX.ui.Dialog).close();
     if (this._customRegistry.oncomplete)
             this._customRegistry.oncomplete(this);
 }
@@ -278,8 +276,6 @@ QuiX.constructors['multifile'] = QuiX.ui.MultiFile;
 QuiX.ui.MultiFile.prototype = new QuiX.ui.Widget;
 QuiX.ui.MultiFile.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['oncomplete']);
-// backwards compatibility
-var MultiFile = QuiX.ui.MultiFile;
 
 QuiX.ui.MultiFile.prototype.reset = function() {
     this.files = [];
@@ -312,7 +308,7 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
             '</dialog>',
             function (dlg) {
                 self.attributes.pbars =
-                    dlg.getWidgetsByType(ProgressBar);
+                    dlg.getWidgetsByType(QuiX.ui.ProgressBar);
                 self.attributes.bytesSent = 0;
                 dlg.buttons[0].attachEvent('onclick',
                     function (evt, w) {
@@ -393,7 +389,7 @@ QuiX.ui.MultiFile.prototype.uploadComplete = function(file) {
             this.uploader.startUpload();
         }
         else {
-            this.attributes.pbars[0].getParentByType(Dialog).close();
+            this.attributes.pbars[0].getParentByType(QuiX.ui.Dialog).close();
             if (this._customRegistry.oncomplete)
                 this._customRegistry.oncomplete(this);
             this.total_bytes = 0;

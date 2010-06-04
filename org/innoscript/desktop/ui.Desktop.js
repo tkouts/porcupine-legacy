@@ -35,7 +35,7 @@ desktop.do_logoff = function() {
 
 desktop.getWindows = function(menu) {
 	var menu_option;
-	var oWindows = document.desktop.getWidgetsByType(Window);
+	var oWindows = document.desktop.getWidgetsByType(QuiX.ui.Window);
 	while (menu.options.length > 2)
 		menu.options[2].destroy();
 	for (var i=0; i<oWindows.length; i++) {
@@ -57,7 +57,7 @@ desktop.showWindow = function(evt, w) {
 }
 
 desktop.minimizeAll = function() {
-	var oWindows = document.desktop.getWidgetsByType(Window);
+	var oWindows = document.desktop.getWidgetsByType(QuiX.ui.Window);
 	for (var i=0; i<oWindows.length; i++) {
 		if (oWindows[i].parent == document.desktop)
 			if (!oWindows[i].isMinimized) oWindows[i].minimize();
@@ -69,11 +69,12 @@ desktop.displayTime = function(timer) {
 }
 
 desktop.applyUserSettings = function(evt ,w) {
-	var oDialog = w.getParentByType(Dialog);
-	var oForm = oDialog.getWidgetsByType(Form)[0];
+	var oDialog = w.getParentByType(QuiX.ui.Dialog);
+	var oForm = oDialog.getWidgetsByType(QuiX.ui.Form)[0];
 	oForm.submit(
 		function(){
-			if (oForm.getElements()[0].getValue() != oDialog.attributes.ORIGINAL_TASK_POS)
+			if (oForm.getElements()[0].getValue() !=
+					oDialog.attributes.ORIGINAL_TASK_POS)
 				document.location.reload();
 			else
 				oDialog.close();
@@ -99,10 +100,11 @@ desktop.launchHyperSearch = function(evt, w) {
 	var query_string = '';
 	var win;
 	try {
-		win = w.getParentByType(Window);
+		win = w.getParentByType(QuiX.ui.Window);
 	}
 	catch(e) {}
 	if (win)
 		query_string = '?id=' + win.attributes.FolderID;
-	document.desktop.parseFromUrl('hypersearch/hypersearch.quix' + query_string);
+	document.desktop.parseFromUrl('hypersearch/hypersearch.quix' +
+								  query_string);
 }

@@ -1,7 +1,7 @@
 var containerList = function() {}
 
 containerList.closeWindow = function(evt, w) {
-	w.parent.owner.getParentByType(Window).close();
+	w.parent.owner.getParentByType(QuiX.ui.Window).close();
 }
 
 containerList.refreshWindow = function(w) {
@@ -11,7 +11,7 @@ containerList.refreshWindow = function(w) {
 }
 
 containerList.loadItem = function(evt, w, o) {
-	var oWin = w.getParentByType(Window);
+	var oWin = w.getParentByType(QuiX.ui.Window);
 	if (o.isCollection) {
 		oWin.attributes.FolderID = o.id;
 		containerList.getContainerInfo(oWin);
@@ -23,7 +23,7 @@ containerList.loadItem = function(evt, w, o) {
 
 containerList.createItem = function(evt, w) {
 	var cc = w.attributes.cc;
-	var oWin = w.parent.owner.parent.owner.getParentByType(Window);
+	var oWin = w.parent.owner.parent.owner.getParentByType(QuiX.ui.Window);
 	oWin.showWindow(QuiX.root + oWin.attributes.FolderID + '?cmd=new&cc=' + cc,
 		function(w) {
 			w.attachEvent("onclose", containerList.refreshWindow);
@@ -33,7 +33,8 @@ containerList.createItem = function(evt, w) {
 
 containerList.showProperties = function(evt, w) {
 	var oItemList = w.parent.owner;
-	generic.showObjectProperties(evt, w, oItemList.getSelection(), containerList.refreshWindow);
+	generic.showObjectProperties(evt, w, oItemList.getSelection(),
+								 containerList.refreshWindow);
 }
 
 containerList.getContainerInfo = function(w, bAddPath) {
@@ -61,9 +62,11 @@ containerList.getContainerInfo = function(w, bAddPath) {
 					break;
 				}
 			}
-			if (!pathExists) cmb_path.addOption({ caption: sFullPath, value: sFullPath });
+			if (!pathExists) cmb_path.addOption({caption: sFullPath,
+												 value: sFullPath});
 		}
-		var newOption1 = w.getWidgetById('menubar').menus[0].contextMenu.options[0];
+		var newOption1 = w.getWidgetById('menubar').menus[0]
+							.contextMenu.options[0];
 		var newOption2 = w.getWidgetById('itemslist').contextMenu.options[0];
 		var containment = req.response.containment;
 		newOption1.options = [];
@@ -90,20 +93,21 @@ containerList.getContainerInfo = function(w, bAddPath) {
 			newOption1.disable();
 			newOption2.disable();
 		}
-		if (w.attributes.history[w.attributes.history.length-1] != w.attributes.FolderID)
+		if (w.attributes.history[w.attributes.history.length-1] !=
+				w.attributes.FolderID)
 			w.attributes.history.push(w.attributes.FolderID);
 	}
 	rpc.callmethod('getInfo');
 }
 
 containerList.upOneFolder = function(evt, w) {
-	var win = w.getParentByType(Window);
+	var win = w.getParentByType(QuiX.ui.Window);
 	win.attributes.FolderID = win.attributes.ParentID;
 	containerList.getContainerInfo(win);
 }
 
 containerList.goBack = function(evt, w) {
-	var win = w.getParentByType(Window);
+	var win = w.getParentByType(QuiX.ui.Window);
 	var win_history = win.attributes.history;
 	if (win_history.length > 1) {
 		win_history.pop();
@@ -113,13 +117,13 @@ containerList.goBack = function(evt, w) {
 }
 
 containerList.refresh = function(evt, w) {
-	var win = w.getParentByType(Window);
+	var win = w.getParentByType(QuiX.ui.Window);
 	containerList.getContainerInfo(win);
 }
 
 containerList.navigateTo = function(evt, w) {
 	var folder_id = w.parent.parent.getWidgetById('path').getValue();
-	var win = w.getParentByType(Window);
+	var win = w.getParentByType(QuiX.ui.Window);
 	win.attributes.FolderID = folder_id;
 	containerList.getContainerInfo(win, true);
 }
@@ -155,7 +159,8 @@ containerList.listMenu_show = function(menu) {
 }
 
 containerList.updateCliboard = function(evt, w) {
-	var oList = w.parent.owner.getParentByType(Window).getWidgetById("itemslist");
+	var oList = w.parent.owner.getParentByType(QuiX.ui.Window)
+				.getWidgetById("itemslist");
 	var selection = oList.getSelection();
 	QuiX.clipboard.action = w.attributes.action;
 	QuiX.clipboard.contains = 'objects';
@@ -168,7 +173,7 @@ containerList.updateCliboard = function(evt, w) {
 containerList.paste = function(evt, w) {
 	var items = [].concat(QuiX.clipboard.items);
 	items.reverse();
-	var win = w.parent.owner.getParentByType(Window);
+	var win = w.parent.owner.getParentByType(QuiX.ui.Window);
 	var target = win.attributes.FolderID;
 	var method = (QuiX.clipboard.action=='copy')?'copyTo':'moveTo';
 	
@@ -196,10 +201,11 @@ containerList.paste = function(evt, w) {
 }
 
 containerList.copyMove = function(evt, w) {
-	var win = w.parent.owner.getParentByType(Window);
+	var win = w.parent.owner.getParentByType(QuiX.ui.Window);
 	var oList = win.getWidgetById("itemslist");
 	var action = w.attributes.action;
-	win.showWindow(QuiX.root + oList.getSelection().id  + '?cmd=selectcontainer&action=' + action,
+	win.showWindow(QuiX.root + oList.getSelection().id  +
+				   '?cmd=selectcontainer&action=' + action,
 		function(w) {
 			w.attachEvent("onclose", containerList.doCopyMove);
 			w.attributes.method = action;
@@ -224,7 +230,7 @@ containerList.doCopyMove = function(dlg) {
 }
 
 containerList.rename = function(evt, w) {
-	var win = w.parent.owner.getParentByType(Window);
+	var win = w.parent.owner.getParentByType(QuiX.ui.Window);
 	var oList = win.getWidgetById("itemslist");
 	win.showWindow(QuiX.root + oList.getSelection().id  + '?cmd=rename',
 		function(w) {
@@ -247,17 +253,17 @@ containerList.doRename = function(dlg) {
 }
 
 containerList.deleteItem = function(evt, w) {
-	var win = w.parent.owner.getParentByType(Window);
+	var win = w.parent.owner.getParentByType(QuiX.ui.Window);
 	var sCaption = w.getCaption();
 	var desktop = document.desktop;
 
 	var _deleteItem = function(evt, w) {
-		w.getParentByType(Dialog).close();
+		w.getParentByType(QuiX.ui.Dialog).close();
 		var items = win.getWidgetById("itemslist").getSelection();
 		if (!(items instanceof Array)) items = [items];
 		items.reverse();
 		var _start = function(w) {
-			var w = w.callback_info || w;
+			w = w.callback_info || w;
 			if (items.length > 0 && !w.attributes.canceled) {
 				var item = items.pop();
 				var pb = w.getWidgetById("pb");
