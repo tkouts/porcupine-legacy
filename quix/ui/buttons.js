@@ -560,7 +560,7 @@ QuiX.ui.SpriteButton._onmouseover = function(evt, w) {
 }
 
 QuiX.ui.SpriteButton._onmouseout = function(evt, w) {
-    this._setBackgroundPosition('0px');
+    w._setBackgroundPosition('0px');
 }
 
 QuiX.ui.SpriteButton._onmousedown = function(evt, w) {

@@ -35,7 +35,6 @@ QuiX.dragable = null;
 QuiX.dropTarget = null;
 QuiX.dragTimer = 0;
 QuiX.dragging = false;
-QuiX._image_cache = {};
 QuiX._strip_tags_re = /<(.|\n)+?>/gi;
 QuiX.constructors = {
     'script' : null,
@@ -147,12 +146,11 @@ QuiX.__resource_error = function() {
 
 QuiX.__resource_onstatechange = function() {
     if (this.readyState) {
-        if (this.readyState=='loaded' || this.readyState=='complete') {
-            if (this.tagName=='IMG') {
+        if (this.readyState == 'loaded' || this.readyState == 'complete') {
+            if (this.tagName == 'IMG') {
                 this.resource.width = this.width;
                 this.resource.height = this.height;
                 QuiX.removeNode(this);
-                QuiX._image_cache[this.resource.url] = this;
             }
             this.resource.isLoaded = true;
             if (this.resource.callback)
@@ -160,11 +158,10 @@ QuiX.__resource_onstatechange = function() {
         }
     }
     else {
-        if (this.tagName=='IMG') {
+        if (this.tagName == 'IMG') {
             this.resource.width = this.width;
             this.resource.height = this.height;
             QuiX.removeNode(this);
-            QuiX._image_cache[this.src] = this;
         }
         this.resource.isLoaded = true;
         if (this.resource.callback)
@@ -451,7 +448,7 @@ QuiX.createOutline = function(w) {
     var inner = new QuiX.ui.Widget({
         width : '100%',
         height : '100%',
-        opacity: .2,
+        opacity: .1,
         overflow : 'hidden'
     });
     o.appendChild(inner);
@@ -530,16 +527,8 @@ QuiX.getImage = function(url) {
     url = url.replace('$THEME_URL$', QuiX.getThemeUrl());
     if (url.slice(0,4) != 'http' && url.slice(0,1) != '/')
         url = QuiX.root + url;
-    if (QuiX._image_cache[url]) {
-        img = QuiX._image_cache[url].cloneNode(false);
-        img.style.display = '';
-        img.width = QuiX._image_cache[url].width;
-        img.height = QuiX._image_cache[url].height;
-    }
-    else {
-        img = new Image();
-        img.src = url;
-    }
+    img = new Image();
+    img.src = url;
     return img;
 }
 
@@ -547,9 +536,11 @@ QuiX.addEvent = function(el, type, proc) {
     if (el.addEventListener) {
         el.addEventListener(type.slice(2,type.length), proc, false);
         return true;
-    } else if (el.attachEvent) {
+    }
+    else if (el.attachEvent) {
         return el.attachEvent(type, proc);
-    } else
+    }
+    else
         return false;
 }
 
@@ -557,9 +548,11 @@ QuiX.removeEvent = function(el, type, proc) {
     if (el.removeEventListener) {
         el.removeEventListener(type.slice(2,type.length), proc, false);
         return true;
-    } else if (el.detachEvent) {
+    }
+    else if (el.detachEvent) {
         return el.detachEvent(type, proc);
-    } else
+    }
+    else
         return false;
 }
 
@@ -571,9 +564,11 @@ QuiX.sendEvent = function(el, module, type /*, args*/) {
         e.initEvent(type.slice(2,type.length), true, false/*, args */);
         el.dispatchEvent(e);
         return true;
-    } else if (el.fireEvent) {
+    }
+    else if (el.fireEvent) {
         return el.fireEvent(type);
-    } else
+    }
+    else
         return false;
 }
 
