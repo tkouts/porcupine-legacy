@@ -24,7 +24,6 @@ from porcupine.config.resources import Locale
 from porcupine.config.resources import ResourceStrings
 from porcupine.core.compat import str
 from porcupine.utils import iso8601
-from porcupine.core.decorators import deprecated
 
 
 class Date(object):
@@ -220,9 +219,8 @@ class Date(object):
         """
         tup_time = time.gmtime(self.value)
         return '%04i-%02i-%02iT%02i:%02i:%02iZ' % tup_time[:6]
-    toIso8601 = deprecated(to_iso_8601)
 
-    #@staticmethod
+    @staticmethod
     def from_iso_8601(s):
         """
         Convert an Iso8601 string to a L{Date} object.
@@ -235,5 +233,3 @@ class Date(object):
         date_time = iso8601.parse_date(s)
         date = Date(float(calendar.timegm(date_time.utctimetuple())))
         return date
-    fromIso8601 = staticmethod(deprecated(from_iso_8601))
-    from_iso_8601 = staticmethod(from_iso_8601)

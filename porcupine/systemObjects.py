@@ -30,7 +30,6 @@ from porcupine import datatypes
 from porcupine.core.objectSet import ObjectSet
 from porcupine.utils import misc, permsresolver
 from porcupine.core.compat import str
-from porcupine.core.decorators import deprecated
 
 
 class _Shortcuts(datatypes.RelatorN):
@@ -145,7 +144,6 @@ class Cloneable(object):
             raise exceptions.PermissionDenied(
                 'The object was not copied.\n'
                 'The user has insufficient permissions.')
-    copyTo = deprecated(copy_to)
 
 
 class Movable(object):
@@ -218,7 +216,6 @@ class Movable(object):
             raise exceptions.PermissionDenied(
                 'The object was not moved.\n'
                 'The user has insufficient permissions.')
-    moveTo = deprecated(move_to)
 
 
 class Removable(object):
@@ -622,7 +619,6 @@ class GenericItem(_Elastic):
         parent.modified = self.modified
         db._db.put_item(parent)
         db._db.handle_post_update(self, None)
-    appendTo = deprecated(append_to)
 
     def is_contained_in(self, item_id):
         """
@@ -638,7 +634,6 @@ class GenericItem(_Elastic):
                 return True
             item = db._db.get_item(item.parentid)
         return False
-    isContainedIn = deprecated(is_contained_in)
 
     def get_parent(self):
         """
@@ -648,7 +643,6 @@ class GenericItem(_Elastic):
         @rtype: type
         """
         return db.get_item(self._pid)
-    getParent = deprecated(get_parent)
 
     def get_all_parents(self):
         """
@@ -664,7 +658,6 @@ class GenericItem(_Elastic):
             item = item.get_parent()
         parents.reverse()
         return ObjectSet(parents)
-    getAllParents = deprecated(get_all_parents)
 
     def get_contentclass(self):
         """Getter of L{contentclass} property
@@ -691,8 +684,6 @@ class GenericItem(_Elastic):
         return self._isSystem
     issystem = property(get_is_system, None, None,
                         "Indicates if this is a systemic object")
-    isSystem = property(deprecated(get_is_system, "issystem"), None, None,
-                        "Deprecated property. Use issystem instead.")
 
     def get_owner(self):
         """Getter of L{owner} property
@@ -782,7 +773,6 @@ class DeletedItem(GenericItem, Removable):
         @rtype: L{GenericItem}
         """
         return db._db.get_item(self._deletedId)
-    getDeletedItem = deprecated(get_deleted_item)
 
     def append_to(self, *args, **kwargs):
         """
@@ -798,7 +788,6 @@ class DeletedItem(GenericItem, Removable):
         raise exceptions.ContainmentError(
             'Cannot directly add this item to the store.\n'
             'Use the "recycle" method instead.')
-    appendTo = deprecated(append_to)
 
     @db.requires_transactional_context
     def restore(self):
@@ -860,7 +849,6 @@ class DeletedItem(GenericItem, Removable):
         self._restore(deleted, parent)
         # delete self
         self.delete(_remove_deleted=False)
-    restoreTo = deprecated(restore_to)
 
     @db.requires_transactional_context
     def delete(self, _remove_deleted=True):
@@ -1082,7 +1070,6 @@ class Container(Item):
             return False
         else:
             return True
-    childExists = deprecated(child_exists)
 
     def get_child_id(self, name):
         """
@@ -1099,7 +1086,6 @@ class Container(Item):
         if item is not None:
             child_id = item._id
         return child_id
-    getChildId = deprecated(get_child_id)
 
     def get_child_by_name(self, name):
         """
@@ -1117,7 +1103,6 @@ class Container(Item):
             if user_role < permsresolver.READER:
                 return None
         return item
-    getChildByName = deprecated(get_child_by_name)
 
     def get_children(self, resolve_shortcuts=False):
         """
@@ -1130,7 +1115,6 @@ class Container(Item):
         children = ObjectSet([c for c in cursor])
         cursor.close()
         return children
-    getChildren = deprecated(get_children)
 
     def get_items(self, resolve_shortcuts=False):
         """
@@ -1145,7 +1129,6 @@ class Container(Item):
         items = ObjectSet([i for i in cursor])
         cursor.close()
         return items
-    getItems = deprecated(get_items)
 
     def get_subfolders(self, resolve_shortcuts=False):
         """
@@ -1160,7 +1143,6 @@ class Container(Item):
         subfolders = ObjectSet([f for f in cursor])
         cursor.close()
         return subfolders
-    getSubFolders = deprecated(get_subfolders)
 
     def has_children(self):
         """
@@ -1169,7 +1151,6 @@ class Container(Item):
         @rtype: bool
         """
         return self._ni > 0
-    hasChildren = deprecated(has_children)
 
     def has_subfolders(self):
         """
@@ -1178,7 +1159,6 @@ class Container(Item):
         @rtype: bool
         """
         return self._nc > 0
-    hasSubfolders = deprecated(has_subfolders)
 
     def get_children_count(self):
         return self._ni + self._nc

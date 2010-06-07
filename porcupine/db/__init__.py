@@ -24,7 +24,6 @@ from porcupine import context
 from porcupine import exceptions
 from porcupine.utils import permsresolver
 from porcupine.core import compat
-from porcupine.core.decorators import deprecated
 
 
 def get_item(oid, trans=None):
@@ -44,7 +43,6 @@ def get_item(oid, trans=None):
     if item is not None and not item._isDeleted and \
             permsresolver.get_access(item, context.user) != 0:
         return item
-getItem = deprecated(get_item)
 
 
 def get_transaction():
@@ -60,7 +58,6 @@ def get_transaction():
         raise exceptions.InternalServerError(
             "Not in a transactional context. Use @db.transactional().")
     return txn
-getTransaction = deprecated(get_transaction)
 
 
 def requires_transactional_context(function):

@@ -19,7 +19,6 @@
 from porcupine import systemObjects as system
 from org.innoscript.desktop.schema import properties
 from porcupine import datatypes
-from porcupine.core.decorators import deprecated
 
 
 class File(system.Item):
@@ -49,7 +48,6 @@ class RecycleBin(system.RecycleBin):
     """
     def get_parent(self):
         return None
-    getParent = deprecated(get_parent)
 
 
 class RootFolder(system.Container):
@@ -65,7 +63,6 @@ class RootFolder(system.Container):
 
     def get_parent(self):
         return None
-    getParent = deprecated(get_parent)
 
 
 class AdminTools(system.Container):

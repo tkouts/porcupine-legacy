@@ -20,7 +20,6 @@ the Porcupine API.
 """
 from porcupine import context
 from porcupine.db import _db
-from porcupine.core.decorators import deprecated
 
 
 def get_handle(identity=None, recover=0):
@@ -31,7 +30,6 @@ def get_handle(identity=None, recover=0):
             identity = _db.get_item('system')
         context.user = identity
     return _db
-getHandle = deprecated(get_handle)
 
 
 def close():

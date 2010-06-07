@@ -28,7 +28,6 @@ import mimetypes
 
 from porcupine import exceptions
 from porcupine.core.compat import str
-from porcupine.core.decorators import deprecated
 
 
 class HttpResponse(object):
@@ -84,7 +83,6 @@ class HttpResponse(object):
         self.__headers['Expires'] = time.strftime(
             "%a, %d %b %Y %H:%M:%S GMT",
             time.gmtime(time.time() + seconds))
-    setExpiration = deprecated(set_expiration)
 
     def clear(self):
         "Clears the response body."
@@ -104,7 +102,6 @@ class HttpResponse(object):
         if type(value) == str:
             value = value.encode('utf-8')
         self.__headers[header] = value
-    setHeader = deprecated(set_header)
 
     def redirect(self, location):
         """Causes the client to redirect to a specified location.
@@ -173,7 +170,6 @@ class HttpResponse(object):
         self.set_header('Content-Disposition', content_disposition)
         self.clear()
         self.write(bytestream)
-    writeFile = deprecated(write_file)
 
     def load_from_file(self, filename):
         """Loads the response body from a file that resides on the file
@@ -195,4 +191,3 @@ class HttpResponse(object):
         self._body.truncate(0)
         self._body.write(f.read())
         f.close()
-    loadFromFile = deprecated(load_from_file)

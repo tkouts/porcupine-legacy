@@ -20,7 +20,6 @@ import hashlib
 from porcupine import datatypes
 from porcupine import systemObjects as system
 from porcupine.core.compat import str
-from porcupine.core.decorators import deprecated
 
 from org.innoscript.desktop.schema import properties
 from org.innoscript.desktop.schema import handlers
@@ -112,7 +111,6 @@ class GenericUser(system.Item):
         @rtype: bool
         """
         return group.id in self.memberof.value
-    isMemberOf = deprecated(is_member_of)
 
     def is_admin(self):
         """
@@ -121,7 +119,6 @@ class GenericUser(system.Item):
         @rtype: bool
         """
         return 'administrators' in self.memberof.value
-    isAdmin = deprecated(is_admin)
 
 
 class User(GenericUser):
@@ -177,7 +174,6 @@ class SystemUser(system.Item):
         @return: C{True}
         """
         return True
-    isAdmin = deprecated(is_admin)
 
 
 class GuestUser(GenericUser):
@@ -229,7 +225,6 @@ class Group(GenericGroup):
         @rtype: bool
         """
         return user.id in self.members.value
-    hasMember = deprecated(has_member)
 
 
 class EveryoneGroup(GenericGroup):
@@ -246,7 +241,6 @@ class EveryoneGroup(GenericGroup):
         @rtype: bool
         """
         return True
-    hasMember = deprecated(has_member)
 
 
 class AuthUsersGroup(GenericGroup):
@@ -263,4 +257,3 @@ class AuthUsersGroup(GenericGroup):
         @rtype: bool
         """
         return hasattr(user, 'password')
-    hasMember = deprecated(has_member)

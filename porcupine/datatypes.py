@@ -33,7 +33,6 @@ from porcupine.utils import misc, date
 from porcupine.core import dteventhandlers
 from porcupine.core.compat import str
 from porcupine.core.objectSet import ObjectSet
-from porcupine.core.decorators import deprecated
 
 
 class DataType(object):
@@ -273,7 +272,6 @@ class Reference1(DataType):
         if self.value:
             item = db.get_item(self.value)
         return item
-    getItem = deprecated(get_item)
 
 
 class RequiredReference1(Reference1):
@@ -307,7 +305,6 @@ class ReferenceN(DataType):
         items = [db.get_item(id) for id in self.value]
         return ObjectSet([item for item in items
                           if item is not None])
-    getItems = deprecated(get_items)
 
 
 class RequiredReferenceN(ReferenceN):
@@ -347,7 +344,7 @@ class Relator1(Reference1):
             if self.relAttr not in item.__props__:
                 return None
         return item
-    getItem = deprecated(get_item)
+
 
 class RequiredRelator1(Relator1):
     "Mandatory L{Relator1} data type."
@@ -384,7 +381,6 @@ class RelatorN(ReferenceN):
         return ObjectSet([item for item in items
                           if item is not None and
                           self.relAttr in item.__props__])
-    getItems = deprecated(get_items)
 
 
 class RequiredRelatorN(RelatorN):
@@ -418,7 +414,6 @@ class Composition(DataType):
         """
         return ObjectSet([db._db.get_item(id)
                           for id in self.value])
-    getItems = deprecated(get_items)
 
 
 class RequiredComposition(Composition):
@@ -475,8 +470,6 @@ class ExternalAttribute(DataType):
         return self._isDirty
     is_dirty = property(get_is_dirty, None, None,
                         "boolean indicating if the value has changed")
-    isDirty = property(deprecated(get_is_dirty, 'is_dirty'), None, None,
-                       "deprecated")
 
 
 class Text(ExternalAttribute):
@@ -520,7 +513,6 @@ class File(Text):
 
     def get_file(self):
         return io.StringIO(self.value)
-    getFile = deprecated(get_file)
 
     def load_from_file(self, fname):
         """
@@ -535,7 +527,6 @@ class File(Text):
         oFile = open(fname, 'rb')
         self.value = oFile.read()
         oFile.close()
-    loadFromFile = deprecated(load_from_file)
 
 
 class RequiredFile(File):
@@ -554,7 +545,6 @@ class ExternalFile(String):
 
     def get_file(self, mode='rb'):
         return file(self.value, mode)
-    getFile = deprecated(get_file)
 
     def __deepcopy__(self, memo):
         clone = copy.copy(self)

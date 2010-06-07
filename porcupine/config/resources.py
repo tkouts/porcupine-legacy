@@ -16,7 +16,6 @@
 #==============================================================================
 "Server string localization classes"
 from porcupine.core import compat
-from porcupine.core.decorators import deprecated
 
 
 class Locale(dict):
@@ -62,7 +61,6 @@ class ResourceStrings(object):
         """
         dctLocale = self.__resources.setdefault(sLocale, self.__resources['*'])
         return dctLocale[sName]
-    getResource = deprecated(get_resource)
 
     def get_locale(self, sLocale):
         """Returns the requested locale object. If the
@@ -75,4 +73,3 @@ class ResourceStrings(object):
         @return: L{Locale}
         """
         return self.__resources.setdefault(sLocale, self.__resources['*'])
-    getLocale = deprecated(get_locale)

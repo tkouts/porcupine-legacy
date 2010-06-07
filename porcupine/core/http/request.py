@@ -35,7 +35,6 @@ except ImportError:
 
 from porcupine import context
 from porcupine.core.compat import str
-from porcupine.core.decorators import deprecated
 
 
 class HttpRequest(object):
@@ -151,7 +150,6 @@ class HttpRequest(object):
             return lang
         else:
             return self.serverVariables['HTTP_ACCEPT_LANGUAGE'].split(',')[0]
-    getLang = deprecated(get_lang)
 
     def get_host(self):
         """Returns the name of the host.
@@ -159,7 +157,6 @@ class HttpRequest(object):
         @rtype: str
         """
         return(self.serverVariables["HTTP_HOST"])
-    getHost = deprecated(get_host)
 
     def get_query_string(self):
         """Returns the full query string, including the '?'.
@@ -170,7 +167,6 @@ class HttpRequest(object):
             return '?' + self.serverVariables['QUERY_STRING']
         else:
             return ''
-    getQueryString = deprecated(get_query_string)
 
     def get_protocol(self):
         """Returns the request's protocol (http or https).
@@ -181,7 +177,6 @@ class HttpRequest(object):
         if self.serverVariables.setdefault('HTTPS', 'off') == 'on':
             sProtocol += 's'
         return sProtocol
-    getProtocol = deprecated(get_protocol)
 
     def get_root_url(self):
         """Returns the site's root URL including the executing script.
@@ -192,7 +187,6 @@ class HttpRequest(object):
         return (self.get_protocol() + '://'
                 + self.serverVariables['HTTP_HOST']
                 + self.serverVariables['SCRIPT_NAME'])
-    getRootUrl = deprecated(get_root_url)
 
     def __getattr__(self, name):
         try:

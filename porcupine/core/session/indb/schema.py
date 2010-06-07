@@ -23,7 +23,6 @@ from porcupine import db
 from porcupine import exceptions
 from porcupine.systemObjects import Container, GenericItem
 from porcupine.core.session.genericsession import GenericSession
-from porcupine.core.decorators import deprecated
 
 
 class SessionsContainer(Container):
@@ -48,11 +47,9 @@ class Session(GenericItem, GenericSession):
         session = db._db.get_item(self._id)
         session.__data[name] = value
         session.update()
-    setValue = deprecated(set_value)
 
     def get_value(self, name):
         return self.__data.get(name, None)
-    getValue = deprecated(get_value)
 
     @db.transactional(auto_commit=True, nosync=True)
     def remove_value(self, name):

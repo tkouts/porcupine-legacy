@@ -27,7 +27,6 @@ import imp
 import types
 
 from porcupine.core.compat import str
-from porcupine.core.decorators import deprecated
 
 _VALID_ID_CHRS = [chr(x) for x in
                   list(range(ord('a'), ord('z'))) +
@@ -77,7 +76,6 @@ def generate_guid():
     @rtype: str
     """
     return hashlib.md5(str(time.time() + time.clock() * 1000)).hexdigest()
-generateGUID = deprecated(generate_guid)
 
 
 def generate_oid():
@@ -89,7 +87,6 @@ def generate_oid():
     @rtype: str
     """
     return ''.join(random.sample(_VALID_ID_CHRS, 8))
-generateOID = deprecated(generate_oid)
 
 
 def get_rto_by_name(name):
@@ -102,7 +99,7 @@ def get_rto_by_name(name):
 
     instantiates a new I{Folder} object.
 
-    @rtype: callable type
+    @rtype: type
     """
     modules = name.split('.')
     if len(modules) == 1:
@@ -118,7 +115,6 @@ def get_rto_by_name(name):
         return attribute
     else:
         return mod
-getCallableByName = deprecated(get_rto_by_name)
 
 
 def get_address_from_string(address):
@@ -134,7 +130,6 @@ def get_address_from_string(address):
     address = address.split(':')
     address[1] = int(address[1])
     return tuple(address)
-getAddressFromString = deprecated(get_address_from_string)
 
 
 def reload_module_tree(module, memo=None):
@@ -187,4 +182,3 @@ def get_full_path(item):
     for parent in parents:
         sPath += parent.displayName.value + '/'
     return sPath
-getFullPath = deprecated(get_full_path)
