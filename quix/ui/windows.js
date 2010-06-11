@@ -14,6 +14,7 @@ QuiX.ui.Window = function(/*params*/) {
     var params = arguments[0] || {};
     var overflow = params.overflow;
     var padding = params.padding;
+    var hasStatus = (params.status == "true" || params.status == true);
     params.border = 1;
     params.padding = '1,1,1,1';
     params.opacity = (QuiX.effectsEnabled)?0:1;
@@ -24,7 +25,11 @@ QuiX.ui.Window = function(/*params*/) {
         QuiX.ui.Window._oncontextmenu,
         params.oncontextmenu);
     params.overflow = (QuiX.utils.BrowserInfo.family == 'moz'
-        && QuiX.utils.BrowserInfo.OS == 'MacOS')?'auto':'hidden';
+        && QuiX.utils.BrowserInfo.OS == 'MacOS')? 'auto':'hidden';
+    params.height = parseInt(params.height) +
+                    QuiX.theme.window.title.height +
+                    ((hasStatus)? QuiX.theme.window.status.height:0) + 4;
+
     this.base = QuiX.ui.Widget;
     this.base(params);
     this.minw = params.minw || 120;
@@ -46,37 +51,48 @@ QuiX.ui.Window = function(/*params*/) {
         spacing : 0
     });
     this.appendChild(box);
-    //title
-    this.title = new QuiX.ui.Box({
-        height : 22,
-        padding : '1,1,1,1',
-        childrenalign : 'center'
-    });
+    this.title = QuiX.theme.window.title.get(params.title, params.img);
     this.title.div.className = 'header';
     box.appendChild(this.title);
-    var t = new QuiX.ui.Icon({
-        id : '_t',
-        caption : params.title || 'Untitled',
-        img : params.img,
-        align : (QuiX.dir!='rtl')?'left':'right',
-        style : 'cursor:move',
-        onmousedown : QuiX.ui.Window._titleonmousedown
-    });
-    this.title.appendChild(t);
-    // control buttons
-    this._addControlButtons();
-    var canClose = (params.close=='true' || params.close==true);
-    var canMini = (params.minimize=='true' || params.minimize==true);
-    var canMaxi = (params.maximize=='true' || params.maximize==true);
+
+    // attach events
+    this.title.getWidgetById('_t').attachEvent(
+        'onmousedown',
+        QuiX.ui.Window._titleonmousedown);
+    this.title.getWidgetById('_t').attachEvent('ondblclick',
+        function() {
+            if (!self.isMinimized)
+                self.maximize();
+        });
+
+    var self = this;
+    this.title.getWidgetById('c0').attachEvent('onclick',
+        function() {
+            if (self.buttonIndex)
+                self.buttonIndex = -1;
+            self.close();
+        });
+    this.title.getWidgetById('c1').attachEvent('onclick',
+        function() {
+            self.maximize();
+        });
+    this.title.getWidgetById('c2').attachEvent('onclick',
+        function() {
+            self.minimize();
+        });
+    var canClose = (params.close == 'true' || params.close == true);
+    var canMini = (params.minimize == 'true' || params.minimize == true);
+    var canMaxi = (params.maximize == 'true' || params.maximize == true);
     if (!canMini)
         this.title.getWidgetById('c2').hide();
     if (!canMaxi) {
         this.title.getWidgetById('c1').hide();
-        t.detachEvent('ondblclick');
+        this.title.getWidgetById('_t').detachEvent('ondblclick');
     }
     if (!canClose)
         this.title.getWidgetById('c0').hide();
-    //client area
+
+    // client area
     this.body = new QuiX.ui.Widget({
         border : 0,
         overflow : overflow,
@@ -84,13 +100,16 @@ QuiX.ui.Window = function(/*params*/) {
     });
     this.body.div.className = 'body';
     box.appendChild(this.body);
-    //status
-    var stat = (params.status == "true" || params.status == true);
-    if (stat)
+
+    // status
+    if (hasStatus)
         this.addStatusBar();
+
     // resize handle
     var resizable = (params.resizable == "true" || params.resizable == true);
     this.setResizable(resizable);
+
+    // effects
     if (QuiX.effectsEnabled) {
         var effect = new QuiX.ui.Effect({
             id : '_eff_fade',
@@ -138,14 +157,7 @@ QuiX.ui.Window.prototype.getIcon = function() {
 QuiX.ui.Window.prototype.setResizable = function(bResizable) {
     var oWindow = this;
     if (bResizable && !this._resizer) {
-        this._resizer = new QuiX.ui.Widget({
-            left : 'this.parent.getWidth(false, memo) - 16',
-            top : 'this.parent.getHeight(false, memo) - 16',
-            width : 16,
-            height : 16,
-            border : 0,
-            overflow : 'hidden'
-        });
+        this._resizer = QuiX.theme.window.resizer.get();
         this.appendChild(this._resizer);
         this._resizer.div.className = 'resize';
         this._resizer.div.style.zIndex = QuiX.maxz; //stay on top
@@ -159,38 +171,6 @@ QuiX.ui.Window.prototype.setResizable = function(bResizable) {
     else if (!bResizable && this._resizer) {
         this._resizer.destroy();
         this._resizer = null;
-    }
-}
-
-QuiX.ui.Window.prototype._addControlButtons = function() {
-    var oControl;
-    var self = this;
-    for (var iWhich=2; iWhich>-1; iWhich--) {
-        oControl = new QuiX.ui.Widget({
-            id : 'c' + iWhich.toString(),
-            width : 16,
-            height : 16
-        });
-        this.title.appendChild(oControl);
-        switch (iWhich) {
-            case 0:
-                oControl.attachEvent('onclick', function() {
-                    if (self.buttonIndex)
-                        self.buttonIndex = -1;
-                    self.close();
-                });
-                break;
-            case 1:
-                oControl.attachEvent('onclick', function(){self.maximize()});
-                this.title.getWidgetById('_t').attachEvent('ondblclick',
-                    function() {
-                        if (!self.isMinimized)
-                            self.maximize();
-                    });
-                break;
-            case 2:
-                oControl.attachEvent('onclick', function(){self.minimize()});
-        }
     }
 }
 
@@ -238,12 +218,7 @@ QuiX.ui.Window.prototype.getTitle = function() {
 
 QuiX.ui.Window.prototype.addStatusBar = function() {
     if (!this.statusBar) {
-        this.statusBar = new QuiX.ui.Label({
-            height: 20,
-            padding: '4,0,0,0',
-            border: 1,
-            overflow: 'hidden'
-        });
+        this.statusBar = QuiX.theme.window.status.get();
         this.statusBar.div.className = 'status';
         this.widgets[0].appendChild(this.statusBar);
     }
@@ -477,11 +452,11 @@ QuiX.ui.Dialog = function(/*params*/) {
     this.buttons = this.buttonHolder.widgets;
 
     //status
-    if (stat.toString()=='true')
+    if (stat.toString() == 'true')
         this.addStatusBar();
 
     // resize handle
-    if (resizable.toString()=='true')
+    if (resizable.toString() == 'true')
         this.setResizable(true);
 
     this.buttonIndex = -1;
@@ -515,7 +490,7 @@ QuiX.ui.Dialog.prototype.addButton = function(params) {
     this.buttonHolder.redraw();
     if (params['default'] == 'true') {
         this.defaultButton = oWidget;
-        this.defaultButton.widgets[0].div.className='l2default';
+        this.defaultButton.widgets[0].div.className = 'l2default';
     }
     return oWidget;
 }

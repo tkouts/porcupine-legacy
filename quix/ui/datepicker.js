@@ -13,21 +13,8 @@ QuiX.ui.Datepicker = function(/*params*/) {
     this.format = params.dateformat || 'ddd dd/mmm/yyyy';
     this.time = params.time || '00:00:00.000';
     this.setValue(params.value || '');
-    this.dropdown.parseFromString(
-        '<vbox xmlns="http://www.innoscript.org/quix" ' +
-            'width="100%" height="100%" spacing="4" ' +
-            'childrenalign="center">' +
-          '<rect height="26" width="195" padding="2,2,2,2">' + 
-            '<flatbutton width="22" height="100%" caption="&lt;&lt;"/>' +
-              '<combo id="month" left="22" width="100" height="100%" ' +
-                  'editable="false"/>' +
-              '<spinbutton id="year" maxlength="4" left="121" width="50" ' +
-                  'height="100%" editable="true"/>' +
-              '<flatbutton left="171" width="22" height="100%" ' +
-                  'caption="&gt;&gt;"/>' +
-          '</rect>' +
-          '<rect/>' +
-        '</vbox>', QuiX.ui.Datepicker._fill);
+    this.dropdown.parseFromString(QuiX.theme.datepicker.dropdown.get(),
+                                  QuiX.ui.Datepicker._fill);
 
     if (this._isDisabled) {
         this.div.firstChild.disabled = true;
@@ -78,8 +65,8 @@ QuiX.ui.Datepicker.prototype.render = function(container) {
     var oT1, oTR1, oTH1, cell;
     var frg = document.createDocumentFragment();
     frg.appendChild(oT1 = document.createElement('table'));
-    oT1.width='100%';
-    oT1.height='100%';
+    oT1.style.width='100%';
+    oT1.style.height='100%';
     oT1.cellSpacing = 0;
     oT1.border = 0;
     oT1.datepicker = this;
@@ -92,10 +79,10 @@ QuiX.ui.Datepicker.prototype.render = function(container) {
         oTH1.className = 'DatePicker';
     }
 
-    for ( var j = 0; j < 6; j++ ) {
+    for (var j=0; j<6; j++) {
         oTR1 = oT1.insertRow(oT1.rows.length);
         oTR1.align = 'center';
-        for ( i = 0; i < 7; i++ ) {
+        for (i=0; i<7; i++) {
             cell = oTR1.insertCell(oTR1.cells.length);
             cell.onclick = QuiX.ui.Datepicker._cell_onclick;
         }
@@ -252,7 +239,6 @@ QuiX.ui.Datepicker._fill = function(box) {
     
     oDropdown.minw = oDropdown.width = 200;
     oDropdown.minh = oDropdown.height = 160;
-    oDropdown.widgets[1].bringToFront();
     
     oDropdown.close = function() {
         document.desktop.overlays.removeItem(this);
@@ -261,8 +247,6 @@ QuiX.ui.Datepicker._fill = function(box) {
         oDatepicker.isExpanded = false;
         this.detach();
     }
-
-    box.widgets[0].attachEvent('onclick', QuiX.stopPropag);
 
     oDatepicker.year = box.getWidgetById('year');
     oDatepicker.year.attachEvent('onchange',
@@ -281,13 +265,13 @@ QuiX.ui.Datepicker._fill = function(box) {
     oDatepicker.month.button.attachEvent('onclick',
                                          QuiX.ui.Datepicker._month_onclick);
 
-    box.getWidgetsByType(QuiX.ui.FlatButton)[0].attachEvent(
+    box.getWidgetById('prev').attachEvent(
         'onclick',
         QuiX.ui.Datepicker._prev_onclick);
-    box.getWidgetsByType(QuiX.ui.FlatButton)[1].attachEvent(
+    box.getWidgetById('next').attachEvent(
         'onclick',
         QuiX.ui.Datepicker._next_onclick);
 
-    oDatepicker.render(box.widgets[1].div);
+    oDatepicker.render(box.getWidgetById('_c').div);
     oDatepicker.fill();
 }

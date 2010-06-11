@@ -9,7 +9,7 @@
 	<icon left="center" top="center" width="164" height="110"
         img="desktop/images/logo.png"></icon>
 	<dialog id="logindialog" title="@@LOGIN@@" align="center" width="280"
-			height="155" status="true" left="center" top="center">
+			height="130" status="true" left="center" top="center">
 		<prop name="ServiceURI" value="$URI"></prop>
 		<prop name="FailMsgTitle" value="@@LOGIN_FAILED_TITLE@@"></prop>
 		<prop name="FailMsg" value="@@LOGIN_FAILED@@"></prop>

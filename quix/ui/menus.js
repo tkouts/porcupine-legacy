@@ -20,7 +20,7 @@ QuiX.ui.MenuOption = function(params) {
 
     this.subMenu = null;
     this.type = params.type;
-    this.selected = (params.selected=='true' || params.selected==true);
+    this.selected = (params.selected == 'true' || params.selected == true);
 }
 
 QuiX.ui.MenuOption.prototype = new QuiX.ui.Icon;
@@ -55,7 +55,7 @@ QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
         this.setPadding([24,18,3,2]);
     else
         this.setPadding([5,18,3,2]);
-    
+
     QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
 }
 
@@ -170,25 +170,21 @@ QuiX.ui.ContextMenu = function(params, owner) {
                 overflow : 'hidden'
             }));
     }
-    
-    var rect = new QuiX.ui.Widget({
-        width: '22',
-        height: 'this.parent.div.clientHeight',
-        bgcolor: 'silver',
-        overflow: 'hidden'
-    });
-    this.appendChild(rect);
-    
+
+    if (QuiX.theme.contextmenu.inner) {
+        this.appendChild(QuiX.theme.contextmenu.inner.get());
+    }
+
     this.options = [];
     this.owner = owner;
     this.target = null;
-    
+
     owner.contextMenu = this;
-    owner.attachEvent('oncontextmenu', QuiX.ui.ContextMenu._oncotextmenu);
-    
+    owner.attachEvent('oncontextmenu', QuiX.ui.ContextMenu._oncontextmenu);
+
     this.activeSub = null;
     this.isOpen = false;
-    
+
     if (QuiX.effectsEnabled) {
         var show_effect = new QuiX.ui.Effect({
             id : '_eff_show',
@@ -328,7 +324,7 @@ QuiX.ui.ContextMenu._showWidgetContextMenu = function (w, menu) {
     }
 }
 
-QuiX.ui.ContextMenu._oncotextmenu = function(evt, w) {
+QuiX.ui.ContextMenu._oncontextmenu = function(evt, w) {
     var x = evt.clientX;
     if (QuiX.dir == 'rtl')
         x = QuiX.transformX(x);

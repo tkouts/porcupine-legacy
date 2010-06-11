@@ -12,12 +12,7 @@ QuiX.ui.Toolbar = function(/*params*/) {
     params.overflow = 'hidden';
     this.base(params);
     this.div.className = 'toolbar';
-    this.handle = new QuiX.ui.Widget({
-        width : 4,
-        height : '100%',
-        border : 0,
-        overflow : 'hidden'
-    });
+    this.handle = QuiX.theme.toolbar.handle.get();
     this.appendChild(this.handle);
     this.handle.div.className = 'handle';
 
@@ -29,18 +24,22 @@ QuiX.ui.Toolbar = function(/*params*/) {
 QuiX.constructors['toolbar'] = QuiX.ui.Toolbar;
 QuiX.ui.Toolbar.prototype = new QuiX.ui.Widget;
 
+QuiX.ui.Toolbar._calcWidgetOffset = function(memo) {
+    return this.parent._getOffset(this, memo);
+}
+
 QuiX.ui.Toolbar.prototype._getOffset = function(oButton, memo) {
     var offset = 0;
     for (var i=1; i<this.widgets.length; i++) {
-        if (this.widgets[i]==oButton)
+        if (this.widgets[i] == oButton)
             break;
         offset += this.widgets[i]._calcWidth(true, memo) + this.spacing;
     }
-    return(offset + this.handle._calcWidth(true, memo) + 4);
+    return offset + this.handle._calcWidth(true, memo) + 4;
 }
 
 QuiX.ui.Toolbar.prototype.addButton = function(params) {
-    params.left = 'this.parent._getOffset(this, memo)';
+    params.left = QuiX.ui.Toolbar._calcWidgetOffset;
     params.height = '100%';
     var oButton = new QuiX.ui.FlatButton(params);
     oButton.destroy = QuiX.ui.Toolbar._destroy;
@@ -50,18 +49,13 @@ QuiX.ui.Toolbar.prototype.addButton = function(params) {
 }
 
 QuiX.ui.Toolbar.prototype.addSeparator = function() {
-    var oSep = new QuiX.ui.Widget({
-        left : 'this.parent._getOffset(this, memo)',
-        width : 2,
-        height : '100%',
-        border : 1,
-        overflow : 'hidden'
-    });
+    var oSep = QuiX.theme.toolbar.separator.get();
+    oSep.left = QuiX.ui.Toolbar._calcWidgetOffset;
     oSep._isContainer = false;
     oSep.destroy = QuiX.ui.Toolbar._destroy;
     this.appendChild(oSep);
     oSep.div.className = 'separator';
-    return(oSep);
+    return oSep;
 }
 
 QuiX.ui.Toolbar._destroy = function() {
@@ -82,7 +76,7 @@ QuiX.ui.OutlookBar = function(/*params*/) {
     params.overflow = 'hidden';
     this.base(params);
     this.div.className = 'outlookbar';
-    
+
     this.headerHeight = params.headerheight || 20;
     this.panes = [];
     this.activePane = 0;
@@ -92,26 +86,18 @@ QuiX.constructors['outlookbar'] = QuiX.ui.OutlookBar;
 QuiX.ui.OutlookBar.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.OutlookBar.prototype.addPane = function(params) {
-    var header = new QuiX.ui.Label({
-        width : "100%",
-        height : this.headerHeight,
-        border : 1,
-        padding : '2,2,2,2',
-        overflow : 'hidden',
-        caption : params.caption,
-        align : params.align || 'center'
-    });
+    var header = QuiX.theme.outlookbar.header.get(this.headerHeight);
     this.appendChild(header);
     header.setPosition('relative');
     header.div.className = 'tool';
     header.attachEvent('onclick', QuiX.ui.OutlookBar._header_onclick);
 
     params.width = '100%';
-    params.height = 'this.parent.getHeight(true, memo)-' +
-        'this.parent.panes.length*this.parent.headerHeight';
+    params.height = 'this.parent.getHeight(true, memo) - ' +
+        'this.parent.panes.length * this.parent.headerHeight';
 
     var w1 = new QuiX.ui.Widget(params);
-    
+
     this.appendChild(w1);
 
     if (this.panes.length!=0)
@@ -125,7 +111,7 @@ QuiX.ui.OutlookBar.prototype.addPane = function(params) {
     w1.setCaption = QuiX.ui.OutlookBar._pane_setCaption;
     w1.getCaption = QuiX.ui.OutlookBar._pane_getCaption;
     w1.destroy = QuiX.ui.OutlookBar._pane_destroy;
-    return(w1);
+    return w1;
 }
 
 QuiX.ui.OutlookBar.prototype.activatePane = function(iPane) {

@@ -7,7 +7,7 @@ QuiX.ui.Splitter = function(/*params*/) {
     var spacing = parseInt(params.spacing) || 6;
     params.overflow = 'hidden';
     params.spacing = 0;
-    params.onresize = Splitter__resize
+    params.onresize = QuiX.ui.Splitter._onresize;
     this.base = QuiX.ui.Box;
     this.base(params);
 
@@ -30,22 +30,13 @@ QuiX.ui.Splitter.prototype.appendChild = function(w) {
 }
 
 QuiX.ui.Splitter.prototype._addHandle = function() {
-    var handle;
-    if (this.orientation == "h") {
-        handle = new QuiX.ui.Widget({
-            width : this._spacing,
-            border : 1,
-            overflow :'hidden'
-        });
+    var handle = QuiX.theme.splitter.separator.get(this.orientation,
+                                                   this._spacing);
+    if (this.orientation == 'h') {
         handle.div.style.cursor = 'e-resize';
         handle.div.className = 'handleV';
     }
     else {
-        handle = new QuiX.ui.Widget({
-            height : this._spacing,
-            border : 1,
-            overflow :'hidden'
-        });
         handle.div.style.cursor = 'n-resize';
         handle.div.className = 'handleH';
     }
@@ -57,8 +48,8 @@ QuiX.ui.Splitter.prototype._addHandle = function() {
 }
 
 QuiX.ui.Splitter.prototype._handleMoving = function(evt, iHandle) {
-    var length_var = (this.orientation == 'h')?'width':'height';
-    var offset_var = (this.orientation == 'h')?'X':'Y';
+    var length_var = (this.orientation == 'h')? 'width':'height';
+    var offset_var = (this.orientation == 'h')? 'X':'Y';
 
     var offset = evt['client' + offset_var] - QuiX['start' + offset_var];
 
@@ -90,7 +81,7 @@ QuiX.ui.Splitter.prototype._getFillersCount = function() {
     var c = 0;
     var length_var = (this.orientation == 'h')?'width':'height';
     for (var i=0; i< this.panes.length; i++) {
-        if (this.panes[i][length_var] == this.free_length
+        if (this.panes[i][length_var] == QuiX.ui.Box._calcWidgetLength
                 && !this.panes[i].isHidden())
             c += 1;
     }
@@ -101,7 +92,7 @@ QuiX.ui.Splitter._destroy = function() {
     var oSplitter = this.parent;
     var length_var = (oSplitter.orientation == 'h')?'width':'height';
     var idx = oSplitter.panes.indexOf(this);
-    if (this[length_var] == oSplitter.free_length &&
+    if (this[length_var] == QuiX.ui.Box._calcWidgetLength &&
             oSplitter.panes.length > 1) {
         if (idx == 0)
             oSplitter.panes[1][length_var] = '-1';
@@ -137,8 +128,8 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
 
         var idx = splitter._handles.indexOf(w);
         // store panes initial state info
-        var length_var = (splitter.orientation == 'h')?'width':'height';
-        var length_func = (splitter.orientation == 'h')?'getWidth':'getHeight';
+        var length_var = (splitter.orientation == 'h')? 'width':'height';
+        var length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight';
         var min_length_var = (splitter.orientation == 'h')?
                              '_calcMinWidth':'_calcMinHeight';
         var memo = {};
@@ -150,8 +141,8 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
         splitter._l2 = pane2[length_func](false, memo);
         splitter._m1 = pane1[min_length_var]();
         splitter._m2 = pane2[min_length_var]();
-        splitter._f1 = (pane1[length_var] == splitter.free_length);
-        splitter._f2 = (pane2[length_var] == splitter.free_length);
+        splitter._f1 = (pane1[length_var] == QuiX.ui.Box._calcWidgetLength);
+        splitter._f2 = (pane2[length_var] == QuiX.ui.Box._calcWidgetLength);
 
         splitter.attachEvent('onmouseup',
             function(evt, w){w._endMoveHandle(evt, idx)});
@@ -164,8 +155,8 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
 
 QuiX.ui.Splitter._ondblclick = function(evt, w) {
     var splitter = w.parent;
-    var length_var = (splitter.orientation == 'h')?'width':'height';
-    var length_func = (splitter.orientation == 'h')?'getWidth':'getHeight';
+    var length_var = (splitter.orientation == 'h')? 'width':'height';
+    var length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight';
     var idx = splitter._handles.indexOf(w);
     var ns = 1;
     if (splitter.panes[idx+1].attributes._collapse) {
@@ -189,7 +180,7 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
             pane2._statelength = null;
         }
         if (splitter._getFillersCount() == 0)
-            pane[length_var] = splitter.free_length;
+            pane[length_var] = QuiX.ui.Box._calcWidgetLength;
         pane.show();
     }
     else {
@@ -197,12 +188,13 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
         w.div.style.cursor = 'default';
         pane.hide();
         var fc = splitter._getFillersCount();
-        var islastfree = (fc == 1 && pane2[length_var] == splitter.free_length);
+        var islastfree = (fc == 1 &&
+                          pane2[length_var] == QuiX.ui.Box._calcWidgetLength);
         if (!pane2.isHidden()) {
             if (!pane2._statelength && !islastfree)
                 pane2._statelength = pane2[length_func](true);
             if (fc == 0) {
-                pane2[length_var] = splitter.free_length;
+                pane2[length_var] = QuiX.ui.Box._calcWidgetLength;
             }
             else if (!islastfree) {
                 pane2[length_var] = pane[length_func](true) +
@@ -213,9 +205,9 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
     splitter.redraw();
 }
 
-function Splitter__resize(splitter, w, h) {
-    var length_var = (splitter.orientation == 'h')?'width':'height';
-    var ol = (splitter.orientation == 'h')?w:h;
+QuiX.ui.Splitter._onresize = function(splitter, w, h) {
+    var length_var = (splitter.orientation == 'h')? 'width':'height';
+    var ol = (splitter.orientation == 'h')? w:h;
     var nl = parseInt(splitter.div.style[length_var]);
     var pane;
     var perc = nl / ol;
@@ -224,7 +216,8 @@ function Splitter__resize(splitter, w, h) {
         if (pane._statelength) {
             pane._statelength = Math.round(perc * pane._statelength);
         }
-        if (typeof pane[length_var] != 'string') {
+        if (typeof pane[length_var] != 'string' &&
+                typeof pane[length_var] != 'function') {
             pane[length_var] = Math.round(perc * pane[length_var]);
         }
     }

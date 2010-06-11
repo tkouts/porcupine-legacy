@@ -198,14 +198,14 @@ BODY {
 
 .splitter .handleV {
     border-style : solid;
-    background-color: menu;
+    background-color: buttonface;
     border-color: menu ThreeDDarkShadow
                   menu ThreedHighlight;
 }
 
 .splitter .handleH {
     border-style: solid;
-    background-color: menu;
+    background-color: buttonface;
     border-color: ThreedHighlight menu
                   ThreeDDarkShadow menu;
 }

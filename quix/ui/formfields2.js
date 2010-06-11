@@ -30,61 +30,33 @@ QuiX.ui.Combo = function(/*params*/) {
     this.div.appendChild(e);
     e.onselectstart = QuiX.stopPropag;
 
-    this.dropdown = new QuiX.ui.Widget({
-        border : 1,
-        onclick : function(evt, w) {
-            w.close();
-        },
-        onmousedown : QuiX.stopPropag
-    });
+    // dropdown
+    this.dropdown = QuiX.theme.combo.dropdown.get();
     this.dropdown.combo = this;
     this.dropdown.minw = 60;
     this.dropdown.minh = 50;
     this.dropdown.div.className = 'combodropdown';
 
-    var self = this;
+    this.dropdown.close = QuiX.ui.Combo._closeDropdown;
+    this.dropdown.attachEvent('onmousedown', QuiX.stopPropag);
+    this.dropdown.attachEvent('onclick', QuiX.ui.Combo._dropdown_onclick);
 
-    this.dropdown.close = function() {
-        document.desktop.overlays.removeItem(this);
-        self.isExpanded = false;
-        this.detach();
-    };
+    var container = this.dropdown.getWidgetById('_c');
+    container.attachEvent('onmousedown', QuiX.stopPropag);
+    this.options = container.widgets;
 
-    var cont = new QuiX.ui.Widget({
-        width : '100%',
-        height: '100%',
-        overflow: 'hidden auto',
-        onmousedown : QuiX.cancelDefault
-    });
-    this.dropdown.appendChild(cont);
-    this.options = cont.widgets;
-
-    var resizer = new QuiX.ui.Widget({
-        left : 'this.parent.getWidth(false, memo) - 16',
-        top : 'this.parent.getHeight(false, memo) - 16',
-        width : 16,
-        height : 16,
-        border : 0,
-        overflow : 'hidden'
-    });
-    this.dropdown.appendChild(resizer);
+    var resizer = this.dropdown.getWidgetById('_r');
     resizer.div.className = 'resize';
     resizer.attachEvent('onclick', QuiX.stopPropag);
-    resizer.attachEvent('onmousedown', function(evt){
-        self.dropdown._startResize(evt);
-        QuiX.cancelDefault(evt);
-    });
+    resizer.attachEvent('onmousedown', QuiX.ui.Combo._resizer_onmousedown);
 
-    this.button = new QuiX.ui.Button({
-        left : 'this.parent.getWidth(false, memo) - 20',
-        height : '100%',
-        width : 20,
-        img : params.img || '$THEME_URL$images/desc8.gif'
-    });
+    // button
+    this.button = QuiX.theme.combo.button.get(params.img);
     this.appendChild(this.button);
     if (!this.readonly)
         this.button.attachEvent('onclick', QuiX.ui.Combo._btn_onclick);
 
+    var self = this;
     if (this.editable) {
         e.value = (params.value)? params.value:'';
         if (!this.readonly) {
@@ -122,11 +94,27 @@ QuiX.ui.Combo.prototype = new QuiX.ui.Widget;
 QuiX.ui.Combo.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 
+QuiX.ui.Combo._resizer_onmousedown = function(evt, w) {
+    w.parent._startResize(evt);
+    QuiX.cancelDefault(evt);
+}
+
+QuiX.ui.Combo._dropdown_onclick = function(evt, w) {
+    w.close();
+}
+
+QuiX.ui.Combo._closeDropdown = function() {
+    document.desktop.overlays.removeItem(this);
+    this.combo.isExpanded = false;
+    this.detach();
+}
+
 QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild) {
         var nh = this.getHeight(false, memo) - 2;
-        var nw = this.getWidth(false, memo) - 22;
-        this.div.firstChild.style.width = (nw>0?nw:0) + 'px';
+        var nw = this.getWidth(false, memo) -
+                 (QuiX.theme.combo.button.width + 2);
+        this.div.firstChild.style.width = (nw>0? nw:0) + 'px';
         this.div.firstChild.style.height = nh + 'px';
     }
 }
@@ -509,9 +497,9 @@ QuiX.ui.SelectList.prototype.setValue = function(val) {
         val = [val];
     for (var i=0; i<val.length; i++) {
         option = this.getWidgetsByAttributeValue('value', val[i]);
-        if(option.length > 0)
+        if (option.length > 0)
             this.selectOption(option[0]);
-        if(!this.multiple)
+        if (!this.multiple)
             break;
     }
 }

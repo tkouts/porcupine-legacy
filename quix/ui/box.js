@@ -24,7 +24,8 @@ QuiX.ui.Box._destroy = function() {
     var length_var = (oBox.orientation=='h')?'width':'height';
 
     var idx = oBox.widgets.indexOf(this);
-    if (this[length_var] == this.free_length && oBox.widgets.length == 2) {
+    if (this[length_var] == QuiX.ui.Box._calcWidgetLength
+            && oBox.widgets.length == 2) {
         if (idx == 0)
             oBox.widgets[1][length_var] = '-1';
         else
@@ -36,7 +37,92 @@ QuiX.ui.Box._destroy = function() {
         QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 }
 
-QuiX.ui.Box.prototype.free_length = 'this.parent._calcWidgetLength(memo)';
+QuiX.ui.Box._calcWidgetLength = function(memo) {
+    var box = this.parent;
+    var tl = 0;
+    var free_widgets = 0;
+    var length_var = (box.orientation == 'h')? 'width':'height';
+    var length_func = (box.orientation == 'h')? '_calcWidth':'_calcHeight';
+
+    for (var i=0; i<box.widgets.length; i++) {
+        if (box.widgets[i].isHidden())
+            continue;
+        if (box.widgets[i][length_var] == QuiX.ui.Box._calcWidgetLength) {
+            free_widgets += 1;
+        }
+        else {
+            tl += box.widgets[i][length_func](true, memo);
+        }
+    }
+    var l = (box.orientation == 'h')?
+        box.getWidth(false, memo):box.getHeight(false, memo);
+
+    var nl = (l - tl - ((box.widgets.length - 1) * box.spacing)) /
+             free_widgets;
+
+    return nl>0? nl:0;
+}
+
+QuiX.ui.Box._getWidgetOffset = function(memo) {
+    var iPane = this._i;
+    var offset = 0;
+    var box = this.parent;
+
+    if (iPane > 0) {
+        iPane--;
+        var ow = box.widgets[iPane];
+        while (ow.isHidden()) {
+            if (iPane == 0)
+                return 0;
+            else {
+                iPane--;
+                ow = box.widgets[iPane];
+            }
+        }
+        if (box.orientation == 'h')
+            offset = ow._calcLeft(memo) + ow._calcWidth(true, memo) +
+                box.spacing - box.getPadding()[0];
+        else
+            offset = ow._calcTop(memo) + ow._calcHeight(true, memo) +
+                box.spacing - box.getPadding()[2];
+    }
+    return offset;
+}
+
+QuiX.ui.Box._getWidgetPos = function(memo) {
+    var box = this.parent;
+    var boxalign =  this.boxAlign || box.childrenAlign;
+    var w1 = (box.orientation == 'h')?
+        box._calcHeight(false, memo):box._calcWidth(false, memo);
+    var w2 = (box.orientation == 'h')?
+        this._calcHeight(true, memo):this._calcWidth(true, memo);
+
+    switch (boxalign) {
+        case 'center':
+            return (w1 - w2) / 2;
+        case 'right':
+        case 'bottom':
+            return (w1 - w2);
+        default: 	
+            return 0;
+    }
+}
+
+QuiX.ui.Box._calcWidgetMinSize = function() {
+    var w;
+    var tl = 0;
+    var box = this.parent;
+    var min_var = (box.orientation == 'h')? '_calcMinHeight':'_calcMinWidth';
+
+    for (var i=0; i<box.widgets.length; i++) {
+        w = box.widgets[i];
+        if (w.isHidden())
+            continue;
+        var min = w[min_var]();
+        tl = Math.max(tl,min);
+    }
+    return tl;
+}
 
 QuiX.ui.Box.prototype.appendChild = function(w /*, p*/) {
     var p = arguments[1] || this;
@@ -51,20 +137,19 @@ QuiX.ui.Box.prototype.appendChild = function(w /*, p*/) {
 QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
     if (bForceAll) {
         var oWidget;
-        var offset_var = (this.orientation=='h')?'left':'top';
-        var center_var = (this.orientation=='h')?'top':'left';
-        var length_var = (this.orientation=='h')?'width':'height';
-        var width_var = (this.orientation=='h')?'height':'width';
+        var offset_var = (this.orientation == 'h')? 'left':'top';
+        var center_var = (this.orientation == 'h')? 'top':'left';
+        var length_var = (this.orientation == 'h')? 'width':'height';
+        var width_var = (this.orientation == 'h')? 'height':'width';
         for (var i=0; i<this.widgets.length; i++) {
             oWidget = this.widgets[i];
-            oWidget[offset_var] =
-                'this.parent._getWidgetOffset(' + i + ', memo)';
-            oWidget[center_var] = 'this.parent._getWidgetPos(' + i + ', memo)';
-    
+            oWidget._i = i;
+            oWidget[offset_var] = QuiX.ui.Box._getWidgetOffset;
+            oWidget[center_var] = QuiX.ui.Box._getWidgetPos;
             if (oWidget[length_var] == null || oWidget[length_var] == '-1')
-                oWidget[length_var] = this.free_length;
+                oWidget[length_var] = QuiX.ui.Box._calcWidgetLength;
             if (oWidget[width_var] == '-1')
-                oWidget[width_var] = 'this.parent._calcWidgetWidth()';
+                oWidget[width_var] = QuiX.ui.Box._calcWidgetMinSize;
         }
     }
     return QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
@@ -77,108 +162,37 @@ QuiX.ui.Box.prototype._calcSize = function(height, offset, getHeight, memo) {
             w_length;
         var is_additive = this.orientation == 'h' && height == 'width' ||
                           this.orientation == 'v' && height == 'height';
-        var padding_offset = (height == 'height')?2:0;
+        var padding_offset = (height == 'height')? 2:0;
         var padding = this.getPadding();
-        var length_func = (height=='height')?'_calcHeight':'_calcWidth';
-        for (var i=0; i<this.widgets.length; i++) {
-            w_length = this.widgets[i][length_func](true, memo);
-            if (is_additive)
-                value += w_length;
-            else
-                value = Math.max(value, w_length);
+        var length_func = (height == 'height')? '_calcHeight':'_calcWidth';
+
+        if (is_additive) {
+            var offset_func = (height == 'height')? '_calcTop':'_calcLeft';
+            value = this.widgets[this.widgets.length - 1][offset_func](memo) +
+                this.widgets[this.widgets.length - 1][length_func](true, memo);
+            if (this.widgets.length > 0)
+                value += (this.widgets.length - 1) * this.spacing;
         }
-        if (is_additive && this.widgets.length > 0)
-            value += (this.widgets.length - 1) * this.spacing;
+        else {
+            for (var i=0; i<this.widgets.length; i++) {
+                w_length = this.widgets[i][length_func](true, memo);
+                if (is_additive)
+                    value += w_length;
+                else
+                    value = Math.max(value, w_length);
+            }
+        }
         value = value +
                 padding[padding_offset] +
                 padding[padding_offset + 1] +
                 2 * this.getBorderWidth();
-        if (typeof memo != 'undefined')
+        if (typeof memo != 'undefined') {
             memo[this._uniqueid + height] = value;
+        }
         return value - offset;
     }
     else
         return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
-}
-
-QuiX.ui.Box.prototype._getWidgetPos = function(iPane, memo) {
-    var oWidget = this.widgets[iPane];
-    var boxalign =  oWidget.boxAlign || this.childrenAlign;
-    var w1 = (this.orientation=='h')?
-        this._calcHeight(false, memo):this._calcWidth(false, memo);
-    var w2 = (this.orientation=='h')?
-        oWidget._calcHeight(true, memo):oWidget._calcWidth(true, memo);
-
-    switch (boxalign) {
-        case 'center':
-            return (w1 - w2) / 2;
-        case 'right':
-        case 'bottom':
-            return (w1 - w2);
-        default: 	
-            return 0;
-    }
-}
-
-QuiX.ui.Box.prototype._getWidgetOffset = function(iPane, memo) {
-    var offset = 0;
-    if (iPane > 0) {
-        iPane--;
-        var ow = this.widgets[iPane];
-        while (ow.isHidden()) {
-            if (iPane == 0)
-                return 0;
-            else {
-                iPane--;
-                ow = this.widgets[iPane];
-            }
-        }
-        if (this.orientation == 'h')
-            offset = ow._calcLeft(memo) + ow._calcWidth(true, memo) +
-                this.spacing - this.getPadding()[0];
-        else
-            offset = ow._calcTop(memo) + ow._calcHeight(true, memo) +
-                this.spacing - this.getPadding()[2];
-    }
-    return offset;
-}
-
-QuiX.ui.Box.prototype._calcWidgetLength = function(memo) {
-    var tl = 0;
-    var free_widgets = 0;
-    var length_var = (this.orientation=='h')?'width':'height';
-
-    for (var i=0; i<this.widgets.length; i++) {
-        if (this.widgets[i].isHidden()) continue;
-        if (this.widgets[i][length_var] != this.free_length) {
-            if (this.orientation=='h')
-                tl += this.widgets[i]._calcWidth(true, memo);
-            else
-                tl += this.widgets[i]._calcHeight(true, memo);
-        }
-        else
-            free_widgets += 1;
-    }
-    var l = (this.orientation=='h')?
-        this.getWidth(false, memo):this.getHeight(false, memo);
-
-    var nl = (l - tl - ((this.widgets.length-1) * this.spacing))
-        / free_widgets;
-    return nl>0? nl:0;
-}
-
-QuiX.ui.Box.prototype._calcWidgetWidth = function() {
-    var w;
-    var tl = 0;
-    var min_var = (this.orientation=='h')?'_calcMinHeight':'_calcMinWidth';
-
-    for (var i=0; i<this.widgets.length; i++) {
-        w = this.widgets[i];
-        if (w.isHidden()) continue;
-        var min = w[min_var]();
-        tl = Math.max(tl,min);
-    }
-    return tl;
 }
 
 // horizontal box

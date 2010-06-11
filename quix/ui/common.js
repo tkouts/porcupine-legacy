@@ -288,7 +288,7 @@ QuiX.ui.ProgressBar = function(/*params*/) {
     params.overflow = 'hidden';
     this.base(params);
     this.div.className = 'progressbar';
-    this.bar = new QuiX.ui.Widget({height:"100%",overflow:'hidden'});
+    this.bar = new QuiX.ui.Widget({height:"100%", overflow:'hidden'});
     this.appendChild(this.bar);
     this.bar.div.className = 'bar';
     this.maxvalue = parseInt(params.maxvalue) || 100;

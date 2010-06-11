@@ -55,20 +55,17 @@ QuiX.ui.TabPane._tabOut = function(evt, tabButton) {
     }
 }
 
+QuiX.ui.TabPane._calcPageHeight = function(memo) {
+    return this.parent.getHeight(false, memo) - this.parent.headerSize;
+}
+
 QuiX.ui.TabPane.prototype.addTab = function(params) {
-    var oTab = new QuiX.ui.Icon({
-        border : 1,
-        padding : '12,12,4,6',
-        overflow : 'hidden',
-        height : this.headerSize + 2,
-        caption : params.caption,
-        img : params.img,
-        bgcolor : params.bgcolor,
-        color: params.color,
-        onclick : QuiX.ui.TabPane._tabClick,
-        onmouseover : QuiX.ui.TabPane._tabOver,
-        onmouseout : QuiX.ui.TabPane._tabOut
-    });
+    var oTab = QuiX.theme.tabpane.tabbutton.get(params.img, params.caption,
+        params.bgcolor, params.color);
+    oTab.height = this.headerSize + 2;
+    oTab.attachEvent('onclick', QuiX.ui.TabPane._tabClick);
+    oTab.attachEvent('onmouseover', QuiX.ui.TabPane._tabOver);
+    oTab.attachEvent('onmouseout', QuiX.ui.TabPane._tabOut);
     this.appendChild(oTab);
     oTab.redraw();
     oTab.setDisplay('inline');
@@ -76,8 +73,7 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
     oTab.div.className = 'tab inactive';
 
     params.top = this.headerSize;
-    params.height = 'this.parent.getHeight(false, memo) - ' +
-                    this.headerSize;
+    params.height = QuiX.ui.TabPane._calcPageHeight;
     params.width = '100%';
     params.border = 1;
     params.padding = params.padding || '8,8,8,8';

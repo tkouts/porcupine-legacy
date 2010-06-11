@@ -21,12 +21,12 @@
 		action="lib/extensions.js.psp"/>
 
 	<!-- QuiX default theme -->
-	<context path="themes/default/quix.css"
+	<context path="themes/default/theme.css"
 		method="GET"
 		client=".*"
 		lang=".*"
         max-age="300"
-		action="themes/default/quix.css.psp"/>
+		action="themes/default/theme.css.psp"/>
 
     <!-- html pages -->
 	<context match="(.*)\.htm"

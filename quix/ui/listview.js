@@ -43,6 +43,50 @@ QuiX.ui.ListView.prototype.customEvents =
 
 QuiX.ui.ListView.cellThreshold = 2000;
 
+QuiX.ui.ListView._calcListHeight = function(memo) {
+    var listview = this.parent;
+    var lho = (listview.header.isHidden())?
+              0:parseInt(listview.header._calcHeight(true, memo)) + 1;
+    return listview.getHeight(false, memo) - lho;
+}
+
+QuiX.ui.ListView._calcListTop = function(memo) {
+    return (this.parent.header.isHidden())?
+           0:this.parent.header._calcHeight(true, memo);
+}
+
+QuiX.ui.ListView._calcResizerOffset = function(w) {
+    var listview = this.parent.parent;
+    var oHeader = listview.header;
+    var webkit = (QuiX.utils.BrowserInfo.family == 'saf');
+    var left = listview.hasSelector? (webkit? 6 : 10) : 0;
+    var offset = (webkit)? -2 : 2 * listview.cellPadding;
+    var offset2 = (webkit)? 0 : listview.cellBorder;
+    var column_width;
+
+    for (var i=listview._deadCells; i<listview.columns.length; i++) {
+        column_width = parseInt(listview.columns[i].style.width);
+        left += column_width + offset;
+
+        if (listview.list.rows.length > 0)
+            listview.list.rows[0].cells[i].style.width =
+                column_width - offset2 + 'px';
+
+        if (oHeader.widgets[i - listview._deadCells] == this)
+            break;
+    }
+
+    left += parseInt(listview.header.div.firstChild.style.paddingRight);
+    
+    // opera horizontal scrollbar patch
+    if (QuiX.dir == 'rtl' && QuiX.utils.BrowserInfo.family == 'op')
+        left -= (listview.header.div.scrollWidth -
+                 listview.header.div.clientWidth)
+
+    left += (2*i);
+    return left - 1;
+}
+
 QuiX.ui.ListView.prototype._registerHandler = function(eventType, handler,
                                                        isCustom) {
     var wrapper;
@@ -98,22 +142,14 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
 
     this.columns = oRow.cells;
     oRow.ondblclick = QuiX.stopPropag;
-    
+
     if (this.hasSelector) {
         var selector = this._getSelector();
         oRow.insertBefore(selector, oRow.lastChild.previousSibling);
         this._deadCells = 1;
-    } else
-        this._deadCells = 0;
-    
-    var ltop, lho;
-    if (this.header.isHidden()) {
-        ltop = 0;
-        lho = 0;
     }
     else {
-        ltop = this.header._calcHeight(true);
-        lho = parseInt(params.height) + 1;
+        this._deadCells = 0;
     }
 
     var overflow = 'auto';
@@ -121,9 +157,9 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
         overflow = 'auto scroll'
 
     var list = new QuiX.ui.Widget({
-        top : ltop,
-        width : 'this.parent.getWidth(false, memo) - 1',
-        height : 'this.parent.getHeight(false, memo) - ' + lho,
+        top : QuiX.ui.ListView._calcListTop,
+        width : '100%',
+        height : QuiX.ui.ListView._calcListHeight,
         dragable : this._dragable,
         overflow : overflow,
         onmousedown : QuiX.ui.ListView._onmousedown,
@@ -330,7 +366,7 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
     var resizer = new QuiX.ui.Widget({
         width : 6,
         height : this.header._calcHeight(),
-        left : 'this.parent.parent._calcResizerOffset(this)',
+        left : QuiX.ui.ListView._calcResizerOffset,
         overflow : 'hidden'
     });
     this.header.appendChild(resizer);
@@ -347,36 +383,6 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
         });
     }
     return oCol;
-}
-
-QuiX.ui.ListView.prototype._calcResizerOffset = function(w) {
-    var oHeader = this.header;
-    var webkit = (QuiX.utils.BrowserInfo.family == 'saf');
-    var left = this.hasSelector? (webkit? 6 : 10) : 0;
-    var offset = (webkit)? -2 : 2 * this.cellPadding;
-    var offset2 = (webkit)? 0 : this.cellBorder;
-    var column_width;
-
-    for (var i=this._deadCells; i<this.columns.length; i++) {
-        column_width = parseInt(this.columns[i].style.width);
-        left += column_width + offset;
-
-        if (this.list.rows.length > 0)
-            this.list.rows[0].cells[i].style.width =
-                column_width - offset2 + 'px';
-
-        if (oHeader.widgets[i - this._deadCells] == w)
-            break;
-    }
-
-    left += parseInt(this.header.div.firstChild.style.paddingRight);
-    
-    // opera horizontal scrollbar patch
-    if (QuiX.dir == 'rtl' && QuiX.utils.BrowserInfo.family == 'op')
-        left -= (this.header.div.scrollWidth - this.header.div.clientWidth)
-
-    left += (2*i);
-    return left - 1;
 }
 
 QuiX.ui.ListView.prototype._moveResizer = function(evt, iResizer) {

@@ -241,8 +241,9 @@ QuiX.bootLibraries = [
     QuiX.baseUrl + 'ui/widget.js',
     // swfupload
     QuiX.baseUrl + 'swfupload/swfupload.js',
-    // theme css
-    QuiX.getThemeUrl() + 'quix.css'
+    // theme
+    QuiX.getThemeUrl() + 'theme.css',
+    QuiX.getThemeUrl() + 'theme.js'
 ];
 
 QuiX.__init__ = function() {
