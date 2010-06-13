@@ -795,13 +795,13 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
                         'Error',
                         'Please select the text you wish to hyperlink.',
                         document.desktop.attributes.CLOSE, null,
-                        'center', 'center', 240, 100);
+                        'center', 'center', 240, 80);
                     break;
                 }
                 document.desktop.parseFromString(
                     '<dialog xmlns="http://www.innoscript.org/quix"\
                         title="Enter Hyperlink URL" padding="4,4,4,4"\
-                        width="240" height="90" left="center" top="center">\
+                        width="240" height="60" left="center" top="center">\
                       <wbody>\
                         <field id="url" width="100%" value="http://"/>\
                       </wbody>\

@@ -1,88 +1,114 @@
 <?xml version="1.0"?>
 <window xmlns="http://www.innoscript.org/quix"
-title="Please wait..." resizable="true"
-close="true" minimize="true"
-maximize="true" width="600"
-height="400" left="center"
-top="center" onload="containerList.getContainerInfo">
-	<script name="Container List" src="desktop/ui.ContainerList.js"/>
-	<prop name="FolderID" value="$ID"/>
-	<prop name="ParentID" value="$PARENT_ID"/>
-	<prop name="history" value="" type="strlist"/>
-	<wbody>
-		<vbox spacing="0" width="100%" height="100%">
-			<menubar id="menubar" width="100%%" height="24">
-				<menu caption="@@FILE@@">
-					<menuoption img="desktop/images/filenew.gif" caption="@@CREATE@@"/>
-					<sep/>
-					<menuoption caption="@@CLOSE@@" img="desktop/images/exit.gif" onclick="containerList.closeWindow"/>
-				</menu>
-				<menu caption="@@EDIT@@">
-					<menuoption img="desktop/images/cut.gif" caption="@@CUT@@" onclick="containerList.updateCliboard">
-						<prop name="action" value="cut"/>
-					</menuoption>
-					<menuoption img="desktop/images/copy.gif" caption="@@COPY@@" onclick="containerList.updateCliboard">
-						<prop name="action" value="copy"/>
-					</menuoption>
-					<menuoption img="desktop/images/paste.gif" caption="@@PASTE@@" onclick="containerList.paste"/>
-				</menu>
-			</menubar>
-			<toolbar width="100%" height="34">
-				<tbbutton width="30"
-					img="desktop/images/go_back22.gif"
-					tooltip="@@BACK@@"
-					onclick="containerList.goBack"/>
-				<tbbutton width="30"
-					img="desktop/images/reload22.gif"
-					tooltip="@@REFRESH@@"
-					onclick="containerList.refresh"/>
-				<tbbutton id="btn_up" width="30"
-					img="desktop/images/go_up22.gif"
-					tooltip="@@UP_ONE_FOLDER@@"
-					onclick="containerList.upOneFolder"/>
-				<tbsep/>
-				<tbbutton id="btn_hsearch" width="30"
-					img="desktop/images/search22.gif"
-					tooltip="@@SEARCH@@"
-					onclick="desktop.launchHyperSearch"/>
-			</toolbar>
-			<hbox width="100%" height="26" border="1" childrenalign="center"
-					style="border-style:solid;border-color:ThreeDHighlight ThreeDShadow ThreeDShadow ThreeDHighlight">
-				<label height="16" width="32" align="center" caption="Path"/>
-				<combo id="path" editable="true"/>
-				<flatbutton width="28" caption="Go" onclick="containerList.navigateTo"/>
-			</hbox>
-			<listview id="itemslist" dragable="true" multiple="true"
-					ondblclick="containerList.loadItem">
-				<contextmenu id="contextmenu" onshow="containerList.listMenu_show">
-					<menuoption caption="@@CREATE@@" img="desktop/images/filenew.gif"/>
-					<sep/>
-					<menuoption img="desktop/images/cut.gif" caption="@@CUT@@" onclick="containerList.updateCliboard">
-						<prop name="action" value="cut"/>
-					</menuoption>
-					<menuoption img="desktop/images/copy.gif" caption="@@COPY@@" onclick="containerList.updateCliboard">
-						<prop name="action" value="copy"/>
-					</menuoption>
-					<menuoption img="desktop/images/paste.gif" caption="@@PASTE@@" onclick="containerList.paste"/>
-					<menuoption img="desktop/images/editdelete.gif" caption="@@DELETE@@" onclick="containerList.deleteItem"/>
-					<sep/>
-					<menuoption caption="@@MOVE@@..." onclick="containerList.copyMove">
-						<prop name="action" value="move"/>
-					</menuoption>
-					<menuoption caption="@@COPYTO@@..." onclick="containerList.copyMove">
-						<prop name="action" value="copy"/>
-					</menuoption>
-					<menuoption caption="@@RENAME@@" onclick="containerList.rename"/>
-					<sep/>
-					<menuoption caption="@@PROPERTIES@@" onclick="containerList.showProperties"/>
-				</contextmenu>
-				<listheader>
-					<column width="24" caption="" type="img" name="image" resizable="false"/>
-					<column width="140" caption="@@NAME@@" name="displayName" bgcolor="#EFEFEF" sortable="true"/>
-					<column width="80" caption="@@SIZE@@" name="size" xform="generic.computeSize" sortable="true"/>
-					<column width="160" caption="@@DATEMOD@@" type="date" name="modified" sortable="true"/>
-				</listheader>
-			</listview>
-		</vbox>
-	</wbody>
+        title="Please wait..." resizable="true"
+        close="true" minimize="true"
+        maximize="true" width="600"
+        height="400" left="center"
+        top="center" onload="containerList.getContainerInfo">
+    <script name="Container List" src="desktop/ui.ContainerList.js"/>
+    <prop name="FolderID" value="$ID"/>
+    <prop name="ParentID" value="$PARENT_ID"/>
+    <prop name="history" value="" type="strlist"/>
+    <wbody>
+        <vbox spacing="0" width="100%" height="100%">
+            <menubar id="menubar" width="100%%" height="24">
+                <menu caption="@@FILE@@">
+                    <menuoption img="desktop/images/filenew.gif"
+                        caption="@@CREATE@@"/>
+                    <sep/>
+                    <menuoption caption="@@CLOSE@@"
+                        img="desktop/images/exit.gif"
+                        onclick="containerList.closeWindow"/>
+                </menu>
+                <menu caption="@@EDIT@@">
+                    <menuoption img="desktop/images/cut.gif"
+                            caption="@@CUT@@"
+                            onclick="containerList.updateCliboard">
+                        <prop name="action" value="cut"/>
+                    </menuoption>
+                    <menuoption img="desktop/images/copy.gif"
+                            caption="@@COPY@@"
+                            onclick="containerList.updateCliboard">
+                        <prop name="action" value="copy"/>
+                    </menuoption>
+                    <menuoption img="desktop/images/paste.gif"
+                        caption="@@PASTE@@" onclick="containerList.paste"/>
+                </menu>
+            </menubar>
+            <toolbar width="100%" height="34">
+                <tbbutton width="30"
+                    img="desktop/images/go_back22.gif"
+                    tooltip="@@BACK@@"
+                    onclick="containerList.goBack"/>
+                <tbbutton width="30"
+                    img="desktop/images/reload22.gif"
+                    tooltip="@@REFRESH@@"
+                    onclick="containerList.refresh"/>
+                <tbbutton id="btn_up" width="30"
+                    img="desktop/images/go_up22.gif"
+                    tooltip="@@UP_ONE_FOLDER@@"
+                    onclick="containerList.upOneFolder"/>
+                <tbsep/>
+                <tbbutton id="btn_hsearch" width="30"
+                    img="desktop/images/search22.gif"
+                    tooltip="@@SEARCH@@"
+                    onclick="desktop.launchHyperSearch"/>
+            </toolbar>
+            <hbox width="100%" height="26" border="1" childrenalign="center"
+                    style="border-style:solid;border-color:ThreeDHighlight ThreeDShadow ThreeDShadow ThreeDHighlight">
+                <label height="16" width="32" align="center" caption="Path"/>
+                <combo id="path" editable="true"/>
+                <flatbutton width="28" caption="Go"
+                    onclick="containerList.navigateTo"/>
+            </hbox>
+            <listview id="itemslist" dragable="true" multiple="true"
+                    ondblclick="containerList.loadItem">
+                <contextmenu id="contextmenu"
+                        onshow="containerList.listMenu_show">
+                    <menuoption caption="@@CREATE@@"
+                        img="desktop/images/filenew.gif"/>
+                    <sep/>
+                    <menuoption img="desktop/images/cut.gif"
+                            caption="@@CUT@@"
+                            onclick="containerList.updateCliboard">
+                        <prop name="action" value="cut"/>
+                    </menuoption>
+                    <menuoption img="desktop/images/copy.gif"
+                            caption="@@COPY@@"
+                            onclick="containerList.updateCliboard">
+                        <prop name="action" value="copy"/>
+                    </menuoption>
+                    <menuoption img="desktop/images/paste.gif"
+                        caption="@@PASTE@@" onclick="containerList.paste"/>
+                    <menuoption img="desktop/images/editdelete.gif"
+                        caption="@@DELETE@@"
+                        onclick="containerList.deleteItem"/>
+                    <sep/>
+                    <menuoption caption="@@MOVE@@..."
+                            onclick="containerList.copyMove">
+                        <prop name="action" value="move"/>
+                    </menuoption>
+                    <menuoption caption="@@COPYTO@@..."
+                            onclick="containerList.copyMove">
+                        <prop name="action" value="copy"/>
+                    </menuoption>
+                    <menuoption caption="@@RENAME@@"
+                        onclick="containerList.rename"/>
+                    <sep/>
+                    <menuoption caption="@@PROPERTIES@@"
+                        onclick="containerList.showProperties"/>
+                </contextmenu>
+                <listheader>
+                    <column width="24" caption="" type="img" name="image"
+                        resizable="false"/>
+                    <column width="140" caption="@@NAME@@" name="displayName"
+                        bgcolor="#EFEFEF" sortable="true"/>
+                    <column width="80" caption="@@SIZE@@" name="size"
+                        xform="generic.computeSize" sortable="true"/>
+                    <column width="160" caption="@@DATEMOD@@" type="date"
+                        name="modified" sortable="true"/>
+                </listheader>
+            </listview>
+        </vbox>
+    </wbody>
 </window>

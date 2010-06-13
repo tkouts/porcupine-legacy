@@ -51,7 +51,7 @@ generic.computeSize = function(obj, value) {
 generic.getProcessDialog = function(title, steps, oncomplete) {
     var dlg = document.desktop.parseFromString(
         '<dialog xmlns="http://www.innoscript.org/quix" '+
-                'title="' + title + '" width="240" height="100" ' +
+                'title="' + title + '" width="240" height="70" ' +
                 'left="center" top="center">' +
             '<prop type="bool" name="canceled" value="0"/>' +
             '<wbody>' +

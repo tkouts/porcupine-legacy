@@ -1,45 +1,46 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		title="Create New Group" img="{=ICON}" resizable="false" close="true"
-		align="right" width="380" height="300" left="30%" top="30%">
-	<script name="Generic Form Widgets" src="desktop/widgets.js"
+        title="Create New Group" img="{=ICON}" resizable="false" close="true"
+        align="right" width="380" height="300" left="30%" top="30%">
+    <script name="Generic Form Widgets" src="desktop/widgets.js"
         depends="10,14,15"/>
-	<wbody>
-		<form action="{=URI}" method="create">
-			<tabpane top="0" left="0" width="100%" height="100%">
-				<tab caption="@@GENERAL@@">
-						<field name="CC" type="hidden" value="{=CC}"/>
-						
-						<label top="2" left="5" width="60" height="20"
+    <wbody>
+        <form action="{=URI}" method="create">
+            <tabpane top="0" left="0" width="100%" height="100%">
+                <tab caption="@@GENERAL@@">
+                        <field name="CC" type="hidden" value="{=CC}"/>
+                        
+                        <label top="2" left="5" width="60" height="20"
                             caption="@@displayName@@:"/>
-						<field name="displayName" left="75" top="0" width="75%"
+                        <field name="displayName" left="75" top="0" width="75%"
                             value=""/>
-	
-						<label top="29" left="5" width="60" height="20"
+    
+                        <label top="29" left="5" width="60" height="20"
                             caption="@@description@@:"/>
-						<field name="description" top="27" left="75" width="75%"
+                        <field name="description" top="27" left="75" width="75%"
                             value=""/>
-				</tab>
-				<tab caption="@@members@@">
-					<custom classname="ReferenceN" width="100%" height="100%"
-						root="{=URI}" cc="{=REL_CC}" name="members"/>
-				</tab>
-				<tab caption="@@policies@@">
-					<custom classname="ReferenceN" width="100%" height="100%"
-						root="{=SELECT_FROM_POLICIES}" cc="{=POLICIES_REL_CC}"
+                </tab>
+                <tab caption="@@members@@">
+                    <custom classname="ReferenceN" width="100%" height="100%"
+                        root="{=URI}" cc="{=REL_CC}" name="members"/>
+                </tab>
+                <tab caption="@@policies@@">
+                    <custom classname="ReferenceN" width="100%" height="100%"
+                        root="{=SELECT_FROM_POLICIES}" cc="{=POLICIES_REL_CC}"
                         name="policies"/>
-				</tab>
+                </tab>
                 {:if ADMIN}
-                    <tab caption="@@SECURITY@@" onactivate="generic.getSecurity">
+                    <tab caption="@@SECURITY@@"
+                            onactivate="generic.getSecurity">
                         <custom classname="ACLEditor" width="100%"
                             height="100%" rolesinherited="true"/>
                     </tab>
                 {/:if}
-			</tabpane>
-		</form>
-	</wbody>
-	<dlgbutton onclick="generic.submitForm" width="70" height="22"
+            </tabpane>
+        </form>
+    </wbody>
+    <dlgbutton onclick="generic.submitForm" width="70" height="22"
         caption="@@CREATE@@" default="true"/>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22"
+    <dlgbutton onclick="__closeDialog__" width="70" height="22"
         caption="@@CLOSE@@"/>
 </dialog>

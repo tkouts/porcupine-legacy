@@ -1,24 +1,34 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		title="$NAME" img="$ICON" close="true" bgcolor="menu" width="380"
-		height="200" left="30%" top="30%">
-	<wbody>
-		<tabpane top="0" left="0" width="100%" height="100%">
-			<tab caption="@@INFO@@">
-				<label top="0" left="5" width="100" height="20" caption="@@DATEDEL@@:"/>
-				<label top="0" left="105" width="55%" height="20" caption="$MODIFIED"/>
+        title="$NAME" img="$ICON" close="true" bgcolor="menu" width="380"
+        height="200" left="30%" top="30%">
+    <wbody>
+        <tabpane top="0" left="0" width="100%" height="100%">
+            <tab caption="@@INFO@@">
+                <label top="0" left="5" width="100" height="20"
+                    caption="@@DATEDEL@@:"/>
+                <label top="0" left="105" width="55%" height="20"
+                    caption="$MODIFIED"/>
 
-				<label top="25" left="5" width="100" height="20" caption="@@DELETEDBY@@:"/>
-				<label top="25" left="105" width="55%" height="20" caption="$MODIFIED_BY"/>
+                <label top="25" left="5" width="100" height="20"
+                    caption="@@DELETEDBY@@:"/>
+                <label top="25" left="105" width="55%" height="20"
+                    caption="$MODIFIED_BY"/>
 
-				<label top="50" left="5" width="100" height="20" caption="@@ORIGINAL_LOC@@:"/>
-				<label top="50" left="105" width="55%" height="20" canselect="true" caption="$LOC"/>
+                <label top="50" left="5" width="100" height="20"
+                    caption="@@ORIGINAL_LOC@@:"/>
+                <label top="50" left="105" width="55%" height="20"
+                    canselect="true" caption="$LOC"/>
 
-				<label top="75" left="5" width="100" height="20" caption="@@CLASS@@:"/>
-				<label top="75" left="105" width="55%" height="20" canselect="true" caption="$CONTENTCLASS"/>
-			</tab>
-		</tabpane>
-	</wbody>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@RESTORE@@"/>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22" caption="@@CLOSE@@"/>
+                <label top="75" left="5" width="100" height="20"
+                    caption="@@CLASS@@:"/>
+                <label top="75" left="105" width="55%" height="20"
+                    canselect="true" caption="$CONTENTCLASS"/>
+            </tab>
+        </tabpane>
+    </wbody>
+    <dlgbutton onclick="__closeDialog__" width="70" height="22"
+        caption="@@RESTORE@@"/>
+    <dlgbutton onclick="__closeDialog__" width="70" height="22"
+        caption="@@CLOSE@@"/>
 </dialog>

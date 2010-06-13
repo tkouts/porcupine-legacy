@@ -1,80 +1,80 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		title="{=NAME}" img="{=ICON}" resizable="false" close="true"
-		width="380" height="325" left="30%" top="30%">
-	<script name="Generic Form Widgets" src="desktop/widgets.js"
+        title="{=NAME}" img="{=ICON}" resizable="false" close="true"
+        width="400" height="325" left="30%" top="30%">
+    <script name="Generic Form Widgets" src="desktop/widgets.js"
         depends="10,14,15"/>
-	<wbody>
-		<form action="{=ID}" method="update">
-			<tabpane top="0" left="0" width="100%" height="100%">
-				<tab caption="@@GENERAL@@">
-						<label top="2" left="5" width="80" height="20"
+    <wbody>
+        <form action="{=ID}" method="update">
+            <tabpane top="0" left="0" width="100%" height="100%">
+                <tab caption="@@GENERAL@@">
+                        <label top="2" left="5" width="80" height="20"
                             caption="@@displayName@@:"/>
-						<field id="displayName" name="displayName" left="95"
+                        <field id="displayName" name="displayName" left="95"
                             top="0" width="72%"
                             value="{=NAME}" readonly="{=READONLY}"/>
-	
-						<label top="29" left="5" width="80" height="20"
+    
+                        <label top="29" left="5" width="80" height="20"
                             caption="@@fullName@@:"/>
-						<field id="fullName" name="fullName" top="27" left="95"
+                        <field id="fullName" name="fullName" top="27" left="95"
                             width="72%" value="{=FULL_NAME}"
                             readonly="{=READONLY}"/>
-	
-						<label top="55" left="5" width="80" height="20"
+    
+                        <label top="55" left="5" width="80" height="20"
                             caption="@@description@@:"/>
-						<field id="description" name="description" top="53"
+                        <field id="description" name="description" top="53"
                             left="95" width="72%"
                             value="{=DESCRIPTION}" readonly="{=READONLY}"/>
-					
-						<label top="81" left="5" width="80" height="20"
+                    
+                        <label top="81" left="5" width="80" height="20"
                             caption="@@email@@:"/>
-						<field id="description" name="email" top="80"
+                        <field id="description" name="email" top="80"
                             left="95" width="72%" value="{=EMAIL}"/>
-					
-						<hr top="112" width="100%"/>
-						
-						<label top="125" left="5" width="120" height="20"
+                    
+                        <hr top="112" width="100%"/>
+                        
+                        <label top="125" left="5" width="100" height="20"
                             caption="@@DATEMOD@@:"/>
-						<label top="125" left="125" width="55%" height="20"
+                        <label top="125" left="105" width="55%" height="20"
                             caption="{=MODIFIED}"/>
-	
-						<label top="150" left="5" width="120" height="20"
+    
+                        <label top="150" left="5" width="100" height="20"
                             caption="@@MODIFIEDBY@@:"/>
-						<label top="150" left="125" width="55%" height="20"
+                        <label top="150" left="105" width="55%" height="20"
                             caption="{=MODIFIED_BY}"/>
-	
-						<label top="175" left="5" width="120" height="20"
+    
+                        <label top="175" left="5" width="100" height="20"
                             caption="@@ID@@:"/>
-						<label top="175" left="125" width="55%" height="20"
+                        <label top="175" left="105" width="55%" height="20"
                             canselect="true" caption="{=ID}"/>
-	
-						<label top="200" left="5" width="120" height="20"
+    
+                        <label top="200" left="5" width="100" height="20"
                             caption="@@CLASS@@:"/>
-						<label top="200" left="125" width="55%" height="20"
+                        <label top="200" left="105" width="55%" height="20"
                             canselect="true" caption="{=CONTENTCLASS}"/>
-				</tab>
-				<tab caption="@@memberof@@">
-					<custom classname="ReferenceN" width="100%" height="100%"
-						root="{=SELECT_FROM}" cc="{=REL_CC}" name="memberof"
+                </tab>
+                <tab caption="@@memberof@@">
+                    <custom classname="ReferenceN" width="100%" height="100%"
+                        root="{=SELECT_FROM}" cc="{=REL_CC}" name="memberof"
                         disabled="{=READONLY}" value="{=MEMBEROF}"/>
-				</tab>
-				<tab caption="@@policies@@">
-					<custom classname="ReferenceN" width="100%" height="100%"
-						root="{=SELECT_FROM_POLICIES}" cc="{=POLICIES_REL_CC}"
+                </tab>
+                <tab caption="@@policies@@">
+                    <custom classname="ReferenceN" width="100%" height="100%"
+                        root="{=SELECT_FROM_POLICIES}" cc="{=POLICIES_REL_CC}"
                         name="policies" disabled="{=READONLY}"
                         value="{=POLICIES}"/>
-				</tab>
+                </tab>
                 {:if ADMIN}
                     <tab caption="@@SECURITY@@" onactivate="generic.getSecurity">
                         <custom classname="ACLEditor" width="100%"
                             height="100%" rolesinherited="{=ROLES_INHERITED}"/>
                     </tab>
                 {/:if}
-			</tabpane>
-		</form>
-	</wbody>
-	<dlgbutton onclick="generic.submitForm" width="70" height="22"
+            </tabpane>
+        </form>
+    </wbody>
+    <dlgbutton onclick="generic.submitForm" width="70" height="22"
         caption="@@UPDATE@@" default="true" disabled="{=READONLY}"/>
-	<dlgbutton onclick="__closeDialog__" width="70"
+    <dlgbutton onclick="__closeDialog__" width="70"
         height="22" caption="@@CLOSE@@"/>
 </dialog>

@@ -1,24 +1,30 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		id="logindialog" title="@@LOGIN@@" width="280"
-		height="155" status="true" left="center" top="center" close="true">
-	<prop name="ServiceURI" value="$URI"/>
-	<prop name="FailMsgTitle" value="@@LOGIN_FAILED_TITLE@@"/>
-	<prop name="FailMsg" value="@@LOGIN_FAILED@@"/>
-	<script name="Login Script" src="desktop/ui.LoginPage.js"/>
-	<wbody>
-		<hbox width="100%" height="100%">
-			<rect width="70">
-				<icon left="center" top="center" width="48" height="48" img="desktop/images/kgpg.gif"/>
-			</rect>
-			<rect width="-1">
-				<label align="right" top="14" width="60" height="20" caption="@@USER@@:"/>
-				<field id="user" left="60" top="12" width="68%"/>
-				<label align="right" top="41" width="60" height="20" caption="@@PASSWORD@@:"/>
-				<field id="password" type="password" top="39" left="60" width="68%"/>
-			</rect>
-		</hbox>
-	</wbody>
-	<dlgbutton width="80" height="24" onclick="login.login" caption="@@LOGIN@@" default="true"/>
-	<dlgbutton width="80" height="24" onclick="__closeDialog__" caption="@@CLOSE@@"/>
+        id="logindialog" title="@@LOGIN@@" width="280"
+        height="130" status="true" left="center" top="center" close="true">
+    <prop name="ServiceURI" value="$URI"/>
+    <prop name="FailMsgTitle" value="@@LOGIN_FAILED_TITLE@@"/>
+    <prop name="FailMsg" value="@@LOGIN_FAILED@@"/>
+    <script name="Login Script" src="desktop/ui.LoginPage.js"/>
+    <wbody>
+        <hbox width="100%" height="100%">
+            <rect width="70">
+                <icon left="center" top="center" width="48" height="48"
+                    img="desktop/images/kgpg.gif"/>
+            </rect>
+            <rect width="-1">
+                <label align="right" top="14" width="60" height="20"
+                    caption="@@USER@@:"/>
+                <field id="user" left="60" top="12" width="68%"/>
+                <label align="right" top="41" width="60" height="20"
+                    caption="@@PASSWORD@@:"/>
+                <field id="password" type="password" top="39" left="60"
+                    width="68%"/>
+            </rect>
+        </hbox>
+    </wbody>
+    <dlgbutton width="80" height="24" onclick="login.login"
+        caption="@@LOGIN@@" default="true"/>
+    <dlgbutton width="80" height="24" onclick="__closeDialog__"
+        caption="@@CLOSE@@"/>
 </dialog>

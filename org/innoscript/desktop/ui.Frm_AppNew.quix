@@ -1,53 +1,53 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		title="@@NEW_APP@@" img="{=ICON}" resizable="true" maximize="true"
-		minimize="true" close="true" bgcolor="menu" width="400"
-		height="235" left="30%" top="30%">
-	<script name="Generic Functions" src="desktop/generic.js"/>
-	<script name="Generic Form Widgets" src="desktop/widgets.js"
+        title="@@NEW_APP@@" img="{=ICON}" resizable="true" maximize="true"
+        minimize="true" close="true" bgcolor="menu" width="400"
+        height="235" left="30%" top="30%">
+    <script name="Generic Functions" src="desktop/generic.js"/>
+    <script name="Generic Form Widgets" src="desktop/widgets.js"
         depends="10,14,15"/>
-	<wbody>
-		<form action="{=URI}" method="create">
-			<tabpane width="100%" height="100%">
-				<tab caption="@@GENERAL@@">
-					<field name="CC" type="hidden" value="{=CC}"/>
-					<hbox height="55" width="100%">
-						<rect width="80">
-							<label top="2" width="100%" height="20"
+    <wbody>
+        <form action="{=URI}" method="create">
+            <tabpane width="100%" height="100%">
+                <tab caption="@@GENERAL@@">
+                    <field name="CC" type="hidden" value="{=CC}"/>
+                    <hbox height="55" width="100%">
+                        <rect width="80">
+                            <label top="2" width="100%" height="20"
                                 caption="@@displayName@@:"/>
-							<label top="27" width="100%" height="20"
+                            <label top="27" width="100%" height="20"
                                 caption="@@description@@:"/>
-						</rect>
-						<rect>
-							<field name="displayName" width="100%"/>
-							<field name="description" top="25" width="100%"/>
-						</rect>
-					</hbox>
-					<hr top="57" width="100%"/>
-					<hbox top="67" height="67" width="100%">
-						<rect width="80">
-							<label top="2" width="100%" height="20"
+                        </rect>
+                        <rect>
+                            <field name="displayName" width="100%"/>
+                            <field name="description" top="25" width="100%"/>
+                        </rect>
+                    </hbox>
+                    <hr top="57" width="100%"/>
+                    <hbox top="67" height="67" width="100%">
+                        <rect width="80">
+                            <label top="2" width="100%" height="20"
                                 caption="@@ICON@@:"/>
-							<label top="27" width="100%" height="20"
+                            <label top="27" width="100%" height="20"
                                 caption="@@LAUNCH_URL@@:"/>
-						</rect>
-						<rect>
-							<field name="icon" width="100%"/>
-							<field name="launchUrl" top="25" width="100%"/>
-						</rect>
-					</hbox>
-				</tab>
+                        </rect>
+                        <rect>
+                            <field name="icon" width="100%"/>
+                            <field name="launchUrl" top="25" width="100%"/>
+                        </rect>
+                    </hbox>
+                </tab>
                 {:if ADMIN}
                 <tab caption="@@SECURITY@@" onactivate="generic.getSecurity">
                     <custom classname="ACLEditor" width="100%"
                         height="100%" rolesinherited="true"/>
                 </tab>
                 {/:if}
-			</tabpane>
-		</form>
-	</wbody>
-	<dlgbutton onclick="generic.submitForm" width="70" height="22"
+            </tabpane>
+        </form>
+    </wbody>
+    <dlgbutton onclick="generic.submitForm" width="70" height="22"
         default="true" caption="@@CREATE@@"/>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22"
+    <dlgbutton onclick="__closeDialog__" width="70" height="22"
         caption="@@CLOSE@@"/>
 </dialog>

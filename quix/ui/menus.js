@@ -354,7 +354,7 @@ QuiX.ui.MenuBar.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.MenuBar.prototype.redraw = function(bForceAll /*, memo*/) {
     for (var i=0; i<this.menus.length; i++) {
-         this.menus[i].div.style.marginRight = this.spacing + 'px';
+        this.menus[i].div.style.marginRight = this.spacing + 'px';
     }
     QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
 }
@@ -379,7 +379,7 @@ QuiX.ui.MenuBar.prototype.addRootMenu = function(params) {
 
     var oCMenu = new QuiX.ui.ContextMenu(params, oMenu);
     oMenu.contextMenu = oCMenu;
-    return(oCMenu);
+    return oCMenu;
 }
 
 QuiX.ui.MenuBar._menuDestroy = function() {

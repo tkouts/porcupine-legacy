@@ -22,15 +22,17 @@ usermgmnt.users_loaded = function(req) {
 
 usermgmnt.refreshUsersList = function(evt, w) {
     oUserList = w.getParentByType(QuiX.ui.Window).body
-				.getWidgetsByType(QuiX.ui.ListView)[0];
+                .getWidgetsByType(QuiX.ui.ListView)[0];
     usermgmnt.getUsers(oUserList);
 }
 
 usermgmnt.newUser = function(evt, w) {
     var oWin = w.parent.owner.parent.owner.getParentByType(QuiX.ui.Window);
-    var oUserList = w.parent.owner.parent.owner.parent.parent.parent.getWidgetById('userslist');
+    var oUserList = w.parent.owner.parent.owner.parent.parent.parent
+                    .getWidgetById('userslist');
     var sFolder = QuiX.root + oUserList.attributes.FolderID;
-    oWin.showWindow(sFolder + '?cmd=new&cc=org.innoscript.desktop.schema.security.User',
+    oWin.showWindow(
+        sFolder + '?cmd=new&cc=org.innoscript.desktop.schema.security.User',
         function(win) {
             win.attachEvent("onclose", usermgmnt.refreshWindow);
         }
@@ -68,23 +70,23 @@ usermgmnt.deleteItem = function(evt, w) {
                 usermgmnt.getUsers(win.getWidgetById("userslist"));
             }
         }
-        var dlg = generic.getProcessDialog(sCaption, items.length, _startDeleting);
+        var dlg = generic.getProcessDialog(sCaption, items.length,
+                                           _startDeleting);
     }
 
     desktop.msgbox(sCaption, 
         "Are you sure you want to delete the selected users/groups?",
-        [
-            ['Yes', 60, _deleteItem],
-            ['No', 60]
-        ],
-        'desktop/images/messagebox_warning.gif', 'center', 'center', 260, 112);
+        [['Yes', 60, _deleteItem],
+         ['No', 60]],
+        'desktop/images/messagebox_warning.gif', 'center', 'center', 260, 82);
 }
 
 usermgmnt.newGroup = function(evt, w) {
     var oWin = w.parent.owner.parent.owner.getParentByType(QuiX.ui.Window);
     var oUserList = oWin.getWidgetById('userslist');
     var sFolder = QuiX.root + oUserList.attributes.FolderID;
-    oWin.showWindow(sFolder + '?cmd=new&cc=org.innoscript.desktop.schema.security.Group',
+    oWin.showWindow(
+        sFolder + '?cmd=new&cc=org.innoscript.desktop.schema.security.Group',
         function(win) {
             win.attachEvent("onclose", usermgmnt.refreshWindow);
         }
@@ -93,7 +95,7 @@ usermgmnt.newGroup = function(evt, w) {
 
 usermgmnt.applyFilter = function(evt, w) {
     var userlist = w.parent.owner.getParentByType(QuiX.ui.Window)
-					.getWidgetById('userslist');
+                    .getWidgetById('userslist');
     userlist.attributes.filter = w.attributes.CC;
     usermgmnt.getUsers(userlist);
 }
@@ -111,9 +113,9 @@ usermgmnt.usersListMenu_show = function(menu) {
         menu.options[4].disable();
     
     if (oUserList.selection.length > 0)
-    	menu.options[1].enable();
+        menu.options[1].enable();
     else
-    	menu.options[1].disable();
+        menu.options[1].disable();
     
     if (oUserList.selection.length == 1 && oUserList.getSelection().haspsw)
         menu.options[3].enable();
@@ -124,19 +126,20 @@ usermgmnt.usersListMenu_show = function(menu) {
 usermgmnt.showProperties = function(evt, w) {
     var oUserList = w.parent.owner.getWidgetsByType(QuiX.ui.ListView)[0];
     generic.showObjectProperties(evt, w, oUserList.getSelection(),
-								 usermgmnt.refreshWindow);
+                                 usermgmnt.refreshWindow);
 }
 
 usermgmnt.refreshWindow = function(w) {
-	if (w.buttonIndex == 0) {
+    if (w.buttonIndex == 0) {
         var oUserList = w.opener.getWidgetsByType(QuiX.ui.ListView)[0];
         usermgmnt.getUsers(oUserList);
-	}
+    }
 }
 
 usermgmnt.loadItem = function(evt, w) {
     var oUserList = w;
-    generic.showObjectProperties(evt, w, oUserList.getSelection(), usermgmnt.refreshWindow);
+    generic.showObjectProperties(evt, w, oUserList.getSelection(),
+                                 usermgmnt.refreshWindow);
 }
 
 usermgmnt.showResetPasswordDialog = function(evt, w) {
@@ -163,15 +166,15 @@ usermgmnt.resetPassword = function(evt, w) {
         document.desktop.msgbox("Error", 
             "Passwords are not identical!",
             "Close",
-            "desktop/images/error32.gif", 'center', 'center', 260, 112);
+            "desktop/images/error32.gif", 'center', 'center', 260, 82);
     }
 }
 
 usermgmnt.about = function(evt, w) {
     document.desktop.msgbox(
         w.getCaption(),
-        "User and Groups Management v0.1<br/>(c)2005-2009 Innoscript",
+        "User and Groups Management v0.1<br/>(c)2005-2010 inno:script",
         [['OK', 60]],
-        'desktop/images/messagebox_info.gif', 'center', 'center', 260, 112
+        'desktop/images/messagebox_info.gif', 'center', 'center', 260, 82
     );
 }
