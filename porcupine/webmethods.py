@@ -26,18 +26,21 @@ from porcupine.core.rpc import xmlrpc, jsonrpc
 def webmethod(of_type, http_method='GET', client='', lang='', qs='',
               max_age=0, content_type='text/html', encoding='utf-8',
               template=None, template_engine='string_template'):
+
     class WebMethod(WebMethodDescriptor):
         def __init__(self, function):
             WebMethodDescriptor.__init__(self, function, of_type,
                                          (http_method, client, lang, qs),
                                          content_type, encoding, max_age,
                                          template, template_engine)
+
     return WebMethod
 
 
-def quixui(of_type, isPage=False, lang='', qs='',
+def quixui(of_type, isPage=False, title='Untitled', lang='', qs='',
            max_age=0, encoding='utf-8',
            template=None, template_engine='string_template'):
+
     class WebMethod(WebMethodDescriptor):
         def __init__(self, function):
             WebMethodDescriptor.__init__(self, function, of_type,
@@ -58,7 +61,7 @@ def quixui(of_type, isPage=False, lang='', qs='',
                     context.session.sessionid,
                     context.request.serverVariables['PATH_INFO'],
                     context.request.get_query_string())
-                vars = (script_name, str(cookies_required).lower(),
+                vars = (title, script_name, str(cookies_required).lower(),
                         no_cookies_url)
 
                 context.response.content_type = 'text/html'
@@ -66,16 +69,16 @@ def quixui(of_type, isPage=False, lang='', qs='',
 <!DOCTYPE html>
 <html>
     <head>
+        <title>%s</title>
         <script type="text/javascript" defer="defer" src="%s/__quix/quix.js">
         </script>
-        <script type="text/javascript" defer="defer">
+        <script type="text/javascript">
             (function() {
                 document.cookiesEnabled = false;
                 document.cookiesRequired = %s;
                 var session_id = (
                     new RegExp("/\(?:{|%%7b)(.*?)\(?:}|%%7d)", "i"))
-                    .exec(document.location.href
-                );
+                    .exec(document.location.href);
                 if (session_id)
                     session_id = session_id[1];
                 if (typeof document.cookie == "string" &&
@@ -88,24 +91,30 @@ def quixui(of_type, isPage=False, lang='', qs='',
     </head>
     <body onload="QuiX.__init__()">
         <xml id="quix" style="display:none">''' % vars).strip())
+
             WebMethodDescriptor.execute(self, item, context)
+
             if isPage:
                 context.response.write('</xml></body></html>')
+
     return WebMethod
 
 
 def mobileui(of_type, lang='', qs='',
              max_age=0, encoding='utf-8',
              template=None, template_engine='string_template'):
+
     class WebMethod(WebMethodDescriptor):
         def __init__(self, function):
             WebMethodDescriptor.__init__(self, function, of_type,
                 ('GET', 'PMB|UNTRUSTED', lang, qs),
                 'text/xml', encoding, max_age, template, template_engine)
+
     return WebMethod
 
 
 def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
+
     class WebMethod(WebMethodDescriptor):
         def __init__(self, function):
             WebMethodDescriptor.__init__(self, function, of_type,
@@ -135,4 +144,5 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
                 raise exceptions.InternalServerError(
                     'Remote method "%s" returns no value' %
                     context.request.method)
+
     return WebMethod

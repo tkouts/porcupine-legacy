@@ -43,7 +43,7 @@ def login(self, username, password):
 
 
 @filters.i18n('org.innoscript.desktop.strings.resources')
-@webmethods.quixui(of_type=RootFolder, isPage=True,
+@webmethods.quixui(of_type=RootFolder, isPage=True, title='Porcupine Login',
                    template='../ui.LoginPage.quix')
 def login(self):
     "Displays the login page"
@@ -132,6 +132,7 @@ def __blank__(self):
 @filters.i18n('org.innoscript.desktop.strings.resources')
 @webmethods.quixui(of_type=RootFolder,
                    isPage=True,
+                   title='Porcupine Desktop',
                    template='../ui.Desktop.quix',
                    template_engine='normal_template')
 def __blank__(self):
