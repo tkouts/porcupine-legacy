@@ -1,38 +1,35 @@
 <desktop xmlns="http://www.innoscript.org/quix" bgcolor="#888888">
-    <prop name="CLOSE" value="@@CLOSE@@"></prop>
-    <prop name="CANCEL" value="@@CANCEL@@"></prop>
-    <prop name="YES" value="@@YES@@"></prop>
-    <prop name="NO" value="@@NO@@"></prop>
-    <a:script xmlns:a="http://www.innoscript.org/quix"
-        name="Login Script" src="desktop/ui.LoginPage.js"></a:script>
+    <prop name="CLOSE" value="@@CLOSE@@"/>
+    <prop name="CANCEL" value="@@CANCEL@@"/>
+    <prop name="YES" value="@@YES@@"/>
+    <prop name="NO" value="@@NO@@"/>
+    <script name="Login Script" src="desktop/ui.LoginPage.js"/>
 
     <icon left="center" top="center" width="164" height="110"
-        img="desktop/images/logo.png"></icon>
+        img="desktop/images/logo.png"/>
     <dialog id="logindialog" title="@@LOGIN@@" align="center" width="280"
             height="130" status="true" left="center" top="center">
-        <prop name="ServiceURI" value="$URI"></prop>
-        <prop name="FailMsgTitle" value="@@LOGIN_FAILED_TITLE@@"></prop>
-        <prop name="FailMsg" value="@@LOGIN_FAILED@@"></prop>
+        <prop name="ServiceURI" value="$URI"/>
+        <prop name="FailMsgTitle" value="@@LOGIN_FAILED_TITLE@@"/>
+        <prop name="FailMsg" value="@@LOGIN_FAILED@@"/>
         <wbody>
             <hbox width="100%" height="100%">
                 <rect width="70">
                     <icon left="center" top="center" width="48" height="48"
-                        img="desktop/images/kgpg.gif"></icon>
+                        img="desktop/images/kgpg.gif"/>
                 </rect>
                 <rect width="-1">
-                    <a:label xmlns:a="http://www.innoscript.org/quix"
-                        align="right" top="14" width="60" height="20"
-                        caption="@@USER@@:"></a:label>
+                    <label align="right" top="14" width="60" height="20"
+                        caption="@@USER@@:"/>
                     <field id="user" left="60" top="12" width="68%"></field>
-                    <a:label xmlns:a="http://www.innoscript.org/quix"
-                        align="right" top="41" width="60" height="20"
-                        caption="@@PASSWORD@@:"></a:label>
+                    <label align="right" top="41" width="60" height="20"
+                        caption="@@PASSWORD@@:"/>
                     <field id="password" type="password" top="39" left="60"
-                        width="68%"></field>
+                        width="68%"/>
                 </rect>
             </hbox>
         </wbody>
         <dlgbutton width="80" height="24" onclick="login.login"
-            caption="@@LOGIN@@" default="true"></dlgbutton>
+            caption="@@LOGIN@@" default="true"/>
     </dialog>
 </desktop>

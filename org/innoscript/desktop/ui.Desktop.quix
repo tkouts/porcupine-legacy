@@ -5,35 +5,33 @@
                     ondblclick="generic.openContainer"
                     img="desktop/images/store.gif"
                     color="white" caption="{=ROOT_NAME}">
-                <prop name="folderID" value=""></prop>
+                <prop name="folderID" value=""/>
         </icon>
         {:if RB_NAME}
             <icon top="80" left="10" width="80" height="80"
                 imgalign="top" ondblclick="generic.openContainer"
                 img="desktop/images/trashcan_full.gif" color="white"
                 caption="{=RB_NAME}">
-                    <prop name="folderID" value="rb"></prop>
+                    <prop name="folderID" value="rb"/>
             </icon>
         {/:if}
     </rect>
 {/#def}
 
 <desktop xmlns="http://www.innoscript.org/quix" bgcolor="#888888">
-    <prop name="CLOSE" value="@@CLOSE@@"></prop>
-    <prop name="OK" value="@@OK@@"></prop>
-    <prop name="CANCEL" value="@@CANCEL@@"></prop>
-    <prop name="YES" value="@@YES@@"></prop>
-    <prop name="NO" value="@@NO@@"></prop>
-    <prop name="AUTO_RUN" value="{=AUTO_RUN}"></prop>
-    <prop name="RUN_MAXIMIZED" type="bool" value="{=RUN_MAXIMIZED}"></prop>
+    <prop name="CLOSE" value="@@CLOSE@@"/>
+    <prop name="OK" value="@@OK@@"/>
+    <prop name="CANCEL" value="@@CANCEL@@"/>
+    <prop name="YES" value="@@YES@@"/>
+    <prop name="NO" value="@@NO@@"/>
+    <prop name="AUTO_RUN" value="{=AUTO_RUN}"/>
+    <prop name="RUN_MAXIMIZED" type="bool" value="{=RUN_MAXIMIZED}"/>
     
-    <a:script xmlns:a="http://www.innoscript.org/quix"
-        name="Desktop Script" src="desktop/ui.Desktop.js"></a:script>
-    <a:script xmlns:a="http://www.innoscript.org/quix"
-        name="Generic Functions" src="desktop/generic.js"></a:script>
+    <script name="Desktop Script" src="desktop/ui.Desktop.js"/>
+    <script name="Generic Functions" src="desktop/generic.js"/>
     
     <icon left="center" top="center" width="164" height="110"
-        img="desktop/images/logo.png"></icon>
+        img="desktop/images/logo.png"/>
     <vbox spacing="0" width="100%" height="100%"
             onload="desktop.runApplication">
         {:if BOTTOM}
@@ -43,60 +41,58 @@
             <contextmenu onshow="desktop.getWindows">
                 <menuoption img="desktop/images/mini_all.gif"
                     caption="Minimize all"
-                    onclick="desktop.minimizeAll"></menuoption>
-                <sep></sep>
+                    onclick="desktop.minimizeAll"/>
+                <sep/>
             </contextmenu>
             <menubar width="100%" height="100%" bgcolor="buttonface"
                     style="font-weight:bolder">
-                <a:menu xmlns:a="http://www.innoscript.org/quix"
-                        caption="> @@START@@">
+                <menu caption="> @@START@@">
                     <menuoption caption="@@MY_REPOSITORY@@"
                             img="desktop/images/repository.gif"
                             onclick="generic.openContainer"
                             disabled="{=REPOSITORY_DISABLED}">
-                        <prop name="folderID" value="{=PERSONAL_FOLDER}"></prop>
+                        <prop name="folderID" value="{=PERSONAL_FOLDER}"/>
                     </menuoption>
-                    <sep></sep>
+                    <sep/>
                     <menuoption caption="@@APPLICATIONS@@"
                             img="desktop/images/appsfolder.gif">
                         {:reduce APPS}
                             <menuoption img="{=icon}" caption="{=displayName}"
                                     onclick="generic.runApp">
-                                <prop name="url" value="{=launchUrl}"></prop>
+                                <prop name="url" value="{=launchUrl}"/>
                             </menuoption>
                         {:else}
-                            <menuoption caption="@@EMPTY@@" disabled="true">
-                            </menuoption>
+                            <menuoption caption="@@EMPTY@@" disabled="true"/>
                         {/:reduce}
                     </menuoption>
                     <menuoption caption="HyperSearch"
                         img="desktop/images/search16.gif"
-                        onclick="desktop.launchHyperSearch"></menuoption>
+                        onclick="desktop.launchHyperSearch"/>
                     <menuoption caption="@@SETTINGS@@"
                         img="desktop/images/admintools.gif"
                         onclick="desktop.showSettings"
-                        disabled="{=SETTINGS_DISABLED}"></menuoption>
-                    <sep></sep>
+                        disabled="{=SETTINGS_DISABLED}"/>
+                    <sep/>
                     <menuoption caption="@@INFO@@"
                         img="desktop/images/about16.gif"
-                        onclick="desktop.showAbout"></menuoption>
+                        onclick="desktop.showAbout"/>
                     <menuoption caption="@@LOGIN_AS@@"
                         img="desktop/images/kgpg16.gif"
-                        onclick="desktop.loginAs"></menuoption>
+                        onclick="desktop.loginAs"/>
                     <menuoption caption="@@LOGOFF@@ {=USER}"
                             img="desktop/images/exit.gif"
                             onclick="desktop.logoff"
                             disabled="{=LOGOFF_DISABLED}">
-                        <prop name="logoff" value="@@LOGOFF@@"></prop>
-                        <prop name="ask_logoff" value="@@LOGOFF_Q@@"></prop>
+                        <prop name="logoff" value="@@LOGOFF@@"/>
+                        <prop name="ask_logoff" value="@@LOGOFF_Q@@"/>
                     </menuoption>
-                </a:menu>
+                </menu>
             </menubar>
             <timer interval="60000"
                 left="this.parent.getWidth()-64"
                 top="5" width="60"
                 handler="desktop.displayTime"
-                auto="true"></timer>
+                auto="true"/>
         </rect>
         {:if TOP}
             {=desktop}

@@ -89,13 +89,13 @@ def quixui(of_type, isPage=False, title='Untitled', lang='', qs='',
                 })();
         </script>
     </head>
-    <body onload="QuiX.__init__()">
-        <xml id="quix" style="display:none">''' % vars).strip())
+    <body onload="QuiX.__init__('quix')">
+        <textarea id="quix" style="display:none">''' % vars).strip())
 
             WebMethodDescriptor.execute(self, item, context)
 
             if isPage:
-                context.response.write('</xml></body></html>')
+                context.response.write('</textarea></body></html>')
 
     return WebMethod
 
