@@ -208,10 +208,11 @@ class Password(DataType):
     of the assigned string value.
 
     @ivar value: The datatype's value
-    @type value: str
+    @type value: unicode in Python 2.6
+                 str in Python 3.x
     """
-    _safetype = bytes
-    _blank = b'd41d8cd98f00b204e9800998ecf8427e'
+    _safetype = str
+    _blank = 'd41d8cd98f00b204e9800998ecf8427e'
 
     def __init__(self, **kwargs):
         self._value = self._blank
@@ -228,7 +229,7 @@ class Password(DataType):
         if value != self._value:
             if type(value) == str:
                 value = value.encode('utf-8')
-            self._value = hashlib.md5(value).hexdigest().encode()
+            self._value = str(hashlib.md5(value).hexdigest())
     value = property(get_value, set_value)
 
 
@@ -420,6 +421,7 @@ class RequiredComposition(Composition):
     "Mandatory L{Composition} data type."
     isRequired = True
 
+
 #==============================================================================
 # External Attributes
 #==============================================================================
@@ -432,7 +434,7 @@ class ExternalAttribute(DataType):
     all other object attributes.
 
     @type is_dirty: bool
-    @type value: str
+    @type value: bytes
     """
     _safetype = (bytes, type(None))
     _eventHandler = dteventhandlers.ExternalAttributeEventHandler
@@ -473,10 +475,7 @@ class ExternalAttribute(DataType):
 
 
 class Text(ExternalAttribute):
-    """Data type to use for large text streams
-
-    @type value: str
-    """
+    """Data type to use for large text streams"""
 
     def __init__(self, **kwargs):
         ExternalAttribute.__init__(self, **kwargs)

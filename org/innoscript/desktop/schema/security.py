@@ -153,7 +153,7 @@ class User(GenericUser):
         if type(password) == str:
             password = password.encode('utf-8')
         md = hashlib.md5(password)
-        hex_digest = md.hexdigest().encode()
+        hex_digest = md.hexdigest()
         return hex_digest == self.password.value
 
 
@@ -161,9 +161,9 @@ class SystemUser(system.Item):
     """
     System User
     ===========
-    System User is a special user. Its instance is retreived when the
-    L{BaseServlet.runAsSystem<porcupine.core.servlet.BaseServlet.runAsSystem>}
-    method is called.
+    System User is a special user.
+    Use this identity for performing actions not inititated by users.
+    This user has no security restrictions.
     """
     __image__ = "desktop/images/user.gif"
 
@@ -181,7 +181,7 @@ class GuestUser(GenericUser):
     Guest User
     ==========
     This user instance is assigned by the session manager
-    to all new sessions.
+    to all newly created sessions.
     This is configurable. See the C{sessionmanager} section
     of C{porcupine.conf}.
     """
