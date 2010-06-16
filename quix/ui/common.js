@@ -155,7 +155,8 @@ QuiX.ui.GroupBox._check_onclick = function(evt ,w) {
 QuiX.ui.Slider = function(/*params*/) {
     var params = arguments[0] || {};
 
-    params.padding = '0,0,0,0',
+    var rl_p = parseInt(QuiX.theme.slider.handle.width / 2);
+    params.padding =  rl_p + ',' + rl_p + ',0,0',
     params.height = params.height || 26;
     params.overflow = 'visible';
 
@@ -165,39 +166,24 @@ QuiX.ui.Slider = function(/*params*/) {
 
     this.min = parseInt(params.min) || 0;
     this.max = parseInt(params.max) || 100;
+    this.decimals = parseInt(params.decimals) || 0;
     this.name = params.name;
 
-    var slot = new QuiX.ui.Widget({
-        top : 'center',
-        left : 4,
-        width : 'this.parent.getWidth(false, memo) - 8',
-        height : 2,
-        bgcolor : 'silver',
-        border : 1,
-        overflow : 'hidden'
-    });
-    slot.div.className = 'slot';
-    this.appendChild(slot);
+    this.slot = QuiX.theme.slider.slot.get();
+    this.slot.div.className = 'slot';
+    this.appendChild(this.slot);
 
-    var handle = new QuiX.ui.Icon({
-        img : '$THEME_URL$images/slider.gif',
-        top : 'center',
-        width : 10,
-        height : 18,
-        border : 0,
-        padding : '0,0,0,0',
-        overflow : 'visible'
-    });
+    var handle = QuiX.theme.slider.handle.get();
     handle.div.className = 'handle';
     this.appendChild(handle);
     this.handle = handle;
 
-    this.handle.attachEvent('onmousedown', QuiX.ui.Slider._onmousedown)
+    this.handle.attachEvent('onmousedown', QuiX.ui.Slider._onmousedown);
 
     var lbl = new QuiX.ui.Label({
-        top : 16,
-        left : (QuiX.dir != 'rtl')? -10:16,
-        display : 'none'
+        top: 16,
+        left: (QuiX.dir != 'rtl')? -10:16,
+        display: 'none'
     });
     this.handle.appendChild(lbl);
     this.label = lbl;
@@ -216,7 +202,8 @@ QuiX.ui.Slider.prototype.getValue = function() {
 }
 
 QuiX.ui.Slider.prototype.setValue = function(val) {
-    this._value = Math.round(parseFloat(val) * 100) / 100;
+    this._value = Math.round(parseFloat(val) * Math.pow(10, this.decimals)) /
+                  Math.pow(10, this.decimals);
     if (this._value > this.max)
         this._value = this.max;
     if (this._value < this.min)
@@ -227,8 +214,8 @@ QuiX.ui.Slider.prototype.setValue = function(val) {
 QuiX.ui.Slider.prototype._update = function() {
     var x = ((this._value - this.min) / +
              (this.max - this.min)) *  +
-             (this.getWidth(false) - 8);
-    this.handle.moveTo(x ,'center');
+             this.slot.getWidth(true);
+    this.handle.moveTo(x - (QuiX.theme.slider.handle.width / 2), 'center');
     this.label.setCaption(this._value);
 }
 
@@ -247,34 +234,26 @@ QuiX.ui.Slider._onmousemove = function(evt, desktop) {
     var offsetX = evt.clientX - QuiX.startX;
     if (QuiX.dir == 'rtl')
         offsetX = -offsetX;
-    var new_x = QuiX.tmpWidget.attributes.__startx + offsetX;
+    var new_x = QuiX.tmpWidget.attributes.__startx + offsetX +
+                (QuiX.theme.slider.handle.width / 2);
     var slider = QuiX.tmpWidget.parent;
     var range_length = slider.max - slider.min;
-        
-    new_x = (new_x<0)?0:new_x;
-    new_x = (new_x>QuiX.tmpWidget.parent.getWidth()-8)?
-            QuiX.tmpWidget.parent.getWidth() - 8 : new_x;
+    var slot_width = slider.slot.getWidth(true);
 
-    var new_value = slider.min +
-                    (QuiX.tmpWidget.getLeft() / (slider.getWidth() - 8)) *
-                    range_length;
-    slider.label.setCaption(Math.round(new_value * 100) / 100);
+    new_x = (new_x < 0)? 0:new_x;
+    new_x = (new_x > slot_width)? slot_width:new_x;
 
-    QuiX.tmpWidget.moveTo(new_x, 'center');
+    var new_value = slider.min + (new_x / slot_width) * range_length;
+    slider._value = Math.round(new_value * Math.pow(10, slider.decimals)) /
+                    Math.pow(10, slider.decimals);
+    slider._update();
 }
 
 QuiX.ui.Slider._onmouseup = function(evt, desktop) {
+    var slider = QuiX.tmpWidget.parent;
     document.desktop.detachEvent('onmousemove');
     document.desktop.detachEvent('onmouseup');
-    
-    var slider = QuiX.tmpWidget.parent;
     slider.label.hide();
-    var range_length = slider.max - slider.min;
-    var old_value = slider._value;
-    var new_value = slider.min + (QuiX.tmpWidget.getLeft() / (slider.getWidth() - 8)) * range_length;
-    slider._value = Math.round(new_value * 100) / 100;
-    
-    slider._update();
     if (slider._customRegistry.onchange && old_value != slider._value)
         slider._customRegistry.onchange(slider);
 }

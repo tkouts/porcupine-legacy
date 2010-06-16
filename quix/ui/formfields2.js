@@ -109,6 +109,10 @@ QuiX.ui.Combo._closeDropdown = function() {
     this.detach();
 }
 
+QuiX.ui.Combo._calcDropdownWidth = function(memo) {
+    return this.combo.getWidth(true, memo);
+}
+
 QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild) {
         var nh = this.getHeight(false, memo) - 2;
@@ -225,8 +229,9 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
 
     this.dropdown.top = iTop;
     this.dropdown.left = iLeft;
-    if (!this.dropdown.width)
-        this.dropdown.width = 'this.combo.getWidth(true, memo)';
+    if (!this.dropdown.width) {
+        this.dropdown.width = QuiX.ui.Combo._calcDropdownWidth;
+    }
     this.dropdown.height = this.menuHeight;
     this.dropdown.setBgColor(this.getBgColor());
 

@@ -466,6 +466,10 @@ QuiX.ui.Dialog = function(/*params*/) {
 QuiX.constructors['dialog'] = QuiX.ui.Dialog;
 QuiX.ui.Dialog.prototype = new QuiX.ui.Window;
 
+QuiX.ui.Dialog._calcButtonHolderLeft = function(memo) {
+    return this.parent.getWidth(false, memo) - this.getWidth(true, memo);
+}
+
 QuiX.ui.Dialog.prototype.setButtonsAlign = function(sAlign) {
     var left;
     switch (sAlign) {
@@ -476,8 +480,7 @@ QuiX.ui.Dialog.prototype.setButtonsAlign = function(sAlign) {
             left = 'center';
             break;
         default:
-            left = 'this.parent.getWidth(false, memo) - ' +
-                   'this.getWidth(true, memo)';
+            left = QuiX.ui.Dialog._calcButtonHolderLeft;
     }
     this.buttonHolder.left = left;
     this.buttonHolder.redraw();

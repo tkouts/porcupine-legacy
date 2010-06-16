@@ -188,5 +188,34 @@ QuiX.theme = {
 '</vbox>';
             }
         }
+    },
+    slider: {
+        slot: {
+            get: function() {
+                return new QuiX.ui.Widget({
+                        top: 'center',
+                        left: 0,
+                        width: '100%',
+                        height: 4,
+                        bgcolor: 'silver',
+                        border: 1,
+                        overflow: 'hidden'
+                    });
+            }
+        },
+        handle: {
+            width: 10,
+            get: function() {
+                return new QuiX.ui.Icon({
+                        img: '$THEME_URL$images/slider.gif',
+                        top: 'center',
+                        width: this.width,
+                        height: 18,
+                        border: 0,
+                        padding: '0,0,0,0',
+                        overflow: 'visible'
+                    });
+            }
+        }
     }
 }
