@@ -81,7 +81,7 @@ class DataType(object):
                 safe_type_name = '"%s"' % self._safetype.__name__
             raise TypeError(
                 self.__class__.__name__,
-               'Got "%s" instead of "%s."' %
+               'Got "%s" instead of %s.' %
                (self.value.__class__.__name__, safe_type_name))
         if self.isRequired and not self.value:
             raise ValueError(self.__class__.__name__, 'Attribute is mandatory')
