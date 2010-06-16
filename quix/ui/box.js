@@ -158,41 +158,41 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
 QuiX.ui.Box.prototype._calcSize = function(height, offset, getHeight, memo) {
     if (this[height] == 'auto' &&
             (!memo || (memo && !memo[this._uniqueid + height]))) {
-        var value = 0,
+        // auto sized box
+        var length_func = (height == 'height')? '_calcHeight':'_calcWidth',
+            padding_offset = (height == 'height')? 2:0,
+            padding = this.getPadding(),
+            is_additive = this.orientation == 'h' && height == 'width' ||
+                          this.orientation == 'v' && height == 'height',
+            value = 0,
             w_length;
-        var is_additive = this.orientation == 'h' && height == 'width' ||
-                          this.orientation == 'v' && height == 'height';
-        var padding_offset = (height == 'height')? 2:0;
-        var padding = this.getPadding();
-        var length_func = (height == 'height')? '_calcHeight':'_calcWidth';
 
         if (is_additive) {
             var offset_func = (height == 'height')? '_calcTop':'_calcLeft';
-            value = this.widgets[this.widgets.length - 1][offset_func](memo) +
-                this.widgets[this.widgets.length - 1][length_func](true, memo);
-            if (this.widgets.length > 0)
-                value += (this.widgets.length - 1) * this.spacing;
+            var last = this.widgets[this.widgets.length - 1];
+            value = last[offset_func](memo) + last[length_func](true, memo);
+            value = value +
+                    padding[padding_offset + 1] +
+                    2 * this.getBorderWidth();
         }
         else {
             for (var i=0; i<this.widgets.length; i++) {
                 w_length = this.widgets[i][length_func](true, memo);
-                if (is_additive)
-                    value += w_length;
-                else
-                    value = Math.max(value, w_length);
+                value = Math.max(value, w_length);
             }
+            value = value +
+                    padding[padding_offset] +
+                    padding[padding_offset + 1] +
+                    2 * this.getBorderWidth();
         }
-        value = value +
-                padding[padding_offset] +
-                padding[padding_offset + 1] +
-                2 * this.getBorderWidth();
         if (typeof memo != 'undefined') {
             memo[this._uniqueid + height] = value;
         }
         return value - offset;
     }
-    else
+    else {
         return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
+    }
 }
 
 // horizontal box

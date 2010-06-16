@@ -519,8 +519,9 @@ function(height, offset, getHeight, memo) {
                 value = Math.max(value, w_length);
             }
 
-            value = value + padding[padding_offset] +
-                    padding[padding_offset + 1] + 2 * this.getBorderWidth();
+            value = value +
+                    padding[padding_offset + 1] +
+                    2 * this.getBorderWidth();
         }
         else {
             value = (typeof this[height] == 'function')?
