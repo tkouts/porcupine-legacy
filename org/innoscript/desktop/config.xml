@@ -6,10 +6,18 @@
 	</context>
 	<context match="(.*)\.js"
 		method="GET"
-		client=".*"
+		client="MSIE 6"
 		lang=".*"
 		action="$1.js"
 		max-age="1200"/>
+	<context match="(.*)\.js"
+			method="GET"
+			client=".*"
+			lang=".*"
+			action="$1.js"
+			max-age="1200">
+		<filter type="porcupine.filters.output.Gzip"/>
+	</context>
 	<!-- Desktop images-->
 	<context match="images/(.*)"
 		method="GET"

@@ -38,7 +38,7 @@ QuiX.ui.Widget = function(/*params*/) {
     this.div.widget = this;
     this._uniqueid = QuiX.utils.uid();
     if (params.id) {
-        this.setId(params.id)
+        this.setId(params.id);
     }
     if (params.bgcolor)
         this.setBgColor(params.bgcolor);

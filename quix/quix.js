@@ -74,10 +74,10 @@ QuiX.getThemeUrl = function() {
     return QuiX.baseUrl + 'themes/' + theme + '/';
 }
 
-QuiX.progress = '<rect xmlns="http://www.innoscript.org/quix" \
-    width="18" height="18"><xhtml><![CDATA[\
-    <img src="' + QuiX.getThemeUrl() + 'images/loader.gif">\
-    ]]></xhtml></rect>';
+QuiX.progress = '<rect xmlns="http://www.innoscript.org/quix" ' +
+    'width="18" height="18"><xhtml><![CDATA[' +
+    '<img src="' + QuiX.getThemeUrl() + 'images/loader.gif">' +
+    ']]></xhtml></rect>';
 
 // module
 
@@ -101,14 +101,15 @@ QuiX.Module.prototype.load = function(callback) {
         oElement.defer = true;
         oElement.src = this.file;
         oElement[onload] = QuiX.__resource_onstatechange;
+        document.body.appendChild(oElement);
     }
     else {
         oElement = document.createElement('LINK');
         oElement.type = 'text/css';
         oElement.href = this.file;
         oElement.rel = 'stylesheet';
+        document.getElementsByTagName('head')[0].appendChild(oElement);
     }
-    document.getElementsByTagName('head')[0].appendChild(oElement);
     oElement.resource = this;
     oElement.id = this.file;
     if (this.type=='stylesheet') {
@@ -231,16 +232,6 @@ QuiX.tags = {
 };
 
 QuiX.bootLibraries = [
-    // libs
-    QuiX.baseUrl + 'lib/extensions.js',
-    QuiX.baseUrl + 'lib/utils.js',
-    QuiX.baseUrl + 'lib/parsers_hashlib.js',
-    QuiX.baseUrl + 'lib/persist.js',
-    QuiX.baseUrl + 'lib/rpc.js',
-    // base widget
-    QuiX.baseUrl + 'ui/widget.js',
-    // swfupload
-    QuiX.baseUrl + 'swfupload/swfupload.js',
     // theme
     QuiX.getThemeUrl() + 'theme.css',
     QuiX.getThemeUrl() + 'theme.js'
@@ -269,10 +260,8 @@ QuiX.__init__ = function(id) {
                 document.getElementById(id));
             var parser = new QuiX.Parser();
             parser.oncomplete = function() {
-                try {
-                    // remove boot loader image
+                if (boot_loader.clientWidth > 0)
                     QuiX.removeNode(boot_loader);
-                } catch(e) {}
                 // calculate scrollbars size
                 var w1 = document.desktop.div.clientWidth;
                 var overflow = document.desktop.getOverflow()
@@ -347,23 +336,23 @@ QuiX.displayError = function(e) {
         msg += '\nFile: "' + e.fileName + '" Line: ' + e.lineNumber;
     }
     document.desktop.parseFromString(
-        '<dialog xmlns="http://www.innoscript.org/quix" title="Error" \
-                resizable="true" close="true" width="560" height="240" \
-                left="center" top="center"> \
-            <wbody> \
-                <hbox spacing="8" width="100%" height="100%"> \
-                    <icon width="56" height="56" padding="12,12,12,12" \
-                        img="$THEME_URL$images/error32.gif"/> \
-                    <rect padding="4,4,4,4" overflow="auto"><xhtml><![CDATA[ \
-                        <pre style="color:red;font-size:12px; \
-                            font-family:monospace;padding-left:4px">' + msg +
-                        '</pre>]]></xhtml> \
-                    </rect> \
-                </hbox> \
-            </wbody> \
-            <dlgbutton onclick="__closeDialog__" width="70" height="22" \
-                caption="Close"/> \
-        </dialog>');
+        '<dialog xmlns="http://www.innoscript.org/quix" title="Error" ' +
+                'resizable="true" close="true" width="560" height="240" ' +
+                'left="center" top="center">'+
+            '<wbody>' +
+                '<hbox spacing="8" width="100%" height="100%">' +
+                    '<icon width="56" height="56" padding="12,12,12,12" ' +
+                        'img="$THEME_URL$images/error32.gif"/>' +
+                    '<rect padding="4,4,4,4" overflow="auto"><xhtml><![CDATA[' +
+                        '<pre style="color:red;font-size:12px;' +
+                            'font-family:monospace;padding-left:4px">' + msg +
+                        '</pre>]]></xhtml>' +
+                    '</rect>' +
+                '</hbox>' +
+            '</wbody>' +
+            '<dlgbutton onclick="__closeDialog__" width="70" height="22" ' +
+                'caption="Close"/>' +
+        '</dialog>');
 }
 
 QuiX.getTarget = function(evt) {

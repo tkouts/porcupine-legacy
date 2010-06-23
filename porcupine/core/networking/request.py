@@ -21,26 +21,25 @@ import socket
 from threading import RLock
 from errno import EISCONN, EADDRINUSE
 
+from porcupine.core.decorators import synchronized
 
 class BaseRequest(object):
     """
-    Syncronous base request object
+    Synchronous base request object
     """
     # port range to use when the ephemeral port range is exhausted
     _port_range = range(65535, 49150, -1)
     _client_ip = socket.gethostbyname(socket.gethostname())
     _host_ports = {}
-    _next_port_lock = RLock()
 
     def __init__(self, buffer=b''):
         self.buffer = buffer
 
+    @synchronized(RLock())
     def __next_port(self, address):
-        self._next_port_lock.acquire()
         next_port_index = self._host_port[address] = (
             self._host_ports.setdefault(address, -1) + 1) \
             % len(self._port_range)
-        self._next_port_lock.release()
         return self._port_range[next_port_index]
 
     def get_response(self, address):

@@ -23,9 +23,10 @@ from porcupine.utils import misc
 
 
 class Registration(object):
-    __slots__ = ('context', 'type', 'encoding', 'filters', 'max_age')
+    __slots__ = ('path', 'context', 'type', 'encoding', 'filters', 'max_age')
 
-    def __init__(self, identifier, enc, filters, max_age):
+    def __init__(self, path, identifier, enc, filters, max_age):
+        self.path = path
         self.context = identifier
         if identifier[-4:] == '.psp':
             self.type = 1
@@ -36,6 +37,13 @@ class Registration(object):
         self.filters = filters
         self.max_age = int(max_age)
 
+    def get_filter_by_type(self, type):
+        if isinstance(type, basestring):
+            type = misc.get_rto_by_name(type)
+        filter = [f for f in self.filters
+                  if f[0] == type][0]
+        return filter
+
 
 class Dir(object):
     def __init__(self, dirNode):
@@ -45,37 +53,40 @@ class Dir(object):
         self.__cache = {}
         configXML = minidom.parse(self.path + '/config.xml')
         contextList = configXML.getElementsByTagName('context')
+
         # construct action list
-        for contextNode in contextList:
-            sPath = contextNode.getAttribute('path') or None
-            sMatch = contextNode.getAttribute('match') or None
-            sMethod = contextNode.getAttribute('method')
-            sBrowser = contextNode.getAttribute('client')
-            sLang = contextNode.getAttribute('lang')
-            sAction = contextNode.getAttribute('action')
-            encoding = contextNode.getAttribute('encoding') \
-                       .encode('iso-8859-1') or None
-            max_age = contextNode.getAttribute('max-age') or 0
+        for context_node in contextList:
+            sPath = context_node.getAttribute('path') or None
+            sMatch = context_node.getAttribute('match') or None
+            sMethod = context_node.getAttribute('method')
+            sBrowser = context_node.getAttribute('client')
+            sLang = context_node.getAttribute('lang')
+            sAction = context_node.getAttribute('action') or ''
+            encoding = (context_node.getAttribute('encoding').
+                        encode('iso-8859-1') or None)
+            max_age = context_node.getAttribute('max-age') or 0
 
             if sPath:
                 self.__config.append((
                     (sPath, sMethod, sBrowser, sLang),
-                    Registration(self.path + '/' + sAction,
+                    Registration(self.path + '/' + sPath,
+                                 self.path + '/' + sAction,
                                  encoding,
-                                 self.__getFiltersList(contextNode),
+                                 self.__get_filters_list(context_node),
                                  max_age)))
             elif sMatch:
                 self.__matchlist.append((
                     (sMatch, sMethod, sBrowser, sLang),
-                    (self.path + '/' + sAction,
+                    (None,
+                     self.path + '/' + sAction,
                      encoding,
-                     self.__getFiltersList(contextNode),
+                     self.__get_filters_list(context_node),
                      max_age)))
 
         configXML.unlink()
 
-    def __getFiltersList(self, contextNode):
-        filterList = contextNode.getElementsByTagName('filter')
+    def __get_filters_list(self, context_node):
+        filterList = context_node.getElementsByTagName('filter')
         filters = []
         for filterNode in filterList:
             type = filterNode.getAttribute('type')
@@ -85,39 +96,41 @@ class Dir(object):
             filters.append(tuple(filter))
         return tuple(filters)
 
-    def getRegistration(self, sPath, sHttpMethod, sBrowser, sLang):
+    def get_registration(self, sPath, sHttpMethod='GET', sBrowser='.*',
+                         sLang='.*'):
         cache_key = (sPath, sHttpMethod, sBrowser, sLang)
         if cache_key in self.__cache:
             return self.__cache[cache_key]
         else:
             for paramList in self.__config:
                 Path, HttpMethod, Browser, Lang = paramList[0]
-                if Path == sPath and re.match(HttpMethod, sHttpMethod) and \
-                        re.search(Browser, sBrowser) and \
-                        re.match(Lang, sLang):
+                if (Path == sPath and re.match(HttpMethod, sHttpMethod)
+                        and re.search(Browser, sBrowser)
+                        and re.match(Lang, sLang)):
                     registration = paramList[1]
                     self.__cache[cache_key] = registration
                     return registration
             for paramList in self.__matchlist:
                 Match, HttpMethod, Browser, Lang = paramList[0]
                 match = re.match(Match, sPath)
-                if match and re.match(HttpMethod, sHttpMethod) and \
-                        re.search(Browser, sBrowser) and \
-                        re.match(Lang, sLang):
+                if (match and re.match(HttpMethod, sHttpMethod)
+                        and re.search(Browser, sBrowser)
+                        and re.match(Lang, sLang)):
                     registration_params = paramList[1]
 
-                    path = registration_params[0]
+                    action = registration_params[1]
 
                     def repl(mo):
                         ind = int(mo.group(0)[-1])
                         s = match.group(ind)
                         return s
 
-                    path = re.sub('\$\d', repl, path)
+                    action = re.sub('\$\d', repl, action)
 
-                    if (os.path.isfile(path)):
-                        registration = Registration(
-                            path, *registration_params[1:])
+                    if (os.path.isfile(action)):
+                        registration = Registration(registration_params[0],
+                                                    action,
+                                                    *registration_params[2:])
                         self.__cache[cache_key] = registration
                         return registration
             self.__cache[cache_key] = None

@@ -22,15 +22,20 @@ import glob
 import gzip
 import re
 import io
+from threading import RLock
 
 from porcupine.utils import misc
 from porcupine.filters.jsmin import JavascriptMinify
-from porcupine.filters.filter import PostProcessFilter
+from porcupine.filters.filter import PostProcessFilter, PreProcessFilter
 
 
 class Gzip(PostProcessFilter):
-    "Compresses the server's output using the gzip compression algorithm"
-    cacheFolder = None
+    """
+    Compresses the server's output using
+    the gzip compression algorithm.
+    """
+    cache_folder = None
+    lock = RLock()
     staticLevel = 9
     dynamicLevel = 3
 
@@ -42,9 +47,11 @@ class Gzip(PostProcessFilter):
 
     @staticmethod
     def apply(context, item, registration, **kwargs):
-        if Gzip.cacheFolder is None:
+        if Gzip.cache_folder is None:
             config = Gzip.loadConfig()
-            Gzip.cacheFolder = config['cache']
+            Gzip.cache_folder = config['cache']
+            if not(os.path.isdir(Gzip.cache_folder)):
+                os.makedirs(Gzip.cache_folder)
             Gzip.staticLevel = int(config['static_compress_level'])
             Gzip.dynamicLevel = int(config['dynamic_compress_level'])
 
@@ -53,28 +60,33 @@ class Gzip(PostProcessFilter):
 
         if isStatic:
             filename = registration.context
-            modified = hex(os.stat(filename)[8])[2:]
+            modified = hex(int(os.path.getmtime(filename)))[2:]
 
-            compfn = filename.replace(os.path.sep, '_')
+            compressed = filename.replace(os.path.sep, '_')
             if os.name == 'nt':
-                compfn = compfn.replace(os.path.altsep, '_').replace(':', '')
+                compressed = (compressed.replace(os.path.altsep, '_').
+                              replace(':', ''))
 
-            glob_f = Gzip.cacheFolder + '/' + compfn
-            compfn = glob_f + '#' + modified + '.gzip'
+            glob_f = '%s/%s' % (Gzip.cache_folder, compressed)
+            compressed = '%s#%s.gzip' % (glob_f, modified)
 
-            if not(os.path.exists(compfn)):
-                # remove old compressed files
-                oldfiles = glob.glob(glob_f + '*.gzip')
-                [os.remove(old) for old in oldfiles]
-
-                output = io.FileIO(compfn, 'wb')
-                Gzip.compress(context.response._get_body(),
-                              output,
-                              Gzip.staticLevel)
-                output.close()
+            if not(os.path.exists(compressed)):
+                Gzip.lock.acquire()
+                try:
+                    # remove old compressed files
+                    oldfiles = glob.glob(glob_f + '*.gzip')
+                    [os.remove(old) for old in oldfiles]
+    
+                    output = io.FileIO(compressed, 'wb')
+                    Gzip.compress(context.response._get_body(),
+                                  output,
+                                  Gzip.staticLevel)
+                    output.close()
+                finally:
+                    Gzip.lock.release()
 
             context.response.clear()
-            cache_file = io.FileIO(compfn)
+            cache_file = io.FileIO(compressed)
             context.response.write(cache_file.read())
             cache_file.close()
 
@@ -117,10 +129,11 @@ class I18n(PostProcessFilter):
 
 class JSMin(PostProcessFilter):
     """
-    Compresses JavaScript files using JSMin
+    Minifies JavaScript files using JSMin
     http://www.crockford.com/javascript/jsmin.html
     """
-    cacheFolder = None
+    cache_folder = None
+    lock = RLock()
 
     @staticmethod
     def compress(input, output):
@@ -130,43 +143,102 @@ class JSMin(PostProcessFilter):
 
     @staticmethod
     def apply(context, item, registration, **kwargs):
-        if JSMin.cacheFolder is None:
+        if JSMin.cache_folder is None:
             config = JSMin.loadConfig()
-            JSMin.cacheFolder = config['cache']
+            JSMin.cache_folder = config['cache']
+            if not(os.path.isdir(JSMin.cache_folder)):
+                os.makedirs(JSMin.cache_folder)
 
         is_static = (registration is not None and registration.type == 0)
 
         if is_static:
             filename = registration.context
-            modified = hex(os.stat(filename)[8])[2:]
+            modified = hex(int(os.path.getmtime(filename)))[2:]
 
-            compfn = filename.replace(os.path.sep, '_')
+            minified = filename.replace(os.path.sep, '_')
             if os.name == 'nt':
-                compfn = compfn.replace(os.path.altsep, '_').replace(':', '')
+                minified = (minified.replace(os.path.altsep, '_').
+                            replace(':', ''))
 
-            glob_f = JSMin.cacheFolder + '/' + compfn
-            compfn = glob_f + '#' + modified + '.jsmin'
+            glob_f = '%s/%s' % (JSMin.cache_folder, minified)
+            minified = '%s#%s.jsmin' % (glob_f, modified)
 
-            if not(os.path.exists(compfn)):
-                # remove old compressed files
-                oldfiles = glob.glob(glob_f + '*.jsmin')
-                [os.remove(old) for old in oldfiles]
-
-                output = io.BytesIO()
-                JSMin.compress(context.response._body, output)
-
-                context.response._body = output
-
-                cache_file = open(compfn, 'wb')
-                cache_file.write(output.getvalue())
-                cache_file.close()
+            if not(os.path.exists(minified)):
+                JSMin.lock.acquire()
+                try:
+                    # remove old compressed files
+                    oldfiles = glob.glob(glob_f + '*.jsmin')
+                    [os.remove(old) for old in oldfiles]
+    
+                    output = io.BytesIO()
+                    JSMin.compress(context.response._body, output)
+    
+                    context.response._body = output
+    
+                    cache_file = open(minified, 'wb')
+                    cache_file.write(output.getvalue())
+                    cache_file.close()
+                finally:
+                    JSMin.lock.release()
             else:
-                cache_file = open(compfn, 'rb')
                 context.response.clear()
-                context.response.write(cache_file.read())
-                cache_file.close()
+                context.response.write(open(minified, 'rb').read())
 
         else:
             output = io.BytesIO()
             JSMin.compress(context.response._body, output)
             context.response._body = ouput
+
+
+class JSMerge(PreProcessFilter):
+    """
+    Merges a set of JavaScript files (or potentially
+    any other text based formats) into one file.
+    """
+    cache_folder = None
+    lock = RLock()
+
+    @staticmethod
+    def get_revision(files):
+        return max([int(os.path.getmtime(f.strip()))
+                    for f in files])
+
+    @staticmethod
+    def apply(context, item, registration, **kwargs):
+        if JSMerge.cache_folder is None:
+            config = JSMerge.loadConfig()
+            JSMerge.cache_folder = config['cache']
+            if not(os.path.isdir(JSMerge.cache_folder)):
+                os.makedirs(JSMerge.cache_folder)
+
+        files = [f.strip() for f in kwargs['files'].split(',')]
+
+        # check if output folder exists
+        path = registration.path
+        hash = misc.hash(*files).hexdigest()
+
+        merged = path.replace(os.path.sep, '_')
+        if os.name == 'nt':
+            merged = merged.replace(os.path.altsep, '_').replace(':', '')
+
+        glob_f = '%s/%s' % (JSMerge.cache_folder, merged)
+        merged = '%s#%s.jsmerge' % (glob_f, hash)
+
+        revision = int(context.request.queryString['r'][0])
+
+        if (not os.path.isfile(merged) or
+                os.path.getmtime(merged) < revision):
+            JSMerge.lock.acquire()
+            try:
+                # remove old merged files
+                oldfiles = glob.glob(glob_f + '*')
+                [os.remove(old) for old in oldfiles]
+                # generate new
+                f = open(merged, 'w')
+                for fname in files:
+                    f.write(open(fname, 'r').read() + '\n')
+                f.close()
+            finally:
+                JSMerge.lock.release()
+
+        registration.context = merged

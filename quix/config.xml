@@ -1,78 +1,124 @@
 <config>
-    <context path="ui/widget.js"
-		method="GET"
-		client="MSIE 6"
-		lang=".*"
+    <!-- QuiX core files merged into one, minified and then gzipped -->
+    <!-- do not use gzip compression on IE 6 -->
+    <context path="core.js"
+            method="GET"
+            client="MSIE 6"
+            lang=".*"
+            max-age="31556926">
+        <filter type="porcupine.filters.output.JSMerge"
+                files="quix/quix.js,
+                       quix/lib/parsers_hashlib.js,
+                       quix/lib/utils.js,
+                       quix/lib/persist.js,
+                       quix/lib/utils.js,
+                       quix/lib/rpc.js,
+                       quix/ui/widget.js,
+                       quix/swfupload/swfupload.js"/>
+        <filter type="porcupine.filters.output.JSMin"/>
+    </context>
+    <context path="core.js"
+            method="GET"
+            client=".*"
+            lang=".*"
+            max-age="31556926">
+        <filter type="porcupine.filters.output.JSMerge"
+                files="quix/quix.js,
+                       quix/lib/parsers_hashlib.js,
+                       quix/lib/utils.js,
+                       quix/lib/persist.js,
+                       quix/lib/utils.js,
+                       quix/lib/rpc.js,
+                       quix/ui/widget.js,
+                       quix/swfupload/swfupload.js"/>
+        <filter type="porcupine.filters.output.JSMin"/>
+        <filter type="porcupine.filters.output.Gzip"/>
+    </context>
+    <context path="lib/extensions.js"
+        method="MSIE 6"
+        client=".*"
+        lang=".*"
         max-age="300"
-		action="ui/widget.js"/>
-    <context path="ui/widget.js"
-			method="GET"
-			client=".*"
-			lang=".*"
+        action="lib/extensions.js.psp"/>
+    <context path="lib/extensions.js"
+            method="GET"
+            client=""
+            lang=".*"
             max-age="300"
-			action="ui/widget.js">
-		<filter type="porcupine.filters.output.Gzip"/>
-	</context>
-	<context path="lib/extensions.js"
-		method="GET"
-		client=".*"
-		lang=".*"
-        max-age="300"
-		action="lib/extensions.js.psp"/>
+            action="lib/extensions.js.psp">
+        <filter type="porcupine.filters.output.Gzip"/>
+    </context>
 
-	<!-- QuiX default theme -->
-	<context path="themes/default/theme.css"
-		method="GET"
-		client=".*"
-		lang=".*"
-        max-age="300"
-		action="themes/default/theme.css.psp"/>
+    <!-- QuiX default theme -->
+    <context path="themes/default/theme.css"
+            method="GET"
+            client="MSIE 6"
+            lang=".*"
+            max-age="300"
+            action="themes/default/theme.css.psp"/>
+    <context path="themes/default/theme.css"
+            method="GET"
+            client=".*"
+            lang=".*"
+            max-age="300"
+            action="themes/default/theme.css.psp">
+        <filter type="porcupine.filters.output.Gzip"/>
+    </context>
 
     <!-- html pages -->
-	<context match="(.*)\.htm"
-		method="GET"
-		client=".*"
-		lang=".*"
+    <context match="(.*)\.htm"
+        method="GET"
+        client=".*"
+        lang=".*"
         max-age="300"
-		action="$1.htm"/>
+        action="$1.htm"/>
 
     <!-- Stylesheets -->
-	<context match="(.*)\.css"
-		method="GET"
-		client=".*"
-		lang=".*"
-        max-age="300"
-		action="$1.css"/>
+    <context match="(.*)\.css"
+            method="GET"
+            client="MSIE 6"
+            lang=".*"
+            max-age="300"
+            action="$1.css"/>
+    <context match="(.*)\.css"
+            method="GET"
+            client=".*"
+            lang=".*"
+            max-age="300"
+            action="$1.css">
+        <filter type="porcupine.filters.output.Gzip"/>
+    </context>
 
-	<!-- QuiX Modules -->
-	<context match="(.*)\.js"
-		method="GET"
-		client="MSIE 6"
-		lang=".*"
+    <!-- QuiX Modules -->
+    <context match="(.*)\.js"
+        method="GET"
+        client="MSIE 6"
+        lang=".*"
         max-age="300"
-		action="$1.js"/>
-	<context match="(.*)\.js"
+        action="$1.js"/>
+    <context match="(.*)\.js"
             method="GET"
             client=".*"
             lang=".*"
             max-age="300"
             action="$1.js">
+        <filter type="porcupine.filters.output.JSMin"/>
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
 
-	<!-- Flash files -->
-	<context match="(.*)\.swf"
-		method="GET"
-		client=".*"
-		lang=".*"
-		action="$1.swf"
-		max-age="300"/>
+    <!-- Flash files -->
+    <context match="(.*)\.swf"
+        method="GET"
+        client=".*"
+        lang=".*"
+        action="$1.swf"
+        max-age="300"/>
 
-	<!-- QuiX images-->
-	<context match="(.*)images/(.*)"
-		method="GET"
-		client=".*"
-		lang=".*"
-		action="$1images/$2"
-		max-age="1200"/>
+    <!-- QuiX images-->
+    <context match="(.*)images/(.*)"
+        method="GET"
+        client=".*"
+        lang=".*"
+        action="$1images/$2"
+        max-age="1200"/>
 </config>

@@ -44,6 +44,21 @@ def deprecated(function, member=None):
     return dep_wrapper
 
 
+def synchronized(lock):
+    """
+    Synchronization decorator.
+    """
+    def wrap(f):
+        def new_function(*args, **kw):
+            lock.acquire()
+            try:
+                return f(*args, **kw)
+            finally:
+                lock.release()
+        return new_function
+    return wrap
+
+
 class WebMethodDescriptor(object):
     def __init__(self, function, of_type, conditions,
                  content_type, encoding, max_age,

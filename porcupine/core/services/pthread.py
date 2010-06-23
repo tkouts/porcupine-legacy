@@ -95,7 +95,7 @@ class PorcupineThread(BaseServerThread):
 
                     # remove blank entry & app name to get the requested path
                     dir_path = '/'.join(path_tokens[2:])
-                    registration = web_app.getRegistration(
+                    registration = web_app.get_registration(
                         dir_path,
                         request.serverVariables['REQUEST_METHOD'],
                         request.serverVariables['HTTP_USER_AGENT'],

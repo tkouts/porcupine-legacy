@@ -19,6 +19,7 @@ Porcupine web method decorators.
 This kind of method becomes directly accessible over HTTP.
 """
 from porcupine import exceptions
+from porcupine.config import pubdirs
 from porcupine.core.decorators import WebMethodDescriptor
 from porcupine.core.rpc import xmlrpc, jsonrpc
 
@@ -54,6 +55,8 @@ def quixui(of_type, isPage=False, title='Untitled', lang='', qs='',
         def execute(self, item, context):
             if isPage:
                 from porcupine.core.session import SessionManager
+                from porcupine.filters.output import JSMerge
+
                 script_name = context.request.serverVariables["SCRIPT_NAME"]
                 cookies_required = SessionManager._sm.requires_cookies
                 no_cookies_url = '%s/{%s}%s%s' % (
@@ -61,16 +64,28 @@ def quixui(of_type, isPage=False, title='Untitled', lang='', qs='',
                     context.session.sessionid,
                     context.request.serverVariables['PATH_INFO'],
                     context.request.get_query_string())
-                vars = (title, script_name, str(cookies_required).lower(),
-                        no_cookies_url)
 
+                # get revision of quix core files
+                quix_core_reg = (
+                    pubdirs.dirs['__quix'].get_registration('core.js'))
+                quix_core_files = (
+                    quix_core_reg.get_filter_by_type(JSMerge)[1]['files'].
+                    split(','))
+                core_revision = JSMerge.get_revision(quix_core_files)
+
+                vars = (title, script_name, script_name, core_revision,
+                        str(cookies_required).lower(), no_cookies_url)
                 context.response.content_type = 'text/html'
                 context.response.write(('''
 <!DOCTYPE html>
 <html>
     <head>
         <title>%s</title>
-        <script type="text/javascript" defer="defer" src="%s/__quix/quix.js">
+        <script type="text/javascript" defer="defer"
+            src="%s/__quix/lib/extensions.js">
+        </script>
+        <script type="text/javascript" defer="defer"
+            src="%s/__quix/core.js?r=%d">
         </script>
         <script type="text/javascript">
             (function() {
