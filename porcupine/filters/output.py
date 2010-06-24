@@ -169,15 +169,11 @@ class JSMin(PostProcessFilter):
                     # remove old compressed files
                     oldfiles = glob.glob(glob_f + '*.jsmin')
                     [os.remove(old) for old in oldfiles]
-    
+
                     output = io.BytesIO()
                     JSMin.compress(context.response._body, output)
-    
                     context.response._body = output
-    
-                    cache_file = open(minified, 'wb')
-                    cache_file.write(output.getvalue())
-                    cache_file.close()
+                    open(minified, 'wb').write(output.getvalue())
                 finally:
                     JSMin.lock.release()
             else:
@@ -222,7 +218,7 @@ class JSMerge(PreProcessFilter):
             merged = merged.replace(os.path.altsep, '_').replace(':', '')
 
         glob_f = '%s/%s' % (JSMerge.cache_folder, merged)
-        merged = '%s#%s.jsmerge' % (glob_f, hash)
+        merged = '%s#%s.merge.js' % (glob_f, hash)
 
         revision = int(context.request.queryString['r'][0])
 

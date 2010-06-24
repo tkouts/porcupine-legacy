@@ -20,10 +20,11 @@
 try:
     # python 2.6
     str = unicode
+    basestring = basestring
 except NameError:
     # python 3
     str = str
-
+    basestring = (str, bytes)
 
 # functions
 def get_func_name(f):

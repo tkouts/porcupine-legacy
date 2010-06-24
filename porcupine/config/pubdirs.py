@@ -19,6 +19,7 @@ import re
 import os.path
 from xml.dom import minidom
 
+from porcupine.core.compat import basestring
 from porcupine.utils import misc
 
 
