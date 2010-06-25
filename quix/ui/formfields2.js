@@ -110,7 +110,7 @@ QuiX.ui.Combo._closeDropdown = function() {
 }
 
 QuiX.ui.Combo._calcDropdownWidth = function(memo) {
-    return this.combo.getWidth(true, memo);
+    return this.combo._calcWidth(true, memo);
 }
 
 QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {

@@ -129,7 +129,7 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
         var idx = splitter._handles.indexOf(w);
         // store panes initial state info
         var length_var = (splitter.orientation == 'h')? 'width':'height';
-        var length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight';
+        var length_func = (splitter.orientation == 'h')? '_calcWidth':'_calcHeight';
         var min_length_var = (splitter.orientation == 'h')?
                              '_calcMinWidth':'_calcMinHeight';
         var memo = {};

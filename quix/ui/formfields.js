@@ -177,11 +177,18 @@ QuiX.ui.Field.prototype.setValue = function(value) {
             var checked, radio_group;
             var id = this.getId();
             if (id) {
-                radio_group = this.parent.getWidgetById(id);
-                for (var i=0; i<radio_group.length; i++) {
-                    checked = (radio_group[i]._value == value);
-                    radio_group[i].div.firstChild.checked = checked;
-                    radio_group[i]._checked = checked;
+                var p = this.parent;
+                while (p) {
+                    radio_group = p.getWidgetById(id);
+                    if (radio_group.length && radio_group.length > 1) {
+                        for (var i=0; i<radio_group.length; i++) {
+                            checked = (radio_group[i]._value == value);
+                            radio_group[i].div.firstChild.checked = checked;
+                            radio_group[i]._checked = checked;
+                        }
+                        break;
+                    }
+                    p = p.parent;
                 }
             }
             break;
@@ -338,16 +345,19 @@ QuiX.ui.Spin = function(/*params*/) {
     var oSpin = this;
 
     upbutton = new QuiX.ui.Button({
-        left : "this.parent.getWidth(false, memo) - 16",
-        height : '50%', width : 16,
-        onclick : QuiX.ui.Spin._btnup_onclick
+        left: 'this.parent.getWidth(false, memo) - 16',
+        height: '50%',
+        width: 16,
+        onclick: QuiX.ui.Spin._btnup_onclick
     });
     this.appendChild(upbutton);
 
     downbutton = new QuiX.ui.Button({
-        left : "this.parent.getWidth(false, memo) - 16",
-        height : '50%', top : '50%', width : 16,
-        onclick : QuiX.ui.Spin._btndown_onclick
+        left: 'this.parent.getWidth(false, memo) - 16',
+        height: '50%',
+        top: '50%',
+        width: 16,
+        onclick: QuiX.ui.Spin._btndown_onclick
     });
     this.appendChild(downbutton);
 

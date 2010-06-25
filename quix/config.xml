@@ -120,5 +120,5 @@
         client=".*"
         lang=".*"
         action="$1images/$2"
-        max-age="1200"/>
+        max-age="604800"/>
 </config>

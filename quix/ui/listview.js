@@ -713,7 +713,7 @@ QuiX.ui.ListView._startdrag = function(x, y, el) {
     if (el.tagName == 'DIV')
         return;
     var dragable = new QuiX.ui.Widget({
-        width : this.getWidth(true),
+        width : this._calcWidth(true),
         height : 1,
         border : 1,
         style : 'border:1px solid transparent'

@@ -55,7 +55,7 @@ QuiX.ui.Box._calcWidgetLength = function(memo) {
         }
     }
     var l = (box.orientation == 'h')?
-        box.getWidth(false, memo):box.getHeight(false, memo);
+        box._calcWidth(false, memo):box._calcHeight(false, memo);
 
     var nl = (l - tl - ((box.widgets.length - 1) * box.spacing)) /
              free_widgets;
@@ -126,12 +126,20 @@ QuiX.ui.Box._calcWidgetMinSize = function() {
 
 QuiX.ui.Box.prototype.appendChild = function(w /*, p*/) {
     var p = arguments[1] || this;
+    var offset_var;
     w.destroy = QuiX.ui.Box._destroy;
-    if (p.orientation == 'h')
+    if (p.orientation == 'h') {
         w.height = w.height || '100%';
-    else
+        offset_var = 'top';
+    }
+    else {
+        offset_var = 'left';
         w.width = w.width || '100%';
+    }
+    if (w[offset_var] == 'center')
+        w.boxAlign = 'center';
     QuiX.ui.Widget.prototype.appendChild(w, p);
+
 }
 
 QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
@@ -355,13 +363,14 @@ QuiX.ui.FlowBox.prototype.getSelection = function() {
 }
 
 QuiX.ui.FlowBox.prototype._rearrange = function(iStart /*, memo*/) {
-    var x = 0;
-    var y = 0;
-    var rowHeight = 0;
-    var icWidth;
-    var last;
-    var memo = arguments[1] || {};
-    var iWidth = this.getWidth(false, memo);
+    var x = 0,
+        y = 0,
+        rowHeight = 0,
+        icWidth,
+        icHeight,
+        last,
+        memo = arguments[1] || {},
+        iWidth = this._calcWidth(false, memo);
 
     if (iStart > 0) {
         last = this.widgets[iStart - 1];
@@ -386,14 +395,16 @@ QuiX.ui.FlowBox.prototype._rearrange = function(iStart /*, memo*/) {
         }
         with (this.widgets[i]) {
             icWidth = _calcWidth(true, memo);
-            if (x + icWidth + this.spacing > iWidth && x != 0) {
+            icHeight = _calcHeight(true, memo)
+            if (x + icWidth + this.spacing > iWidth - QuiX._scrollbarSize
+                    && x != 0) {
                 x = 0;
                 y += rowHeight + this.spacing;
                 rowHeight = 0;
             }
             moveTo(x, y);
             x += icWidth + this.spacing;
-            rowHeight = Math.max(rowHeight, _calcHeight(true));
+            rowHeight = Math.max(rowHeight, icHeight);
         }
     }
 }

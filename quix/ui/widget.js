@@ -91,16 +91,18 @@ QuiX.ui.Widget.prototype.appendChild = function(w /*, p, index*/) {
     var index = arguments[2] || null;
     p.widgets.push(w);
     w.parent = p;
-    if (index != null)
-        p.div.insertBefore(w.div, p.div.childNodes[index]);
-    else
-        p.div.appendChild(w.div);
+
     if (QuiX.utils.BrowserInfo.family == 'ie' && w.height=='100%' &&
             w.width=='100%')
         p.setOverflow('hidden');
     w.bringToFront();
     if (p._isDisabled)
         w.disable();
+
+    if (index != null)
+        p.div.insertBefore(w.div, p.div.childNodes[index]);
+    else
+        p.div.appendChild(w.div);
 }
 
 QuiX.ui.Widget.prototype.disable = function() {
@@ -351,8 +353,8 @@ QuiX.ui.Widget.prototype.setPadding = function(arrPadding) {
     this.div.style.paddingBottom = arrPadding[3] + 'px';
 }
 QuiX.ui.Widget.prototype.getPadding = function() {
-    var near = (QuiX.dir != 'rtl')?'paddingLeft':'paddingRight';
-    var far = (QuiX.dir != 'rtl')?'paddingRight':'paddingLeft';
+    var near = (QuiX.dir != 'rtl')? 'paddingLeft':'paddingRight',
+        far = (QuiX.dir != 'rtl')? 'paddingRight':'paddingLeft';
     var padding = [
         parseInt(this.div.style[near]),
         parseInt(this.div.style[far]),
@@ -573,7 +575,7 @@ QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
             }
             else if (value == 'center')
                 value = parseInt((this.parent[getWidth](false, memo) / 2) -
-                        (this[getWidth](true, memo) / 2)) || 0;
+                                 (this[getWidth](true, memo) / 2)) || 0;
             else {
                 if (!this['__' + left] || this['__' + left].expr != value) {
                     // compile expression to a function
@@ -595,7 +597,7 @@ QuiX.ui.Widget.prototype._calcHeight = function(b, memo) {
     var offset = 0;
     if (!b) offset = parseInt(this.div.style.paddingTop) +
                      parseInt(this.div.style.paddingBottom) +
-                     2*this.getBorderWidth();
+                     2 * this.getBorderWidth();
     var s = this._calcSize("height", offset, "getHeight", memo);
     var ms = this._calcMinHeight() - offset;
     if (s < ms) s = ms;
@@ -606,7 +608,7 @@ QuiX.ui.Widget.prototype._calcWidth = function(b, memo) {
     var offset = 0;
     if (!b) offset = parseInt(this.div.style.paddingLeft) +
                      parseInt(this.div.style.paddingRight) +
-                     2*this.getBorderWidth();
+                     2 * this.getBorderWidth();
     var s = this._calcSize("width", offset, "getWidth", memo);
     var ms = this._calcMinWidth() - offset;
     if (s < ms) s = ms;
@@ -614,25 +616,31 @@ QuiX.ui.Widget.prototype._calcWidth = function(b, memo) {
 }
 
 QuiX.ui.Widget.prototype._calcLeft = function(memo) {
-    return this._calcPos("left",
-        (this.parent? this.parent.getPadding()[0]:0),
-        "getWidth",
-        memo);
+    var offset;
+    if (this.parent) {
+        var near = (QuiX.dir == 'rtl')? 'paddingRight':'paddingLeft';
+        offset = parseInt(this.parent.div.style[near]);
+    }
+    else
+        offset = 0;
+    return this._calcPos('left', offset, '_calcWidth', memo);
 }
 
 QuiX.ui.Widget.prototype._calcTop = function(memo) {
-    return this._calcPos("top",
-        (this.parent? this.parent.getPadding()[2]:0),
-        "getHeight",
-        memo);
+    var offset;
+    if (this.parent)
+        offset = parseInt(this.parent.div.style.paddingTop);
+    else
+        offset = 0;
+    return this._calcPos('top', offset, '_calcHeight', memo);
 }
 
 QuiX.ui.Widget.prototype._calcMinWidth = function() {
-    return (typeof(this.minw)=='function')?this.minw(this):this.minw;
+    return (typeof(this.minw) == 'function')? this.minw(this):this.minw;
 }
 
 QuiX.ui.Widget.prototype._calcMinHeight = function() {
-    return (typeof(this.minh)=='function')?this.minh(this):this.minh;
+    return (typeof(this.minh) == 'function')? this.minh(this):this.minh;
 }
 
 QuiX.ui.Widget.prototype.getScreenLeft = function() {
@@ -842,9 +850,13 @@ QuiX.ui.Widget.prototype._startDrag = function(x, y) {
 QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
     var container = QuiX.getParentNode(this.div);
     if (container && this.div.style.display != 'none') {
-        var memo = arguments[1] || {};
-        var wdth = this.div.style.width;
-        var hght = this.div.style.height;
+        var isRoot = false;
+        if (!arguments[1]) {
+            isRoot = true;
+        }
+        var memo = arguments[1] || {},
+            wdth = this.div.style.width,
+            hght = this.div.style.height;
 
         this._setCommonProps(memo);
         if (this.div.style.position != '')
@@ -855,6 +867,10 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
                 this.widgets[i].redraw(bForceAll, memo);
         }
 
+        if (isRoot) {
+            QuiX._ieDomUpdate(this.div);
+        }
+
         if ((wdth && wdth != this.div.style.width) ||
             (hght && hght != this.div.style.height)) {
             if (this._customRegistry.onresize)
@@ -862,7 +878,6 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
                     parseInt(wdth),
                     parseInt(hght));
         }
-        QuiX._ieDomUpdate(this.div);
     }
     return memo;
 }
