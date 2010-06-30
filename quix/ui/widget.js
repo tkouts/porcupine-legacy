@@ -1242,6 +1242,7 @@ QuiX.ui.Desktop = function(params, root) {
         };
     }
     this._setCommonProps();
+    this.setPosition('relative');
     this.div.innerHTML =
         '<p align="right" style="color:#666;margin:0px;">QuiX v' +
         QuiX.version + '</p>';

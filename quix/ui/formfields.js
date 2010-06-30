@@ -131,11 +131,15 @@ QuiX.ui.Field = function(/*params*/) {
                 if (self._customRegistry.onblur)
                     self._customRegistry.onblur(self);
             }
+            e.onfocus = function() {
+                if (self._customRegistry.onfocus)
+                    self._customRegistry.onfocus(self);
+            }
     }
 
     e.onmousedown = QuiX.stopPropag;
     e.onselectstart = QuiX.stopPropag;
-    
+
     this._adjustFieldSize();
     if (this._isDisabled) {
         e.disabled = true;
@@ -147,7 +151,8 @@ QuiX.constructors['field'] = QuiX.ui.Field;
 QuiX.ui.Field.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.Field.prototype.customEvents =
-    QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
+    QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur',
+                                                  'onfocus']);
 
 QuiX.ui.Field.prototype.getValue = function() {
     switch (this.type) {
