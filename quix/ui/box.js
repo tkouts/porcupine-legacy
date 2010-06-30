@@ -124,40 +124,46 @@ QuiX.ui.Box._calcWidgetMinSize = function() {
     return tl;
 }
 
-QuiX.ui.Box.prototype.appendChild = function(w /*, p*/) {
-    var p = arguments[1] || this;
+QuiX.ui.Box.prototype.appendChild = function(w) {
     var offset_var;
     w.destroy = QuiX.ui.Box._destroy;
-    if (p.orientation == 'h') {
-        w.height = w.height || '100%';
-        offset_var = 'top';
+	w._i = this.widgets.length;
+	this._setChildVars(w);
+    QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
+}
+
+QuiX.ui.Box.prototype._setChildVars = function(w) {
+    var offset_var = (this.orientation == 'h')? 'left':'top',
+        center_var = (this.orientation == 'h')? 'top':'left',
+        length_var = (this.orientation == 'h')? 'width':'height',
+        width_var = (this.orientation == 'h')? 'height':'width';
+
+    w[offset_var] = QuiX.ui.Box._getWidgetOffset;
+
+    if (w[center_var] == 'center') {
+        w.boxAlign = 'center';
+    }
+    w[center_var] = QuiX.ui.Box._getWidgetPos;
+
+    if (w[length_var] == null || w[length_var] == '-1') {
+        w[length_var] = QuiX.ui.Box._calcWidgetLength;
+    }
+
+    if (w[width_var] == '-1') {
+        w[width_var] = QuiX.ui.Box._calcWidgetMinSize;
     }
     else {
-        offset_var = 'left';
-        w.width = w.width || '100%';
+        w[width_var] = w[width_var] || '100%';
     }
-    if (w[offset_var] == 'center')
-        w.boxAlign = 'center';
-    QuiX.ui.Widget.prototype.appendChild(w, p);
-
 }
 
 QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
     if (bForceAll) {
-        var oWidget;
-        var offset_var = (this.orientation == 'h')? 'left':'top';
-        var center_var = (this.orientation == 'h')? 'top':'left';
-        var length_var = (this.orientation == 'h')? 'width':'height';
-        var width_var = (this.orientation == 'h')? 'height':'width';
+        var w;
         for (var i=0; i<this.widgets.length; i++) {
-            oWidget = this.widgets[i];
-            oWidget._i = i;
-            oWidget[offset_var] = QuiX.ui.Box._getWidgetOffset;
-            oWidget[center_var] = QuiX.ui.Box._getWidgetPos;
-            if (oWidget[length_var] == null || oWidget[length_var] == '-1')
-                oWidget[length_var] = QuiX.ui.Box._calcWidgetLength;
-            if (oWidget[width_var] == '-1')
-                oWidget[width_var] = QuiX.ui.Box._calcWidgetMinSize;
+            w = this.widgets[i];
+            w._i = i;
+			this._setChildVars(w);
         }
     }
     return QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
@@ -314,7 +320,7 @@ QuiX.ui.FlowBox.prototype.appendChild = function(w) {
         show = (this._filter)?
                QuiX.contains(w, this._filter):true;
     }
-    QuiX.ui.Widget.prototype.appendChild(w, this);
+    QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
     this._rearrange(this.widgets.length - 1);
     if (show) {
         w.show();

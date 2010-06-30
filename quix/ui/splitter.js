@@ -24,7 +24,7 @@ QuiX.ui.Splitter.prototype.appendChild = function(w) {
     if (this.panes.length > 0) {
         this._addHandle();
     }
-    QuiX.ui.Box.prototype.appendChild(w, this);
+    QuiX.ui.Box.prototype.appendChild.apply(this, arguments);
     w.destroy = QuiX.ui.Splitter._destroy;
     this.panes.push(w);
 }
@@ -40,7 +40,7 @@ QuiX.ui.Splitter.prototype._addHandle = function() {
         handle.div.style.cursor = 'n-resize';
         handle.div.className = 'handleH';
     }
-    QuiX.ui.Box.prototype.appendChild(handle, this);
+    QuiX.ui.Box.prototype.appendChild.apply(this, [handle]);
     handle.redraw();
     this._handles.push(handle);
     handle.attachEvent('onmousedown', QuiX.ui.Splitter._onmousedown);

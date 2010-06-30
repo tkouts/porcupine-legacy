@@ -86,23 +86,24 @@ QuiX.ui.Widget = function(/*params*/) {
 
 QuiX.constructors['rect'] = QuiX.ui.Widget;
 
-QuiX.ui.Widget.prototype.appendChild = function(w /*, p, index*/) {
-    var p = arguments[1] || this;
-    var index = arguments[2] || null;
-    p.widgets.push(w);
-    w.parent = p;
-
-    if (QuiX.utils.BrowserInfo.family == 'ie' && w.height=='100%' &&
-            w.width=='100%')
-        p.setOverflow('hidden');
+QuiX.ui.Widget.prototype.appendChild = function(w /*, index*/) {
+    var index = arguments[1] || null;
+    this.widgets.push(w);
+    w.parent = this;
+    if (QuiX.utils.BrowserInfo.family == 'ie' && w.height == '100%' &&
+            w.width == '100%') {
+        this.setOverflow('hidden');
+    }
     w.bringToFront();
-    if (p._isDisabled)
+    if (this._isDisabled) {
         w.disable();
-
-    if (index != null)
-        p.div.insertBefore(w.div, p.div.childNodes[index]);
-    else
-        p.div.appendChild(w.div);
+    }
+    if (index != null) {
+        this.div.insertBefore(w.div, this.div.childNodes[index]);
+    }
+    else {
+        this.div.appendChild(w.div);
+    }
 }
 
 QuiX.ui.Widget.prototype.disable = function() {
@@ -1264,6 +1265,7 @@ QuiX.ui.Desktop = function(params, root) {
     this.overlays = [];
     this.parseFromString(QuiX.progress,
         function(loader){
+            loader.setPosition('fixed');
             loader.div.style.zIndex = QuiX.maxz + 1;
             loader.hide();
             document.desktop._loader = loader;

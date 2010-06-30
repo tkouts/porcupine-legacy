@@ -44,13 +44,13 @@ QuiX.ui.TreeNode = function(/*params*/) {
 QuiX.constructors['treenode'] = QuiX.ui.TreeNode;
 QuiX.ui.TreeNode.prototype = new QuiX.ui.Widget;
 
-QuiX.ui.TreeNode.prototype.appendChild = function (w) {
+QuiX.ui.TreeNode.prototype.appendChild = function(w) {
     w.tree = this.tree;
     if (QuiX.dir != 'rtl')
         w.div.style.margin = '2px 0px 0px ' + this.tree.levelpadding + 'px';
     else
         w.div.style.margin = '2px ' + this.tree.levelpadding + 'px 0px 0px';
-    QuiX.ui.Widget.prototype.appendChild(w, this);
+    QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
     if (!w._isDisabled)
         w.enable();
 }
@@ -246,9 +246,9 @@ QuiX.ui.Tree.prototype = new QuiX.ui.Widget;
 QuiX.ui.Tree.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onexpand', 'onselect']);
 
-QuiX.ui.Tree.prototype.appendChild = function (w) {
+QuiX.ui.Tree.prototype.appendChild = function(w) {
     w.tree = this;
-    QuiX.ui.Widget.prototype.appendChild(w, this);
+    QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
     if (!w._isDisabled)
         w.enable();
 }
