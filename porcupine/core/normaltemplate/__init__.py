@@ -32,7 +32,7 @@ except ImportError:
 __all__ = ['__version__', 'compile', 'filters']
 __version__ = '0.1'
 
-_token_re = re.compile('(\{.+?\}\}?)')
+_token_re = re.compile('(\{[^\{^\}]+?\}\}?)')
 _command_re = re.compile('^\{[\:\/\=]')
 _xpath_invalid_chars = re.compile('\||;|\$|~')
 _tab_size = 2

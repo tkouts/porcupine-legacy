@@ -173,6 +173,11 @@ class NormalTemplateTestCases(unittest.TestCase):
         self.failUnlessRaises(NormalTemplateError, compile,
                               'hello {=name;test}')
 
+    def test_json_interpolation(self):
+        t = compile('{"id": "{=id}"}')
+        data = {'id': '25'}
+        self.assertEquals('{"id": "25"}', t(data))
+
     def test_backslash_escaping(self):
         t = compile('if (/\\/fora\\/topics/.test(e.target.href)) {')
         data = {}
