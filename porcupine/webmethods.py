@@ -38,7 +38,8 @@ def webmethod(of_type, http_method='GET', client='', lang='', qs='',
     return WebMethod
 
 
-def quixui(of_type, isPage=False, title='Untitled', lang='', qs='',
+def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
+           lang='', qs='',
            max_age=0, encoding='utf-8',
            template=None, template_engine='string_template'):
 
@@ -73,12 +74,13 @@ def quixui(of_type, isPage=False, title='Untitled', lang='', qs='',
                     split(','))
                 core_revision = JSMerge.get_revision(quix_core_files)
 
-                vars = (title, script_name, script_name, core_revision,
-                        str(cookies_required).lower(), no_cookies_url)
+                vars = (bgcolor, title, script_name, script_name,
+                        core_revision, str(cookies_required).lower(),
+                        no_cookies_url)
                 context.response.content_type = 'text/html'
                 context.response.write(('''
 <!DOCTYPE html>
-<html>
+<html style="background-color:%s">
     <head>
         <title>%s</title>
         <script type="text/javascript" defer="defer"
