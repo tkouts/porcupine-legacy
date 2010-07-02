@@ -23,6 +23,7 @@ import imp
 import binascii
 
 from porcupine import exceptions
+from porcupine.core.compat import str
 
 PSP_TAGS = re.compile('(<%.*?%>)', re.DOTALL)
 PSP_DECREASE_INDENT = re.compile('else|elif|except|finally')
@@ -39,7 +40,7 @@ def execute(context, filename):
             'The file "%s" can not be found' % filename)
 
     sMod = hex(sMod)[2:]
-    magic = binascii.hexlify(imp.get_magic())
+    magic = str(binascii.hexlify(imp.get_magic()), 'latin-1')
 
     sFileWithoutExtension = \
         re.search(PSP_REMOVE_EXTENSION, filename).groups()[0]
