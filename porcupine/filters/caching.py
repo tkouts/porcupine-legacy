@@ -38,6 +38,10 @@ class ETag(PreProcessFilter):
                          struct.pack('>d', item.modified),
                          struct.pack('>q', hash(tuple(item.__props__.keys()))),
                          context.request.get_lang()]
+            if item.isCollection:
+                # add containment hash
+                containment_hash = hash(tuple(item.containment))
+                method_id.append(struct.pack('>q', containment_hash))
             try:
                 # python 2.6
                 func_code = wrapper.func.func_code
