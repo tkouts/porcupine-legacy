@@ -67,7 +67,8 @@ QuiX.ui.MenuOption.prototype.destroy = function() {
     else
         QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 
-    if (parent.options.length==0 && parent.owner instanceof MenuOption) {
+    if (parent.options.length==0
+            && parent.owner instanceof QuiX.ui.MenuOption) {
         parent.owner.subMenu = null;
         parent.close();
         parent.destroy();
