@@ -410,7 +410,6 @@ QuiX.ui.FlatButton = function(/*params*/) {
         delete(params.overflow);
         var oCMenu = new QuiX.ui.ContextMenu(params, this);
         this.contextMenu = oCMenu;
-        this._menuImg = null;
     }
 
     if (this.type=='toggle') {
@@ -428,11 +427,12 @@ QuiX.ui.FlatButton.prototype = new QuiX.ui.Icon;
 QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
 
-    if (this.type == 'menu' && (!this._menuImg || bForceAll)) {
-        this._menuImg = QuiX.getImage('$THEME_URL$images/desc8.gif');
-        this._menuImg.border = 0;
-        this._menuImg.align = 'top';
-        this.div.appendChild(this._menuImg);
+    if (this.type == 'menu'
+            && bForceAll && this.div.lastChild.id != '_mi') {
+        var menuImg = QuiX.getImage('$THEME_URL$images/desc8.gif');
+        menuImg.id = '_mi';
+        menuImg.border = 0;
+        this.div.appendChild(menuImg);
     }
 }
 
