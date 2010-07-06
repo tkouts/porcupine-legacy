@@ -60,16 +60,18 @@ QuiX.ui.Label.prototype.getCaption = function() {
 }
 
 QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
-    with (this.div.style) {
-        if (!this.wrap)
-            whiteSpace = 'nowrap';
-        else
-            whiteSpace = '';
-        if (this.align) {
-            if (this.align == 'auto')
-                textAlign = (QuiX.dir=='rtl')?'right':'left';
+    if (bForceAll) {
+        with (this.div.style) {
+            if (!this.wrap)
+                whiteSpace = 'nowrap';
             else
-                textAlign = this.align;
+                whiteSpace = '';
+            if (this.align) {
+                if (this.align == 'auto')
+                    textAlign = (QuiX.dir=='rtl')?'right':'left';
+                else
+                    textAlign = this.align;
+            }
         }
     }
     QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
@@ -167,10 +169,11 @@ QuiX.ui.Icon.prototype._addDummyImage = function() {
 }
 
 QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
-    if (bForceAll) {
+    if (bForceAll && this.img + this.imgAlign != this._sig) {
         var imgs = this.div.getElementsByTagName('IMG');
-        while (imgs.length > 0)
+        while (imgs.length > 0) {
             QuiX.removeNode(imgs[0]);
+        }
         var br = this.div.getElementsByTagName('BR')[0];
         if (br) QuiX.removeNode(br);
 
@@ -208,8 +211,10 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
             }
             this.imageElement = img;
         }
-        else
+        else {
             this.imageElement = null;
+        }
+        this._sig = this.img + this.imgAlign;
     }
     if (this.imageElement && (this.imgHeight || this.imgWidth)) {
         if (this.imgHeight) {
