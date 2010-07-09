@@ -48,7 +48,7 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
             WebMethodDescriptor.__init__(self, function, of_type,
                 ('GET',
                  '(MSIE [6-8].+Windows NT)|(Mozilla/5.0.+rv:1.[7-9])|' +
-                    'Version/[3-4].\d(.*)Safari|Chrome/\d.\d|Opera/9',
+                    'Version/[3-5].\d(.*)Safari|Chrome/\d.\d|Opera/9',
                  lang,
                  qs),
                 'text/xml', encoding, max_age, template, template_engine)
