@@ -127,8 +127,8 @@ QuiX.ui.Box._calcWidgetMinSize = function() {
 QuiX.ui.Box.prototype.appendChild = function(w) {
     var offset_var;
     w.destroy = QuiX.ui.Box._destroy;
-	w._i = this.widgets.length;
-	this._setChildVars(w);
+    w._i = this.widgets.length;
+    this._setChildVars(w);
     QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
 }
 
@@ -163,7 +163,7 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
         for (var i=0; i<this.widgets.length; i++) {
             w = this.widgets[i];
             w._i = i;
-			this._setChildVars(w);
+            this._setChildVars(w);
         }
     }
     return QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
@@ -182,9 +182,14 @@ QuiX.ui.Box.prototype._calcSize = function(height, offset, getHeight, memo) {
             w_length;
 
         if (is_additive) {
-            var offset_func = (height == 'height')? '_calcTop':'_calcLeft';
-            var last = this.widgets[this.widgets.length - 1];
-            value = last[offset_func](memo) + last[length_func](true, memo);
+            if (this.widgets.length > 0) {
+                var offset_func = (height == 'height') ? '_calcTop' : '_calcLeft';
+                var last = this.widgets[this.widgets.length - 1];
+                value = last[offset_func](memo) + last[length_func](true, memo);
+            }
+            else {
+                value = 0;
+            }
             value = value +
                     padding[padding_offset + 1] +
                     2 * this.getBorderWidth();
