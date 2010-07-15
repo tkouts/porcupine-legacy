@@ -146,10 +146,12 @@ def reload_module_tree(module, memo=None):
     if module.__name__ not in memo:
         # reload module imports
         module = sys.modules[module.__name__]
+
         [reload_module_tree(m, memo)
          for m in module.__dict__.values()
          if isinstance(m, types.ModuleType) and
          m.__name__.startswith(memo['__root__'])]
+
         # reload module
         imp.reload(module)
         #print(module.__name__)
@@ -158,6 +160,11 @@ def reload_module_tree(module, memo=None):
 
 def reload_module(module):
     dependent = [module]
+    if module.__file__[-1] not in ('c', 'o'):
+        # remove compiled files
+        [os.remove(module.__file__ + x)
+         for x in ('c','o')
+         if os.path.isfile(module.__file__ + x)]
     # find dependencies
     for mod in (m for m in sys.modules.values() if m is not None):
         for x in mod.__dict__.values():
