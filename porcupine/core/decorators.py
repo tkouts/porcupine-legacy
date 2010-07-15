@@ -55,6 +55,7 @@ def synchronized(lock):
                 return f(*args, **kw)
             finally:
                 lock.release()
+        compat.set_func_name(new_function, compat.get_func_name(f))
         return new_function
     return wrap
 
