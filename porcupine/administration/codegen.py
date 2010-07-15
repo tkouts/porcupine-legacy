@@ -16,30 +16,43 @@
 #==============================================================================
 """
 This module provides the essential API for runtime manipulation of the
-custom Porcupine content classes and data types. It is mainly intended for
-install/uninstall scripts packed with the B{pakager} deployment utility.
+custom Porcupine content classes and data types.
+It is mainly intended for install/uninstall scripts packed with the
+B{pakager} deployment utility.
 """
 import inspect
 import sys
 import types
 import time
 import re
+import linecache
+import os
+from threading import RLock
 
-from porcupine import db
 from porcupine import datatypes
+from porcupine import events
 from porcupine import systemObjects
 from porcupine.config.services import services
 from porcupine.utils import misc
+from porcupine.core.decorators import synchronized
 
 
 class GenericSchemaEditor(object):
+
+    lock = RLock()
+
     def __init__(self, classobj):
         self._class = misc.get_rto_by_name(classobj)
         self._bases = self._class.__bases__
-        self.doc = self._class.__doc__
+        self._doc = self._class.__doc__
         self._attrs = {}
         self._methods = {}
         self._properties = {}
+        self._module = sys.modules[self._class.__module__]
+
+        # check line cache
+        linecache.checkcache(filename=self._module.__file__)
+
         try:
             sourcelines = inspect.getsourcelines(self._class)
             startline = sourcelines[1]
@@ -52,14 +65,16 @@ class GenericSchemaEditor(object):
         self._instance = self._class()
 
         # find instance attributes
-        sub_attrs = []
+        sub_attrs = {}
         for base_class in self._class.__bases__:
             s = base_class()
-            sub_attrs += s.__dict__.keys()
+            if hasattr(s, '__dict__'):
+                sub_attrs.update(s.__dict__)
         for member_name in self._instance.__dict__:
             if not member_name in sub_attrs:
                 self._attrs[member_name] = self._instance.__dict__[member_name]
 
+        # find methods and properties
         for member_name in self._class.__dict__:
             member = self._class.__dict__[member_name]
             if type(member) == types.FunctionType:
@@ -67,9 +82,9 @@ class GenericSchemaEditor(object):
             elif type(member) == property:
                 self._properties[member_name] = member
 
-        self._module = sys.modules[self._class.__module__]
         self._imports = {}
 
+        # locate imports
         moduledict = self._module.__dict__
         for x in moduledict:
             if type(moduledict[x]) == types.ModuleType:
@@ -84,21 +99,27 @@ class GenericSchemaEditor(object):
         raise NotImplementedError
 
     def _get_full_name(self, callable):
-        if callable.__module__ == ''.__class__.__module__:
+        # if it is built-in just return its name
+        if callable.__module__ == None.__class__.__module__:
             return callable.__name__
+
         module = misc.get_rto_by_name(callable.__module__)
         if module in self._imports:
+            # the callables module is already imported
             return self._imports[module] + '.' + callable.__name__
         else:
             if module == self._module:
+                # the callable belongs to the current module
                 return callable.__name__
+
+            # the callable is not imported
             local_name = callable.__module__.split('.')[-1]
-            counter = 2
-            while local_name in self._module.__dict__:
-                local_name += str(counter)
-                counter += 1
+            #counter = 2
+            #while local_name in self._module.__dict__:
+            #    local_name += str(counter)
+            #    counter += 1
             self._imports[module] = local_name
-            return(local_name + '.' + callable.__name__)
+            return local_name + '.' + callable.__name__
 
     def _generate_imports(self):
         imports_code = []
@@ -143,6 +164,29 @@ class GenericSchemaEditor(object):
         for module in unused:
             del self._imports[module]
 
+    def _write_methods(self, code, excluding=['__init__']):
+        for meth in self._methods:
+            method = self._methods[meth]
+            if method.__name__ not in excluding:
+                code.append('\n')
+                code.extend(inspect.getsourcelines(self._methods[meth])[0])
+
+    def _write_properties(self, code):
+        for property_name in self._properties:
+            code.append('\n')
+            prop_descriptor = self._properties[property_name]
+            fget = fset = None
+            if prop_descriptor.fget:
+                fget = prop_descriptor.fget.__name__
+            if prop_descriptor.fset:
+                fset = prop_descriptor.fset.__name__
+            code.extend('    %s = property(%s, %s)\n' %
+                        (property_name, fget, fset))
+
+    def set_doc(self, doc):
+        self._doc = doc
+
+    @synchronized(lock)
     def commit_changes(self):
         if self.boundaries is not None:
             module_source = inspect.getsourcelines(self._module)[0]
@@ -163,37 +207,45 @@ class GenericSchemaEditor(object):
             modfile = open(modulefilename, 'w')
             modfile.writelines(new_source)
             modfile.close()
+
+            # we must reload the class module
+            misc.reload_module(self._module)
+            # reload module in multi-processing enviroments
+            services.notify(('RELOAD_MODULE', self._module.__name__))
+
     # backwards compatibility
     commitChanges = commit_changes
 
 
 class ItemEditor(GenericSchemaEditor):
+
     def __init__(self, classobj):
         GenericSchemaEditor.__init__(self, classobj)
-        self._setProps = {}
-        self._removedProps = []
+        # transformation function
         self.xform = None
-        if issubclass(self._class, systemObjects.GenericItem):
+
+        if issubclass(self._class, systemObjects._Elastic):
             self.image = self._class.__image__
-            if hasattr(self._class, '_eventHandlers'):
-                self._eventHandlers = self._class._eventHandlers
-            else:
+
+            # event handlers
+            try:
+                self._eventHandlers = object.__getattr__(self._class, '_eventHandlers')[:]
+            except AttributeError:
                 self._eventHandlers = []
-            if hasattr(self._class, 'isCollection'):
-                self.isCollection = self._class.isCollection
-            else:
-                self.isCollection = None
-            if self.isCollection:
+
+            # containment
+            if self._class.isCollection:
                 self.containment = list(self._class.containment)
             else:
                 self.containment = None
+
         else:
-            raise TypeError('Invalid argument. '
-                'ItemEditor accepts only subclasses of GenericItem')
+            raise TypeError('Invalid argument. ItemEditor accepts only '
+                            'subclasses of _Elastic')
 
     def set_property(self, name, value):
         self._attrs[name] = value
-        self._setProps[name] = value
+
     # kept for backwards compatibility
     addProperty = set_property
     setProperty = set_property
@@ -201,85 +253,61 @@ class ItemEditor(GenericSchemaEditor):
     def remove_property(self, name):
         if name in self._attrs:
             del self._attrs[name]
-            self._removedProps.append(name)
+
     # kept for backwards compatibility
     removeProperty = remove_property
 
-    def commit_changes(self, generate_code=True):
-        from porcupine.oql.command import OqlCommand
-        if self._setProps or self._removedProps or self.xform:
-            if generate_code:
-                GenericSchemaEditor.commit_changes(self)
-                # we must reload the class module
-                oMod = misc.get_rto_by_name(self._class.__module__)
-                misc.reload_module(oMod)
-                # reload module in multi-processing enviroments
-                services.notify(('RELOAD_MODULE', self._class.__module__))
-
-            db_handle = db._db
-            oql_command = OqlCommand()
-            rs = oql_command.execute(
-                "select * from deep('/') where instanceof('%s')" %
-                self._instance.contentclass)
-            if len(rs):
-
-                @db.transactional(auto_commit=True)
-                def _update_db():
-                    for item in rs:
-                        for name in self._removedProps:
-                            if hasattr(item, name):
-                                delattr(item, name)
-                        for name in self._setProps:
-                            if not hasattr(item, name):
-                                # add new
-                                setattr(item, name, self._setProps[name])
-                            else:
-                                # replace property
-                                old_value = getattr(item, name).value
-                                setattr(item, name, self._setProps[name])
-                                new_attr = getattr(item, name)
-                                if isinstance(new_attr, datatypes.Password):
-                                    new_attr._value = old_value
-                                else:
-                                    new_attr.value = old_value
-                        if self.xform:
-                            item = self.xform(item)
-                        db_handle.put_item(item)
-                _update_db()
-    # backwards compatibility
-    commitChanges = commit_changes
+    def _generate_bases_props(self, bases):
+        if len(bases) == 1:
+            return '**%s.__props__' % bases[0]
+        else:
+            base = bases.pop(0)
+            return '**dict(%s.__props__, %s)' % (base, self._generate_bases_props(bases))
 
     def generate_code(self):
         bases = [self._get_full_name(x) for x in self._bases]
         ccbases = [self._get_full_name(x) for x in self._bases
-                   if issubclass(x, systemObjects.GenericItem)]
+                   if issubclass(x, systemObjects._Elastic)]
 
         code = ['# auto generated by codegen at %s\n' % time.asctime()]
         code.append('class %s(%s):\n' %
-                    (self._class.__name__, ','.join(bases)))
+                    (self._class.__name__, ', '.join(bases)))
 
         # doc
-        code.append('    """%s"""\n' % self.doc)
+        if self._doc:
+            code.append('    """%s"""\n\n' % self._doc)
+        else:
+            code.append('\n')
 
         # __image__
         code.append('    __image__ = "%s"\n' % self.image)
 
-        # props
-        dts = ["'%s'" % prop for prop in self._attrs
-               if isinstance(self._attrs[prop], datatypes.DataType)]
-        if dts:
-            code.append('    __props__ = ')
-            if ccbases:
-                code.append(
-                    ' + '.join([x + '.__props__' for x in ccbases]) + ' + ')
-            code.append('(' + ', '.join(dts) + ', )\n')
+        # data types
+        datatp = []
+        for attr_name, attr in self._attrs.items():
+            if isinstance(attr, datatypes.DataType):
+                full_name = self._get_full_name(attr.__class__)
+                if attr.value == attr._default:
+                    datatp.append("'%s': %s" % (attr_name, full_name))
+                else:
+                    datatp.append("'%s': (%s, [], {'value': %r})" %
+                                  (attr_name, full_name, attr.value))
 
-        # isCollection
-        if (self.isCollection is not None):
-            code.append('    isCollection = %s\n' % self.isCollection)
+        if datatp:
+            code.append('    __props__ = dict({')
+            code.append(', '.join(datatp) + '}')
+            if ccbases:
+                code.append(', ')
+                code.append(self._generate_bases_props(ccbases))
+            code.append(')\n')
 
         # _eventHandlers
         if (self._eventHandlers or not ccbases):
+            # check handlers validity
+            if [h for h in self._eventHandlers
+                if not issubclass(h, events.ContentclassEventHandler)]:
+                raise TypeError('Invalid event handler')
+
             handlers = [self._get_full_name(handler)
                         for handler in self._eventHandlers]
             code.append('    _eventHandlers = ')
@@ -295,52 +323,36 @@ class ItemEditor(GenericSchemaEditor):
             code.extend(["        '%s',\n" % x for x in self.containment])
             code.extend('    )\n')
 
-        if self._attrs:
+        # other attributes
+        attrs = [x for x in self._attrs
+                 if self._attrs[x].__class__.__module__ ==
+                 None.__class__.__module__]
+        if attrs:
             # __init__
             code.append('\n')
             code.append('    def __init__(self):\n')
             code.extend(['        %s.__init__(self)\n' % x for x in bases])
 
-            # props
-            for prop in [x for x in self._attrs
-                         if self._attrs[x].__class__.__module__ !=
-                            None.__class__.__module__]:
-                code.append(
-                    '        self.%s = %s()\n' %
-                    (prop, self._get_full_name(self._attrs[prop].__class__)))
-            for prop in [x for x in self._attrs
-                         if self._attrs[x].__class__.__module__ ==
-                            None.__class__.__module__]:
+            # generate code for non-datatype attributes
+            for prop in attrs:
                 if prop != '_id':
                     code.append(
-                        '        self.%s = %s\n' %
-                        (prop, repr(self._attrs[prop])))
+                        '        self.%s = %r\n' % (prop, self._attrs[prop]))
                 else:
-                    code.append('        self._id = misc.generateOID()\n')
+                    code.append('        self._id = %s()\n' %
+                                self._get_full_name(misc.generate_oid))
 
         # methods
-        for meth in self._methods:
-            method = self._methods[meth]
-            if method.__name__ != '__init__':
-                code.append('\n')
-                code.extend(inspect.getsourcelines(self._methods[meth])[0])
+        self._write_methods(code)
 
         # properties
-        for property_name in self._properties:
-            code.append('\n')
-            prop_descriptor = self._properties[property_name]
-            fget = fset = None
-            if prop_descriptor.fget:
-                fget = prop_descriptor.fget.__name__
-            if prop_descriptor.fset:
-                fset = prop_descriptor.fset.__name__
-            code.extend('    %s = property(%s, %s)' %
-                        (property_name, fget, fset))
+        self._write_properties(code)
 
         return code
 
 
 class DatatypeEditor(GenericSchemaEditor):
+
     def __init__(self, classobj):
         GenericSchemaEditor.__init__(self, classobj)
         if issubclass(self._class, datatypes.DataType):
@@ -366,34 +378,35 @@ class DatatypeEditor(GenericSchemaEditor):
                     (self._class.__name__, ','.join(bases)))
 
         # doc
-        doc = self.doc.split('\n')
-        if len(doc) == 1:
-            code.append('    "%s"\n' % doc[0])
+        if self._doc:
+            code.append('    """%s"""\n\n' % self._doc)
         else:
-            code.append('    """\n')
-            code.extend(['%s\n' % x for x in doc if x.strip()])
-            code.append('    """\n')
+            code.append('\n')
 
         # isRequired
-        code.append('    isRequired = %s\n' % str(self.isRequired))
+        code.append('    isRequired = %r\n' % self.isRequired)
 
         # relCc
-        if self.relCc and (issubclass(self._class, datatypes.Reference1) or \
-                           issubclass(self._class, datatypes.ReferenceN)):
+        if self.relCc and issubclass(self._class, (datatypes.Reference1,
+                                                   datatypes.ReferenceN)):
+            # remove duplicates
+            self.relCc = tuple(set(self.relCc))
             code.append('    relCc = (\n')
             code.extend(["        '%s',\n" % x for x in self.relCc])
             code.extend('    )\n')
+
         # relAttr
-        if self.relAttr and (issubclass(self._class, datatypes.Relator1) or \
-                             issubclass(self._class, datatypes.RelatorN)):
+        if self.relAttr and issubclass(self._class, (datatypes.Relator1,
+                                                     datatypes.RelatorN)):
             code.append("    relAttr = '%s'\n" % self.relAttr)
+
         # compositeClass
         if self.compositeClass and \
                 issubclass(self._class, datatypes.Composition):
             code.append("    compositeClass = '%s'\n" % self.compositeClass)
 
         if self._attrs:
-            #__init__
+            # __init__
             code.append('\n')
             code.append('    def __init__(self):\n')
             code.extend(['        %s.__init__(self)\n' % x for x in bases])
@@ -402,9 +415,8 @@ class DatatypeEditor(GenericSchemaEditor):
             for prop in [x for x in self._attrs
                          if self._attrs[x].__class__.__module__ !=
                             None.__class__.__module__]:
-                code.append(
-                    '        self.%s = %s()\n' %
-                    (prop, self._get_full_name(self._attrs[prop].__class__)))
+                raise TypeError('Datatypes cannot contain other datatypes')
+
             for prop in [x for x in self._attrs
                          if self._attrs[x].__class__.__module__ ==
                             None.__class__.__module__]:
@@ -412,23 +424,10 @@ class DatatypeEditor(GenericSchemaEditor):
                     '        self.%s = %s\n' %
                     (prop, repr(self._attrs[prop])))
 
-        #methods
-        for meth in self._methods:
-            method = self._methods[meth]
-            if method.__name__ != '__init__':
-                code.append('\n')
-                code.extend(inspect.getsourcelines(self._methods[meth])[0])
+        # methods
+        self._write_methods(code)
 
-        #properties
-        for property_name in self._properties:
-            code.append('\n')
-            prop_descriptor = self._properties[property_name]
-            fget = fset = None
-            if prop_descriptor.fget:
-                fget = prop_descriptor.fget.__name__
-            if prop_descriptor.fset:
-                fset = prop_descriptor.fset.__name__
-            code.extend('    %s = property(%s, %s)' %
-                        (property_name, fget, fset))
+        # properties
+        self._write_properties(code)
 
         return code
