@@ -89,8 +89,12 @@ class DB(object):
                 additional_flags |= db.DB_REGISTER
 
         self._env = db.DBEnv()
-        self._env.set_data_dir(self.dir)
-        self._env.set_lg_dir(self.log_dir)
+        # ability to override settings' dir for testing purposes
+        data_dir = kwargs.get('dir', self.dir)
+        self._env.set_data_dir(data_dir)
+        # ability to override settings' log_dir for testing purposes
+        log_dir = kwargs.get('log_dir', kwargs.get('dir', self.log_dir))
+        self._env.set_lg_dir(log_dir)
         self._env.set_tx_max(self.txn_max)
 
         if self.txn_timeout is not None:
@@ -445,7 +449,7 @@ class DB(object):
             #print('Released: %d' % stats['nreleases'])
             #print('-' * 80)
 
-    def close(self):
+    def close(self, **kwargs):
         if self._running:
             self._running = False
 
@@ -463,5 +467,6 @@ class DB(object):
             [index.close() for index in self._indices.values()]
             self._env.close()
             # clean-up environment files
-            if self._maintenance_thread is not None:
+            if (self._maintenance_thread is not None
+                    or kwargs.get('clear_env', False)):
                 self.__remove_env()

@@ -240,6 +240,6 @@ def shrink():
     return _db_handle.shrink()
 
 
-def close():
+def close(**kwargs):
     if _db_handle.is_open():
-        _db_handle.close()
+        _db_handle.close(**kwargs)

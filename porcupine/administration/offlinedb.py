@@ -22,15 +22,18 @@ from porcupine import context
 from porcupine.db import _db
 
 
-def get_handle(identity=None, recover=0):
+def get_handle(**kwargs):
     if _db._db_handle is None or not _db._db_handle.is_open():
         # open database
-        _db.open(recover=recover, maintain=False)
-        if identity is None:
-            identity = _db.get_item('system')
+        kwargs.setdefault('maintain', False)
+        kwargs.setdefault('recover', 0)
+        _db.open(**kwargs)
+
+        user_id = kwargs.get('identity', 'system')
+        identity = _db.get_item(user_id)
         context.user = identity
     return _db
 
 
 def close():
-    _db.close()
+    _db.close(clear_env=True)
