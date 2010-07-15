@@ -467,8 +467,7 @@ class Composite(_Elastic):
     @see: L{porcupine.datatypes.Composition}
     """
     __image__ = "desktop/images/object.gif"
-    __props__ = {
-        'displayName': datatypes.RequiredString}
+    __props__ = {'displayName': datatypes.RequiredString}
     _eventHandlers = []
 
     def __init__(self):
@@ -534,9 +533,8 @@ class GenericItem(_Elastic):
     @type parentid: str
     """
     __image__ = "desktop/images/object.gif"
-    __props__ = {
-        'displayName': datatypes.RequiredString,
-        'description': datatypes.String}
+    __props__ = {'displayName': datatypes.RequiredString,
+                 'description': datatypes.String}
     isCollection = False
     _eventHandlers = []
 
@@ -875,9 +873,8 @@ class Item(GenericItem, Cloneable, Movable, Removable):
     Subclass the L{porcupine.systemObjects.Container} class if you want
     to create custom containers.
     """
-    __props__ = dict({
-            'shortcuts': _Shortcuts},
-            **GenericItem.__props__)
+    __props__ = dict({'shortcuts': _Shortcuts},
+                     **GenericItem.__props__)
 
     @db.requires_transactional_context
     def update(self):
@@ -938,9 +935,8 @@ class Shortcut(Item):
     L{get_target} method.
     """
     __image__ = "desktop/images/link.png"
-    __props__ = dict({
-            'target': _TargetItem},
-            **Item.__props__)
+    __props__ = dict({'target': _TargetItem},
+                     **Item.__props__)
 
     @staticmethod
     def create(target):
