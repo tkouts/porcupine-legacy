@@ -1,57 +1,52 @@
-import unittest
+try:
+    from . import TestWithDb
+except ValueError:
+    from __init__ import TestWithDb
 
 from porcupine import datatypes
-from porcupine import systemObjects
 from porcupine import db
-from porcupine.administration import offlinedb
 
-from org.innoscript.desktop.schema import common
+from . import schema
 
 
-class ElasticSchemaTest(unittest.TestCase):
-
-    odb = offlinedb.get_handle()
-
-    @classmethod
-    def teardown_class(self):
-        offlinedb.close()
+class ElasticSchemaTest(TestWithDb):
 
     def test_datatype_addition(self):
-        systemObjects.Item.__props__['x'] = datatypes.String
+        schema.TestItem.__props__['z'] = datatypes.String
         try:
-            item = systemObjects.Item()
-            self.assertEqual(item.x.value, '')
+            item = schema.TestItem()
+            self.assertEqual(item.z.value, '')
         finally:
-            del systemObjects.Item.__props__['x']
+            del schema.TestItem.__props__['z']
 
     def test_datatype_removal(self):
-        # remove description from Item content class
-        description = systemObjects.Item.__props__.pop('description')
+        # remove x from Item content class
+        x = schema.TestItem.__props__.pop('x')
         try:
-            item = systemObjects.Item()
-            self.assertRaises(AttributeError, getattr, item, 'description')
+            item = schema.TestItem()
+            self.assertRaises(AttributeError, getattr, item, 'x')
         finally:
-            systemObjects.Item.__props__['description'] = description
+            schema.TestItem.__props__['x'] = x
 
     def test_datatype_addition_with_default_value(self):
-        systemObjects.Item.__props__['x'] = (datatypes.String, [],
-                                             {'value': 'default'})
+        schema.TestItem.__props__['z'] = (datatypes.String, [],
+                                          {'value': 'default'})
         try:
-            item = systemObjects.Item()
-            self.assertEqual(item.x.value, 'default')
+            item = schema.TestItem()
+            self.assertEqual(item.z.value, 'default')
         finally:
-            del systemObjects.Item.__props__['x']
+            del schema.TestItem.__props__['z']
 
     def _get_folder(self):
-        folder = common.Folder()
+        folder = schema.TestFolder()
         folder.displayName.value = 'test elastic schema'
         folder.description.value = 'description...'
         return folder
 
     @db.transactional(auto_commit=True)
     def test_datatype_addition_persistent(self):
-        common.Folder.__props__['x'] = (datatypes.String, [],
-                                        {'value': 'default'})
+        schema.TestFolder.__props__['z'] = (datatypes.String, [],
+                                            {'value': 'default'})
         # create new folder
         folder = self._get_folder()
         # add it to the root folder
@@ -59,18 +54,18 @@ class ElasticSchemaTest(unittest.TestCase):
         try:
             # reload it
             folder2 = db.get_item(folder.id)
-            self.assertEqual(folder2.x.value, 'default')
+            self.assertEqual(folder2.z.value, 'default')
         finally:
             folder.delete()
             # remove added attribute from schema
-            del common.Folder.__props__['x']
+            del schema.TestFolder.__props__['z']
 
     @db.transactional(auto_commit=True)
     def test_datatype_removal_persistent(self):
         # create a new folder
         folder = self._get_folder()
         # now remove the description data type
-        description = common.Folder.__props__.pop('description')
+        description = schema.TestFolder.__props__.pop('x')
         # add it to the root folder
         folder.append_to('')
         try:
@@ -79,9 +74,9 @@ class ElasticSchemaTest(unittest.TestCase):
 
             # reload it
             folder2 = db.get_item(folder.id)
-            self.assertRaises(AttributeError, getattr, folder2, 'description')
+            self.assertRaises(AttributeError, getattr, folder2, 'x')
         finally:
             # remove item
             folder.delete()
             # add description back
-            common.Folder.__props__['description'] = description
+            schema.TestFolder.__props__['x'] = description
