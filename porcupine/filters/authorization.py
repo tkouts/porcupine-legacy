@@ -17,28 +17,47 @@
 """
 Porcupine authorization pre-processing filters
 """
+try:
+    # python 2.6
+    from urllib import quote
+except ImportError:
+    # python 3
+    from urllib.parse import quote
+
 from porcupine import exceptions
 from porcupine.filters.filter import PreProcessFilter
 from porcupine.db import _db
 
 
 class RequiresLogin(PreProcessFilter):
+
     @staticmethod
     def apply(context, item, registration, **kwargs):
         user = context.user
         redirect_url = kwargs['redirect']
+        if redirect_url is not None:
+            return_url = quote("%s://%s%s" % (context.request.get_protocol(),
+                                              context.request.HTTP_HOST,
+                                              context.request.REQUEST_URI))
+
         if not hasattr(user, 'authenticate'):
             if redirect_url is not None:
-                if redirect_url[0:4] == 'http':
-                    context.response.redirect(redirect_url)
+                if redirect_url[0:4] != 'http':
+                    redirect_url = context.request.SCRIPT_NAME + redirect_url
+
+                if redirect_url.find('?') != -1:
+                    templ = "%s&ru=%s" 
                 else:
-                    absolute_url = context.request.SCRIPT_NAME + redirect_url
-                    context.response.redirect(absolute_url)
+                    templ = "%s?ru=%s"
+
+                redirect_url = templ % (redirect_url, return_url)
+                context.response.redirect(redirect_url)
             else:
                 raise exceptions.PermissionDenied
 
 
 class RunAs(PreProcessFilter):
+
     @staticmethod
     def apply(context, item, registration, **kwargs):
         user = _db.get_item(kwargs['userid'])
@@ -47,6 +66,7 @@ class RunAs(PreProcessFilter):
 
 
 class RequiresPolicy(PreProcessFilter):
+
     @staticmethod
     def apply(context, item, registration, **kwargs):
         policyid = kwargs['policyid']
