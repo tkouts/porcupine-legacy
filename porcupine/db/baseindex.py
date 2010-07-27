@@ -45,8 +45,8 @@ class BaseIndex(object):
                 if self.name == '_id':
                     index_value = pack_value(attr)
                 else:
-                    index_value = pack_value(item._pid) + b'_' + \
-                                  pack_value(attr)
+                    index_value = (pack_value(item._pid) + b'_' +
+                                   pack_value(attr))
             _cache[value] = item
             return index_value
 
