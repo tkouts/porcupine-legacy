@@ -29,7 +29,7 @@ from porcupine import exceptions
 from porcupine import datatypes
 from porcupine.core.objectSet import ObjectSet
 from porcupine.utils import misc, permsresolver
-from porcupine.core.compat import str
+from porcupine.core.compat import str, basestring
 
 
 class _Shortcuts(datatypes.RelatorN):
@@ -577,7 +577,7 @@ class GenericItem(_Elastic):
         @type parent: str OR L{Container}
         @return: None
         """
-        if isinstance(parent, (str, bytes)):
+        if isinstance(parent, basestring):
             parent = db._db.get_item(parent)
 
         contentclass = self.get_contentclass()
