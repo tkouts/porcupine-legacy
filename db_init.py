@@ -18,7 +18,7 @@ def init_db():
 
     db = None
     try:
-        db = offlinedb.get_handle(system)
+        db = offlinedb.get_handle()
         initialize_db()
     except Exception as e:
         import traceback
