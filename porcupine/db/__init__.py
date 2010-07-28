@@ -48,16 +48,16 @@ def get_item(oid, trans=None):
 def get_transaction():
     """
     Returns a transaction handle required for database updates.
+    Normally, this is used for having control over transaction commits.
     Currently, nested transactions are not supported.
     Subsequent calls to C{getTransaction} will return the same handle.
 
     @rtype: L{BaseTransaction<porcupine.db.basetransaction.BaseTransaction>}
     """
-    txn = context._trans
-    if txn is None:
+    if not context._is_txnal:
         raise exceptions.InternalServerError(
             "Not in a transactional context. Use @db.transactional().")
-    return txn
+    return context._trans
 
 
 def requires_transactional_context(function):
@@ -67,10 +67,11 @@ def requires_transactional_context(function):
     database updates.
     """
     def rtc_wrapper(*args, **kwargs):
-        if context._trans is None:
+        if not context._is_txnal:
             raise exceptions.InternalServerError(
                 "Not in a transactional context. Use @db.transactional().")
         return function(*args, **kwargs)
+
     compat.set_func_name(rtc_wrapper, compat.get_func_name(function))
     compat.set_func_doc(rtc_wrapper, compat.get_func_doc(function))
     rtc_wrapper.__module__ = function.__module__
@@ -78,6 +79,7 @@ def requires_transactional_context(function):
 
 
 def transactional(auto_commit=False, nosync=False):
+
     _min_sleep_time = 0.072
     _max_sleep_time = 0.288
 
@@ -94,13 +96,24 @@ def transactional(auto_commit=False, nosync=False):
                 raise exceptions.DBReadOnly(
                     'Attempted write operation in read-only database.')
 
-            if context._trans is None:
-                txn = _db.get_transaction(nosync)
+            has_txn = False
+            txn_flags = 0
+            if not context._is_txnal:
+                if context._trans is not None:
+                    # abort previous txn
+                    context._trans.abort()
+                    has_txn = True
+                    txn_flags = context._trans._flags
+
+                # create new txn handle
+                txn = _db.get_transaction(nosync=nosync)
                 context._trans = txn
                 is_top_level = True
+                context._is_txnal = True
             else:
                 txn = context._trans
                 is_top_level = False
+
             retries = 0
             sleep_time = _min_sleep_time
 
@@ -123,23 +136,34 @@ def transactional(auto_commit=False, nosync=False):
                         if is_top_level and auto_commit:
                             txn.commit()
                         return val
+
                     except exceptions.DBRetryTransaction:
                         if is_top_level:
                             retries += 1
                         else:
                             # allow propagation
                             raise
+
                     except:
                         txn.abort()
                         raise
+
+                # maximum retries exceeded
                 raise exceptions.DBDeadlockError
+
             finally:
                 if is_top_level:
-                    context._trans = None
+                    if has_txn:
+                        context._trans = _db.get_transaction(flags=txn_flags)
+                    else:
+                        context._trans = None
+                    context._is_txnal = False
+
         compat.set_func_name(transactional_wrapper,
                              compat.get_func_name(function))
         compat.set_func_doc(transactional_wrapper,
                             compat.get_func_doc(function))
         transactional_wrapper.__module__ = function.__module__
         return transactional_wrapper
+
     return transactional_decorator

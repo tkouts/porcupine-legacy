@@ -22,9 +22,12 @@ from porcupine.db.basetransaction import BaseTransaction
 
 
 class Transaction(BaseTransaction):
-    def __init__(self, env, nosync):
+
+    def __init__(self, env, nosync=False, snapshot=False, flags=0):
         self.env = env
-        self._flags = db.DB_TXN_SNAPSHOT
+        self._flags = flags
+        if snapshot:
+            self._flags |= db.DB_TXN_SNAPSHOT
         if nosync:
             self._flags |= db.DB_TXN_NOSYNC
         self._cursors = []

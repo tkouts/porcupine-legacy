@@ -17,6 +17,7 @@
 "Porcupine Server session manager singleton"
 import time
 
+
 _sm = None
 
 
@@ -39,8 +40,8 @@ def create(userid):
 
 def fetch_session(sessionid):
     session = _sm.get_session(sessionid)
-    if session is not None and \
-            time.time() - session.get_last_accessed() > _sm.revive_threshold:
+    if (session is not None and
+            time.time() - session.get_last_accessed() > _sm.revive_threshold):
         _sm.revive_session(session)
     return session
 

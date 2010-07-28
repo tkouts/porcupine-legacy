@@ -198,10 +198,10 @@ def test_conditions(scope, conditions):
 
 
 # transactions
-def get_transaction(nosync=False):
+def get_transaction(**kwargs):
     while _locks:
         time.sleep(0.2)
-    return _db_handle.get_transaction(nosync)
+    return _db_handle.get_transaction(**kwargs)
 
 
 # replication

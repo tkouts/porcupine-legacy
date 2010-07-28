@@ -23,6 +23,7 @@ from porcupine import db
 from porcupine import exceptions
 from porcupine.systemObjects import Container, GenericItem
 from porcupine.core.session.genericsession import GenericSession
+from porcupine.core.compat import basestring
 
 
 class SessionsContainer(Container):
@@ -78,7 +79,7 @@ class Session(GenericItem, GenericSession):
         """
         A lighter append_to
         """
-        if type(parent) == str:
+        if isinstance(parent, basestring):
             parent = db._db.get_item(parent)
 
         if not(self.get_contentclass() in parent.containment):

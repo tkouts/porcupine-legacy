@@ -41,6 +41,7 @@ from porcupine.core.servicetypes.asyncserver import BaseServerThread
 
 
 class PorcupineThread(BaseServerThread):
+
     _sid_pattern = re.compile('/\{(.*?)\}')
     _method_cache = {}
 
@@ -75,12 +76,16 @@ class PorcupineThread(BaseServerThread):
         try:
             try:
                 path_tokens = path_info.split('/')
+
                 if len(path_tokens) > 1:
                     dir_name = path_tokens[1]
                     web_app = pubdirs.dirs.get(dir_name, None)
                 else:
                     web_app = None
+
                 if web_app is None:
+                    # create snapshot txn for reads
+                    context._trans = _db.get_transaction(snapshot=True)
                     # try to get the requested object from the db
                     item = _db.get_item(path_info)
                     if item is not None and not item._isDeleted:
@@ -111,6 +116,8 @@ class PorcupineThread(BaseServerThread):
 
                     rtype = registration.type
                     if rtype == 1:  # psp page
+                        # create snapshot txn for reads
+                        context._trans = _db.get_transaction(snapshot=True)
                         ServerPage.execute(context, registration.context)
                     elif rtype == 0:  # static file
                         f_name = registration.context
@@ -151,7 +158,7 @@ class PorcupineThread(BaseServerThread):
             self.handle_request(rh, raw_request)
 
         except exceptions.DBReadOnly:
-            context._reset()
+            context._teardown()
             # proxy request to master
             rep_mgr = _db.get_replication_manager()
             if rep_mgr.master is not None:
@@ -176,7 +183,7 @@ class PorcupineThread(BaseServerThread):
             e = exceptions.InternalServerError()
             e.emit(context, item)
 
-        context._reset()
+        context._teardown()
         settings['requestinterfaces'][request.interface](rh, response)
 
     def _dispatch_method(self, item):

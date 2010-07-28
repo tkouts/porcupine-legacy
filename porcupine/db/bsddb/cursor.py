@@ -38,15 +38,8 @@ class Cursor(BaseCursor):
         self._get_flag = db.DB_NEXT
 
     def _get_cursor(self):
-        if context._trans is not None:
-            self._cursor = self.db.cursor(context._trans.txn)
-            context._trans._cursors.append(self)
-        else:
-            if context._snapshot_txn is None:
-                context._snapshot_txn = \
-                    _db._db_handle._env.txn_begin(None, db.DB_TXN_SNAPSHOT)
-            self._cursor = self.db.cursor(context._snapshot_txn)
-            context._cursors.append(self)
+        self._cursor = self.db.cursor(context._trans.txn)
+        context._trans._cursors.append(self)
         self._closed = False
 
     def duplicate(self):
@@ -234,10 +227,7 @@ class Cursor(BaseCursor):
 
     def close(self):
         if not self._closed:
-            if context._trans is not None:
-                context._trans._cursors.remove(self)
-            else:
-                context._cursors.remove(self)
+            context._trans._cursors.remove(self)
             self._closed = True
             try:
                 self._close()
@@ -255,10 +245,10 @@ class Join(BaseCursor):
         self._cur_list = cursor_list
         self._join = None
         self._db = primary_db
-        if context._trans is not None:
-            context._trans._cursors.append(self)
-        else:
-            context._cursors.append(self)
+        #if context._trans is not None:
+        context._trans._cursors.append(self)
+        #else:
+        #    context._cursors.append(self)
 
     def set_scope(self, scope):
         [c.set_scope(scope) for c in self._cur_list]
@@ -324,10 +314,7 @@ class Join(BaseCursor):
 
     def close(self):
         [cur.close() for cur in self._cur_list]
-        if context._trans:
-            context._trans._cursors.remove(self)
-        else:
-            context._cursors.remove(self)
+        context._trans._cursors.remove(self)
         try:
             self._close()
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):

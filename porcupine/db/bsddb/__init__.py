@@ -340,8 +340,10 @@ class DB(object):
         return result
 
     # transactions
-    def get_transaction(self, nosync):
-        return Transaction(self._env, nosync)
+    def get_transaction(self, **kwargs):
+        nosync = kwargs.get('nosync', False)
+        snapshot = kwargs.get('snapshot', False)
+        return Transaction(self._env, nosync, snapshot)
 
     def __remove_env(self):
         files = glob.glob(self.env_dir + '__db.*')

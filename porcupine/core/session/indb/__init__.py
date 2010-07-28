@@ -23,6 +23,8 @@ from threading import Thread
 from porcupine import db
 from porcupine.core.session.genericsessionmanager import GenericSessionManager
 from porcupine.core.session.indb import schema
+from porcupine import context
+from porcupine.core.runtime import logger
 
 
 class SessionManager(GenericSessionManager):
@@ -31,8 +33,7 @@ class SessionManager(GenericSessionManager):
     """
     supports_multiple_processes = True
     session_container_id = '+sessions'
-    _expire_thread = Thread(name='Session expriration thread',
-                            target=None)
+    _expire_thread = None
 
     def __init__(self, timeout, **kwargs):
         GenericSessionManager.__init__(self, timeout)
@@ -57,30 +58,38 @@ class SessionManager(GenericSessionManager):
         db._db.put_item(session_container)
 
     def init_expiration_mechanism(self):
-        if not self._expire_thread.isAlive():
-            self._expire_thread._Thread__target = self._expire_sessions
-            self._expire_thread.start()
+        if SessionManager._expire_thread is None:
+            SessionManager._expire_thread = Thread(
+                name='Session expriration thread',
+                target=self._expire_sessions)
+            SessionManager._expire_thread.start()
 
     def _expire_sessions(self):
-        from porcupine.core.runtime import logger
         while self._is_active:
             try:
-                expire_threshold = time.time() - self.timeout - \
-                                   self.revive_threshold
-                # get inactive sessions
-                cursor = db._db.query((
-                        ('modified', (None, (expire_threshold, False))),
-                    ))
-                cursor.set_scope(self.session_container_id)
-                cursor.enforce_permissions = False
-                sessions = [session for session in cursor]
-                cursor.close()
-                for session in sessions:
-                    logger.debug('Expiring Session: %s' % session.id)
-                    session.terminate()
+                self._remove_inactive_sessions()
             except Exception as e:
                 logger.error('Error in session expiration thread: %s' % e)
             time.sleep(3.0)
+
+    @db.transactional(auto_commit=True, nosync=True)
+    def _remove_inactive_sessions(self):
+        expire_threshold = (time.time() -
+                            self.timeout -
+                            self.revive_threshold)
+
+        # get inactive sessions
+        condition = ('modified', (None, [expire_threshold, False]))
+        cursor = db._db.query((condition, ))
+        cursor.set_scope(self.session_container_id)
+        cursor.enforce_permissions = False
+        sessions = [session for session in cursor]
+        #print(sessions)
+        cursor.close()
+
+        for session in sessions:
+            logger.debug('Expiring Session: %s' % session.id)
+            session.terminate()
 
     @db.transactional(auto_commit=True, nosync=True)
     def create_session(self, userid):
@@ -103,5 +112,6 @@ class SessionManager(GenericSessionManager):
 
     def close(self):
         self._is_active = False
-        if self._expire_thread.isAlive():
-            self._expire_thread.join()
+        if (SessionManager._expire_thread and
+                SessionManager._expire_thread.is_alive()):
+            SessionManager._expire_thread.join()

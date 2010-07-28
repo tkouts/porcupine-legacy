@@ -20,31 +20,22 @@ from porcupine.core.serverutility import Server
 
 
 class Context(local):
+
     server = Server()
 
     def __init__(self):
         self.user = None
-        # transaction
+        # transaction handle
         self._trans = None
-        # transaction used for read-only snapshot cursors
-        # in order to avoid:
-        # 1. lockers and txns starvation
-        # 2. REP_LOCKOUT on clients when master goes down
-        self._snapshot_txn = None
-        # thread local storage of non-transactional open cursors
-        self._cursors = []
+        self._is_txnal = False
 
-    def _reset(self):
-        # close any cursors left opened
-        while self._cursors:
-            self._cursors[0].close()
+    def _teardown(self):
+        self.user = None
 
-        #self._cursors = []
-        if self._snapshot_txn is not None:
-            self._snapshot_txn.abort()
-            self._snapshot_txn = None
-
+        if self._trans is not None:
+            self._trans.abort()
         self._trans = None
+
         # remove session
         if hasattr(self, 'session'):
             delattr(self, 'session')
