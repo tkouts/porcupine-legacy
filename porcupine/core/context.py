@@ -39,3 +39,7 @@ class Context(local):
         # remove session
         if hasattr(self, 'session'):
             delattr(self, 'session')
+
+        # remove original user
+        if hasattr(self, 'original_user'):
+            delattr(self, 'original_user')
