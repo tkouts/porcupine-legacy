@@ -455,7 +455,7 @@ class ExternalAttribute(DataType):
             clone.value = self.get_value()
         return clone
 
-    def get_value(self, txn=None):
+    def get_value(self):
         "L{value} property getter"
         if self._value is None:
             self._value = db._db.get_external(self._id) or ''
@@ -465,13 +465,13 @@ class ExternalAttribute(DataType):
         "L{value} property setter"
         self._isDirty = True
         self._value = value
-    value = property(get_value, set_value, None, "the actual value")
+    value = property(get_value, set_value, None, 'the byte stream')
 
     def get_is_dirty(self):
         "L{is_dirty} property getter"
         return self._isDirty
     is_dirty = property(get_is_dirty, None, None,
-                        "boolean indicating if the value has changed")
+                        'boolean indicating if the value has changed')
 
 
 class Text(ExternalAttribute):
@@ -481,11 +481,21 @@ class Text(ExternalAttribute):
         ExternalAttribute.__init__(self, **kwargs)
         self._size = 0
 
+    def get_value(self):
+        value = ExternalAttribute.get_value(self)
+        return value.decode('utf8')
+
     def set_value(self, value):
+        if isinstance(value, str):
+            self._size = len(value)
+            value = value.encode('utf8')
+        else:
+            self._size = len(value.decode('utf-8'))
+
         ExternalAttribute.set_value(self, value)
-        self._size = len(value)
-    value = property(ExternalAttribute.get_value, set_value, None,
-                     "text stream")
+
+    value = property(get_value, set_value, None,
+                     'the text stream')
 
     def __len__(self):
         return self._size
@@ -500,15 +510,29 @@ class RequiredText(Text):
     isRequired = True
 
 
-class File(Text):
+class File(ExternalAttribute):
     """Data type to use for file objects
 
     @ivar filename: the file's name
     @type filename: str
     """
     def __init__(self, **kwargs):
-        Text.__init__(self, **kwargs)
+        ExternalAttribute.__init__(self, **kwargs)
         self.filename = ''
+        self._size = 0
+
+    def set_value(self, value):
+        ExternalAttribute.set_value(self, value)
+        self._size = len(value)
+    value = property(ExternalAttribute.get_value, set_value, None,
+                     'the file\'s byte stream')
+
+    def __len__(self):
+        return self._size
+
+    def validate(self):
+        if self.isRequired and self._size == 0:
+            raise ValueError(self.__class__.__name__, 'Attribute is mandatory')
 
     def get_file(self):
         return io.StringIO(self.value)
