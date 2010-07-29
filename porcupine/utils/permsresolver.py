@@ -30,10 +30,10 @@ COORDINATOR = 8
 
 
 def get_access(item, user):
-    member_of = ['everyone']
-    userid = user._id
     if user.is_admin():
         return COORDINATOR
+    member_of = ['everyone']
+    userid = user._id
     member_of.extend(user.memberof.value)
     if hasattr(user, 'authenticate'):
         member_of.extend(['authusers'])
