@@ -21,8 +21,8 @@
 			</tabpane>
 		</form>
 	</wbody>
-	<dlgbutton onclick="generic.submitForm" width="70" height="22"
+	<dlgbutton onclick="generic.submitForm" width="80" height="22"
         caption="{=OK_CAPTION}" default="true" disabled="{:lb}=ACTION_DISABLED{:rb}"/>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22"
+	<dlgbutton onclick="__closeDialog__" width="80" height="22"
         caption="@@CANCEL@@"/>
 </dialog>

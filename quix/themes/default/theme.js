@@ -55,11 +55,13 @@ QuiX.theme = {
         }
     },
     contextmenu: {
+        padding: '0,0,0,0',
+        border: 1,
         inner: {
             get: function() {
                 return new QuiX.ui.Widget({
                         width: '22',
-                        height: 'this.parent.div.clientHeight',
+                        height: '100%',
                         bgcolor: 'silver',
                         overflow: 'hidden'
                     });
@@ -132,7 +134,7 @@ QuiX.theme = {
             get: function(img, caption, bgcolor, color) {
                 return new QuiX.ui.Icon({
                         border: 1,
-                        padding: '12,12,4,6',
+                        padding: '10,10,4,6',
                         overflow: 'hidden',
                         caption: caption,
                         img: img,

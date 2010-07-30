@@ -96,6 +96,7 @@ BODY {
 .btn .l2default, .btnover .l2default {
     border-style: solid;
     border-color: Gray;
+    font-weight: bolder;
 }
 
 .btn:hover{
@@ -303,7 +304,7 @@ BODY {
 }
 
 .tabpane {
-    white-space: no-wrap;
+    white-space: nowrap;
 }
 
 .tabpane .tab {

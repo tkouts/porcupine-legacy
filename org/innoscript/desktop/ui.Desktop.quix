@@ -30,7 +30,7 @@
     <script name="Desktop Script" src="desktop/ui.Desktop.js"/>
     <script name="Generic Functions" src="desktop/generic.js"/>
     
-    <icon left="center" top="center" width="164" height="110"
+    <image left="center" top="center" width="164" height="110"
         img="desktop/images/logo.png"/>
     <vbox spacing="0" width="100%" height="100%"
             onload="desktop.runApplication">
