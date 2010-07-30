@@ -74,10 +74,9 @@ QuiX.getThemeUrl = function() {
     return QuiX.baseUrl + 'themes/' + theme + '/';
 }
 
-QuiX.progress = '<rect xmlns="http://www.innoscript.org/quix" ' +
-    'width="18" height="18"><xhtml><![CDATA[' +
-    '<img src="' + QuiX.getThemeUrl() + 'images/loader.gif">' +
-    ']]></xhtml></rect>';
+QuiX.progress = '<image xmlns="http://www.innoscript.org/quix" ' +
+    'width="16" height="16" img="' + QuiX.getThemeUrl() +
+    'images/loader.gif"></image>';
 
 // module
 
@@ -239,29 +238,16 @@ QuiX.bootLibraries = [
 
 QuiX.__init__ = function(id) {
     var boot_loader_url = QuiX.getThemeUrl() + 'images/boot_loader.gif';
-    var boot_loader = new QuiX.Image(boot_loader_url);
-    var boot_completed = false;
-
-    boot_loader.load(
-        function() {
-            boot_loader = QuiX.getImage(boot_loader_url);
-            boot_loader.style.margin = '100px auto';
-            boot_loader.style.display = 'block';
-            boot_loader.style.textAlign = 'center';
-            boot_loader.style.border = '1px solid silver';
-            if (!boot_completed)
-                document.body.appendChild(boot_loader);
-        });
+    document.body.style.background = "url('" + boot_loader_url +
+                                     "') no-repeat center";
 
     QuiX.load(QuiX.bootLibraries,
         function() {
-            boot_completed = true;
             var root = document.body.removeChild(
                 document.getElementById(id));
             var parser = new QuiX.Parser();
             parser.oncomplete = function() {
-                if (boot_loader.clientWidth > 0)
-                    QuiX.removeNode(boot_loader);
+                document.body.style.background = '';
                 // calculate scrollbars size
                 var w1 = document.desktop.div.clientWidth;
                 var overflow = document.desktop.getOverflow()
@@ -443,7 +429,7 @@ QuiX.createOutline = function(w) {
     });
     o.appendChild(inner);
 
-    var t = QuiX.getImage(QuiX.getThemeUrl() + 'images/transp.gif');
+    var t = QuiX.getImage(QuiX.baseUrl + 'images/transp.gif');
     t.style.width = '100%';
     t.style.height = '100%';
     ((macff)?inner:o).div.appendChild(t);

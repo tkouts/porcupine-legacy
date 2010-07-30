@@ -85,8 +85,7 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
         button_height : '100%',
         button_window_mode : 'transparent',
         button_action : action,
-        button_image_url: params.img || QuiX.getThemeUrl() +
-                          'images/transp.gif',
+        button_image_url: params.img || (QuiX.baseUrl + 'images/transp.gif'),
         button_disabled : (params.readonly == 'true' ||
                            params.readonly == true)? true:false,
         
