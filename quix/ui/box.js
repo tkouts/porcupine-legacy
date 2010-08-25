@@ -21,7 +21,7 @@ QuiX.ui.Box.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.Box._destroy = function() {
     var oBox = this.parent;
-    var length_var = (oBox.orientation=='h')?'width':'height';
+    var length_var = (oBox.orientation == 'h')? 'width':'height';
 
     var idx = oBox.widgets.indexOf(this);
     if (this[length_var] == QuiX.ui.Box._calcWidgetLength
@@ -40,7 +40,7 @@ QuiX.ui.Box._destroy = function() {
 QuiX.ui.Box._calcWidgetLength = function(memo) {
     var box = this.parent;
     var tl = 0;
-    var free_widgets = 0;
+    var free_widgets = 0, vw = 0;
     var length_var = (box.orientation == 'h')? 'width':'height';
     var length_func = (box.orientation == 'h')? '_calcWidth':'_calcHeight';
 
@@ -53,12 +53,12 @@ QuiX.ui.Box._calcWidgetLength = function(memo) {
         else {
             tl += box.widgets[i][length_func](true, memo);
         }
+        vw += 1;
     }
     var l = (box.orientation == 'h')?
         box._calcWidth(false, memo):box._calcHeight(false, memo);
 
-    var nl = (l - tl - ((box.widgets.length - 1) * box.spacing)) /
-             free_widgets;
+    var nl = (l - tl - ((vw - 1) * box.spacing)) / free_widgets;
 
     return nl>0? nl:0;
 }
