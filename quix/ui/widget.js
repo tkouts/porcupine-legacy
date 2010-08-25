@@ -898,25 +898,40 @@ QuiX.ui.Widget.prototype.print = function(/*expand*/) {
         }
         document.body.appendChild(iframe);
         function _onload() {
-            var body;
-            if (browserFamily == 'ie')
-                body = iframe.document.body;
-            else
-                body = iframe.contentWindow.document.body;
+            var win = iframe.contentWindow || iframe,
+                body, ss, sse, head;
+            body = win.document.body;
+            head = win.document.getElementsByTagName('HEAD')[0];
+
+            // add stylesheets
+            var ss = document.getElementsByTagName('HEAD')[0]
+                     .getElementsByTagName('LINK');
+            var links = ss.length;
+            for (var i=0; i<links; i++) {
+                if (ss[i].type == 'text/css') {
+                    sse = ss[i].cloneNode(false);
+                    sse.href = sse.href;
+                    head.appendChild(sse);
+                }
+            }
+
+            // add widget element
             var n = self.div.cloneNode(true);
             n.style.position = '';
+
             if (expand) {
                 n.style.width = '';
                 n.style.height = '';
             }
+
             if (browserFamily == 'ie') {
                 body.innerHTML = n.outerHTML;
-                iframe.focus();
-                iframe.print();
+                win.focus();
+                win.print();
             }
             else {
                 body.appendChild(n);
-                iframe.contentWindow.print();
+                win.print();
             }
         }
         if (browserFamily == 'ie')
