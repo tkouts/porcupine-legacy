@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #==============================================================================
-#   Copyright 2005-2009, Tassos Koutsovassilis
+#   Copyright (c) 2005-2010, Tassos Koutsovassilis
 #
 #   This file is part of Porcupine.
 #   Porcupine is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@ from porcupine.core import runtime
 from porcupine.config import services
 from porcupine.utils.misc import freeze_support
 
-__version__ = '0.6 build(20090402)'
+__version__ = '0.7 build(20100825)'
 PID_FILE = 'conf/.pid'
 
 
