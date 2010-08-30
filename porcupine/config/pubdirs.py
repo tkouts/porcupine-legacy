@@ -57,7 +57,7 @@ class Dir(object):
 
         # construct action list
         for context_node in contextList:
-            sPath = context_node.getAttribute('path') or None
+            sPath = context_node.getAttribute('path')
             sMatch = context_node.getAttribute('match') or None
             sMethod = context_node.getAttribute('method')
             sBrowser = context_node.getAttribute('client')
@@ -67,15 +67,7 @@ class Dir(object):
                         encode('iso-8859-1') or None)
             max_age = context_node.getAttribute('max-age') or 0
 
-            if sPath:
-                self.__config.append((
-                    (sPath, sMethod, sBrowser, sLang),
-                    Registration(self.path + '/' + sPath,
-                                 self.path + '/' + sAction,
-                                 encoding,
-                                 self.__get_filters_list(context_node),
-                                 max_age)))
-            elif sMatch:
+            if sMatch is not None:
                 self.__matchlist.append((
                     (sMatch, sMethod, sBrowser, sLang),
                     (None,
@@ -83,6 +75,14 @@ class Dir(object):
                      encoding,
                      self.__get_filters_list(context_node),
                      max_age)))
+            else:
+                self.__config.append((
+                    (sPath, sMethod, sBrowser, sLang),
+                    Registration(self.path + '/' + sPath,
+                                 self.path + '/' + sAction,
+                                 encoding,
+                                 self.__get_filters_list(context_node),
+                                 max_age)))
 
         configXML.unlink()
 
