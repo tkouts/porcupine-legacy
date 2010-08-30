@@ -1,9 +1,63 @@
 -----------
+Version 0.7
+-----------
+NEW: Porcupine now integrates the py-normal-template template engine
+     (http://github.com/tkouts/py-normal-template).
+NEW: Added support for JSON-RPC2 for remote method calls.
+NEW: Added support for Python 3 (thanks to feedback from Alexander Slesarev).
+NEW: Added new lightweight widget "QuiX.ui.Image".
+NEW: New widget "QuiX.ui.SpriteButton".
+NEW: Added support for Firefox 4 and Safari 5.
+NEW: Added nose unit tests inside the "tests" folder (partially contributed by
+     Alexander Slesarev).
+NEW: Added "onfocus" custom event for fields.
+NEW: New pre-processing filter JSMerge used for merging JavaScript files into
+     one.
+NEW: Added support for title and background color to QuiX pages.
+NEW: Ability for auto-sized widgets (not only boxes, labels and icons).
+NEW: New "ease" parameter for ease-in and easy-out effects.
+NEW: Introducing elastic schema that allows arbitary schema updates without
+     requiring database updates. Each object becomes schema consistent the
+     next time is updated.
+NEW: New functions "QuiX.highlight" and "QuiX.removeHighlight" for text
+     highlighting.
+
+OPT: "RequiresLogin" post processing filter now adds the original requested URL
+     as a query string parameter.
+OPT: The "Text" datatype's value now accepts/returns unicode strings instead of
+     bytes.
+OPT: Ability to bind an action to the published directory's root URL.
+OPT: Speed enhancements for icon and label redraws.
+OPT: Using SWFUpload instead of Java applet for file uploads.
+OPT: Etag generation is based on containment...
+OPT: QuiX pages now contain valid markup.
+OPT: Window dimensions are now referring to the window's client area excluding
+     theme-dependent decorations.
+OPT: Added themeable elements retreived from $THEME_URL$/theme.js.
+OPT: All code is now aligned with PEP8. Tested with pep8
+     (http://pypi.python.org/pypi/pep8).
+OPT: All QuiX event handlers no longer reside in the top-level window namespace.
+
+FIX: Fixed QuiX's XSS vulnerabilities (thans to the guys who used the demo and
+     brought this on surface).
+FIX: Fixed widgets' "print" method on IE.
+FIX: Fixed length of freely sized box children when the box contains hidden
+     children.
+FIX: Fixed empty auto sized boxes.
+FIX: Fixed JavaScript ReferenceError when destroying menu options.
+FIX: Fixed JavaScript RPC arguments passing.
+FIX: Guest user is now readable by guests.
+
+DEP: Schema "__props__" attribute is now a dict instead of iterable.
+DEP: Removed deprecated APIs.
+DEP: Removed "QuiX._image_cache".
+
+-----------
 Version 0.6
 -----------
 NEW: Object indexing support including unique indexes per container. Currently,
-     the indexes are used for common database usage patterns such as getting the
-     children of a container, but not yet fully leveraged by OQL.
+     the indexes are used for common database usage patterns such as getting
+     the children of a container, but not yet fully leveraged by OQL.
 NEW: Added multi-processing support for the asynchrounous TCP-IP services
      (requires Python 2.6).
 NEW: Added conditional Etag support by using the provided
@@ -52,8 +106,8 @@ OPT: The "_safetype" class attribute of data type classes now accepts a list
      of the allowed Python types.
 OPT: If the bsddb module is not present then try to import bsddb3, since bsddb
      is removed from the latest Python versions.
-OPT: The "@db.transactional" decorator now accepts an optional "nosync" argument
-     for having faster but non durable transactions.
+OPT: The "@db.transactional" decorator now accepts an optional "nosync"
+     argument for having faster but non durable transactions.
 OPT: Ability to have the data and log files in different locations by using
      the "bdb_log_dir" setting in the porcupine configuration file.
 OPT: QuiX now includes a universal base Widget script.
@@ -642,10 +696,10 @@ OPT: The "stringresources.xml" resource file is discarded.
 OPT: Moved all system servlets, Python server pages and string resources
      inside the "resources/system" folder.
      Removed the "resources/servlets" and "resources/PSP" folders.
-OPT: Extended the application object by adding a "resourcesImportPath" attribute.
-     This is the full import path to a module variable of type
-     "porcupine.config.resources.ResourceStrings" used for keeping the application's
-     localized strings.
+OPT: Extended the application object by adding a "resourcesImportPath"
+     attribute. This is the full import path to a module variable of type
+     "porcupine.config.resources.ResourceStrings" used for keeping the
+     application's localized strings.
 OPT: QuiX now supports off-line widgets. The "detach" method brings a widget
      offline. The detached widget can be attached at a later time by using
      the "appendChild" method
@@ -681,8 +735,8 @@ OPT: QuiX Combo dropdown widgets accept an initial width. If no width is given,
      then the dropdown width is automatically adjusted to the width of the
      combo.
 OPT: Removed unused classes and CSS attributes from "quix.css"
-OPT: In IE, QuiX preloaded images are not removed from the document. They remain on
-     the document with their "display" CSS attribute set to "none".
+OPT: In IE, QuiX preloaded images are not removed from the document. They
+     remain on the document with their "display" CSS attribute set to "none".
 OPT: Icons with left or right aligned images are vertically centered
 OPT: The button widget became lighter. Using two DIVs instead of three.
 OPT: QuiX labels no longer have a "caption" attribute.
@@ -698,20 +752,22 @@ FIX: Fixed the seconds formatting ('ss') inside the "format" method of the
 FIX: The published directories are removed when removing a package with
      the pakager.
 FIX: Fixed bug inside the Berkeley db maintenance thread. The deadlock detector
-     could not subtract the number of aborted transactions from the total number
-     of ongoing transactions.
-FIX: Fixed duplicate session in the URL, when hitting "porcupine.py", on Apache 1.3.
-FIX: Eliminated errors reported by invalid CSS attribute assignments on Mozilla 1.8.
+     could not subtract the number of aborted transactions from the total
+     number of ongoing transactions.
+FIX: Fixed duplicate session in the URL, when hitting "porcupine.py", on Apache
+     1.3.
+FIX: Eliminated errors reported by invalid CSS attribute assignments on Mozilla
+     1.8.
 FIX: Fixed bug that caused the image preloading procedure to freeze on the
      latest Mozilla builds (1.8).
 FIX: Script errors generated by negative sizes to QuiX input fields.
-FIX: Fixed "getLeft" and "getTop" widget methods and use them while dragging a widget.
-     Negative "x" and "y" widget coordinates are allowed.
+FIX: Fixed "getLeft" and "getTop" widget methods and use them while dragging a
+     widget. Negative "x" and "y" widget coordinates are allowed.
 FIX: Fixed the object permanent deletion when this resides inside the recycle
      bin.
 FIX: Fixed the image URL on the recycle bin "Delete" confirmation message box.
-FIX: Fixed bad "toXMLRPC" event handler assignment attempt caused by the protected
-     "_attachEvents" QuiX Widget method.
+FIX: Fixed bad "toXMLRPC" event handler assignment attempt caused by the
+     protected "_attachEvents" QuiX Widget method.
 
 -------------
 Version 0.0.5
@@ -739,35 +795,38 @@ FIX: Fixed QuiX bug on IE that causes one of the two interfaces loading
 -------------
 Version 0.0.4
 -------------
-OPT: Removed the limitation that requires the data type class name and the Porcupine
-     object attribute to be identical.
+OPT: Removed the limitation that requires the data type class name and the
+     Porcupine object attribute to be identical.
 OPT: ItemNotFound exception displays info about the missing resource.
 OPT: The "pakager" utility is update ready.
 
 FIX: Fixed image positioning of QuiX menu options of type "check" or "radio".
 FIX: Added "formfields.js" to QuiX data grid dependencies.
-FIX: QuiX flat buttons of type menu, if not inside a toolbar, are now displayed.
+FIX: QuiX flat buttons of type menu, if not inside a toolbar, are now
+     displayed.
 FIX: Added "menu_check.gif" missing image.
 FIX: Fixed "Add" and "Remove" buttons on user and group forms.
-FIX: It is now possible to assign "onclick" event handlers to the options of select
-     lists.
+FIX: It is now possible to assign "onclick" event handlers to the options of
+     select lists.
 FIX: QuiX Images with an empty "src" attribute are not loaded.
 FIX: Reference1 attributes are displayed in the OQL Query Performer.
-FIX: The "pakager" utility when uninstalling a package, removes published directories.
+FIX: The "pakager" utility when uninstalling a package, removes published
+     directories.
 
 -------------
 Version 0.0.3
 -------------
-OPT: QuiX interface images are treated as script modules. They are preloaded and
-     displayed inside the preload progress widget.
+OPT: QuiX interface images are treated as script modules. They are preloaded
+     and displayed inside the preload progress widget.
 OPT: "webApps" directory is renamed to "pubdir". The old name was misleading.
      This directoty actually contains published directories.
-OPT: All scripts, QuiX modules, images and stylesheets are moved inside Porcupine,
-     under the "pubdir" directory. This completely separates the connectors files
-     from the server files, so that if adding a new QuiX module does not require
-     a new release of the web connectors.
+OPT: All scripts, QuiX modules, images and stylesheets are moved inside
+     Porcupine, under the "pubdir" directory. This completely separates the
+     connectors files from the server files, so that if adding a new QuiX
+     module does not require a new release of the web connectors.
 
-FIX: QuiX multiple file upload progress bar is displayed behind the active window
+FIX: QuiX multiple file upload progress bar is displayed behind the active
+     window
 FIX: Pakager temporary files cleanup when creating a package
 FIX: QuiX CSS font sizes, in order to have the same look under Windows and
      Linux
