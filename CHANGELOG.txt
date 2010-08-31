@@ -1,6 +1,8 @@
 -----------
 Version 0.7
 -----------
+NEW: Added support for high availability/scalability using BerkeleyDB's
+     replication.
 NEW: Porcupine now integrates the py-normal-template template engine
      (http://github.com/tkouts/py-normal-template).
 NEW: Added support for JSON-RPC2 for remote method calls.
@@ -21,6 +23,13 @@ NEW: Introducing elastic schema that allows arbitary schema updates without
      next time is updated.
 NEW: New functions "QuiX.highlight" and "QuiX.removeHighlight" for text
      highlighting.
+NEW: New ContextMenu method "clearOptions".
+NEW: New "QuiX.utils.readCookie" function.
+NEW: New "QuiX.ui.Link" widget.
+NEW: Ability to define parameters for OQL queries for optimized execution.
+NEW: Added ability for ranges in OQL select statements.
+NEW: New "ResourceString.set_alias" method for accommodating locale variations
+     (en-gb, en-us etc).
 
 OPT: "RequiresLogin" post processing filter now adds the original requested URL
      as a query string parameter.
@@ -36,10 +45,23 @@ OPT: Window dimensions are now referring to the window's client area excluding
 OPT: Added themeable elements retreived from $THEME_URL$/theme.js.
 OPT: All code is now aligned with PEP8. Tested with pep8
      (http://pypi.python.org/pypi/pep8).
-OPT: All QuiX event handlers no longer reside in the top-level window namespace.
+OPT: All QuiX event handlers no longer reside in the top-level window
+     namespace.
+OPT: Display attribute names instead of types on validation errors.
+OPT: Allow tree nodes expanding while dragging.
+OPT: Ability to switch tabs while dragging.
+OPT: Using HTML5 doctype for QuiX pages.
+OPT: Ability to set icons for tabs.
+OPT: Ability to define custom container for QuiX message boxes.
+OPT: Optimized OQL query optimizer.
+OPT: Compile dynamic properties of QuiX widgets into functions.
+OPT: The QuiX parser does not preload images for faster responsiveness.
+OPT: Lower limit of OQL BETWEEN is now inclusive.
+OPT: Drop Etag generation for static files that have post-processing filters
+     that mutate output.
 
-FIX: Fixed QuiX's XSS vulnerabilities (thans to the guys who used the demo and
-     brought this on surface).
+FIX: Fixed QuiX's XSS vulnerabilities (thans to the guy(s) who used the demo
+     and brought this on surface).
 FIX: Fixed widgets' "print" method on IE.
 FIX: Fixed length of freely sized box children when the box contains hidden
      children.
@@ -47,10 +69,15 @@ FIX: Fixed empty auto sized boxes.
 FIX: Fixed JavaScript ReferenceError when destroying menu options.
 FIX: Fixed JavaScript RPC arguments passing.
 FIX: Guest user is now readable by guests.
+FIX: Fixed response.clear using Python 2.6.5 or later.
+FIX: Fixed QuiX DOM updates on IE8.
+FIX: Fixed tooltips appearing below the desktop.
+FIX: Fixed RPC call with blank relative URL.
 
 DEP: Schema "__props__" attribute is now a dict instead of iterable.
 DEP: Removed deprecated APIs.
 DEP: Removed "QuiX._image_cache".
+DEP: "QuiX.getEventListener" is now "QuiX.wrappers.eventListener". 
 
 -----------
 Version 0.6
