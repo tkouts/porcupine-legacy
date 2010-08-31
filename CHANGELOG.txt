@@ -13,6 +13,7 @@ NEW: Added support for Firefox 4 and Safari 5.
 NEW: Added nose unit tests inside the "tests" folder (partially contributed by
      Alexander Slesarev).
 NEW: Added "onfocus" custom event for fields.
+NEW: New post-processing filter JSMin for minifying JavaScript files.
 NEW: New pre-processing filter JSMerge used for merging JavaScript files into
      one.
 NEW: Added support for title and background color to QuiX pages.
@@ -30,7 +31,19 @@ NEW: Ability to define parameters for OQL queries for optimized execution.
 NEW: Added ability for ranges in OQL select statements.
 NEW: New "ResourceString.set_alias" method for accommodating locale variations
      (en-gb, en-us etc).
+NEW: Added new md5 hashing functions to "QuiX.utils.hashlib".
+NEW: Added new "time" parameter to "DatePicker" widget; it is set only if
+     "value" is blank.
+NEW: Added post-event handlers for content classes.
+NEW: New "name" attribute for "IFrame" widgets.
+NEW: QuiX now supports right-to-left layouts for the Arabic speaking countries.
+NEW: Experimental reloading of packages using "porcupineadmin" without
+     requiring the server to restart.
 
+OPT: Using btree instead of hash for main database in order to exploit
+     locality of reference for containers' children.
+OPT: Optimized indexes, cursors and transactions for performance.
+OPT: All dates transferred in and out on the wire are UTC.
 OPT: "RequiresLogin" post processing filter now adds the original requested URL
      as a query string parameter.
 OPT: The "Text" datatype's value now accepts/returns unicode strings instead of
@@ -38,7 +51,6 @@ OPT: The "Text" datatype's value now accepts/returns unicode strings instead of
 OPT: Ability to bind an action to the published directory's root URL.
 OPT: Speed enhancements for icon and label redraws.
 OPT: Using SWFUpload instead of Java applet for file uploads.
-OPT: Etag generation is based on containment...
 OPT: QuiX pages now contain valid markup.
 OPT: Window dimensions are now referring to the window's client area excluding
      theme-dependent decorations.
@@ -59,7 +71,16 @@ OPT: The QuiX parser does not preload images for faster responsiveness.
 OPT: Lower limit of OQL BETWEEN is now inclusive.
 OPT: Drop Etag generation for static files that have post-processing filters
      that mutate output.
+OPT: Improved error handling for QuiX parser, rpc calls and file widget by
+     introducing "onerror" handlers that can be overridden.
+OPT: The request's language returned with "get_lang" method firstly checks the
+     session's "lang" key and if this is not set then the browser's preferred
+     language is returned.
+OPT: Added boot loader image while QuiX modules are being loaded.
+OPT: OQL parser is now based on PLY 3.2.
 
+FIX: Fixed etag generation of web methods in order to be template,
+     implementation, request language and containment aware.
 FIX: Fixed QuiX's XSS vulnerabilities (thans to the guy(s) who used the demo
      and brought this on surface).
 FIX: Fixed widgets' "print" method on IE.
@@ -73,11 +94,18 @@ FIX: Fixed response.clear using Python 2.6.5 or later.
 FIX: Fixed QuiX DOM updates on IE8.
 FIX: Fixed tooltips appearing below the desktop.
 FIX: Fixed RPC call with blank relative URL.
+FIX: Fixed web methods' Etag generation on 64bit OSes.
+FIX: Allow the default "max_age" of 0 of web methods to be sent.
+FIX: Avoid indexing of unique attributes of deleted objects.
+FIX: Fixed parent container's timestamp update on cascade deletes of relators.
+FIX: Fixed indexing of floats.
+FIX: Do not index composite objects.
 
 DEP: Schema "__props__" attribute is now a dict instead of iterable.
 DEP: Removed deprecated APIs.
 DEP: Removed "QuiX._image_cache".
-DEP: "QuiX.getEventListener" is now "QuiX.wrappers.eventListener". 
+DEP: "QuiX.getEventListener" is now "QuiX.wrappers.eventListener".
+DEP: The "pakager" utility is now part of "porcupineadmin" utility.
 
 -----------
 Version 0.6
