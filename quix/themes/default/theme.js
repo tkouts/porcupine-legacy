@@ -219,5 +219,15 @@ QuiX.theme = {
                     });
             }
         }
+    },
+    colorpicker: {
+        face: 10,
+        facecolor: 'ThreeDFace',
+        border: 1,
+        bordercolor:
+            'ThreeDHighlight ThreeDShadow ThreeDShadow ThreeDHighlight',
+        inset: 1,
+        insetcolor:
+            'ThreeDShadow ThreeDHighlight ThreeDHighlight ThreeDShadow'
     }
 }

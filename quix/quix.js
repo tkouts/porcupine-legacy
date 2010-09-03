@@ -204,6 +204,8 @@ QuiX.modules = [
                     QuiX.baseUrl + 'ui/box.js', [], 10),
     new QuiX.Module('Rich Text Editor',     //16
                     QuiX.baseUrl + 'ui/richtext.js', [8,15,9], 4),
+    new QuiX.Module('Color Picker',         //17
+                    QuiX.baseUrl + 'ui/colorpicker.js', [8], 4)
 ];
 
 QuiX.tags = {
@@ -227,7 +229,8 @@ QuiX.tags = {
     'timer':13, 'effect':13,
     'combo':14, 'selectlist':14,
     'box':15, 'vbox':15, 'hbox':15, 'flowbox':15,
-    'richtext':16
+    'richtext':16,
+    'colorpicker':17
 };
 
 QuiX.bootLibraries = [
@@ -510,7 +513,7 @@ QuiX.getImage = function(url) {
 
 QuiX.addEvent = function(el, type, proc) {
     if (el.addEventListener) {
-        el.addEventListener(type.slice(2,type.length), proc, false);
+        el.addEventListener(type.slice(2, type.length), proc, false);
         return true;
     }
     else if (el.attachEvent) {
