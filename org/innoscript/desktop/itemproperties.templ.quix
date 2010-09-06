@@ -1,28 +1,28 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		title="{:lb}=TITLE{:rb}" img="{:lb}=ICON{:rb}"
+        title="{:lb}=TITLE{:rb}" img="{:lb}=ICON{:rb}"
         resizable="true"
-		close="true" width="400" height="420" left="30%" top="10%">
-	<script src="desktop/ui.Frm_Auto.js"/>
-	<script src="desktop/widgets.js" depends="10,14,15"/>
-	<wbody>
-		<form action="{:lb}=URI{:rb}" method="{:lb}=METHOD{:rb}">
-			<tabpane width="100%" height="100%">
-				<tab caption="@@PROPERTIES@@">
+        close="true" width="400" height="420" left="30%" top="10%">
+    <script src="desktop/ui.Frm_Auto.js"/>
+    <script src="desktop/widgets.js" depends="10,14,15"/>
+    <wbody>
+        <form action="{:lb}=URI{:rb}" method="{:lb}=METHOD{:rb}">
+            <tabpane width="100%" height="100%">
+                <tab caption="@@PROPERTIES@@">
                     {=PROPERTIES_TAB}
-				</tab>
+                </tab>
                 {=TABS}
-				{:lb}:if ADMIN{:rb}
+                {:lb}:if ADMIN{:rb}
                 <tab caption="@@SECURITY@@" onactivate="generic.getSecurity">
                     <custom classname="ACLEditor" width="100%" height="100%"
                         rolesinherited="{:lb}=ROLES_INHERITED{:rb}"/>
                 </tab>
                 {:lb}/:if{:rb}
-			</tabpane>
-		</form>
-	</wbody>
-	<dlgbutton onclick="generic.submitForm" width="80" height="22"
+            </tabpane>
+        </form>
+    </wbody>
+    <dlgbutton onclick="generic.submitForm" width="80" height="22"
         caption="{=OK_CAPTION}" default="true" disabled="{:lb}=ACTION_DISABLED{:rb}"/>
-	<dlgbutton onclick="__closeDialog__" width="80" height="22"
+    <dlgbutton onclick="__closeDialog__" width="80" height="22"
         caption="@@CANCEL@@"/>
 </dialog>
