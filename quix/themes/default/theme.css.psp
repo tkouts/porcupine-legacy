@@ -145,33 +145,6 @@ BODY {
     white-space: nowrap;
 }
 
-.window .header #c0 {
-    background-image: url(images/win_close.gif);
-    background-repeat: no-repeat;
-}
-
-.window .header #c0:hover {
-    background-image: url(images/win_close_over.gif);
-}
-
-.window .header #c1 {
-    background-image: url(images/win_max.gif);
-    background-repeat: no-repeat;
-}
-
-.window .header #c1:hover {
-    background-image: url(images/win_max_over.gif);
-}
-
-.window .header #c2 {
-    background-image: url(images/win_min.gif);
-    background-repeat: no-repeat;
-}
-
-.window .header #c2:hover {
-    background-image: url(images/win_min_over.gif);
-}
-
 .window .status{
     border-style: solid;
     border-color: ThreeDDarkShadow ThreedHighlight 

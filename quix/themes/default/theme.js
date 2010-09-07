@@ -20,10 +20,12 @@ QuiX.theme = {
                 // control buttons
                 var oControl;
                 for (var iWhich=2; iWhich>-1; iWhich--) {
-                    oControl = new QuiX.ui.Widget({
+                    oControl = new QuiX.ui.SpriteButton({
                         id: 'c' + iWhich.toString(),
                         width: 16,
-                        height: 16
+                        height: 16,
+                        img: QuiX.getThemeUrl() + 'images/win_' +
+                             iWhich + '.gif'
                     });
                     b.appendChild(oControl);
                 }
