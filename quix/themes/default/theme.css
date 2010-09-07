@@ -1,12 +1,3 @@
-<%
-    Response.content_type = 'text/css'
-    browser = Request.serverVariables['HTTP_USER_AGENT']
-    background = ''
-    # allow background image only on IE7 and FF
-    if not 'MSIE 6' in browser:
-        background = 'background-image: url(images/desktop.jpg);'
-    end
-%>
 HTML {
     overflow : hidden;
     width: 100%;
@@ -19,10 +10,6 @@ BODY {
     height: 100%;
     font-family: Geneva, sans-serif;
     font-size: 11px;
-}
-
-.desktop {
-    <%Response.write(background)%>
 }
 
 .outline{

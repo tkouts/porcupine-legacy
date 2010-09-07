@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+
 {#def desktop}
     <rect height="-1" overflow="hidden">
         <icon top="10" left="10" width="80" height="80" imgalign="top"
@@ -18,7 +19,8 @@
     </rect>
 {/#def}
 
-<desktop xmlns="http://www.innoscript.org/quix" bgcolor="#888888">
+<desktop xmlns="http://www.innoscript.org/quix">
+
     <prop name="CLOSE" value="@@CLOSE@@"/>
     <prop name="OK" value="@@OK@@"/>
     <prop name="CANCEL" value="@@CANCEL@@"/>
@@ -26,10 +28,11 @@
     <prop name="NO" value="@@NO@@"/>
     <prop name="AUTO_RUN" value="{=AUTO_RUN}"/>
     <prop name="RUN_MAXIMIZED" type="bool" value="{=RUN_MAXIMIZED}"/>
-    
+
     <script name="Desktop Script" src="desktop/ui.Desktop.js"/>
     <script name="Generic Functions" src="desktop/generic.js"/>
-    
+    <stylesheet name="Desktop Sylesheet" src="desktop/desktop.css"/>
+
     <image left="center" top="center" width="164" height="110"
         img="desktop/images/logo.png"/>
     <vbox spacing="0" width="100%" height="100%"

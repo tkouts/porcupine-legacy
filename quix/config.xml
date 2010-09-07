@@ -49,22 +49,6 @@
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
 
-    <!-- QuiX default theme -->
-    <context path="themes/default/theme.css"
-            method="GET"
-            client="MSIE 6"
-            lang=".*"
-            max-age="300"
-            action="themes/default/theme.css.psp"/>
-    <context path="themes/default/theme.css"
-            method="GET"
-            client=".*"
-            lang=".*"
-            max-age="300"
-            action="themes/default/theme.css.psp">
-        <filter type="porcupine.filters.output.Gzip"/>
-    </context>
-
     <!-- html pages -->
     <context match="(.*)\.htm"
         method="GET"

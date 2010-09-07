@@ -18,6 +18,13 @@
 			max-age="1200">
 		<filter type="porcupine.filters.output.Gzip"/>
 	</context>
+	<!-- Stylesheets -->
+    <context match="(.*)\.css"
+            method="GET"
+            client=".*"
+            lang=".*"
+            max-age="3600"
+            action="$1.css"/>
 	<!-- Desktop images-->
 	<context match="images/(.*)"
 		method="GET"

@@ -1,11 +1,12 @@
-<desktop xmlns="http://www.innoscript.org/quix" bgcolor="#888888">
+<desktop xmlns="http://www.innoscript.org/quix" bgcolor="#AFC3D6">
+
     <prop name="CLOSE" value="@@CLOSE@@"/>
     <prop name="CANCEL" value="@@CANCEL@@"/>
     <prop name="YES" value="@@YES@@"/>
     <prop name="NO" value="@@NO@@"/>
     <script name="Login Script" src="desktop/ui.LoginPage.js"/>
 
-    <icon left="center" top="center" width="164" height="110"
+    <image left="center" top="center" width="164" height="110"
         img="desktop/images/logo.png"/>
     <dialog id="logindialog" title="@@LOGIN@@" align="center" width="280"
             height="130" status="true" left="center" top="center">
