@@ -169,12 +169,12 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
         case 'wipe-in':
             switch (this.direction) {
                 case 's':
-                    h = wd._calcHeight(true);
+                    h = wd.div.offsetHeight;
                     wd.div.style.clip = 'rect(auto,auto,' +
                                         parseInt(h * value) + 'px,auto)';
                     break;
                 case 'e':
-                    w = wd._calcWidth(true);
+                    w = wd.div.offsetWidth;
                     wd.div.style.clip = 'rect(auto,' +
                                         parseInt(w * value) + 'px,auto,auto)';
                     break;
@@ -183,7 +183,7 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
             break;
         case 'wipe-out':
             if (this.direction == 'n') {
-                h = wd.getHeight(true);
+                h = wd.div.offsetHeight;
                 wd.div.style.clip = 'rect(auto,auto,' +
                                     parseInt(h * value) + 'px,auto)';
             }

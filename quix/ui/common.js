@@ -68,6 +68,8 @@ QuiX.ui.IFrame.prototype._onload = function(evt) {
 QuiX.ui.GroupBox = function(/*params*/) {
     var params = arguments[0] || {};
     params.overflow = 'hidden';
+    var border = params.border;
+    params.border = 0;
 
     var v = true;
     if (params.checked) {
@@ -100,9 +102,9 @@ QuiX.ui.GroupBox = function(/*params*/) {
         width : '100%',
         padding : '12,12,12,12',
         height : 'this.parent.getHeight(false, memo) - this.top',
-        border : params.border || 2
+        border : border || 2
     });
-    this.border.div.className = "groupboxframe";
+    this.border.div.className = 'groupboxframe';
     this.appendChild(this.border);
 
     this.appendChild(this.caption);

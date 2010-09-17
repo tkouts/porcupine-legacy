@@ -85,7 +85,7 @@ QuiX.ui.DataGrid.prototype.edit = function(cell /*, focus*/) {
                     height : cell.offsetHeight,
                     onchange : QuiX.ui.DataGrid._update
                 });
-            
+
                 var options = this.columns[idx].options;
                 for (var i=0; i<options.length; i++) {
                     if (editValue==options[i].value)

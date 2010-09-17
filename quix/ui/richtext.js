@@ -26,6 +26,7 @@ QuiX.ui.RichText = function(/*params*/) {
     params.spacing = 0;
     this.base = QuiX.ui.Box;
     this.base(params);
+    this.div.className = 'richtext';
 
     var toolbarItems = params.toolbaritems ||
         'bold,italic,hyperlink,insertunorderedlist,' +
@@ -40,7 +41,6 @@ QuiX.ui.RichText = function(/*params*/) {
     this.toolbar = new QuiX.ui.Box({
         height : 36,
         orientation : 'h',
-        bgcolor : 'menu',
         padding : '2,2,2,2'
     });
     this.appendChild(this.toolbar);

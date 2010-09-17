@@ -7,10 +7,9 @@ Field controls 2
 QuiX.ui.Combo = function(/*params*/) {
     var params = arguments[0] || {};
     params.bgcolor = params.bgcolor || 'white';
-    params.border = params.border || 1;
+    params.border = 1;
     params.overflow = 'hidden';
     params.height = params.height || 22;
-
     this.base = QuiX.ui.Widget;
     this.base(params);
 
@@ -18,15 +17,15 @@ QuiX.ui.Combo = function(/*params*/) {
     this.editable = (params.editable == 'true' || params.editable == true);
     this.readonly = (params.readonly == 'true' || params.readonly == true);
     this.menuHeight = parseInt(params.menuheight) || 100;
-    this.div.className = 'field';
+    this.div.className = 'combo';
     this.selection = null;
     this.isExpanded = false;
     this.attachEvent('onmousedown', QuiX.stopPropag);
 
     var e = ce('INPUT');
-    e.style.padding = '1px';
-    e.style.position = 'relative';
-    e.style.left = '0px';
+    e.style.padding = '0px ' + (params.textpadding ||
+                                QuiX.theme.combo.textpadding) + 'px';
+    e.style.position = 'absolute';
     this.div.appendChild(e);
     e.onselectstart = QuiX.stopPropag;
 
@@ -67,13 +66,19 @@ QuiX.ui.Combo = function(/*params*/) {
         else {
             e.readonly = true;
         }
+        this.div.className += ' editable';
+        this.setBorderWidth(0);
     }
     else {
         e.readOnly = true;
         e.style.cursor = 'default';
         this._set = false;
-        if (!this.readonly)
+        if (!this.readonly) {
             e.onclick = QuiX.ui.Combo._btn_onclick;
+            this.attachEvent('onmousedown',
+                             QuiX.ui.Combo._noneditable_onmousedown);
+        }
+        this.div.className += ' noneditable';
     }
 
     e.onblur = function() {
@@ -93,6 +98,11 @@ QuiX.constructors['combo'] = QuiX.ui.Combo;
 QuiX.ui.Combo.prototype = new QuiX.ui.Widget;
 QuiX.ui.Combo.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
+
+QuiX.ui.Combo._noneditable_onmousedown = function(evt, w) {
+    QuiX.stopPropag(evt);
+    QuiX.cancelDefault(evt);
+}
 
 QuiX.ui.Combo._resizer_onmousedown = function(evt, w) {
     w.parent._startResize(evt);
@@ -115,11 +125,35 @@ QuiX.ui.Combo._calcDropdownWidth = function(memo) {
 
 QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild) {
-        var nh = this.getHeight(false, memo) - 2;
-        var nw = this.getWidth(false, memo) -
-                 (QuiX.theme.combo.button.width + 2);
-        this.div.firstChild.style.width = (nw>0? nw:0) + 'px';
-        this.div.firstChild.style.height = nh + 'px';
+        var input = this.div.firstChild,
+            borders = input.offsetHeight - input.clientHeight,
+            nw = this.getWidth(false, memo) || 0,
+            nh = this.getHeight(false, memo) || 0,
+            bf = QuiX.utils.BrowserInfo.family,
+            br = QuiX.utils.BrowserInfo.browser,
+            bv = QuiX.utils.BrowserInfo.version;
+
+        if (bf == 'ie' || (br == 'Firefox' && bv <= 3)) {
+            // we need to adjust the text vertically
+            var fontHeight =  QuiX.measureText(input, '/Qqgg')[1];
+            var padding = parseInt((nh - borders - fontHeight) / 2);
+            if (padding > 0) {
+                input.style.paddingTop =
+                input.style.paddingBottom = padding + 'px';
+            }
+        };
+
+        var nh = nh -
+                 parseInt(input.style.paddingTop || 0) -
+                 parseInt(input.style.paddingBottom || 0) -
+                 borders;
+        var nw = nw -
+                 QuiX.theme.combo.button.width -
+                 parseInt(input.style.paddingLeft || 0) -
+                 parseInt(input.style.paddingRight || 0) - 
+                 borders;
+        input.style.width = (nw>0? nw:0) + 'px';
+        input.style.height = (nh>0? nh:0) + 'px';
     }
 }
 
@@ -437,8 +471,9 @@ QuiX.ui.SelectList.prototype.addOption = function(params) {
     params.imgalign = 'left';
     params.align = (QuiX.dir != 'rtl')?'left':'right';
     params.width = '100%';
-    params.height = params.height || 24;
+    params.height = params.height || QuiX.theme.selectlist.optionheight;
     params.overflow = 'hidden';
+    params.padding = params.padding || QuiX.theme.selectlist.optionpadding;
     params.onmousedown = QuiX.wrappers.eventWrapper(
         QuiX.ui.SelectList._option_onmousedown,
         params.onmousedown);

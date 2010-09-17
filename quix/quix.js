@@ -140,8 +140,9 @@ QuiX.Image.prototype.load = function(callback) {
 }
 
 QuiX.__resource_error = function() {
-    if (this.resource.callback)
+    if (this.resource.callback) {
         this.resource.callback();
+    }
 }
 
 QuiX.__resource_onstatechange = function() {
@@ -743,6 +744,30 @@ QuiX.getOpacity = function(el) {
         return parseFloat(el.style.opacity);
 }
 
+QuiX._css2Js = function(css) {
+    var js = '';
+    for (var i=0; i<css.length; i++) {
+        if (css.charAt(i) == '-') {
+            i++;
+            js += css.charAt(i).toUpperCase();
+        }
+        else {
+            js += css.charAt(i);
+        }
+    }
+    return js;
+}
+
+QuiX.getStyle = function(el, styleProp) {
+    if (el.currentStyle) {
+        var y = el.currentStyle[QuiX._css2Js(styleProp)];
+    }
+    else if (window.getComputedStyle)
+        var y = document.defaultView.getComputedStyle(el, null)
+                .getPropertyValue(styleProp);
+    return y;
+}
+
 QuiX.setStyle = function(el, cssText) {
     if (QuiX.utils.BrowserInfo.family == 'ie')
         el.style.cssText = cssText;
@@ -797,6 +822,21 @@ QuiX.getScrollLeft = function(el) {
     }
     else
         return el.scrollLeft;
+}
+
+QuiX.measureText = function(sourceEl, text) {
+    var span, size,
+        st = 'font-size:' + QuiX.getStyle(sourceEl, 'font-size') +
+         ';font-family:' + QuiX.getStyle(sourceEl, 'font-family') +
+         ';font-weight:' + QuiX.getStyle(sourceEl, 'font-weight');
+    span = ce('SPAN');
+    QuiX.setStyle(span, st);
+    QuiX.setInnerText(span, text);
+    span.style.padding = '0px';
+    document.body.appendChild(span);
+    size = [span.offsetWidth, span.offsetHeight];
+    QuiX.removeNode(span);
+    return size;
 }
 
 QuiX.measureWidget = function(w, dim) {

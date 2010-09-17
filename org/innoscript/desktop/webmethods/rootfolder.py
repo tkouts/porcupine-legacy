@@ -172,7 +172,6 @@ def __blank__(self):
         params['RB_NAME'] = None
 
     params['BOTTOM'] = taskbar_position == 'bottom'
-    params['TOP'] = not params['BOTTOM']
 
     # get applications
     sOql = "select launchUrl, displayName, icon from 'apps' " + \

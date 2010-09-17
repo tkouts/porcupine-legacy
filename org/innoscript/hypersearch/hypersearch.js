@@ -1,18 +1,15 @@
 function hypersearch() {}
 
-hypersearch.selectFolder = function(evt, w)
-{
+hypersearch.selectFolder = function(evt, w) {
 	var win = w.getParentByType(QuiX.ui.Window);
 	win.showWindow(QuiX.root + '?cmd=selectcontainer&action=select_folder',
-		function(w)
-		{
+		function(w) {
 			w.attachEvent("onclose", hypersearch.updateFolder)
 		}
 	);
 }
 
-hypersearch.updateFolder = function(dlg)
-{
+hypersearch.updateFolder = function(dlg) {
 	if (dlg.buttonIndex == 0) {
 		var selection = dlg.getWidgetById("tree").getSelection();
 		var id = selection.getId();
@@ -22,8 +19,7 @@ hypersearch.updateFolder = function(dlg)
 	}
 }
 
-hypersearch.updateModifiedMode = function(evt, w)
-{
+hypersearch.updateModifiedMode = function(evt, w) {
 	if (w.getValue() == '3') {
 		w.parent.getWidgetById('date_to_box').enable();
 		w.parent.getWidgetById('date_from_box').enable();
@@ -34,8 +30,7 @@ hypersearch.updateModifiedMode = function(evt, w)
 	}
 }
 
-hypersearch.search = function(evt, w)
-{
+hypersearch.search = function(evt, w) {
 	var query = hypersearch.getSearchQuery(w.parent.parent);
 	var results_list = w.getParentByType(QuiX.ui.Window)
 						.getWidgetById('searchresults');
@@ -57,12 +52,10 @@ hypersearch.getSearchQuery = function(w) {
         SCOPE : scope
     }
 	
-	if (w.getWidgetById('scope').getValue())
-	{
+	if (w.getWidgetById('scope').getValue()) {
 		scope = 'deep($SCOPE)';
 	}
-    else
-    {
+    else {
         scope = '$SCOPE'
     }
 	
@@ -76,22 +69,19 @@ hypersearch.getSearchQuery = function(w) {
     var modified_mode = w.getWidgetById('modified')[0].getValue();
 
     // displayName
-    if (name != '')
-    {
+    if (name != '') {
     	conditions.push("$DN in displayName");
         oql_vars.DN = name;
     }
 
     // descriprion
-    if (description != '')
-    {
+    if (description != '') {
     	conditions.push("$DESCR in description");
         oql_vars.DESCR = description;
     }
 
     // modification date
-    switch (modified_mode)
-    {
+    switch (modified_mode) {
     	case '1':
     		date_to = new Date();
     		date_from = new Date(date_to - 604800000);
@@ -106,15 +96,13 @@ hypersearch.getSearchQuery = function(w) {
     		date_from = w.getWidgetById('from').getValue();
     }
     
-    if (date_to)
-    {
+    if (date_to) {
 		conditions.push("modified between $DATE_FROM and $DATE_TO");
         oql_vars.DATE_FROM = date_from;
         oql_vars.DATE_TO = date_to;
     }
     
-    if (conditions.length > 0)
-    {
+    if (conditions.length > 0) {
     	query += ' where ' + conditions.join(' and ');
     }
     

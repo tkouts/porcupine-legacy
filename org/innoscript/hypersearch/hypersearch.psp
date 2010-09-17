@@ -62,7 +62,7 @@
 						ondblclick="hypersearch.showObjectProperties">
 					<listheader>
 						<column width="24" caption="" type="img" name="image" resizable="false"/>
-						<column width="120" caption="@@displayName@@" name="displayName" bgcolor="#EFEFEF" sortable="true"/>
+						<column width="120" caption="@@displayName@@" name="displayName" cssclass="displayName" sortable="true"/>
 						<column width="60" caption="@@SIZE@@" name="size" xform="generic.computeSize" sortable="true"/>
 						<column width="120" caption="@@MODIFIEDBY@@" name="modifiedBy" sortable="true"/>
 						<column width="160" caption="@@DATEMOD@@" type="date" name="modified" sortable="true"/>

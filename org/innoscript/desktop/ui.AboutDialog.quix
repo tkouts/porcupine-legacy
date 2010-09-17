@@ -4,8 +4,7 @@
         align="center" width="340" height="260" left="40%" top="40%"
         bgcolor="white">
     <wbody>
-        <icon left="-4" top="-1" width="100%" height="100%"
-            img="desktop/images/powered.png"/>
+        <image width="100%" height="100%" img="desktop/images/powered.png"/>
         <rect top="40" width="100%" height="100%">
             <xhtml><![CDATA[
                 <center>

@@ -5,7 +5,7 @@ Date picker control
 QuiX.ui.Datepicker = function(/*params*/) {
     var params = arguments[0] || {};
     params.editable = false;
-    params.menuheight = 160;
+    params.menuheight = 180;
     params.img = params.img || '$THEME_URL$images/date16.gif';
     this.base = QuiX.ui.Combo;
     this.base(params);
@@ -190,6 +190,10 @@ QuiX.ui.Datepicker.prototype.onNext = function() {
     this.fill();
 }
 
+QuiX.ui.Datepicker._month_onmousedown = function(evt) {
+    QuiX.cancelDefault(evt || event);
+}
+
 QuiX.ui.Datepicker._month_onclick = function(evt, w) {
     var oCombo;
     if (w)
@@ -237,8 +241,8 @@ QuiX.ui.Datepicker._fill = function(box) {
     var oDropdown = box.parent;
     var oDatepicker = oDropdown.combo;
     
-    oDropdown.minw = oDropdown.width = 200;
-    oDropdown.minh = oDropdown.height = 160;
+    oDropdown.minw = oDropdown.width = 220;
+    oDropdown.minh = oDropdown.height = 180;
     
     oDropdown.close = function() {
         document.desktop.overlays.removeItem(this);
@@ -262,6 +266,8 @@ QuiX.ui.Datepicker._fill = function(box) {
 
     oDatepicker.month.div.firstChild.onclick =
         QuiX.ui.Datepicker._month_onclick;
+    oDatepicker.month.div.firstChild.onmousedown =
+        QuiX.ui.Datepicker._month_onmousedown;
     oDatepicker.month.button.attachEvent('onclick',
                                          QuiX.ui.Datepicker._month_onclick);
 

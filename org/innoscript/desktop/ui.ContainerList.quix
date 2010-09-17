@@ -35,7 +35,7 @@
                         caption="@@PASTE@@" onclick="containerList.paste"/>
                 </menu>
             </menubar>
-            <toolbar width="100%" height="34">
+            <toolbar width="100%" height="32">
                 <tbbutton width="30"
                     img="desktop/images/go_back22.gif"
                     tooltip="@@BACK@@"
@@ -54,8 +54,7 @@
                     tooltip="@@SEARCH@@"
                     onclick="desktop.launchHyperSearch"/>
             </toolbar>
-            <hbox width="100%" height="26" border="1" childrenalign="center"
-                    style="border-style:solid;border-color:ThreeDHighlight ThreeDShadow ThreeDShadow ThreeDHighlight">
+            <hbox width="100%" height="26" childrenalign="center">
                 <label height="16" width="32" align="center" caption="Path"/>
                 <combo id="path" editable="true"/>
                 <flatbutton width="28" caption="Go"
@@ -102,7 +101,7 @@
                     <column width="24" caption="" type="img" name="image"
                         resizable="false"/>
                     <column width="140" caption="@@NAME@@" name="displayName"
-                        bgcolor="#EFEFEF" sortable="true"/>
+                        cssclass="displayName" sortable="true"/>
                     <column width="80" caption="@@SIZE@@" name="size"
                         xform="generic.computeSize" sortable="true"/>
                     <column width="160" caption="@@DATEMOD@@" type="date"

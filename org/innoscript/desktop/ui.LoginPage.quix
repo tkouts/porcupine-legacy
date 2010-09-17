@@ -16,7 +16,7 @@
         <wbody>
             <hbox width="100%" height="100%">
                 <rect width="70">
-                    <icon left="center" top="center" width="48" height="48"
+                    <image left="center" top="center" width="48" height="48"
                         img="desktop/images/kgpg.gif"/>
                 </rect>
                 <rect width="-1">

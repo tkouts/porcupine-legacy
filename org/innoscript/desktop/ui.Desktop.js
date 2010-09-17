@@ -98,11 +98,10 @@ desktop.runApplication = function(w) {
 
 desktop.launchHyperSearch = function(evt, w) {
     var query_string = '';
-    var win;
-    try {
+    var win = null;
+    if (QuiX.ui.Window) {
         win = w.getParentByType(QuiX.ui.Window);
     }
-    catch(e) {}
     if (win)
         query_string = '?id=' + win.attributes.FolderID;
     document.desktop.parseFromUrl('hypersearch/hypersearch.quix' +

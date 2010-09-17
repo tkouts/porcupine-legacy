@@ -1,0 +1,775 @@
+HTML {
+    overflow : hidden;
+    width: 100%;
+    height: 100%;
+}
+
+BODY {
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+    
+    font-family: Calibri, sans-serif;
+    font-size: 12px;
+}
+
+/********************/
+/* Widget outline   */
+/********************/
+
+.outline {
+    border-style: dashed;
+    border-color: red;
+}
+
+.outline>div {
+    background-color: black;
+}
+
+/********************/
+/* Text highlight   */
+/********************/
+
+#_hl SPAN {
+    background-color: yellow;
+}
+
+/********************/
+/* Tooltip          */
+/********************/
+
+.tooltip {
+    border: solid #CCC;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+
+    -webkit-box-shadow: 2px 2px 2px rgba(92, 92, 92, 192);
+    -moz-box-shadow: 2px 2px 2px rgba(92, 92, 92, 192);
+    box-shadow: 2px 2px 2px rgba(92, 92, 92, 192);
+}
+
+/********************/
+/* Field            */
+/********************/
+
+.field {
+    border-style: solid;
+    border-color: #CCC;
+    background-color: white;
+    color: #333;
+}
+
+.field INPUT, .field TEXTAREA {
+    border: none;
+    background-color: transparent;
+    font-family: Calibri, sans-serif;
+    font-size: 12px;
+}
+
+.field INPUT:focus, .field TEXTAREA:focus {
+}
+
+.field .optionselected {
+    cursor: default;
+    background-color: #0099FF;
+}
+
+/********************/
+/* Label            */
+/********************/
+
+.label {
+    cursor: default;
+    border-style: solid;
+}
+
+/********************/
+/* Flat button      */
+/********************/
+
+.flat {
+    text-align : center;
+    margin-right: 6px;
+    cursor: pointer;
+    border-style: solid;
+    border-color: transparent;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.flat.over {
+    border-color: #888;
+}
+
+.flat.on {
+    border-color: #888 #CCC #CCC #888;
+    background: #C3E1F5;
+}
+
+.flat.menu {
+    border-color: #888 #CCC #CCC #888;
+    background: #66CCFF;
+}
+
+/********************/
+/* Button           */
+/********************/
+
+.btn {
+    font-weight: 600;
+    color: #333;
+
+    border-style: solid;
+    border-color: #666;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+
+    background: #E3E3E3;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 from(#FBFBFB), to(#E3E3E3)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #FBFBFB,  #E3E3E3); /* for firefox 3.6+ */
+}
+
+.btn .l2 {
+    border: solid transparent;
+}
+
+/********************/
+/* Sprite button    */
+/********************/
+
+.spritebutton:hover {
+    cursor: pointer;
+}
+
+/********************/
+/* Window           */
+/********************/
+
+.window {
+    border-style: solid;
+    border-color: #888;
+    background-color: #BBBBBB;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+
+    -webkit-box-shadow: 0px 0px 8px rgba(92, 92, 92, 192);
+    -moz-box-shadow: 0px 0px 8px rgba(64, 64, 64, 128);
+    box-shadow: 0px 0px 8px rgba(64, 64, 92, 192);
+}
+
+.window .header {
+    color: black;
+    font-weight: bolder;
+    letter-spacing: 0.1ex;
+    white-space: nowrap;
+}
+
+.window .body {
+    border: solid #9F9F9F;
+    background: #F2F2F2;
+}
+
+.window .status{
+    border-style: solid;
+    border-color: #888;
+
+    -webkit-border-radius: 0px 0px 4px 4px;
+    -moz-border-radius: 0px 0px 4px 4px;
+    border-radius: 0px 0px 4px 4px;
+}
+
+.resize {
+    background-image : url(images/resize-handle.gif);
+    background-repeat : no-repeat;
+    cursor : se-resize;
+}
+
+.resize[dir=rtl] {
+    background-image: url(images/resize-handle-rtl.gif);
+    cursor: sw-resize;
+}
+
+/********************/
+/* Splitter         */
+/********************/
+
+.splitter .handleV {
+    border-style : solid;
+    background-color: buttonface;
+    border-color: transparent #888 transparent #CCC;
+}
+
+.splitter .handleH {
+    border-style: solid;
+    background-color: buttonface;
+    border-color: #CCC transparent #888 transparent;
+}
+
+/********************/
+/* Outlook bar      */
+/********************/
+
+.outlookbar .tool {
+    border-style: solid;
+    border-color: #CCC;
+
+    background: #EAEAEA;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 from(#FFF), to(#EAEAEA)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #FFF,  #EAEAEA); /* for firefox 3.6+ */
+
+    white-space : nowrap;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/********************/
+/* Tool bar         */
+/********************/
+
+.toolbar {
+    border-style: solid;
+    border-color: #CCC transparent #CCC transparent;
+    white-space: nowrap;
+}
+
+.toolbar .handle {
+    border-style: solid;
+    border-color: #CCC #888 #888 #CCC;
+    /*background: #999;*/
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+/********************/
+/* Menu bar         */
+/********************/
+
+.menubar {
+    border-style: solid;
+    border-color: #CCC transparent #888 transparent;
+    white-space: nowrap;
+}
+
+.menubar .menu {
+    cursor: default;
+    border-style: solid;
+    float: left;
+    clear: right;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.menubar .menu[dir=rtl] {
+    float: right;
+    clear: left;
+}
+
+.menubar .menu.over{
+    border-color: #888;
+}
+
+.menubar .menu.selected {
+    border-color: #0099FF;
+
+    color: #333333;
+    background: #0099FF;
+}
+
+/********************/
+/* Context menu     */
+/********************/
+
+.contextmenu {
+    border-style: solid;
+    border-color: #888;
+    background-color: #F5F5F5;
+    cursor: default;
+
+    -webkit-box-shadow: 2px 2px 2px rgba(92, 92, 92, 192);
+    -moz-box-shadow: 2px 2px 2px rgba(92, 92, 92, 192);
+    box-shadow: 2px 2px 2px rgba(92, 92, 92, 192);
+}
+
+.contextmenu .inner {
+    border-style: solid;
+    border-color: transparent #CCC transparent transparent;
+}
+
+.contextmenu .submenu {
+    background-image: url(images/submenu.gif);
+    background-position: right;
+    background-repeat: no-repeat;
+}
+
+.contextmenu .submenu[dir=rtl] {
+    background-image: url(images/submenu-rtl.gif);
+    background-position: left;
+}
+
+.contextmenu .option {
+    border: solid transparent;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.contextmenu .option:hover {
+    /*color: #333333;*/
+    border: solid #999;
+    background-color: #C3E1F5;
+}
+
+.contextmenu .separator {
+    border-style: solid;
+    border-color: #CCC #EDEDED #EDEDED #CCC;
+}
+
+/********************/
+/* Separator        */
+/********************/
+
+.separator {
+    border-style: solid;
+    border-color: #CCC #EDEDED #EDEDED #CCC;
+}
+
+/********************/
+/* Tab pane         */
+/********************/
+
+.tabpane {
+    white-space: nowrap;
+}
+
+.tabpane .tab {
+    border-style: solid;
+    -webkit-border-radius: 4px 4px 0px 0px;
+    -moz-border-radius: 4px 4px 0px 0px;
+    border-radius: 4px 4px 0px 0px;
+    border-color: #999;
+
+    margin: 2px 1px 0px 1px;
+    float: left;
+    clear: right;
+    white-space: nowrap;
+}
+
+.tabpane .tab[dir=rtl] {
+    float: right;
+    clear: left;
+}
+
+.tabpane .active {
+    color: white;
+    font-weight: 600;
+    background: #999999;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 color-stop(0.5, #A7A7A7),
+                                 color-stop(0.5, #999999));
+    background: -moz-linear-gradient(top,  #A7A7A7 50%, #999999 50%);
+
+    cursor: default;
+}
+
+.tabpane .inactive {
+    color: white;
+    font-weight: 600;
+    background: #CCCCCC;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 color-stop(0.5, #D3D3D3),
+                                 color-stop(0.5, #CCCCCC));
+    background: -moz-linear-gradient(top,  #D3D3D3 50%, #CCCCCC 50%);
+
+    cursor: pointer;
+}
+
+.tabpane .tabpage {
+    background-color: #EDEDED;
+    -webkit-border-radius: 0px 4px 4px 4px;
+    -moz-border-radius: 0px 4px 4px 4px;
+    border-radius: 0px 4px 4px 4px;
+    border-style: solid;
+    border-color: #999999;
+}
+
+/********************/
+/* List view        */
+/********************/
+
+.listview TABLE {
+    table-layout: fixed;
+    font-size: 12px;
+}
+
+.listview .listheader {
+/*
+    background-color: #F5F2EF;
+    background-image: url(images/list_header.gif);
+    background-repeat: repeat-x;
+    background-position: bottom left;
+*/
+    color: #666;
+    font-weight: bold;
+    background: #EBEBEB;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 from(#FFF), to(#EBEBEB)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #FFF,  #EBEBEB); /* for firefox 3.6+ */
+}
+
+.listview .listheader TABLE {
+    border: 1px #999;
+    border-style: solid none;
+}
+
+.listview .listheader .column {
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent #999
+                  transparent transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: default;
+}
+
+.listview .listheader .column[dir=rtl] {
+    border-color: transparent transparent
+                  transparent #999;
+}
+
+.listview .listheader .filler {
+    border-style: none none none solid;
+}
+
+.listview .listheader .filler[dir=rtl] {
+    border-style: none solid none none;
+}
+
+.listview .listheader .resizer {
+    cursor: e-resize;
+    border-style: solid;
+    background-image: url(../../images/transp.gif);
+}
+
+.listview .list {
+    color: #333;
+}
+
+.listview .list .r0 {
+    background: #F9F9F9;
+}
+
+.listview .list TR:hover {
+    color: #333333;
+    background: #C3E1F5;
+}
+
+.listview .list .srow {
+    color: #333333;
+    background: #0099FF !important;
+}
+
+.listview .srow TD, TR:hover TD {
+    background-color: transparent !important;
+}
+
+.listview .list .column {
+    cursor: default;
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent #999
+                  #999 transparent;
+
+    background: #EBEBEB;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 from(#FFF), to(#EBEBEB)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #FFF,  #EBEBEB); /* for firefox 3.6+ */
+}
+
+.listview .list .column[dir=rtl] {
+    border-color: transparent transparent
+                  #999 #999;
+}
+
+.listview .list .cell {
+    overflow: hidden;
+    border-color: silver;
+    border-style: none solid solid none;
+    cursor: default;
+}
+
+.listview .list .cell[dir=rtl] {
+    border-style: none none solid solid;
+}
+
+.listview .list .cell SPAN {
+    white-space: nowrap;
+}
+
+/********************/
+/* Progress bar     */
+/********************/
+
+.progressbar {
+    border-style: solid;
+    border-color: black;
+}
+
+.progressbar .bar {
+    background-color: #6699FF;
+}
+
+/********************/
+/* Tree             */
+/********************/
+
+.tree .treenode {
+    cursor: default;
+    border-style: none;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.tree .treenode A {
+    color: #0099CC;
+    text-decoration: none;
+}
+
+.tree .treenode A.disabled, .tree .treenode A:hover.disabled {
+    color: GrayText;
+    text-decoration: none;
+    cursor: default;
+}
+
+.tree .treenode A.selected{
+    color: #666;
+}
+
+/********************/
+/* Combo            */
+/********************/
+
+.combo .btn {
+    -webkit-border-radius: 0px 3px 3px 0px;
+    -moz-border-radius: 0px 3px 3px 0px;
+    border-radius: 0px 3px 3px 0px;
+}
+
+.combo INPUT {
+    background-color: transparent;
+    font-family: Calibri, sans-serif;
+    font-size: 12px;
+}
+
+.combo.noneditable {
+    border: solid #666;
+    
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+
+    background: #E3E3E3;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 from(#FBFBFB), to(#E3E3E3)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #FBFBFB,  #E3E3E3); /* for firefox 3.6+ */
+}
+
+.combo.noneditable .btn {
+    border-color: transparent transparent transparent #666;
+}
+
+.combo.noneditable INPUT {
+    border: none;
+}
+
+.combo.editable {
+    border-color: transparent;
+    background: transparent;
+}
+
+.combo.editable INPUT {
+    border: 1px solid;
+    border-color: #333 #CCC #CCC #333;
+}
+
+.combodropdown {
+    border-style: solid;
+    border-color: gray;
+}
+
+.combodropdown .option {
+    cursor: default;
+    white-space: nowrap;
+}
+
+.combodropdown .option:hover {
+    color: white;
+    background-color: #6699FF;
+}
+
+/********************/
+/* Spin button      */
+/********************/
+
+.spin INPUT {
+    background-color: transparent;
+    font-family: Calibri, sans-serif;
+    font-size: 12px;
+}
+
+.spin.noneditable {
+    border: solid #666;
+
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+
+    background: #E3E3E3;
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 from(#FBFBFB), to(#E3E3E3)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #FBFBFB,  #E3E3E3); /* for firefox 3.6+ */
+}
+
+.spin.noneditable INPUT {
+    border: none;
+}
+
+.spin.noneditable #_up {
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+}
+
+.spin.noneditable #_down {
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+}
+
+.spin.editable INPUT {
+    border: 1px solid;
+    border-color: #333 #CCC #CCC #333;
+}
+
+.spin #_up {
+    -webkit-border-radius: 0px 3px 0px 0px;
+    -moz-border-radius: 0px 3px 0px 0px;
+    border-radius: 0px 3px 0px 0px;
+}
+
+.spin #_down {
+    -webkit-border-radius: 0px 0px 3px 0px;
+    -moz-border-radius: 0px 0px 3px 0px;
+    border-radius: 0px 0px 3px 0px;
+}
+
+.spin #_up .l2 {
+    background: url(images/asc8.gif) no-repeat;
+    background-position: center;
+}
+
+.spin #_down .l2 {
+    background: url(images/desc8.gif) no-repeat;
+    background-position: center;
+}
+
+/********************/
+/* DatePicker       */
+/********************/
+
+.DatePicker {
+    background-color: #EDEDED;
+}
+
+.DatePickerBtn {
+    cursor: pointer;
+}
+
+.DatePickerBtnNow {
+    background-color: #c0c0ff;
+}
+
+.DatePickerBtnSelect {
+    background-color: red;
+}
+
+/********************/
+/* Group box        */
+/********************/
+
+.groupbox {
+    background-color: white;
+}
+
+.groupboxframe {
+    border-color: lightgray;
+    border-style: groove;
+}
+
+/********************/
+/* Slider           */
+/********************/
+
+.slider .slot {
+    border-color: lightgray;
+    border-style: inset;
+}
+
+.slider .handle {
+    cursor: e-resize;
+}
+
+/********************/
+/* Flow box         */
+/********************/
+
+.flowbox .selected {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+
+    background-color: #0099FF;
+}
+
+/********************/
+/* Rich text editor */
+/********************/
+
+.richtext .field TEXTAREA {
+    font-family: Courier, Monospace;
+    font-size: 12px;
+}
+
+.richtext .editframe {
+    border-style: solid;
+    border-color: #CCC;
+}
+
+/********************/
+/* File upload      */
+/********************/
+
+.btnupload {
+    border-style : solid;
+    border-color : transparent;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.btnupload:hover {
+    border-color: #888;
+}

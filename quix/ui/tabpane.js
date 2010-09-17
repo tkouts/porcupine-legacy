@@ -75,8 +75,8 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
     params.top = this.headerSize;
     params.height = QuiX.ui.TabPane._calcPageHeight;
     params.width = '100%';
-    params.border = 1;
-    params.padding = params.padding || '8,8,8,8';
+    params.border = QuiX.theme.tabpane.border;
+    params.padding = params.padding || QuiX.theme.tabpane.padding;
     params.overflow = params.overflow || 'auto';
 
     var w = new QuiX.ui.Widget(params);

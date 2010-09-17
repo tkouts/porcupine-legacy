@@ -77,7 +77,8 @@ QuiX.ui.OutlookBar = function(/*params*/) {
     this.base(params);
     this.div.className = 'outlookbar';
 
-    this.headerHeight = params.headerheight || 20;
+    this.headerHeight = params.headerheight ||
+                        QuiX.theme.outlookbar.header.height;
     this.panes = [];
     this.activePane = 0;
 }
@@ -86,7 +87,8 @@ QuiX.constructors['outlookbar'] = QuiX.ui.OutlookBar;
 QuiX.ui.OutlookBar.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.OutlookBar.prototype.addPane = function(params) {
-    var header = QuiX.theme.outlookbar.header.get(this.headerHeight);
+    params.height = this.headerHeight;
+    var header = QuiX.theme.outlookbar.header.get(params);
     this.appendChild(header);
     header.setPosition('relative');
     header.div.className = 'tool';

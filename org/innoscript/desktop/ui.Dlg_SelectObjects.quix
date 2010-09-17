@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
-		title="@@SELECT_OBJECTS@@" resizable="true" close="true" bgcolor="menu"
+		title="@@SELECT_OBJECTS@@" resizable="true" close="true"
 		align="right" width="380" height="400" left="30%" top="30%">
 	<script name="Select Objects Dialog Script" src="desktop/ui.Dlg_SelectObjects.js"/>
 	<prop name="CC" value="$CC"/>

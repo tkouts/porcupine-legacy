@@ -116,7 +116,8 @@ QuiX.ui.Field = function(/*params*/) {
             if (this.readonly) e.readOnly = true;
             if (this.type!='textarea') e.type = this.type;
             e.value = (params.value)?params.value:'';
-            this.textPadding = params.textpadding || 1;
+            this.textPadding = (params.textpadding ||
+                                QuiX.theme.field.textpadding) + 'px';
             if (params.maxlength)
                 e.maxLength = params.maxlength;
             
@@ -258,23 +259,42 @@ QuiX.ui.Field.prototype.setBgColor = function(color) {
 
 QuiX.ui.Field.prototype.redraw = function(bForceAll /*, memo*/) {
     if (this.type == 'text' || this.type == 'textarea'
-            || this.type == 'password')
-        this.div.firstChild.style.padding = this.textPadding + 'px';
+            || this.type == 'password') {
+        this.div.firstChild.style.padding = '0px ' + this.textPadding;
+    }
     QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
 }
 
 QuiX.ui.Field.prototype._adjustFieldSize = function(memo) {
-    if (this.type!='checkbox' && this.type!='radio' && this.div.firstChild) {
-        var nw = this.getWidth(false, memo) || 0;
-        var nh = this.getHeight(false, memo) || 0;
-        if (this.type == 'textarea' && QuiX.utils.BrowserInfo.family == 'moz')
+    if (this.type != 'checkbox' && this.type != 'radio' && this.div.firstChild) {
+        var input = this.div.firstChild,
+            borders = input.offsetHeight - input.clientHeight,
+            nw = this.getWidth(false, memo) || 0,
+            nh = this.getHeight(false, memo) || 0,
+            bf = QuiX.utils.BrowserInfo.family,
+            br = QuiX.utils.BrowserInfo.browser,
+            bv = QuiX.utils.BrowserInfo.version;
+
+        if (this.type == 'textarea' && bf == 'moz') {
             this.div.firstChild.style.top = '-1px';
-        nw = nw - 2 * this.textPadding;
-        nh = nh - 2 * this.textPadding;
-        if (nw < 0) nw = 0;
-        if (nh < 0) nh = 0;
-        this.div.firstChild.style.width = nw + 'px';
-        this.div.firstChild.style.height = nh + 'px';
+        }
+
+        if ((this.type == 'text' || this.type == 'password') &&
+                (bf == 'ie' || (br == 'Firefox' && bv <= 3))) {
+            // we need to adjust the text vertically
+            var fontHeight =  QuiX.measureText(input, '/Qq')[1];
+            var padding = parseInt((nh - borders - fontHeight) / 2);
+            if (padding > 0) {
+                input.style.paddingTop =
+                input.style.paddingBottom = padding + 'px';
+            }
+        }
+        nw = nw - parseInt(input.style.paddingLeft || 0) -
+                  parseInt(input.style.paddingRight || 0) - borders;
+        nh = nh - parseInt(input.style.paddingTop || 0) -
+                  parseInt(input.style.paddingBottom || 0) - borders;
+        input.style.width = (nw>0? nw:0) + 'px';
+        input.style.height = (nh>0? nh:0) + 'px';
     }
 }
 
@@ -318,7 +338,7 @@ QuiX.ui.Field._radio_onclick = function(evt, w) {
 QuiX.ui.Spin = function(/*params*/) {
     var params = arguments[0] || {};
     params.bgcolor = params.bgcolor || 'white';
-    params.border = params.border || 1;
+    params.border = params.border || QuiX.theme.spinbutton.border;
     params.padding = '0,0,0,0';
     params.overflow = 'hidden';
     params.height = params.height || 22;
@@ -326,51 +346,45 @@ QuiX.ui.Spin = function(/*params*/) {
     this.base = QuiX.ui.Widget;
     this.base(params);
 
-    this.div.className = 'combo';
-    
+    this.div.className = 'spin';
+
     this.name = params.name;
     this.editable = (params.editable == 'true' || params.editable == true);
     this.min = params.min || 0;
     this.max = params.max;
     this.step = parseInt(params.step) || 1;
-    this.div.className = 'field';
 
     var e = ce('INPUT');
-    e.style.padding = '1px';
+    e.style.padding = '0px ' + (params.textpadding ||
+                                QuiX.theme.combo.textpadding) + 'px';
     e.style.position='absolute';
     e.style.textAlign = 'right';
     this.div.appendChild(e);
-    
+
     e.onmousedown = QuiX.stopPropag;
     e.onselectstart = QuiX.stopPropag;
-    
+
     if (params.maxlength)
         e.maxLength = params.maxlength;
     
     var oSpin = this;
 
-    upbutton = new QuiX.ui.Button({
-        left: 'this.parent.getWidth(false, memo) - 16',
-        height: '50%',
-        width: 16,
-        onclick: QuiX.ui.Spin._btnup_onclick
-    });
+    var upbutton = QuiX.theme.spinbutton.getUp();
+    upbutton.attachEvent('onclick', QuiX.ui.Spin._btnup_onclick);
     this.appendChild(upbutton);
 
-    downbutton = new QuiX.ui.Button({
-        left: 'this.parent.getWidth(false, memo) - 16',
-        height: '50%',
-        top: '50%',
-        width: 16,
-        onclick: QuiX.ui.Spin._btndown_onclick
-    });
+    var downbutton = QuiX.theme.spinbutton.getDown();
+    downbutton.attachEvent('onclick', QuiX.ui.Spin._btndown_onclick);
     this.appendChild(downbutton);
 
     if (!this.editable) {
         e.readOnly = true;
         e.style.cursor = 'default';
+        this.div.className += ' noneditable';
     } else {
         e.onblur = function() {oSpin.validate();}
+        this.div.className += ' editable';
+        this.setBorderWidth(0);
     }
     
     this.attachEvent('onkeypress', QuiX.ui.Spin._onkeypress);
@@ -399,10 +413,34 @@ QuiX.ui.Spin.prototype.customEvents =
 
 QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild) {
-        var nh = this.getHeight(false, memo) - 2;
-        this.div.firstChild.style.width =
-            (this.getWidth(false, memo) - 18) + 'px';
-        this.div.firstChild.style.height = nh + 'px';
+        var input = this.div.firstChild,
+            borders = input.offsetHeight - input.clientHeight,
+            nw = this.getWidth(false, memo) || 0,
+            nh = this.getHeight(false, memo) || 0,
+            bf = QuiX.utils.BrowserInfo.family,
+            br = QuiX.utils.BrowserInfo.browser,
+            bv = QuiX.utils.BrowserInfo.version;
+
+        if (bf == 'ie' || (br == 'Firefox' && bv <= 3)) {
+            // we need to adjust the text vertically
+            var fontHeight =  QuiX.measureText(input, '/Qq')[1];
+            var padding = parseInt((nh - borders - fontHeight) / 2);
+            if (padding > 0) {
+                input.style.paddingTop =
+                input.style.paddingBottom = padding + 'px';
+            }
+        };
+
+        nh = nh -
+             parseInt(input.style.paddingTop || 0) -
+             parseInt(input.style.paddingBottom || 0) -
+             borders;
+        nw = nw - QuiX.theme.spinbutton.btnWidth -
+             parseInt(input.style.paddingLeft || 0) -
+             parseInt(input.style.paddingRight || 0) - 
+             borders;
+        input.style.width = (nw>0? nw:0) + 'px';
+        input.style.height = (nh>0? nh:0) + 'px';
     }
 }
 

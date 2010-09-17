@@ -1,22 +1,22 @@
 <?xml version="1.0"?>
 
 {#def desktop}
-    <rect height="-1" overflow="hidden">
-        <icon top="10" left="10" width="80" height="80" imgalign="top"
-                    ondblclick="generic.openContainer"
-                    img="desktop/images/store.gif"
-                    color="white" caption="{=ROOT_NAME}">
-                <prop name="folderID" value=""/>
-        </icon>
-        {:if RB_NAME}
-            <icon top="80" left="10" width="80" height="80"
-                imgalign="top" ondblclick="generic.openContainer"
-                img="desktop/images/trashcan_full.gif" color="white"
-                caption="{=RB_NAME}">
-                    <prop name="folderID" value="rb"/>
-            </icon>
-        {/:if}
-    </rect>
+<rect height="-1" overflow="hidden">
+    <icon top="10" left="10" width="90" height="80" imgalign="top"
+                ondblclick="generic.openContainer"
+                img="desktop/images/store.gif"
+                color="white" caption="{=ROOT_NAME}">
+            <prop name="folderID" value=""/>
+    </icon>
+    {:if RB_NAME}
+    <icon top="90" left="10" width="90" height="90"
+        imgalign="top" ondblclick="generic.openContainer"
+        img="desktop/images/trashcan_full.gif" color="white"
+        caption="{=RB_NAME}">
+            <prop name="folderID" value="rb"/>
+    </icon>
+    {/:if}
+</rect>
 {/#def}
 
 <desktop xmlns="http://www.innoscript.org/quix">
@@ -60,12 +60,12 @@
                     <menuoption caption="@@APPLICATIONS@@"
                             img="desktop/images/appsfolder.gif">
                         {:reduce APPS}
-                            <menuoption img="{=icon}" caption="{=displayName}"
-                                    onclick="generic.runApp">
-                                <prop name="url" value="{=launchUrl}"/>
-                            </menuoption>
+                        <menuoption img="{=icon}" caption="{=displayName}"
+                                onclick="generic.runApp">
+                            <prop name="url" value="{=launchUrl}"/>
+                        </menuoption>
                         {:else}
-                            <menuoption caption="@@EMPTY@@" disabled="true"/>
+                        <menuoption caption="@@EMPTY@@" disabled="true"/>
                         {/:reduce}
                     </menuoption>
                     <menuoption caption="HyperSearch"
@@ -97,7 +97,8 @@
                 handler="desktop.displayTime"
                 auto="true"/>
         </rect>
-        {:if TOP}
+        {:if BOTTOM}
+        {:else}
             {=desktop}
         {/:if}
     </vbox>

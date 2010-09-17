@@ -35,6 +35,4 @@
     </tab>
 {/#def}
 
-{#def OK_CAPTION}
-@@UPDATE@@
-{/#def}
+{#def OK_CAPTION}@@UPDATE@@{/#def}

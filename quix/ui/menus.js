@@ -5,10 +5,16 @@ Menus
 // menu option
 
 QuiX.ui.MenuOption = function(params) {
-    params.height = params.height || 21;
-    params.imgalign = 'left';
     params.width = null;
-    params.padding = '4,18,3,2';
+    params.height = null;
+    if (!params.img) {
+        params.img = QuiX.baseUrl + 'images/transp.gif';
+    }
+    params.imgwidth = 16;
+    params.imgheight = 16;
+    params.imgalign = 'left';
+    params.padding = '4,18,3,3';
+    params.border = params.border || 1;
     params.onmouseover = QuiX.ui.MenuOption._onmouseover;
     params.onclick = QuiX.wrappers.eventWrapper(params.onclick,
                                                 QuiX.ui.MenuOption._onclick);
@@ -32,36 +38,29 @@ QuiX.ui.MenuOption.prototype.addOption = function(params) {
 }
 
 QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
-    if (this.subMenu)
+    if (this.subMenu) {
         this.div.className = 'option submenu';
-    else
+    }
+    else {
         this.div.className = 'option';
-
+    }
     if (this.type) {
         if (this.selected) {
             switch (this.type) {
                 case 'radio':
-                    this.img = '$THEME_URL$images/menu_radio.gif';
+                    this.img = QuiX.theme.contextmenu.radioImg;
                     break;
                 case 'check':
-                    this.img = '$THEME_URL$images/menu_check.gif';
+                    this.img = QuiX.theme.contextmenu.checkImg;
             }
         }
-        else
-            this.img = null;
-        bForceAll = true;
-    }
-
-    var lpad =  this.getPadding()[0];
-    if (!this.img) {
-        if (lpad != 24) {
-            this.setPadding([24,18,3,2]);
+        else {
+            this.img = QuiX.baseUrl + 'images/transp.gif';
         }
     }
-    else if (lpad != 4) {
-        this.setPadding([4,18,3,2]);
+    else if (!this.img) {
+        this.img = QuiX.baseUrl + 'images/transp.gif';
     }
-
     QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
 }
 
@@ -219,33 +218,6 @@ QuiX.ui.ContextMenu.prototype.destroy = function() {
 QuiX.ui.ContextMenu.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
 
-    if (bForceAll) {
-        var borderWidth = 2 * this.getBorderWidth(),
-            pad = this.getPadding(),
-            option,
-            optionPad,
-            optionWidth,
-            height = 0;
-        for (var i=0; i<this.options.length; i++) {
-            option = this.options[i];
-            optionPad = option.getPadding();
-            if (option instanceof QuiX.ui.Icon) {
-                optionWidth = option.div.getElementsByTagName('SPAN')[0]
-                              .offsetWidth + optionPad[0] + optionPad[1];
-                if (option.imageElement) {
-                    optionWidth += option.imageElement.offsetWidth + 4;
-                }
-                option.width = '100%';
-                optionWidth += borderWidth + pad[0] + pad[1];
-                if (optionWidth > this.width) {
-                    this.width = optionWidth;
-                }
-            }
-            height += option.div.offsetHeight;
-        }
-        this.height = height + borderWidth + pad[2] + pad[3];
-    }
-
     if (this.top + this.div.offsetHeight >
             document.desktop.getHeight(true, memo)) {
         this.top = this.top - this.div.offsetHeight;
@@ -303,16 +275,13 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
         oOption = new QuiX.ui.MenuOption(params);
     }
     else {
-        oOption = new QuiX.ui.Widget({
-            height : 2,
-            border : 1,
-            overflow : 'hidden'
-        });
+        oOption = QuiX.theme.contextmenu.separator.get();
         oOption.destroy = QuiX.ui.MenuOption.prototype.destroy;
         oOption.div.className = 'separator';
         oOption.setPosition('relative');
     }
-    oOption.left = -pad[0];
+
+    oOption.left -= pad[0];
     oOption.top = -pad[2];
 
     this.appendChild(oOption);

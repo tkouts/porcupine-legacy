@@ -61,14 +61,17 @@ QuiX.ui.Label.prototype.getCaption = function() {
 
 QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+    if (!this.wrap) {
+        this.div.style.lineHeight = this.div.style.height;
+    }
     if (bForceAll) {
         with (this.div.style) {
             if (!this.wrap) {
                 whiteSpace = 'nowrap';
-                lineHeight = this.div.style.height;
             }
             else {
                 whiteSpace = '';
+                lineHeight = '';
             }
             if (this.align) {
                 if (this.align == 'auto') {
@@ -191,18 +194,21 @@ QuiX.ui.Icon.prototype.getImageURL = function() {
 
 QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Label.prototype.redraw.apply(this, arguments);
+
+    if (this.img) {
+        this.div.style.lineHeight = '';
+    }
+
     if (bForceAll) {
-        if (!(this.imgAlign == 'left' || this.imgAlign == 'right')) {
-            this.div.style.lineHeight = '';
-        }
         if (this.img + this.imgAlign != this._sig) {
-            if (this.imageElement) {
-                this.imageElement.ondragstart = null;
-                QuiX.removeNode(this.imageElement);
+            var imgs = this.div.getElementsByTagName('IMG');
+            for (var i=0; i<imgs.length; i++) {
+                imgs[i].ondragstart = null;
+                QuiX.removeNode(imgs[i]);
             }
             var br = this.div.getElementsByTagName('BR')[0];
             if (br) QuiX.removeNode(br);
-    
+
             if (this.img) {
                 var percentage;
                 var img = QuiX.getImage(this.img);
@@ -210,6 +216,20 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
                 img.style.verticalAlign = (this.imgAlign == 'top')?
                     'top':'middle';
                 img.ondragstart = QuiX.cancelDefault;
+
+                if (this.imgAlign == 'left' || this.imgAlign == 'right') {
+                    // for vertical alignment
+                    this._fi = QuiX.getImage(QuiX.baseUrl + 'images/transp.gif');
+                    this._fi.style.verticalAlign = 'middle';
+                    this._fi.style.width = '0px';
+                    if (this.imgAlign == 'right') {
+                        this.div.appendChild(this._fi);
+                    }
+                    else {
+                        this.div.insertBefore(this._fi, this.div.firstChild);
+                    }
+                }
+
                 if (caption != '') {
                     switch(this.imgAlign) {
                         case "left":
@@ -239,6 +259,9 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
             }
             this._sig = this.img + this.imgAlign;
         }
+    }
+    if (this._fi) {
+        this._fi.style.height = this.div.style.height;
     }
     if (this.imageElement && (this.imgHeight || this.imgWidth)) {
         if (this.imgHeight) {
@@ -273,7 +296,6 @@ QuiX.ui.Button = function(/*params*/) {
         left: params.left,
         disabled: params.disabled,
         display: params.display,
-        bgcolor: params.bgcolor || 'buttonface',
         overflow: 'hidden',
         onmouseout: QuiX.wrappers.eventWrapper(QuiX.ui.Button._onmouseout,
                                                params.onmouseout),
@@ -306,7 +328,6 @@ QuiX.ui.Button = function(/*params*/) {
 
     this.icon = new QuiX.ui.Icon(params);
     this.icon.div.className = 'l2';
-    this.icon.setPosition();
     this.appendChild(this.icon);
 
     if (this._isDisabled)
@@ -384,7 +405,7 @@ QuiX.ui.Button._onmouseout = function(evt, w) {
 }
 
 QuiX.ui.Button._onmousedown = function(evt, w) {
-    w.div.className = 'btndown';
+    w.div.className += ' down';
     w.icon.addPaddingOffset('Left', 1);
     w.icon.addPaddingOffset('Top', 1);
     w._isPressed = true;
@@ -452,7 +473,6 @@ QuiX.ui.FlatButton.prototype = new QuiX.ui.Icon;
 
 QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
-
     if (this.type == 'menu'
             && bForceAll && this.div.lastChild.id != '_mi') {
         var menuImg = QuiX.getImage('$THEME_URL$images/desc8.gif');
@@ -463,8 +483,8 @@ QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
 }
 
 QuiX.ui.FlatButton.prototype.toggle = function() {
-    if (this.value=='off') {
-        this.div.className = 'flaton';
+    if (this.value == 'off') {
+        this.div.className += ' on';
         this.addPaddingOffset('Left', 1);
         this.addPaddingOffset('Right', -1);
         this.value = 'on';
@@ -479,7 +499,7 @@ QuiX.ui.FlatButton.prototype.toggle = function() {
 
 QuiX.ui.FlatButton._onmouseover = function(evt, w) {
     if (!(w.type == 'toggle' && w.value == 'on')) {
-        w.div.className += ' flatover';
+        w.div.className += ' over';
     }
 }
 
@@ -494,33 +514,36 @@ QuiX.ui.FlatButton._onmouseout = function(evt, w) {
 }
 
 QuiX.ui.FlatButton._onmousedown = function(evt, w) {
-    w.div.className = 'flaton';
+    w.div.className += ' on';
     if (w.type == 'menu')
         QuiX.stopPropag(evt);
     if (w.type != 'toggle') {
         w.addPaddingOffset('Left', 1);
+        w.addPaddingOffset('Right', -1);
         w._ispressed = true;
     }
 }
 
 QuiX.ui.FlatButton._onmouseup = function(evt, w) {
-    w.div.className = 'flat';
+    w.div.className = w.div.className.replace(' on', '');
     if (w.type != 'toggle' && w._ispressed) {
         w.addPaddingOffset('Left', -1);
+        w.addPaddingOffset('Right', 1);
         w._ispressed = false;
     }
 }
 
 QuiX.ui.FlatButton._onclick = function(evt, w) {
-    if (w.type=='toggle')
+    if (w.type == 'toggle') {
         w.toggle();
-    else if (w.type=='menu') {
+    }
+    else if (w.type == 'menu') {
         if (!w.contextMenu.isOpen) {
-            w.div.className = 'btnmenu';
+            w.div.className += ' menu';
             QuiX.ui.ContextMenu._showWidgetContextMenu(w, w.contextMenu);
         }
         else {
-            w.div.className = 'btn';
+            w.div.className = 'flat';
             w.contextMenu.close();
         }
     }

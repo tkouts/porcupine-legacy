@@ -1,5 +1,7 @@
 QuiX.theme = {
     window: {
+        border: 1,
+        padding: '1,1,1,1',
         title: {
             height: 22,
             get: function(title, img) {
@@ -32,6 +34,9 @@ QuiX.theme = {
                 return b;
             }
         },
+        body: {
+            border: 0
+        },
         status: {
             height: 20,
             get: function() {
@@ -59,18 +64,34 @@ QuiX.theme = {
     contextmenu: {
         padding: '0,0,0,0',
         border: 1,
+        radioImg: '$THEME_URL$images/menu_radio.gif',
+        checkImg: '$THEME_URL$images/menu_check.gif',
         inner: {
             get: function() {
                 return new QuiX.ui.Widget({
                         width: '22',
-                        height: '100%',
+                        height: 'this.parent.div.clientHeight',
                         bgcolor: 'silver',
                         overflow: 'hidden'
-                    });
+                   });
+            }
+        },
+        separator: {
+            get: function() {
+                return new QuiX.ui.Widget({
+                    border : 1,
+                    height : 2,
+                    width : 'this.parent.div.clientWidth',
+                    overflow : 'hidden'
+                });
             }
         }
     },
+    field: {
+        textpadding: 2
+    },
     combo: {
+        textpadding: 2,
         button: {
             width: 20,
             get: function(img) {
@@ -132,6 +153,8 @@ QuiX.theme = {
         }
     },
     tabpane: {
+        border: 1,
+        padding: '8,8,8,8',
         tabbutton: {
             get: function(img, caption, bgcolor, color) {
                 return new QuiX.ui.Icon({
@@ -162,10 +185,11 @@ QuiX.theme = {
     },
     outlookbar: {
         header: {
-            get: function(height) {
+            height: 20,
+            get: function(params) {
                 return new QuiX.ui.Label({
                         width : "100%",
-                        height : height,
+                        height : params.height,
                         border : 1,
                         padding : '2,2,2,2',
                         overflow : 'hidden',
@@ -180,11 +204,11 @@ QuiX.theme = {
             get: function() {
                 return '<vbox xmlns="http://www.innoscript.org/quix" ' +
         'width="100%" height="100%" spacing="4" childrenalign="center">' +
-    '<box height="24" spacing="0" width="195" padding="1,1,1,1" ' +
+    '<box height="24" spacing="2" width="200" padding="1,1,1,1" ' +
             'onclick="QuiX.stopPropag">' + 
         '<flatbutton id="prev" width="22" caption="&lt;&lt;"/>' +
         '<combo id="month" width="100" editable="false"/>' +
-        '<spinbutton id="year" maxlength="4" width="50" ' +
+        '<spinbutton id="year" maxlength="4" width="54" ' +
             'editable="true"/>' +
         '<flatbutton id="next" width="22" caption="&gt;&gt;"/>' +
     '</box>' +
@@ -231,5 +255,43 @@ QuiX.theme = {
         inset: 1,
         insetcolor:
             'ThreeDShadow ThreeDHighlight ThreeDHighlight ThreeDShadow'
+    },
+    listview: {
+        altrows: ',',
+        selected: 'srow',
+        trueImg: '$THEME_URL$images/check16.gif',
+        headerheight: 22,
+        rowheight: null
+    },
+    selectlist: {
+        optionpadding: '2,2,2,2',
+        optionheight: 24
+    },
+    spinbutton: {
+        border: 1,
+        btnWidth: 16,
+        getUp: function() {
+            var btn = new QuiX.ui.Button({
+                id: '_up',
+                left: 'this.parent.getWidth(false, memo) - ' + this.btnWidth,
+                height: '50%',
+                width: this.btnWidth
+            });
+            return btn;
+        },
+        getDown: function() {
+            var btn = new QuiX.ui.Button({
+                id: '_down',
+                left: 'this.parent.getWidth(false, memo) - ' + this.btnWidth,
+                height: '50%',
+                top: '50%',
+                width: this.btnWidth
+            });
+            return btn;
+        }
+    },
+    tooltip: {
+        border: 1,
+        bgcolor: 'lightyellow'
     }
 }

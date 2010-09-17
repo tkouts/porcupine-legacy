@@ -7,8 +7,8 @@
     <script name="Recycle Bin Script" src="desktop/ui.RecycleList.js"/>
     <wbody>
         <vbox spacing="0" width="100%" height="100%">
-            <toolbar width="100%" height="34">
-                <tbbutton width="90"
+            <toolbar width="100%" height="38">
+                <tbbutton width="120"
                     img="desktop/images/reload22.gif"
                     caption="@@REFRESH@@" onclick="recycleBin.refresh"/>
                 <tbbutton width="120"

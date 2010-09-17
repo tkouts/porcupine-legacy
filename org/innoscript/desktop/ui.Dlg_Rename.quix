@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
         title="@@RENAME@@ &quot;$TITLE&quot;" resizable="false" close="true"
-        align="right" bgcolor="Menu" width="280" height="80" left="40%"
+        align="right" width="280" height="80" left="40%"
         top="40%">
     <prop name="ID" value="$ID"/>
     <wbody>

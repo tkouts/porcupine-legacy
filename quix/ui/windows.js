@@ -14,10 +14,12 @@ QuiX.ui.Window = function(/*params*/) {
     var params = arguments[0] || {};
     var overflow = params.overflow;
     var padding = params.padding;
+    var bgcolor = params.bgcolor;
     var hasStatus = (params.status == "true" || params.status == true);
-    params.border = 1;
-    params.padding = '1,1,1,1';
-    params.opacity = (QuiX.effectsEnabled)?0:1;
+    params.border = QuiX.theme.window.border;
+    params.padding = QuiX.theme.window.padding;
+    delete params.bgcolor;
+    params.opacity = (QuiX.effectsEnabled)? 0:1;
     params.onmousedown = QuiX.wrappers.eventWrapper(
         QuiX.ui.Window._onmousedown,
         params.onmousedown);
@@ -26,9 +28,19 @@ QuiX.ui.Window = function(/*params*/) {
         params.oncontextmenu);
     params.overflow = (QuiX.utils.BrowserInfo.family == 'moz'
         && QuiX.utils.BrowserInfo.OS == 'MacOS')? 'auto':'hidden';
+
+    // adjust width and height based on theme
+    var arrPad = params.padding.split(',');
     params.height = parseInt(params.height) +
                     QuiX.theme.window.title.height +
-                    ((hasStatus)? QuiX.theme.window.status.height:0) + 4;
+                    ((hasStatus)? QuiX.theme.window.status.height:0) +
+                    2 * params.border +
+                    parseInt(arrPad[2]) + parseInt(arrPad[3]) +
+                    2 * QuiX.theme.window.body.border;
+    params.width = parseInt(params.width) +
+                   2 * params.border +
+                   parseInt(arrPad[0]) + parseInt(arrPad[1]) +
+                   2 * QuiX.theme.window.body.border;
 
     this.base = QuiX.ui.Widget;
     this.base(params);
@@ -56,6 +68,8 @@ QuiX.ui.Window = function(/*params*/) {
     box.appendChild(this.title);
 
     // attach events
+    var self = this;
+
     this.title.getWidgetById('_t').attachEvent(
         'onmousedown',
         QuiX.ui.Window._titleonmousedown);
@@ -65,7 +79,6 @@ QuiX.ui.Window = function(/*params*/) {
                 self.maximize();
         });
 
-    var self = this;
     this.title.getWidgetById('c0').attachEvent('onclick',
         function() {
             if (self.buttonIndex)
@@ -94,9 +107,10 @@ QuiX.ui.Window = function(/*params*/) {
 
     // client area
     this.body = new QuiX.ui.Widget({
-        border : 0,
+        border : QuiX.theme.window.body.border,
         overflow : overflow,
-        padding : padding
+        padding : padding,
+        bgcolor: bgcolor
     });
     this.body.div.className = 'body';
     box.appendChild(this.body);
@@ -123,7 +137,7 @@ QuiX.ui.Window = function(/*params*/) {
             type : 'wipe-out',
             interval : 10,
             end : 0.1,
-            steps : 5,
+            steps : 8,
             oncomplete : QuiX.ui.Window._onminimize
         });
         this.appendChild(mini_effect);
@@ -131,7 +145,7 @@ QuiX.ui.Window = function(/*params*/) {
             id : '_eff_maxi',
             type : 'wipe-in',
             interval : 10,
-            steps : 5,
+            steps : 8,
             oncomplete : QuiX.ui.Window._onmmaximize
         });
         this.appendChild(maxi_effect);
@@ -255,8 +269,6 @@ QuiX.ui.Window.prototype.minimize = function() {
         if (w.isMinimized) {
             var i;
             var padding = w.getPadding();
-            for (i=1; i<w.widgets[0].widgets.length; i++)
-                w.widgets[0].widgets[i].hide();
             if (w._resizer)
                 w._resizer.hide();
             w._stateh = w.getHeight(true);
@@ -275,8 +287,9 @@ QuiX.ui.Window.prototype.minimize = function() {
                 effect = w.getWidgetById('_eff_mini', true);
                 effect.play();
             }
-            else
+            else {
                 w.redraw();
+            }
         }
         else {
             w.bringToFront();
@@ -285,16 +298,13 @@ QuiX.ui.Window.prototype.minimize = function() {
                 effect = w.getWidgetById('_eff_maxi', true);
                 effect.play();
             }
-            else
+            else {
                 QuiX.ui.Window._onmmaximize(w);
+            }
             w.redraw();
             
             if (maxControl)
                 maxControl.enable();
-            while (w._childwindows.length > 0) {
-                childWindow = w._childwindows.pop();
-                childWindow.show();
-            }
         }
     }
 }
@@ -410,10 +420,12 @@ QuiX.ui.Window._onminimize = function(eff) {
 QuiX.ui.Window._onmmaximize = function(w) {
     if (!(w instanceof QuiX.ui.Window))
         w = w.parent;
-    for (var i=1; i<w.widgets[0].widgets.length; i++)
-        w.widgets[0].widgets[i].show();
     if (w._resizer)
         w._resizer.show();
+    while (w._childwindows.length > 0) {
+        childWindow = w._childwindows.pop();
+        childWindow.show();
+    }
 }
 
 // dialog
@@ -493,7 +505,7 @@ QuiX.ui.Dialog.prototype.addButton = function(params) {
     this.buttonHolder.redraw();
     if (params['default'] == 'true') {
         this.defaultButton = oWidget;
-        this.defaultButton.widgets[0].div.className = 'l2default';
+        this.defaultButton.widgets[0].div.className += ' default';
     }
     return oWidget;
 }

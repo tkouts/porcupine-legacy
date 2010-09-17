@@ -13,16 +13,17 @@ QuiX.ui.ListView = function(/*params*/) {
     this.div.className = 'listview';
     this.cellPadding = parseInt(params.cellpadding) || 4;
     this.cellBorder = parseInt(params.cellborder) || 0;
-    this.multiple = (params.multiple==true || params.multiple=="true");
+    this.multiple = (params.multiple == true || params.multiple == "true");
     this.nullText = params.nulltext || ' ';
     this.dateFormat = params.dateformat || 'ddd dd/mmm/yyyy time';
-    this.trueImg = params.trueimg || '$THEME_URL$images/check16.gif';
+    this.trueImg = params.trueimg || QuiX.theme.listview.trueImg;
     this.sortfunc = QuiX.getEventListener(params.sortfunc);
-    this.altColors = (params.altcolors || ',').split(',');
-    this.highlightColors =
-        (params.highlightcolors || 'white,#6699FF').split(',');
-    this.rowHeight = parseInt(params.rowheight);
-
+    this.altRows = (params.altrows ||
+                    QuiX.theme.listview.altrows).split(',');
+    this.selectedClass = (params.selectedclass ||
+                          QuiX.theme.listview.selected).split(',');
+    this.rowHeight = parseInt(params.rowheight) ||
+                     QuiX.theme.listview.rowheight;
     this.hasSelector = false;
     this.selection = [];
     this.dataSet = [];
@@ -46,13 +47,13 @@ QuiX.ui.ListView.cellThreshold = 2000;
 QuiX.ui.ListView._calcListHeight = function(memo) {
     var listview = this.parent;
     var lho = (listview.header.isHidden())?
-              0:parseInt(listview.header._calcHeight(true, memo)) + 1;
+              0:parseInt(listview.header._calcHeight(true, memo));
     return listview.getHeight(false, memo) - lho;
 }
 
 QuiX.ui.ListView._calcListTop = function(memo) {
     return (this.parent.header.isHidden())?
-           0:this.parent.header._calcHeight(true, memo);
+            0:this.parent.header._calcHeight(true, memo);
 }
 
 QuiX.ui.ListView._calcResizerOffset = function(w) {
@@ -113,8 +114,8 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
                                 (family == 'moz' || family == 'saf');
 
     params.width = '100%';
-    params.height = (!params.height || params.height<22)?
-                    22 : parseInt(params.height);
+    params.height = (!params.height || params.height < QuiX.theme.listview.headerheight)?
+                    QuiX.theme.listview.headerheight : parseInt(params.height);
     params.overflow = 'hidden';
 
     this.header = new QuiX.ui.Widget(params);
@@ -171,7 +172,6 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
     list.div.className = 'list';
     oTable = ce('TABLE');
     oTable.cellSpacing = 0;
-    oTable.cellPadding = this.cellPadding;
     oTable.width = '100%';
 
     // opera horizontal scrollbar patch
@@ -222,27 +222,23 @@ QuiX.ui.ListView.prototype._getSelector = function() {
     var s = ce('TD');
     s.dir = QuiX.dir;
     s.className = 'column';
-    s.style.width = '8px';
+    if (QuiX.utils.BrowserInfo.family == 'saf') {
+        s.style.width = (8 + 2 * this.cellPadding) + 'px';
+    }
+    else
+        s.style.width = '8px';
     s.innerHTML = '&nbsp;';
     return s;
 }
 
 QuiX.ui.ListView.prototype._selrow = function(r) {
-    for (var i=0; i<this.columns.length-1; i++)
-        if (this.columns[i].columnBgColor)
-            r.cells[i].bgColor = '';
-    r.style.color = this.highlightColors[0];
-    r.style.backgroundColor = this.highlightColors[1];
+    r.className += ' ' + this.selectedClass;
     r.isSelected = true;
 }
 
 QuiX.ui.ListView.prototype._unselrow = function(r) {
-    r.style.color = '';
-    r.style.backgroundColor = this.altColors[r.rowIndex % 2];
+    r.className = r.className.replace(' ' + this.selectedClass, '');
     r.isSelected = false;
-    for (var i=0; i<this.columns.length-1; i++)
-        if (this.columns[i].columnBgColor)
-            r.cells[i].bgColor = this.columns[i].columnBgColor;
 }
 
 QuiX.ui.ListView.prototype._selectline = function(evt, row) {
@@ -320,7 +316,7 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
     oCol.className = 'column';
     oCol.dir = QuiX.dir;
     oCol._isContainer = false;
-    oCol.columnBgColor = params.bgcolor || '';
+    oCol.cssClass = params.cssclass || '';
     oCol.style.padding = '0px ' + this.cellPadding + 'px';
 
     if (params.width) {
@@ -346,8 +342,7 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
         oCol._xform = QuiX.getEventListener(oCol.xform);
     }
     
-    oCol.sortable = (params.sortable=='false' || params.sortable==false)?
-                    false:true;
+    oCol.sortable = !(params.sortable == 'false' || params.sortable == false);
     if (oCol.sortable) {
         oCol.style.cursor = 'pointer';
         oCol.onclick = QuiX.ui.ListView._column_onclick;
@@ -444,11 +439,11 @@ QuiX.ui.ListView.prototype.sort = function(colName, order) {
         this.refresh();
     }
     if (column) {
-        this._sortimg = new Image;
-        this._sortimg.src = (order.toUpperCase()=='ASC')?
-                            QuiX.getThemeUrl() + 'images/asc8.gif':
-                            QuiX.getThemeUrl() + 'images/desc8.gif';
+        this._sortimg = QuiX.getImage(
+            order.toUpperCase() == 'ASC'?
+            '$THEME_URL$images/asc8.gif':'$THEME_URL$images/desc8.gif');
         this._sortimg.align = 'absmiddle';
+        this._sortimg.style.marginLeft = '2px';
         column.appendChild(this._sortimg);
     }
     this._orderBy = colName;
@@ -495,16 +490,19 @@ QuiX.ui.ListView.prototype.refresh = function() {
 
 QuiX.ui.ListView.prototype._refresh = function(start, step) {
     var oRow, selector, oFiller,
-        value, columnWidth, rowBgColor,
+        value, columnWidth,
         rowHeight, offset, cell;
     var w = this;
     var tbody = w.list.tBodies[0];
     var webkit = (QuiX.utils.BrowserInfo.family=='saf');
     if (w.rowHeight) {
-        if (QuiX.utils.BrowserInfo.family == 'ie')
+        if (QuiX.utils.BrowserInfo.family == 'ie' &&
+                QuiX.utils.BrowserInfo.version < 8) {
             offset = 2 * w.cellPadding;
-        else
+        }
+        else {
             offset = 0;
+        }
         rowHeight = (w.rowHeight - offset) + 'px';
     }
     var cellPadding = '4px ' + (w.cellPadding + 1) + 'px';
@@ -513,14 +511,13 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
     for (var i=start; i < start + step && i < w.dataSet.length; i++) {
         oRow = document.createElement("tr");
         oRow.isSelected = false;
-        rowBgColor = w.altColors[i%2];
-        oRow.style.backgroundColor = rowBgColor;
+        oRow.className = w.altRows[i%2];
         if (rowHeight)
             oRow.style.height = rowHeight;
         if (w.hasSelector) {
             selector = w._getSelector();
-            offset = webkit?0:2*w.cellPadding - 2;
-            selector.style.width = (8 - offset) + 'px';
+            //offset = webkit? 0:2*w.cellPadding - 2;
+            //selector.style.width = (8 - offset) + 'px';
             oRow.appendChild(selector);
         }
         for (var j=0 + w._deadCells; j<w.columns.length-2; j++) {
@@ -541,8 +538,9 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
             }
             cell.style.borderWidth = cellBorder;
             cell.style.padding = cellPadding;
-            if (w.columns[j].columnBgColor)
-                cell.bgColor = w.columns[j].columnBgColor;
+            if (w.columns[j].cssClass) {
+                cell.className += ' ' + w.columns[j].cssClass;
+            }
             oRow.appendChild(cell);
             value = w.dataSet[i][w.columns[j].name];
             w._renderCell(cell, j, value, w.dataSet[i])

@@ -48,7 +48,7 @@ queryPerformer.executeQuery_oncomplete = function(req) {
 queryPerformer.about = function(evt, w) {
     document.desktop.msgbox(
         w.getCaption(),
-        "OQL Query Performer v0.1<br/>(c)2005-2010 Innoscript",
+        "OQL Query Performer v0.1<br/>(c)2005-2010 inno:script",
         [['OK', 60]],
         'desktop/images/messagebox_info.gif', 'center', 'center', 260, 82
     );
