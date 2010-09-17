@@ -120,7 +120,7 @@ def compile(src, options={}, template_name='normal-template'):
         if token == '':
             continue
 
-        intend = _tab_size * len(nesting) * ' '
+        indent = _tab_size * len(nesting) * ' '
 
         if _command_re.match(token):
 
@@ -129,14 +129,14 @@ def compile(src, options={}, template_name='normal-template'):
 
                 if cmd == 'if':
                     val = _xpath(arg)
-                    code.append('%sif %s:' % (intend, val))
+                    code.append('%sif %s:' % (indent, val))
                     nesting.append('if')
                     continue
 
                 elif cmd in ('s', 'select'):
                     val = _xpath(arg)
-                    code.append('%sd = %s' % (intend, val))
-                    code.append('%sif d is not None:' % intend)
+                    code.append('%sd = %s' % (indent, val))
+                    code.append('%sif d is not None:' % indent)
                     nesting.append('select')
                     stack.append(re.sub('^d\.', stack[0] + '.', val))
                     continue
@@ -144,11 +144,11 @@ def compile(src, options={}, template_name='normal-template'):
                 elif cmd in ('r', 'reduce'):
                     val = _xpath(arg)
                     depth = len(stack)
-                    code.append('%sa%d = %s' % (intend, depth, val))
+                    code.append('%sa%d = %s' % (indent, depth, val))
                     code.append('%sif a%d is not None and len(a%d) > 0:' %
-                                (intend, depth, depth))
+                                (indent, depth, depth))
                     code.append('%sfor i%d, d in enumerate(a%d):' %
-                                (intend + _tab_size * ' ', depth, depth))
+                                (indent + _tab_size * ' ', depth, depth))
                     nesting.append('reduce')
                     nesting.append('reduce')
                     stack.append('a%d[i%d]' % (depth, depth))
@@ -161,17 +161,17 @@ def compile(src, options={}, template_name='normal-template'):
                             unindent = _tab_size * 2
                         else:
                             unindent = _tab_size
-                        code.append('%selse:' % intend[:-unindent])
+                        code.append('%selse:' % indent[:-unindent])
                     else:
                         raise NormalTemplateError('Unbalanced "else" tag')
                     continue
 
                 elif cmd == 'lb':  # output left curly bracket '}'
-                    code.append('%sres.append("{")' % intend)
+                    code.append('%sres.append("{")' % indent)
                     continue
 
                 elif cmd == 'rb':  # output right curly bracket '}'
-                    code.append('%sres.append("}")' % intend)
+                    code.append('%sres.append("}")' % indent)
                     continue
 
                 elif cmd == '!':  # comment
@@ -190,7 +190,8 @@ def compile(src, options={}, template_name='normal-template'):
                     elif cmd in ('s', 'select'):
                         if tag == 'select':
                             stack.pop()
-                            code.append('%sd = %s' % (intend, stack[-1]))
+                            indent = indent[:-_tab_size]
+                            code.append('%sd = %s' % (indent, stack[-1]))
                         else:
                             _unbalanced('select', tag)
                         continue
@@ -199,7 +200,8 @@ def compile(src, options={}, template_name='normal-template'):
                         tag = nesting.pop()
                         if tag == 'reduce':
                             stack.pop()
-                            code.append('%sd = %s' % (intend, stack[-1]))
+                            indent = indent[:-2 * _tab_size]
+                            code.append('%sd = %s' % (indent, stack[-1]))
                         else:
                             _unbalanced('reduce', tag)
 
@@ -216,14 +218,14 @@ def compile(src, options={}, template_name='normal-template'):
                         pre = 'df('
                         post = ')'
 
-                code.append('%sv = %s' % (intend, _xpath(parts[-1])))
-                code.append('%sif v is not None:' % intend)
-                code.append('%sres.append(%sv%s)' % (intend + _tab_size * ' ',
+                code.append('%sv = %s' % (indent, _xpath(parts[-1])))
+                code.append('%sif v is not None:' % indent)
+                code.append('%sres.append(%sv%s)' % (indent + _tab_size * ' ',
                                                      pre, post))
                 continue
 
         else:  # plain text
-            code.append('%sres.append(%r)' % (intend, token))
+            code.append('%sres.append(%r)' % (indent, token))
 
     if len(nesting) > 1:
         raise NormalTemplateError('Unbalanced "%s" tag, is not closed' %

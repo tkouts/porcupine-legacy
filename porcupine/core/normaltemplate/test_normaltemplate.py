@@ -193,5 +193,30 @@ class NormalTemplateTestCases(unittest.TestCase):
             {'title': 'Hello2', 'count': 2, 'forum': {'title': 'Forum2'}}]}
         self.assertEquals('Hello1 Forum1 1Hello2 Forum2 2', t(data))
 
+
+    def test_if_else_scope(self):
+        t = compile(
+            '{:if none}{=none}{:e}None{/:if} {=count}')
+        data = {'none': 'Something',
+                'count': 2}
+        self.assertEquals('Something 2', t(data))
+
+
+    def test_select_else_scope(self):
+        t = compile(
+            '{:s none}{=.}{:e}None{/:s} {=count}')
+        data = {'none': 'Something',
+                'count': 2}
+        self.assertEquals('Something 2', t(data))
+
+
+    def test_reduce_else_scope(self):
+        t = compile(
+            '{:r articles}{=title} {:e}No articles{/:r}{=count}')
+        data = {'articles': [{'title': '1'}, {'title': '2'}],
+                'count': 2}
+        self.assertEquals('1 2 2', t(data))
+
+
 if __name__ == '__main__':
     unittest.main()
