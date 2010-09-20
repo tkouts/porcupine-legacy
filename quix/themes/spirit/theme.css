@@ -206,14 +206,18 @@ BODY {
 
 .splitter .handleV {
     border-style : solid;
-    background-color: buttonface;
     border-color: transparent #888 transparent #CCC;
+    background: url(images/splitter_h.png) no-repeat;
+    background-color: buttonface;
+    background-position: center;
 }
 
 .splitter .handleH {
     border-style: solid;
-    background-color: buttonface;
     border-color: #CCC transparent #888 transparent;
+    background: url(images/splitter_v.png) no-repeat;
+    background-color: buttonface;
+    background-position: center;
 }
 
 /********************/
