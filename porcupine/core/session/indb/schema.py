@@ -46,7 +46,7 @@ class Session(GenericItem, GenericSession):
     @db.transactional(auto_commit=True, nosync=True)
     def set_value(self, name, value):
         session = db._db.get_item(self._id)
-        session.__data[name] = value
+        self.__data[name] = session.__data[name] = value
         session.update()
 
     def get_value(self, name):
