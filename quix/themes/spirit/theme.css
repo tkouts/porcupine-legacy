@@ -378,9 +378,17 @@ BODY {
     white-space: nowrap;
 }
 
+.tabpane .tab:first-child {
+    margin-left: 8px;
+}
+
 .tabpane .tab[dir=rtl] {
     float: right;
     clear: left;
+}
+
+.tabpane .tab:first-child[dir=rtl] {
+    margin-right: 8px;
 }
 
 .tabpane .active {
@@ -417,9 +425,9 @@ BODY {
 
 .tabpane .tabpage {
     background-color: #EDEDED;
-    -webkit-border-radius: 0px 4px 4px 4px;
-    -moz-border-radius: 0px 4px 4px 4px;
-    border-radius: 0px 4px 4px 4px;
+    -webkit-border-radius: 6px 6px 0px 0px;
+    -moz-border-radius: 6px 6px 0px 0px;
+    border-radius: 6px 6px 0px 0px;
     border-style: solid;
     border-color: #999999;
 }
