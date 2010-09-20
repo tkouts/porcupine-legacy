@@ -1,7 +1,7 @@
 function login() {}
 
 login.login = function (evt, btn) {
-    var login_dialog = btn.getParentByType(QuiX.ui.Dialog);
+    var login_dialog = btn.getParentByType(QuiX.ui.VBox);
     var sUser = login_dialog.getWidgetById('user').getValue();
     var sPassword = login_dialog.getWidgetById('password').getValue();
     var sLoginServiceUrl = login_dialog.attributes.ServiceURI;
@@ -11,8 +11,14 @@ login.login = function (evt, btn) {
     rpc.callback_info = btn;
     rpc.onerror = login.login_onerror;
     rpc.callmethod('login', sUser, sPassword);
-    login_dialog.setStatus('Please wait...');
+    login_dialog.getWidgetById('status').setCaption('Please wait...');
     btn.disable();
+}
+
+login.checkKey = function(evt, fld) {
+    if (evt.keyCode == 13) {
+        fld.parent.parent.getWidgetById('btn_login').click();
+    }
 }
 
 login.login_oncomplete = function(req) {
@@ -21,17 +27,14 @@ login.login_oncomplete = function(req) {
     }
     else {
         req.callback_info.enable();
-        var oDialog = req.callback_info.getParentByType(QuiX.ui.Dialog);
-        document.desktop.msgbox(oDialog.attributes.FailMsgTitle, 
-            oDialog.attributes.FailMsg,
-            document.desktop.attributes.CLOSE,
-            'desktop/images/error32.gif', 'center', 'center', 260, 88);
-        oDialog.setStatus('');
+        var dlg = req.callback_info.getParentByType(QuiX.ui.VBox);
+        dlg.getWidgetById('status').setCaption(dlg.attributes.FailMsg);
     }
 }
 
 login.login_onerror = function(e) {
     this.callback_info.enable();
-    this.callback_info.getParentByType(QuiX.ui.Dialog).setStatus('');
+    var dlg = this.callback_info.getParentByType(QuiX.ui.VBox);
+    dlg.getWidgetById('status').setCaption('');
     QuiX.displayError(e);
 }

@@ -5,32 +5,31 @@
     <prop name="YES" value="@@YES@@"/>
     <prop name="NO" value="@@NO@@"/>
     <script name="Login Script" src="desktop/ui.LoginPage.js"/>
+    <stylesheet src="desktop/login.css"/>
 
-    <image left="center" top="center" width="164" height="110"
-        img="desktop/images/logo.png"/>
-    <dialog id="logindialog" title="@@LOGIN@@" align="center" width="280"
-            height="130" status="true" left="center" top="center">
+    <vbox id="loginbox"
+            width="320" height="250" top="center" left="center"
+            border="1" bgcolor="#EBEBEB" padding="1,1,1,1">
+
         <prop name="ServiceURI" value="$URI"/>
         <prop name="FailMsgTitle" value="@@LOGIN_FAILED_TITLE@@"/>
         <prop name="FailMsg" value="@@LOGIN_FAILED@@"/>
-        <wbody>
-            <hbox width="100%" height="100%">
-                <rect width="70">
-                    <image left="center" top="center" width="48" height="48"
-                        img="desktop/images/kgpg.gif"/>
-                </rect>
-                <rect width="-1">
-                    <label align="right" top="14" width="60" height="20"
-                        caption="@@USER@@:"/>
-                    <field id="user" left="60" top="12" width="68%"></field>
-                    <label align="right" top="41" width="60" height="20"
-                        caption="@@PASSWORD@@:"/>
-                    <field id="password" type="password" top="39" left="60"
-                        width="68%"/>
-                </rect>
-            </hbox>
-        </wbody>
-        <dlgbutton width="80" height="24" onclick="login.login"
-            caption="@@LOGIN@@" default="true"/>
-    </dialog>
+
+        <label caption="Login" height="30" bgcolor="#999" color="white"
+            align="center" style="font-size:20px"/>
+        <vbox padding="10,10,10,10">
+            <label height="30" caption="@@USER@@:" style="font-size:20px"/>
+            <field id="user" height="30" onkeypress="login.checkKey"/>
+            <label height="30" caption="@@PASSWORD@@:" style="font-size:20px"/>
+            <field id="password" height="30" type="password"
+                onkeypress="login.checkKey"/>
+        </vbox>
+        <rect padding="0,0,10,10" height="50">
+            <button id="btn_login" left="center" top="center"
+                height="30" width="80" caption="@@LOGIN@@"
+                style="font-size:14px" onclick="login.login"/>
+        </rect>
+        <label id="status" height="20" border="1"/>
+    </vbox>
+
 </desktop>

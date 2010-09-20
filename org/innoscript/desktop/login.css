@@ -1,0 +1,19 @@
+#loginbox {
+    border: solid #666;
+
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+
+    -webkit-box-shadow: 0px 0px 24px rgb(64, 64, 64);
+    -moz-box-shadow: 0px 0px 24px rgb(64, 64, 64);
+    box-shadow: 0px 0px 24px rgb(64, 64, 64);
+}
+
+#status {
+    border: solid #CCC;
+}
+
+INPUT {
+    font-size: 14px !important;
+}
