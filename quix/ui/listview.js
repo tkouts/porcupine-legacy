@@ -498,7 +498,7 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
     if (w.rowHeight) {
         if (QuiX.utils.BrowserInfo.family == 'ie' &&
                 QuiX.utils.BrowserInfo.version < 8) {
-            offset = 2 * w.cellPadding;
+            offset = 2 * w.cellPadding + 2 * w.cellBorder;
         }
         else {
             offset = 0;

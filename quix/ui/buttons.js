@@ -179,12 +179,15 @@ QuiX.ui.Icon.prototype = new QuiX.ui.Label;
 QuiX.ui.Icon.prototype.setImageURL = function(s) {
     if (s != this.img) {
         this.img = s;
-        if (this.imageElement)
+        if (this.imageElement) {
             if (QuiX.utils.BrowserInfo.family == 'ie' &&
                     this.div.clientWidth == 0) {
-                this.redraw(true);}
-            else
+                this.redraw(true);
+            }
+            else {
                 this.imageElement.src = s;
+            }
+        }
     }
 }
 
@@ -211,26 +214,27 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
 
             if (this.img) {
                 var percentage;
-                var img = QuiX.getImage(this.img);
                 var caption = this.getCaption();
-                img.style.verticalAlign = (this.imgAlign == 'top')?
-                    'top':'middle';
-                img.ondragstart = QuiX.cancelDefault;
-
-                if (this.imgAlign == 'left' || this.imgAlign == 'right') {
-                    // for vertical alignment
-                    this._fi = QuiX.getImage(QuiX.baseUrl + 'images/transp.gif');
-                    this._fi.style.verticalAlign = 'middle';
-                    this._fi.style.width = '0px';
-                    if (this.imgAlign == 'right') {
-                        this.div.appendChild(this._fi);
-                    }
-                    else {
-                        this.div.insertBefore(this._fi, this.div.firstChild);
-                    }
-                }
 
                 if (caption != '') {
+                    var img = QuiX.getImage(this.img);
+                    img.style.verticalAlign = (this.imgAlign == 'top')?
+                        'top':'middle';
+                    img.ondragstart = QuiX.cancelDefault;
+                    if (this.imgAlign == 'left' || this.imgAlign == 'right') {
+                        // for vertical alignment
+                        this._fi = QuiX.getImage(QuiX.baseUrl +
+                                                 'images/transp.gif');
+                        this._fi.style.verticalAlign = 'middle';
+                        this._fi.style.width = '0px';
+                        if (this.imgAlign == 'right') {
+                            this.div.appendChild(this._fi);
+                        }
+                        else {
+                            this.div.insertBefore(this._fi,
+                                                  this.div.firstChild);
+                        }
+                    }
                     switch(this.imgAlign) {
                         case "left":
                             img.style.marginRight = '4px';
@@ -250,7 +254,11 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
                     }
                 }
                 else {
-                    this.div.insertBefore(img, this.div.firstChild);
+                    this.div.style.backgroundImage = 'url("' +
+                        this.img.replace('$THEME_URL$', QuiX.getThemeUrl()) +
+                        '")';
+                    this.div.style.backgroundRepeat = 'no-repeat';
+                    this.div.style.backgroundPosition = '50% 50%';
                 }
                 this.imageElement = img;
             }
@@ -328,6 +336,7 @@ QuiX.ui.Button = function(/*params*/) {
 
     this.icon = new QuiX.ui.Icon(params);
     this.icon.div.className = 'l2';
+    this.icon.setPosition('');
     this.appendChild(this.icon);
 
     if (this._isDisabled)
@@ -485,13 +494,9 @@ QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
 QuiX.ui.FlatButton.prototype.toggle = function() {
     if (this.value == 'off') {
         this.div.className += ' on';
-        this.addPaddingOffset('Left', 1);
-        this.addPaddingOffset('Right', -1);
         this.value = 'on';
     }
     else {
-        this.addPaddingOffset('Left', -1);
-        this.addPaddingOffset('Right', 1);
         this.div.className = 'flat';
         this.value = 'off';
     }
@@ -507,7 +512,6 @@ QuiX.ui.FlatButton._onmouseout = function(evt, w) {
     if (!(w.type == 'toggle' && w.value == 'on')) {
         w.div.className = 'flat';
         if (w.type != 'toggle' && w._ispressed) {
-            w.addPaddingOffset('Left', -1);
             w._ispressed = false;
         }
     }
@@ -518,8 +522,6 @@ QuiX.ui.FlatButton._onmousedown = function(evt, w) {
     if (w.type == 'menu')
         QuiX.stopPropag(evt);
     if (w.type != 'toggle') {
-        w.addPaddingOffset('Left', 1);
-        w.addPaddingOffset('Right', -1);
         w._ispressed = true;
     }
 }
@@ -527,8 +529,6 @@ QuiX.ui.FlatButton._onmousedown = function(evt, w) {
 QuiX.ui.FlatButton._onmouseup = function(evt, w) {
     w.div.className = w.div.className.replace(' on', '');
     if (w.type != 'toggle' && w._ispressed) {
-        w.addPaddingOffset('Left', -1);
-        w.addPaddingOffset('Right', 1);
         w._ispressed = false;
     }
 }

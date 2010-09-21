@@ -519,6 +519,7 @@ BODY {
 .combodropdown {
     border-style: solid;
     border-color: gray;
+    background: white;
 }
 
 .combodropdown .option {

@@ -517,9 +517,9 @@ BODY {
     border-color: transparent #999
                   #999 transparent;
 
-    background-color: #EBEBEB;
     background-image: url(images/list_header.gif);
     background-repeat: repeat-x;
+    background-color: #EBEBEB !important;
 
     background: -webkit-gradient(linear, left top, left bottom,
                                  from(#FFF), to(#EBEBEB)); /* for webkit browsers */
@@ -631,6 +631,7 @@ BODY {
 }
 
 .combo.editable INPUT {
+    background-color: white;
     border: 1px solid;
     border-color: #333 #CCC #CCC #333;
 }
@@ -638,6 +639,7 @@ BODY {
 .combodropdown {
     border-style: solid;
     border-color: gray;
+    background: white;
 }
 
 .combodropdown .option {

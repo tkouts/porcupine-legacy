@@ -6,7 +6,8 @@ Field controls 2
 
 QuiX.ui.Combo = function(/*params*/) {
     var params = arguments[0] || {};
-    params.bgcolor = params.bgcolor || 'white';
+    var bgcolor = params.bgcolor;
+    delete params.bgcolor;
     params.border = 1;
     params.overflow = 'hidden';
     params.height = params.height || 22;
@@ -26,6 +27,7 @@ QuiX.ui.Combo = function(/*params*/) {
     e.style.padding = '0px ' + (params.textpadding ||
                                 QuiX.theme.combo.textpadding) + 'px';
     e.style.position = 'absolute';
+    e.style.backgroundColor = bgcolor;
     this.div.appendChild(e);
     e.onselectstart = QuiX.stopPropag;
 
@@ -267,7 +269,8 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
         this.dropdown.width = QuiX.ui.Combo._calcDropdownWidth;
     }
     this.dropdown.height = this.menuHeight;
-    this.dropdown.setBgColor(this.getBgColor());
+    this.dropdown.setBgColor(
+        this.div.firstChild.style.backgroundColor);
 
     document.desktop.appendChild(this.dropdown);
     this.dropdown.redraw();
