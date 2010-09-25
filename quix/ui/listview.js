@@ -658,17 +658,20 @@ QuiX.ui.ListView._onclick = function(evt, w, f) {
     var row = w._getRow(evt);
     if (row)
         f(evt, w, w.dataSet[row.rowIndex]);
-    else
-        QuiX.cancelDefault(evt);
+    //else
+    //    QuiX.cancelDefault(evt);
 }
 
 QuiX.ui.ListView._onmousedown = function(evt, w) {
     var lv = w.parent;
     if (lv._isDisabled) return;
     var row = lv._getRow(evt);
-    if (row)
+    if (row) {
         lv._selectline(evt, row);
-    QuiX.cancelDefault(evt);
+    }
+    if (QuiX.utils.BrowserInfo.family != 'ie') {
+        QuiX.cancelDefault(evt);
+    }
 }
 
 QuiX.ui.ListView._onscroll = function(evt, w) {

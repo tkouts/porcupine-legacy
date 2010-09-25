@@ -403,7 +403,9 @@ QuiX.ui.Window._onmousedown = function(evt, w) {
         w.bringToFront();
         QuiX.stopPropag(evt);
     }
-    QuiX.cancelDefault(evt);
+    if (QuiX.utils.BrowserInfo.family != 'ie') {
+        QuiX.cancelDefault(evt);
+    }
     QuiX.cleanupOverlays();
 }
 
@@ -413,7 +415,7 @@ QuiX.ui.Window._oncontextmenu = function(evt, w) {
 }
 
 QuiX.ui.Window._onminimize = function(eff) {
-    eff.parent.div.style.clip = 'rect(auto,auto,auto,auto)';
+    eff.parent.div.style.clip = 'rect(auto, auto, auto, auto)';
     eff.parent.redraw();
 }
 

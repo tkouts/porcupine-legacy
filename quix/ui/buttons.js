@@ -198,7 +198,7 @@ QuiX.ui.Icon.prototype.getImageURL = function() {
 QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Label.prototype.redraw.apply(this, arguments);
 
-    if (this.img) {
+    if (this.img && (this.imgAlign == 'top' || this.imgAlign == 'bottom')) {
         this.div.style.lineHeight = '';
     }
 
@@ -479,17 +479,6 @@ QuiX.ui.FlatButton = function(/*params*/) {
 
 QuiX.constructors['flatbutton'] = QuiX.ui.FlatButton;
 QuiX.ui.FlatButton.prototype = new QuiX.ui.Icon;
-
-QuiX.ui.FlatButton.prototype.redraw = function(bForceAll /*, memo*/) {
-    QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
-    if (this.type == 'menu'
-            && bForceAll && this.div.lastChild.id != '_mi') {
-        var menuImg = QuiX.getImage('$THEME_URL$images/desc8.gif');
-        menuImg.id = '_mi';
-        menuImg.border = 0;
-        this.div.appendChild(menuImg);
-    }
-}
 
 QuiX.ui.FlatButton.prototype.toggle = function() {
     if (this.value == 'off') {

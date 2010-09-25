@@ -1120,7 +1120,7 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                             params['name'] + '=' + params['value']);
                     break;
                 case 'xhtml':
-                    parentW.div.innerHTML = QuiX.getInnerText(oNode);
+                    parentW.div.innerHTML = QuiX.getInnerText(oNode).xmlDecode();
                     break;
                 default:
                     var widget_contructor = QuiX.constructors[localName];

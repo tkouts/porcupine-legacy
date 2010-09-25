@@ -129,8 +129,8 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
     switch (this.type) {
         case 'slide-x':
         case 'slide-y':
-            var f = (this.type == 'slide-x')?'_calcLeft':'_calcTop';
-            var v = (this.type == 'slide-x')?'left':'top';
+            var f = (this.type == 'slide-x')? '_calcLeft':'_calcTop';
+            var v = (this.type == 'slide-x')? 'left':'top';
             this.parent[v] = this.begin;
             begin = this.parent[f]();
             this.parent[v] = this.end;
@@ -170,13 +170,13 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
             switch (this.direction) {
                 case 's':
                     h = wd.div.offsetHeight;
-                    wd.div.style.clip = 'rect(auto,auto,' +
-                                        parseInt(h * value) + 'px,auto)';
+                    wd.div.style.clip = 'rect(auto, auto, ' +
+                                        parseInt(h * value) + 'px, auto)';
                     break;
                 case 'e':
                     w = wd.div.offsetWidth;
-                    wd.div.style.clip = 'rect(auto,' +
-                                        parseInt(w * value) + 'px,auto,auto)';
+                    wd.div.style.clip = 'rect(auto, ' +
+                                        parseInt(w * value) + 'px, auto, auto)';
                     break;
 
             }
@@ -184,8 +184,8 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
         case 'wipe-out':
             if (this.direction == 'n') {
                 h = wd.div.offsetHeight;
-                wd.div.style.clip = 'rect(auto,auto,' +
-                                    parseInt(h * value) + 'px,auto)';
+                wd.div.style.clip = 'rect(auto, auto, ' +
+                                    parseInt(h * value) + 'px, auto)';
             }
             break;
         case 'slide-x':
@@ -202,15 +202,17 @@ QuiX.ui.Effect.prototype.stop = function() {
         QuiX.ui.Timer.prototype.stop.apply(this, arguments);
         switch (this.type) {
             case 'wipe-in':
-                var ev = this._reverse?this.begin:this.end;
-                if (ev == 1)
+                var ev = this._reverse? this.begin:this.end;
+                if (ev == 1) {
                     if (QuiX.utils.BrowserInfo.family == 'ie') {
                         with (this.parent.div.style) {
-                            cssText = cssText.replace(/CLIP:.*?;/i, '');
+                            cssText = cssText.replace(/CLIP.*?:.*?;/ig, '');
                         }
                     }
-                    else
+                    else {
                         this.parent.div.style.clip = '';
+                    }
+                }
         }
         this._step = 0;
         if (this._customRegistry.oncomplete)

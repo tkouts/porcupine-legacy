@@ -170,7 +170,11 @@ QuiX.persist = (function() {
             version: '0.2.1',
             enabled: false
         };
-        me.enabled = alive.call(me);
+        try {
+            me.enabled = alive.call(me);
+        } catch(e) {
+            me.enabled = false;
+        }
         return me;
     } ());
     empty = function() {};

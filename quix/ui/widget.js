@@ -991,7 +991,7 @@ QuiX.ui.Widget.prototype._registerHandler = function(evt_type, handler,
     var chr = (this._isDisabled)?'*':'';
     if (!isCustom)
         this._registry[chr + evt_type] = function(evt) {
-            return handler(evt || event, self);
+            return handler(window.event || evt, self);
         };
     else
         this._customRegistry[chr + evt_type] = handler;
@@ -1191,7 +1191,7 @@ QuiX.ui.Widget._startDrag = function(evt, w) {
             function _draghandler() {
                 w._startDrag(x, y, el)
             }, 200);
-        QuiX.cancelDefault(evt);
+        //QuiX.cancelDefault(evt);
         QuiX.stopPropag(evt);
         QuiX.cleanupOverlays();
         QuiX.dragging = true;

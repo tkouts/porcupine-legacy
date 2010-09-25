@@ -246,8 +246,9 @@ QuiX.ui.ContextMenu.prototype.show = function(w, x, y) {
                 var effect = this.getWidgetById('_eff_show');
                 effect.play();
             }
-            if (w == document.desktop)
+            if (w == document.desktop) {
                 document.desktop.overlays.push(this);
+            }
             this.isOpen = true;
         }
     }
