@@ -7,7 +7,7 @@
     <script name="Login Script" src="desktop/ui.LoginPage.js"/>
     <stylesheet src="desktop/login.css"/>
 
-    <vbox id="loginbox"
+    <vbox id="logindialog"
             width="320" height="250" top="center" left="center"
             border="1" bgcolor="#EBEBEB" padding="1,1,1,1">
 

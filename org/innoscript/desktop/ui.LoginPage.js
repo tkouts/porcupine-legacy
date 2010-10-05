@@ -1,7 +1,7 @@
 function login() {}
 
 login.login = function (evt, btn) {
-    var login_dialog = btn.getParentByType(QuiX.ui.VBox);
+    var login_dialog = login.getDialog(btn);
     var sUser = login_dialog.getWidgetById('user').getValue();
     var sPassword = login_dialog.getWidgetById('password').getValue();
     var sLoginServiceUrl = login_dialog.attributes.ServiceURI;
@@ -11,8 +11,21 @@ login.login = function (evt, btn) {
     rpc.callback_info = btn;
     rpc.onerror = login.login_onerror;
     rpc.callmethod('login', sUser, sPassword);
-    login_dialog.getWidgetById('status').setCaption('Please wait...');
+    if (login_dialog instanceof QuiX.ui.VBox) {
+        login_dialog.getWidgetById('status').setCaption('Please wait...');
+    }
+    else {
+        login_dialog.setStatus('Please wait...');
+    }
     btn.disable();
+}
+
+login.getDialog = function(w) {
+    var login_dialog = w.getParentByType(QuiX.ui.VBox);
+    if (login_dialog.getId() != 'logindialog') {
+        login_dialog = login_dialog.parent;
+    }
+    return login_dialog;
 }
 
 login.checkKey = function(evt, fld) {
@@ -27,14 +40,24 @@ login.login_oncomplete = function(req) {
     }
     else {
         req.callback_info.enable();
-        var dlg = req.callback_info.getParentByType(QuiX.ui.VBox);
-        dlg.getWidgetById('status').setCaption(dlg.attributes.FailMsg);
+        var dlg = login.getDialog(this.callback_info);
+        if (dlg instanceof QuiX.ui.VBox) {
+            dlg.getWidgetById('status').setCaption(dlg.attributes.FailMsg);
+        }
+        else {    
+            dlg.setStatus(dlg.attributes.FailMsg);
+        }
     }
 }
 
 login.login_onerror = function(e) {
     this.callback_info.enable();
-    var dlg = this.callback_info.getParentByType(QuiX.ui.VBox);
-    dlg.getWidgetById('status').setCaption('');
+    var dlg = login.getDialog(this.callback_info);
+    if (dlg instanceof QuiX.ui.VBox) {
+        dlg.getWidgetById('status').setCaption('');
+    }
+    else {
+        dlg.setStatus('');
+    }
     QuiX.displayError(e);
 }

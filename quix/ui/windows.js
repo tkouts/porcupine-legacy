@@ -56,10 +56,9 @@ QuiX.ui.Window = function(/*params*/) {
     this._stateh = 0;
     this._childwindows = [];
     this.div.className = 'window';
-    var box = new QuiX.ui.Box({
+    var box = new QuiX.ui.VBox({
         width : '100%',
         height : '100%',
-        orientation : 'v',
         spacing : 0
     });
     this.appendChild(box);
