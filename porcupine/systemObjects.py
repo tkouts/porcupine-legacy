@@ -292,6 +292,7 @@ class Removable(object):
 
         if not is_deleted:
             db._db.handle_delete(self, False)
+            db._db.delete_item(self)
 
         self._isDeleted = int(self._isDeleted) + 1
         db._db.put_item(self)
