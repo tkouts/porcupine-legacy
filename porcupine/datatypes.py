@@ -442,6 +442,8 @@ class ExternalAttribute(DataType):
     def __init__(self, **kwargs):
         self._id = misc.generate_oid()
         self._reset()
+        if 'value' in kwargs:
+            self.set_value(kwargs['value'])
 
     def _reset(self):
         self._value = None
@@ -478,8 +480,8 @@ class Text(ExternalAttribute):
     """Data type to use for large text streams"""
 
     def __init__(self, **kwargs):
+        kwargs.setdefault('value', '')
         ExternalAttribute.__init__(self, **kwargs)
-        self._size = 0
 
     def get_value(self):
         value = ExternalAttribute.get_value(self)
@@ -517,9 +519,9 @@ class File(ExternalAttribute):
     @type filename: str
     """
     def __init__(self, **kwargs):
+        kwargs.setdefault('value', bytes())
         ExternalAttribute.__init__(self, **kwargs)
         self.filename = ''
-        self._size = 0
 
     def set_value(self, value):
         ExternalAttribute.set_value(self, value)
@@ -547,9 +549,9 @@ class File(ExternalAttribute):
 
         @return: None
         """
-        oFile = open(fname, 'rb')
+        f = open(fname, 'rb')
         self.value = oFile.read()
-        oFile.close()
+        f.close()
 
 
 class RequiredFile(File):
