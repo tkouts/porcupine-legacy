@@ -76,7 +76,7 @@ class Gzip(PostProcessFilter):
                     # remove old compressed files
                     oldfiles = glob.glob(glob_f + '*.gzip')
                     [os.remove(old) for old in oldfiles]
-    
+
                     output = io.FileIO(compressed, 'wb')
                     Gzip.compress(context.response._get_body(),
                                   output,
@@ -222,10 +222,10 @@ class JSMerge(PreProcessFilter):
 
         revision = int(context.request.queryString['r'][0])
 
-        if (not os.path.isfile(merged) or
-                os.path.getmtime(merged) < revision):
-            JSMerge.lock.acquire()
-            try:
+        JSMerge.lock.acquire()
+        try:
+            if (not os.path.isfile(merged) or
+                    os.path.getmtime(merged) < revision):
                 # remove old merged files
                 oldfiles = glob.glob(glob_f + '*')
                 [os.remove(old) for old in oldfiles]
@@ -234,7 +234,7 @@ class JSMerge(PreProcessFilter):
                 for fname in files:
                     f.write(open(fname, 'r').read() + '\n')
                 f.close()
-            finally:
-                JSMerge.lock.release()
+        finally:
+            JSMerge.lock.release()
 
         registration.context = merged

@@ -163,7 +163,7 @@ def reload_module(module):
     if module.__file__[-1] not in ('c', 'o'):
         # remove compiled files
         [os.remove(module.__file__ + x)
-         for x in ('c','o')
+         for x in ('c', 'o')
          if os.path.isfile(module.__file__ + x)]
     # find dependencies
     for mod in (m for m in sys.modules.values() if m is not None):
@@ -189,3 +189,21 @@ def get_full_path(item):
     for parent in parents:
         sPath += parent.displayName.value + '/'
     return sPath
+
+
+def get_revision(pubdir, path):
+    """
+    Returns the most recent modification
+    time of the files.
+
+    @param str pubdir: The name of the public directory
+    @param str path: The registration's path
+
+    @rtype int
+    """
+    from porcupine.config import pubdirs
+    from porcupine.filters.output import JSMerge
+
+    registration = (pubdirs.dirs[pubdir].get_registration(path))
+    files = (registration.get_filter_by_type(JSMerge)[1]['files'].split(','))
+    return JSMerge.get_revision(files)

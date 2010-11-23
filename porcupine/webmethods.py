@@ -19,9 +19,9 @@ Porcupine web method decorators.
 This kind of method becomes directly accessible over HTTP.
 """
 from porcupine import exceptions
-from porcupine.config import pubdirs
 from porcupine.core.decorators import WebMethodDescriptor
 from porcupine.core.rpc import xmlrpc, jsonrpc
+from porcupine.utils import misc
 
 
 def webmethod(of_type, http_method='GET', client='', lang='', qs='',
@@ -59,7 +59,6 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
         def execute(self, item, context):
             if isPage:
                 from porcupine.core.session import SessionManager
-                from porcupine.filters.output import JSMerge
 
                 script_name = context.request.serverVariables["SCRIPT_NAME"]
                 cookies_required = SessionManager._sm.requires_cookies
@@ -70,12 +69,7 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
                     context.request.get_query_string())
 
                 # get revision of quix core files
-                quix_core_reg = (
-                    pubdirs.dirs['__quix'].get_registration('core.js'))
-                quix_core_files = (
-                    quix_core_reg.get_filter_by_type(JSMerge)[1]['files'].
-                    split(','))
-                core_revision = JSMerge.get_revision(quix_core_files)
+                core_revision = misc.get_revision('__quix', 'core.js')
 
                 vars = (bgcolor, title, script_name, script_name,
                         core_revision, str(cookies_required).lower(),
