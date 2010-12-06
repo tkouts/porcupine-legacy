@@ -20,12 +20,6 @@ QuiX.ui.Window = function(/*params*/) {
     params.padding = QuiX.theme.window.padding;
     delete params.bgcolor;
     params.opacity = (QuiX.effectsEnabled)? 0:1;
-    params.onmousedown = QuiX.wrappers.eventWrapper(
-        QuiX.ui.Window._onmousedown,
-        params.onmousedown);
-    params.oncontextmenu = QuiX.wrappers.eventWrapper(
-        QuiX.ui.Window._oncontextmenu,
-        params.oncontextmenu);
     params.overflow = (QuiX.utils.BrowserInfo.family == 'moz'
         && QuiX.utils.BrowserInfo.OS == 'MacOS')? 'auto':'hidden';
 
@@ -44,6 +38,10 @@ QuiX.ui.Window = function(/*params*/) {
 
     this.base = QuiX.ui.Widget;
     this.base(params);
+
+    this.attachEvent('onmousedown', QuiX.ui.Window._onmousedown);
+    //this.attachEvent('oncontextmenu', QuiX.ui.Window._oncontextmenu);
+
     this.minw = params.minw || 120;
     this.minh = params.minh || 26;
     this.isMinimized = false;
@@ -80,8 +78,9 @@ QuiX.ui.Window = function(/*params*/) {
 
     this.title.getWidgetById('c0').attachEvent('onclick',
         function() {
-            if (self.buttonIndex)
+            if (self.buttonIndex) {
                 self.buttonIndex = -1;
+            }
             self.close();
         });
     this.title.getWidgetById('c1').attachEvent('onclick',
@@ -177,7 +176,6 @@ QuiX.ui.Window.prototype.setResizable = function(bResizable) {
         this._resizer.attachEvent('onmousedown',
             function(evt){
                 oWindow._startResize(evt);
-                QuiX.cancelDefault(evt);
                 QuiX.stopPropag(evt);
             });
     }
@@ -200,13 +198,15 @@ QuiX.ui.Window.prototype.removeControlButton = function(iWhich) {
 }
 
 QuiX.ui.Window.prototype.close = function() {
-    QuiX.cleanupOverlays();
-    if (this._customRegistry.onclose)
+    if (this._customRegistry.onclose) {
         QuiX.getEventListener(this._customRegistry.onclose)(this);
-    while (this.childWindows.length != 0)
+    }
+    while (this.childWindows.length != 0) {
         this.childWindows[0].close();
-    if (this.opener && this.opener.childWindows)
+    }
+    if (this.opener && this.opener.childWindows) {
         this.opener.childWindows.removeItem(this);
+    }
     if (QuiX.effectsEnabled) {
         var self = this;
         var eff = this.getWidgetById('_eff_fade', true);
@@ -215,8 +215,9 @@ QuiX.ui.Window.prototype.close = function() {
         });
         eff.play(true);
     }
-    else	
+    else {	
         this.destroy();
+    }
 }
 
 QuiX.ui.Window.prototype.setTitle = function(s) {
@@ -337,7 +338,9 @@ QuiX.ui.Window.prototype.maximize = function() {
                 minControl.enable();
             if (w._resizer)
                 w._resizer.enable();
-            w.title.getWidgetById('_t').attachEvent('onmousedown');
+            w.title.getWidgetById('_t').attachEvent(
+                'onmousedown',
+                QuiX.ui.Window._titleonmousedown);
             w.isMaximized = false;
         }
         w.redraw();
@@ -345,7 +348,6 @@ QuiX.ui.Window.prototype.maximize = function() {
 }
 
 QuiX.ui.Window.prototype.bringToFront = function() {
-    QuiX.cleanupOverlays();
     if (this.div.style.zIndex < this.parent.maxz) {
         var sw, dt, i;
         var macff = (QuiX.utils.BrowserInfo.family == 'moz' &&
@@ -391,26 +393,26 @@ QuiX.ui.Window.prototype.showWindowFromString = function(s, oncomplete) {
 
 QuiX.ui.Window._titleonmousedown = function(evt, w) {
     QuiX.cleanupOverlays();
+
     QuiX.stopPropag(evt);
     QuiX.cancelDefault(evt);
-    w.parent.parent.parent.bringToFront();
+
+    w.parent.parent.parent.bringToFront();    
     w.parent.parent.parent._startMove(evt);
 }
 
 QuiX.ui.Window._onmousedown = function(evt, w) {
-    if (QuiX.getMouseButton(evt) == 0) {
+    if (QuiX.supportTouches || QuiX.getMouseButton(evt) == 0) {
         w.bringToFront();
-        QuiX.stopPropag(evt);
     }
     if (QuiX.utils.BrowserInfo.family != 'ie') {
         QuiX.cancelDefault(evt);
     }
-    QuiX.cleanupOverlays();
 }
 
 QuiX.ui.Window._oncontextmenu = function(evt, w) {
-    QuiX.stopPropag(evt);
-    return false;
+    //QuiX.stopPropag(evt);
+    //return false;
 }
 
 QuiX.ui.Window._onminimize = function(eff) {
@@ -446,8 +448,7 @@ QuiX.ui.Dialog = function(/*params*/) {
     this.footer = new QuiX.ui.Widget({
         height : 32,
         padding : '0,0,0,0',
-        overflow : 'hidden',
-        onclick : QuiX.stopPropag
+        overflow : 'hidden'
     });
     this.widgets[0].appendChild(this.footer);
 
@@ -465,12 +466,14 @@ QuiX.ui.Dialog = function(/*params*/) {
     this.buttons = this.buttonHolder.widgets;
 
     //status
-    if (stat.toString() == 'true')
+    if (stat.toString() == 'true') {
         this.addStatusBar();
+    }
 
     // resize handle
-    if (resizable.toString() == 'true')
+    if (resizable.toString() == 'true') {
         this.setResizable(true);
+    }
 
     this.buttonIndex = -1;
     this.defaultButton = null;
@@ -538,17 +541,3 @@ QuiX.ui.DialogButton = function(params, dialog) {
 }
 
 QuiX.ui.DialogButton.prototype = new QuiX.ui.Button;
-
-QuiX.ui.DialogButton.prototype._registerHandler =
-function(eventType, handler, isCustom) {
-    var wrapper;
-    if (handler && handler.toString().lastIndexOf(
-            'return handler(evt || event, self)') == -1)
-        wrapper = function(evt, w) {
-            w.dialog.buttonIndex = w.dialog.buttons.indexOf(w);
-            handler(evt, w);
-        }
-    wrapper = wrapper || handler;
-    QuiX.ui.Widget.prototype._registerHandler.apply(this,
-        [eventType, wrapper, isCustom]);
-}
