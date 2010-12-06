@@ -3,37 +3,39 @@
 QuiX.ui.TreeNode = function(/*params*/) {
     var params = arguments[0] || {};
     params.display = 'none';
-    params.padding = '13,0,1,1';
-    params.onmousedown = QuiX.cancelDefault;
-    params.onmouseover = QuiX.wrappers.eventWrapper(
-        QuiX.ui.TreeNode._onmouseover,
-        params.onmouseover);
-    params.onmouseout = QuiX.wrappers.eventWrapper(
-        QuiX.ui.TreeNode._onmouseout,
-        params.onmouseout);
+    params.padding = '17,2,2,2';
 
     this.base = QuiX.ui.Widget;
     this.base(params);
+
+    this.attachEvent('onmouseover', QuiX.ui.TreeNode._onmouseover);
+    this.attachEvent('onmouseout', QuiX.ui.TreeNode._onmouseout);
+    this.attachEvent('onmousedown', QuiX.ui.TreeNode._onmousedown);
 
     this.isExpanded = false;
     this._hasChildren = (params.haschildren == 'true' ||
                          params.haschildren == true);
     this.img = params.img || null;
     
-    if (params.imgheight)
+    if (params.imgheight) {
         this.imgHeight = parseInt(params.imgheight);
-    if (params.imgwidth)
+    }
+    if (params.imgwidth) {
         this.imgWidth = parseInt(params.imgwidth);
-    
+    }
+
     this._expandImg = null;
     this._imgElement = null;
-    this.childNodes = this.widgets;
+    this._level = 0;
+    this.parentNode = null;
+    this.childNodes = [];
 
     this.div.className = 'treenode';
     this.div.style.whiteSpace = 'nowrap';
     this.setPosition();
 
     var oA = ce('A');
+    oA.ondragstart = QuiX.cancelDefault;
     oA.href = 'javascript:void(0)';
     this.div.appendChild(oA);
     this.anchor = oA;
@@ -44,34 +46,73 @@ QuiX.ui.TreeNode = function(/*params*/) {
 QuiX.constructors['treenode'] = QuiX.ui.TreeNode;
 QuiX.ui.TreeNode.prototype = new QuiX.ui.Widget;
 
-QuiX.ui.TreeNode.prototype.appendChild = function(w) {
-    w.tree = this.tree;
-    if (QuiX.dir != 'rtl')
-        w.div.style.margin = '2px 0px 0px ' + this.tree.levelpadding + 'px';
-    else
-        w.div.style.margin = '2px ' + this.tree.levelpadding + 'px 0px 0px';
-    QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
-    if (!w._isDisabled)
-        w.enable();
+QuiX.ui.TreeNode.prototype.appendChild = function(w /*, index*/) {
+    var index = (typeof arguments[1] != 'undefined')? arguments[1]:null,
+        tree_index = null;
+
+    w.parentNode = this;
+    w._level = this._level + 1;
+
+    if (index != null) {
+        if (index <= 0) {
+            tree_index = this.parent.widgets.indexOf(this) + 1;
+        }
+        else if (index > 0 && index < this.childNodes.length) {
+            tree_index = this.parent.widgets.indexOf(this.childNodes[index]);
+        }
+        else {
+            tree_index = this.parent.widgets.indexOf(this.childNodes[this.childNodes.length - 1]) + 1;
+        }
+        this.childNodes.splice(index, 0, w);
+    }
+    else {
+        if (this.childNodes.length > 0) {
+            var last = this.childNodes[this.childNodes.length - 1];
+            tree_index = this.parent.widgets.indexOf(last) +
+                         last.childNodes.length + 1;
+            
+        }
+        else {
+            tree_index = this.parent.widgets.indexOf(this) + 1;
+        }
+        this.childNodes.push(w);
+    }
+    this.parent.appendChild(w, tree_index);
+
+    w._addChildNodes();
+}
+
+QuiX.ui.TreeNode.prototype._addChildNodes = function() {
+    var child,
+        tree_index = this.parent.widgets.indexOf(this);
+    for (var i=0; i<this.childNodes.length; i++) {
+        child = this.childNodes[i];
+        child._level = this._level + 1;
+        this.parent.appendChild(child, tree_index + 1 + i);
+        child._addChildNodes();
+    }
 }
 
 QuiX.ui.TreeNode.prototype._putImage = function() {
     if (this.img) {
         if (this._imgElement != null) {
-            if (this._imgElement.src != this.img)
+            if (this._imgElement.src != this.img) {
                 this._imgElement.src = this.img;
+            }
         }
         else {
             var nm = QuiX.getImage(this.img);
             nm.border = 0;
             nm.style.verticalAlign = 'middle';
             nm.style.marginRight = '4px';
-            
-            if (this.imgHeight)
+
+            if (this.imgHeight) {
                 nm.style.height = this.imgHeight + 'px';
-            if (this.imgWidth)
+            }
+            if (this.imgWidth) {
                 nm.style.width = this.imgWidth + 'px';
-            
+            }
+
             this.anchor.insertBefore(nm, this.anchor.firstChild);
             this._imgElement = nm;
         }
@@ -86,29 +127,39 @@ QuiX.ui.TreeNode.prototype._putImage = function() {
 
 QuiX.ui.TreeNode.prototype.redraw = function(bForceAll /*, memo*/) {
     this._putImage();
-    if (this.hasChildren())
+    if (this.hasChildren()) {
         this._addExpandImg();
-    if (this.parent instanceof QuiX.ui.TreeNode) {
+    }
+    if (this.parentNode) {
         //sub node
-        if (!this.parent._hasChildren) {
-            this.parent._addExpandImg();
-            this.parent._hasChildren = true;
+        if (!this.parentNode._hasChildren) {
+            this.parentNode._addExpandImg();
+            this.parentNode._hasChildren = true;
         }
-        if (this.parent.isExpanded)
+        if (this.parentNode.isExpanded) {
             this.show();
-        else
+        }
+        else {
             this.hide();
+        }
     }
     else {
         // root node
         this.show();
     }
     QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+    this.div.style.lineHeight = this.div.style.height;
+
+    // redraw child nodes
+    for (var i=0; i<this.childNodes.length; i++) {
+        this.childNodes[i].redraw(bForceAll);
+    }
+
 }
 
 QuiX.ui.TreeNode.prototype._updateParent = function() {
-    var p = this.parent;
-    if (p instanceof QuiX.ui.TreeNode && p.childNodes.length == 1) {
+    var p = this.parentNode;
+    if (p && p.childNodes && p.childNodes.length == 1) {
         p._removeExpandImg();
         p._hasChildren = false;
     }
@@ -116,31 +167,77 @@ QuiX.ui.TreeNode.prototype._updateParent = function() {
 
 QuiX.ui.TreeNode.prototype.destroy = function() {
     this._updateParent();
-    var tree = this.tree; 
+    var tree = this.parent, tmp_next,
+        next = this.nextSibling();
+
+    while (next && next._level > this._level) {
+        tmp_next = next.nextSibling();
+        QuiX.ui.Widget.prototype.destroy.apply(next, arguments);
+        next = tmp_next;
+    }
+    if (this.parentNode && this.parentNode.childNodes) {
+        this.parentNode.childNodes.removeItem(this);
+    }
     QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
-    if (tree.selectedWidget && tree.selectedWidget.div == null)
+
+    if (tree.selectedWidget && tree.selectedWidget.div == null) {
         tree.selectedWidget = null;
+    }
+}
+
+QuiX.ui.TreeNode.prototype.clear = function() {
+    for (var i=0; i<this.childNodes.length; i++) {
+        this.childNodes[i].clear();
+        this.childNodes[i].destroy();
+    }
+    this.childNodes = [];
 }
 
 QuiX.ui.TreeNode.prototype.detach = function() {
     this._updateParent();
+
+    // detach child nodes
+    var next = this.nextSibling(), tmp_next;
+    while (next && next._level > this._level) {
+        next._removeExpandImg();
+        next.setPadding([17,2,2,2]);
+        tmp_next = next.nextSibling();
+        QuiX.ui.Widget.prototype.detach.apply(next, arguments);
+        next = tmp_next;
+    }
+
+    this.parentNode.childNodes.removeItem(this);
+    this._removeExpandImg();
+    this.setPadding([17,2,2,2]);
+    this._level = 0;
+    this.parentNode = null;
     QuiX.ui.Widget.prototype.detach.apply(this, arguments);
 }
 
 QuiX.ui.TreeNode.prototype._addExpandImg = function() {
     if (this._expandImg == null) {
-        var oTreeNode = this;
-        this.setPadding([0,0,1,1]);
+        var img,
+            self = this;
 
-        var img;
-        if (this.isExpanded)
+        if (QuiX.dir != 'rtl') {
+            this.addPaddingOffset('Left', -13);
+        }
+        else {
+            this.addPaddingOffset('Right', -13);
+        }
+
+        if (this.isExpanded) {
             img = QuiX.getImage('$THEME_URL$images/collapse.gif');
-        else
+        }
+        else {
             img = QuiX.getImage('$THEME_URL$images/expand.gif');
-        img.onclick = function(evt) {
-            oTreeNode.toggle()
-            QuiX.stopPropag(evt || event);
-        };
+        }
+
+        QuiX.addEvent(img, 'onmousedown',
+                      function(evt) {
+                        self.toggle();
+                      });
+
         img.style.marginRight = '4px';
         img.style.verticalAlign = 'middle';
         this.div.insertBefore(img, this.div.firstChild);
@@ -152,7 +249,12 @@ QuiX.ui.TreeNode.prototype._removeExpandImg = function() {
     if (this._expandImg) {
         QuiX.removeNode(this._expandImg);
         this._expandImg = null;
-        this.setPadding([13,0,1,1]);
+        if (QuiX.dir != 'rtl') {
+            this.addPaddingOffset('Left', 13);
+        }
+        else {
+            this.addPaddingOffset('Right', 13);
+        }
     }
 }
 
@@ -161,27 +263,36 @@ QuiX.ui.TreeNode.prototype.getCaption = function() {
 }
 
 QuiX.ui.TreeNode.prototype.setCaption = function(sCaption) {
-    if (this.anchor.lastChild)
+    if (this.anchor.lastChild) {
         QuiX.removeNode(this.anchor.lastChild);
+    }
     this.anchor.appendChild(document.createTextNode(sCaption));
 }
 
 QuiX.ui.TreeNode.prototype.toggle = function() {
-    var i;
+    var i, next;
     this.isExpanded = !this.isExpanded;
     if (this.isExpanded) {
-        if (this._expandImg)
+        if (this._expandImg) {
             this._expandImg.src = QuiX.getThemeUrl() + 'images/collapse.gif';
+        }
         for (i=0; i < this.childNodes.length; i++) {
             this.childNodes[i].show();
         }
-        if (this.tree._customRegistry.onexpand)
-            this.tree._customRegistry.onexpand(this);
+        if (this.parent._customRegistry.onexpand) {
+            this.parent._customRegistry.onexpand(this);
+        }
     }
     else {
         this._expandImg.src = QuiX.getThemeUrl() + 'images/expand.gif';
-        for (i=0; i < this.childNodes.length; i++) {
-            this.childNodes[i].hide();
+        next = this.nextSibling();
+        while (next && next._level > this._level) {
+            next.hide();
+            if (next._expandImg) {
+                next.isExpanded = false;
+                next._expandImg.src = QuiX.getThemeUrl() + 'images/expand.gif';
+            }
+            next = next.nextSibling();
         }
     }
 }
@@ -193,18 +304,19 @@ QuiX.ui.TreeNode.prototype.hasChildren = function() {
 QuiX.ui.TreeNode.prototype.disable = function() {
     if (this.anchor) {
         this.anchor.className = 'disabled';
-        this.anchor.onclick = null;
+        //this.anchor.onclick = null;
     }
     QuiX.ui.Widget.prototype.disable.apply(this, arguments);
 }
 
 QuiX.ui.TreeNode.prototype.enable = function() {
-    var oTreeNode = this;
     this.anchor.className = '';
-    this.anchor.onclick = function(){
-        oTreeNode.tree.selectNode(oTreeNode)
-    };
     QuiX.ui.Widget.prototype.enable.apply(this, arguments);
+}
+
+QuiX.ui.TreeNode._onmousedown = function(evt, treenode) {
+    treenode.parent.selectNode(treenode);
+    QuiX.cancelDefault(evt);
 }
 
 QuiX.ui.TreeNode._onmouseover = function(evt, treeNode) {
@@ -214,7 +326,7 @@ QuiX.ui.TreeNode._onmouseover = function(evt, treeNode) {
             function() {
                 treeNode._dragTimer = null;
                 treeNode.toggle();
-            }, 1000);
+            }, 700);
     }
 }
 
@@ -233,11 +345,11 @@ QuiX.ui.Tree = function(/*params*/) {
     this.base(params);
     
     this.div.className = 'tree';
-    if (params)
-        this.levelpadding = params.levelpadding || 14;
-    
+    if (params) {
+        this.levelpadding = params.levelpadding || 12;
+    }
     this.selectedWidget = null;
-    this.roots = this.widgets;
+    this.roots = [];
 }
 
 QuiX.constructors['tree'] = QuiX.ui.Tree;
@@ -246,20 +358,54 @@ QuiX.ui.Tree.prototype = new QuiX.ui.Widget;
 QuiX.ui.Tree.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onexpand', 'onselect']);
 
-QuiX.ui.Tree.prototype.appendChild = function(w) {
-    w.tree = this;
-    QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
-    if (!w._isDisabled)
+QuiX.ui.Tree.prototype.appendChild = function(w /*, index*/) {
+    var index = (typeof arguments[1] != 'undefined')? arguments[1]:null;
+    if (w.parentNode == null) {
+        this.roots.push(w);
+        w.show();
+    }
+    if (QuiX.dir != 'rtl') {
+        w.addPaddingOffset('Left', w._level * this.levelpadding);
+    }
+    else {
+        w.addPaddingOffset('Right', w._level * this.levelpadding);
+    }
+    QuiX.ui.Widget.prototype.appendChild.apply(this, [w, index]);
+    if (!w._isDisabled) {
         w.enable();
+    }
 }
 
-QuiX.ui.Tree.prototype.selectNode = function(w) {
-    if (this.selectedWidget)
-        this.selectedWidget.anchor.className = '';
-    w.anchor.className = 'selected';
-    this.selectedWidget = w;
-    if (this._customRegistry.onselect)
-        this._customRegistry.onselect(w);
+QuiX.ui.Tree.prototype.selectNode = function(w /*, expand*/) {
+    if (w != this.selectedWidget) {
+        var expand = arguments[1] || false;
+        if (this.selectedWidget) {
+            this.selectedWidget.div.className =
+                this.selectedWidget.div.className.replace(' selected', '');
+        }
+        w.div.className += ' selected';
+        this.selectedWidget = w;
+
+        if (expand && w.parentNode) {
+            // expand parent nodes
+            var parents = [],
+                parent = w.parentNode;
+            while (parent) {
+                parents.push(parent);
+                parent = parent.parentNode;
+            }
+            parents.reverse();
+            for (var i=0; i<parents.length; i++) {
+                if (!parents[i].isExpanded) {
+                    parents[i].toggle();
+                }
+            }
+        }
+
+        if (this._customRegistry.onselect) {
+            this._customRegistry.onselect(w);
+        }
+    }
 }
 
 QuiX.ui.Tree.prototype.getSelection = function() {
@@ -283,21 +429,21 @@ QuiX.ui.FolderTree.prototype = new QuiX.ui.Tree;
 QuiX.ui.FolderTree.prototype.loadSubfolders = function(treeNode) {
     var sID = treeNode.getId() || '';
     var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + sID);
-    rpc.oncomplete = treeNode.tree.load_oncomplete;
+    rpc.oncomplete = treeNode.parent.load_oncomplete;
     rpc.callback_info = treeNode;
-    rpc.callmethod(treeNode.tree.method);
+    rpc.callmethod(treeNode.parent.method);
     for (var i=0; i< treeNode.childNodes.length; i++ ) {
         treeNode.childNodes[i].hide();
     }
 }
 
 QuiX.ui.FolderTree.prototype.load_oncomplete = function(req) {
-    var newNode;
-    var treeNode = req.callback_info;
-    var oFolders = req.response;
-    while (treeNode.childNodes.length > 0) {
-        treeNode.childNodes[0].destroy();
-    }
+    var newNode,
+        treeNode = req.callback_info,
+        oFolders = req.response;
+
+    treeNode.clear();
+
     for (var i=0; i<oFolders.length; i++) {
         newNode = new QuiX.ui.TreeNode(oFolders[i]);
         //custom attributes
@@ -309,6 +455,7 @@ QuiX.ui.FolderTree.prototype.load_oncomplete = function(req) {
         treeNode.appendChild(newNode);
         newNode.redraw();
     }
-    if (treeNode.tree._onexpand)
-        treeNode.tree._onexpand(treeNode);
+    if (treeNode.parent._onexpand) {
+        treeNode.parent._onexpand(treeNode);
+    }
 }
