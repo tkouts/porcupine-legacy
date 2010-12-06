@@ -51,7 +51,6 @@ QuiX.ui.Toolbar.prototype.addButton = function(params) {
 QuiX.ui.Toolbar.prototype.addSeparator = function() {
     var oSep = QuiX.theme.toolbar.separator.get();
     oSep.left = QuiX.ui.Toolbar._calcWidgetOffset;
-    oSep._isContainer = false;
     oSep.destroy = QuiX.ui.Toolbar._destroy;
     this.appendChild(oSep);
     oSep.div.className = 'separator';
