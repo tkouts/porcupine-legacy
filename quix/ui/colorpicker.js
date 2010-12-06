@@ -4,6 +4,9 @@ QuiX.ui.ColorPicker = function(/*params*/) {
     var params = arguments[0] || {};
     this.base = QuiX.ui.Field;
     params.type = 'text';
+    if (params.value) {
+        params.value = QuiX.ui.ColorPicker._rgb2Hex(params.value);
+    }
     this.base(params);
 
     var picker_params = {
@@ -17,14 +20,57 @@ QuiX.ui.ColorPicker = function(/*params*/) {
         pickerBorderColor : params.pickerbordercolor,
 
         pickerInset : params.pickerinset,
-        pickerInsetColor : params.pickerinsetcolor
+        pickerInsetColor : params.pickerinsetcolor,
+        hash: true
     }
 
-    new QuiX.ui.ColorPicker.jscolor.color(this, picker_params);
+    this.picker = new QuiX.ui.ColorPicker.jscolor.color(this, picker_params);
+    this.picker.required = false;
 }
 
 QuiX.constructors['colorpicker'] = QuiX.ui.ColorPicker;
 QuiX.ui.ColorPicker.prototype = new QuiX.ui.Field;
+
+QuiX.ui.ColorPicker._rgb2Hex = function(color) {
+    var m = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/i);
+    if (m && m.length == 4) {
+        color = [parseInt(m[1]).toString(16),
+                 parseInt(m[2]).toString(16),
+                 parseInt(m[3]).toString(16)];
+        for (var i=0; i<color.length; i++) {
+            if (color[i].length == 1) {
+                color[i] = '0' + color[i];
+            }
+        }
+        color = color.join('');
+    }
+    return color;    
+}
+
+QuiX.ui.ColorPicker.prototype.setValue = function(value) {
+    value = QuiX.ui.ColorPicker._rgb2Hex(value);
+	QuiX.ui.Field.prototype.setValue.apply(this, [value]);
+	this.picker.importColor();
+}
+
+QuiX.ui.ColorPicker.prototype.destroy = function() {
+    this.picker.hidePicker();
+    QuiX.ui.Field.prototype.destroy.apply(this, arguments);
+}
+
+QuiX.ui.ColorPicker.prototype.enable = function() {
+    if (this.div.firstChild) {
+        this.div.firstChild.disabled = false;
+    }
+    QuiX.ui.Widget.prototype.enable.apply(this, arguments);
+}
+
+QuiX.ui.ColorPicker.prototype.disable = function() {
+    if (this.div.firstChild) {
+        this.div.firstChild.disabled = true;
+    }
+    QuiX.ui.Widget.prototype.disable.apply(this, arguments);
+}
 
 QuiX.ui.ColorPicker.jscolor = {
 
@@ -291,7 +337,7 @@ QuiX.ui.ColorPicker.jscolor = {
         function removePicker() {
             delete jscolor.picker.owner;
             // quix
-            QuiX.removeNode(jscolor.picker.boxB);
+            QuiX.cleanupOverlays();
         }
 
         function drawPicker(x, y) {
@@ -324,21 +370,11 @@ QuiX.ui.ColorPicker.jscolor = {
 
             var p = jscolor.picker;
 
-            // quix
-            p.boxB.close = function() {
-                //alert(1)
-                document.desktop.overlays.removeItem(jscolor.picker.boxB);
-                valueElement.blur();
-            }
-
             // controls interaction
             p.box.onmouseup =
             p.box.onmouseout = function() { target.focus(); };
             p.box.onmousedown = function(e) {
-                abortBlur=true;
-                // quix
-                //QuiX.cancelDefault(e || event);
-                QuiX.stopPropag(e || event);
+                abortBlur = true;
             };
             p.box.onmousemove = function(e) {
                 holdPad && setPad(e);
@@ -381,11 +417,6 @@ QuiX.ui.ColorPicker.jscolor = {
                                  jscolor.images.pad[1] + 'px';
 
             // picker border
-            p.boxB.style.position = 'absolute';
-            p.boxB.style.clear = 'both';
-            p.boxB.style.left = x + 'px';
-            p.boxB.style.top = y + 'px';
-            p.boxB.style.zIndex = THIS.pickerZIndex;
             p.boxB.style.border = THIS.pickerBorder + 'px solid';
             p.boxB.style.borderColor = THIS.pickerBorderColor;
             p.boxB.style.background = THIS.pickerFaceColor;
@@ -453,8 +484,21 @@ QuiX.ui.ColorPicker.jscolor = {
             jscolor.picker.owner = THIS;
 
             // quix
-            document.desktop.div.appendChild(p.boxB);
-            document.desktop.overlays.push(p.boxB);
+            var rect = new QuiX.ui.Widget({left: x, top: y});
+            rect.div.appendChild(p.boxB);
+
+
+            rect.close = function() {
+                // quix
+                document.desktop.overlays.removeItem(this);
+                this.destroy();
+                THIS.hidePicker();
+                valueElement.blur();
+            }
+
+            document.desktop.appendChild(rect);
+            rect.redraw();
+            document.desktop.overlays.push(rect);
         }
 
         function redrawPad() {
@@ -601,7 +645,7 @@ QuiX.ui.ColorPicker.jscolor = {
         });
 
         // valueElement
-        if(valueElement) {
+        if (valueElement) {
             var updateField = function() {
                 THIS.fromString(valueElement.value, leaveValue);
             };
