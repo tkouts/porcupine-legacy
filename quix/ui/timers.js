@@ -25,8 +25,9 @@ QuiX.ui.Timer = function(/*params*/) {
     if (this.auto) {
         if (this.interval) {
             var h = QuiX.getEventListener(this.handler);
-            if (h)
+            if (h) {
                 h(this);
+            }
         }
         this.start();
     }
@@ -37,28 +38,34 @@ QuiX.ui.Timer.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.Timer.prototype.start = function() {
     if (!this._timerid) {
-        var oTimer = this;
-        var handler_func = QuiX.getEventListener(this.handler);
+        var self = this,
+            handler_func = QuiX.getEventListener(this.handler);
+
         var _handler = function() {
-            if (oTimer.timeout) {
+            if (self.timeout) {
                 this._timerid = null;
             }
-            if (handler_func)
-                handler_func(oTimer);
+            if (handler_func) {
+                handler_func(self);
+            }
         }
-        if (this.timeout)
+        if (this.timeout) {
             this._timerid = window.setTimeout(_handler, this.timeout);
-        else
+        }
+        else {
             this._timerid = window.setInterval(_handler, this.interval);
+        }
     }
 }
 
 QuiX.ui.Timer.prototype.stop = function() {
     if (this._timerid) {
-        if (this.timeout)
+        if (this.timeout) {
             window.clearTimeout(this._timerid);
-        else
+        }
+        else {
             window.clearInterval(this._timerid);
+        }
         this._timerid = null;
     }
 }
@@ -107,6 +114,7 @@ QuiX.ui.Effect = function(/*params*/) {
             break;
 
     }
+
     this.steps = parseInt(params.steps) || 5;
     // linear animations as default
     this.ease = parseFloat(params.ease) || 1;
@@ -124,17 +132,18 @@ QuiX.ui.Effect.prototype.customEvents =
 
 QuiX.ui.Effect.prototype._apply = function(wd) {
     // calculate value
-    var value, begin, end;
-    var stepping = 0;
+    var value, begin, end,
+        stepping = 0;
+
     switch (this.type) {
         case 'slide-x':
         case 'slide-y':
             var f = (this.type == 'slide-x')? '_calcLeft':'_calcTop';
             var v = (this.type == 'slide-x')? 'left':'top';
-            this.parent[v] = this.begin;
-            begin = this.parent[f]();
-            this.parent[v] = this.end;
-            end = this.parent[f]();
+            wd[v] = this.begin;
+            begin = wd[f]();
+            wd[v] = this.end;
+            end = wd[f]();
             break;
         default:
             begin = this.begin;
@@ -148,10 +157,12 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
     }
 
     if (this._step == this.steps) {
-        if (this._reverse)
+        if (this._reverse) {
             value = this.begin;
-        else
+        }
+        else {
             value = this.end;
+        }
     }
     else {
         value = begin +
@@ -205,34 +216,39 @@ QuiX.ui.Effect.prototype.stop = function() {
                 var ev = this._reverse? this.begin:this.end;
                 if (ev == 1) {
                     if (QuiX.utils.BrowserInfo.family == 'ie') {
-                        with (this.parent.div.style) {
+                        with ((this._w || this.parent).div.style) {
                             cssText = cssText.replace(/CLIP.*?:.*?;/ig, '');
                         }
                     }
                     else {
-                        this.parent.div.style.clip = '';
+                        (this._w || this.parent).div.style.clip = '';
                     }
                 }
         }
         this._step = 0;
-        if (this._customRegistry.oncomplete)
+        if (this._customRegistry.oncomplete) {
             this._customRegistry.oncomplete(this);
+        }
     }
 }
 
 QuiX.ui.Effect.prototype.show = function() {}
 
-QuiX.ui.Effect.prototype.play = function(reverse) {
-    this._reverse = reverse;
+QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
+    this._reverse = arguments[0] || false;
+    this._w = arguments[1] || null;
     this._handler(this);
-    if (this.parent) this.start();
+    if (this._w || this.parent) {
+        this.start();
+    }
 }
 
 QuiX.ui.Effect.prototype._handler = function(effect) {
-    var w = effect.parent;
+    var w = effect._w || effect.parent;
     if (w) {
         effect._apply(w);
-        if (effect._step > effect.steps)
+        if (effect._step > effect.steps) {
             effect.stop();
+        }
     }
 }
