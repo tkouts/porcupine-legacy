@@ -15,12 +15,6 @@ QuiX.ui.Datepicker = function(/*params*/) {
     this.setValue(params.value || '');
     this.dropdown.parseFromString(QuiX.theme.datepicker.dropdown.get(),
                                   QuiX.ui.Datepicker._fill);
-
-    if (this._isDisabled) {
-        this.div.firstChild.disabled = true;
-        this.div.firstChild.style.backgroundColor = 'menu';
-        if (!this.readonly) this.div.firstChild.onclick = null;
-    }
 }
 
 QuiX.constructors['datepicker'] = QuiX.ui.Datepicker;
@@ -84,7 +78,7 @@ QuiX.ui.Datepicker.prototype.render = function(container) {
         oTR1.align = 'center';
         for (i=0; i<7; i++) {
             cell = oTR1.insertCell(oTR1.cells.length);
-            cell.onclick = QuiX.ui.Datepicker._cell_onclick;
+            QuiX.addEvent(cell, 'onclick', QuiX.ui.Datepicker._cell_onclick);
         }
     }
     container.appendChild(frg.firstChild);
@@ -190,23 +184,6 @@ QuiX.ui.Datepicker.prototype.onNext = function() {
     this.fill();
 }
 
-QuiX.ui.Datepicker._month_onmousedown = function(evt) {
-    QuiX.cancelDefault(evt || event);
-}
-
-QuiX.ui.Datepicker._month_onclick = function(evt, w) {
-    var oCombo;
-    if (w)
-        oCombo = w.parent
-    else
-        oCombo = QuiX.getParentNode(this).widget;
-    if (!oCombo.isExpanded)
-        oCombo.showDropdown();
-    else
-        oCombo.dropdown.close();
-    QuiX.stopPropag(evt);
-}
-
 QuiX.ui.Datepicker._month_onchange = function(w) {
     var oDatepicker = w.parent.parent.parent.combo;
     oDatepicker.onMonth();
@@ -244,32 +221,18 @@ QuiX.ui.Datepicker._fill = function(box) {
     oDropdown.minw = oDropdown.width = 220;
     oDropdown.minh = oDropdown.height = 180;
     
-    oDropdown.close = function() {
-        document.desktop.overlays.removeItem(this);
-        if (oDatepicker.month && oDatepicker.month.isExpanded)
-            oDatepicker.month.dropdown.close();
-        oDatepicker.isExpanded = false;
-        this.detach();
-    }
-
     oDatepicker.year = box.getWidgetById('year');
     oDatepicker.year.attachEvent('onchange',
                                  QuiX.ui.Datepicker._year_onchange);
     oDatepicker.year.attachEvent('onkeyup', QuiX.ui.Datepicker._year_onchange);
 
     oDatepicker.month = box.getWidgetById('month');
-    for (var i=0; i<oDatepicker._dt.Months.length; i++)
+    for (var i=0; i<oDatepicker._dt.Months.length; i++) {
         oDatepicker.month.addOption({caption: oDatepicker._dt.Months[i],
                                      value: i});
+    }
     oDatepicker.month.attachEvent('onchange',
                                   QuiX.ui.Datepicker._month_onchange);
-
-    oDatepicker.month.div.firstChild.onclick =
-        QuiX.ui.Datepicker._month_onclick;
-    oDatepicker.month.div.firstChild.onmousedown =
-        QuiX.ui.Datepicker._month_onmousedown;
-    oDatepicker.month.button.attachEvent('onclick',
-                                         QuiX.ui.Datepicker._month_onclick);
 
     box.getWidgetById('prev').attachEvent(
         'onclick',
