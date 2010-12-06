@@ -7,7 +7,6 @@ QuiX.ui.HR = function(/*params*/) {
     params.height = params.height || 2;
     params.overflow = 'hidden';
     this.base(params);
-    this._isContainer = false;
     this.div.className = 'separator';
 }
 
@@ -21,7 +20,6 @@ QuiX.ui.IFrame = function(/*params*/) {
     params.overflow = 'hidden';
     this.base = QuiX.ui.Widget;
     this.base(params);
-    this._isContainer = false;
     this.div.className = 'ifrm';
     this.frame = ce("IFRAME");
     this.frame.frameBorder = 0;
@@ -142,14 +140,15 @@ QuiX.ui.GroupBox.prototype.setValue = function(value) {
 
 QuiX.ui.GroupBox._check_onclick = function(evt ,w) {
     var box = w.parent;
-    if (w.getValue())
+    if (w.getValue()) {
         box.body.enable();
-    else
+    }
+    else {
         box.body.disable();
-    if (box._customRegistry.onstatechange)
+    }
+    if (box._customRegistry.onstatechange) {
         box._customRegistry.onstatechange(evt, box);
-    if (evt)
-        QuiX.stopPropag(evt);
+    }
 }
 
 // slider
@@ -182,13 +181,15 @@ QuiX.ui.Slider = function(/*params*/) {
 
     this.handle.attachEvent('onmousedown', QuiX.ui.Slider._onmousedown);
 
-    var lbl = new QuiX.ui.Label({
-        top: 16,
-        left: (QuiX.dir != 'rtl')? -10:16,
-        display: 'none'
-    });
-    this.handle.appendChild(lbl);
-    this.label = lbl;
+    if (!(params.labeled == false || params.labeled == 'false')) {
+        var lbl = new QuiX.ui.Label({
+            top: 16,
+            left: (QuiX.dir != 'rtl')? -10:16,
+            display: 'none'
+        });
+        this.handle.appendChild(lbl);
+        this.label = lbl;
+    }
 
     this.setValue(params.value || this.min);
 }
@@ -206,27 +207,45 @@ QuiX.ui.Slider.prototype.getValue = function() {
 QuiX.ui.Slider.prototype.setValue = function(val) {
     this._value = Math.round(parseFloat(val) * Math.pow(10, this.decimals)) /
                   Math.pow(10, this.decimals);
-    if (this._value > this.max)
+    if (this._value > this.max) {
         this._value = this.max;
-    if (this._value < this.min)
+    }
+    if (this._value < this.min) {
         this._value = this.min;
+    }
     this._update();
 }
 
-QuiX.ui.Slider.prototype._update = function() {
-    var x = ((this._value - this.min) / +
+QuiX.ui.Slider.prototype.redraw = function() {
+    var memo = arguments[1] || {};
+    if (this.base) {
+    	this.base.prototype.redraw.apply(this, arguments);
+    }
+    else {
+    	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+    }
+    this._update(memo);
+}
+
+QuiX.ui.Slider.prototype._update = function(/*memo*/) {
+    var memo = arguments[1] || {},
+        x = ((this._value - this.min) / +
              (this.max - this.min)) *  +
-             this.slot.getWidth(true);
+             this.slot.getWidth(true, memo);
     this.handle.moveTo(x - (QuiX.theme.slider.handle.width / 2), 'center');
-    this.label.setCaption(this._value);
+    if (this.label) {
+        this.label.setCaption(this._value);
+    }
 }
 
 QuiX.ui.Slider._onmousedown = function(evt, handle) {
     QuiX.startX = evt.clientX;
     QuiX.tmpWidget = handle;
     handle.attributes.__startx = handle.getLeft();
-    handle.widgets[0].show();
-    handle.widgets[0].redraw();
+    if (handle.widgets.length > 0) {
+        handle.widgets[0].show();
+        handle.widgets[0].redraw();
+    }
     document.desktop.attachEvent('onmousemove', QuiX.ui.Slider._onmousemove);
     document.desktop.attachEvent('onmouseup', QuiX.ui.Slider._onmouseup);
     QuiX.cancelDefault(evt);
@@ -234,8 +253,9 @@ QuiX.ui.Slider._onmousedown = function(evt, handle) {
 
 QuiX.ui.Slider._onmousemove = function(evt, desktop) {
     var offsetX = evt.clientX - QuiX.startX;
-    if (QuiX.dir == 'rtl')
+    if (QuiX.dir == 'rtl') {
         offsetX = -offsetX;
+    }
     var new_x = QuiX.tmpWidget.attributes.__startx + offsetX +
                 (QuiX.theme.slider.handle.width / 2);
     var slider = QuiX.tmpWidget.parent;
@@ -249,15 +269,19 @@ QuiX.ui.Slider._onmousemove = function(evt, desktop) {
     slider._value = Math.round(new_value * Math.pow(10, slider.decimals)) /
                     Math.pow(10, slider.decimals);
     slider._update();
+
+    if (slider._customRegistry.onchange) {
+        slider._customRegistry.onchange(slider);
+    }
 }
 
 QuiX.ui.Slider._onmouseup = function(evt, desktop) {
     var slider = QuiX.tmpWidget.parent;
-    document.desktop.detachEvent('onmousemove');
-    document.desktop.detachEvent('onmouseup');
-    slider.label.hide();
-    if (slider._customRegistry.onchange && old_value != slider._value)
-        slider._customRegistry.onchange(slider);
+    document.desktop.detachEvent('onmousemove', QuiX.ui.Slider._onmousemove);
+    document.desktop.detachEvent('onmouseup', QuiX.ui.Slider._onmouseup);
+    if (slider.label) {
+        slider.label.hide();
+    }
 }
 
 // progress bar
