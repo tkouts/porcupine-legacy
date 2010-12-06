@@ -5,8 +5,8 @@ Menus
 // menu option
 
 QuiX.ui.MenuOption = function(params) {
-    params.width = null;
-    params.height = null;
+    delete params.width;
+    delete params.height;
     if (!params.img) {
         params.img = QuiX.baseUrl + 'images/transp.gif';
     }
@@ -16,10 +16,11 @@ QuiX.ui.MenuOption = function(params) {
     params.padding = '4,18,3,3';
     params.border = params.border || 1;
     params.onmouseover = QuiX.ui.MenuOption._onmouseover;
-    params.onclick = QuiX.wrappers.eventWrapper(params.onclick,
-                                                QuiX.ui.MenuOption._onclick);
     this.base = QuiX.ui.Icon;
     this.base(params);
+
+    this.attachEvent('onclick', QuiX.ui.MenuOption._onclick);
+
     this.div.className = 'option';
     this.div.style.whiteSpace = 'nowrap';
     this.setPosition('relative');
@@ -32,8 +33,9 @@ QuiX.ui.MenuOption = function(params) {
 QuiX.ui.MenuOption.prototype = new QuiX.ui.Icon;
 
 QuiX.ui.MenuOption.prototype.addOption = function(params) {
-    if (!this.subMenu)
+    if (!this.subMenu) {
         this.subMenu = new QuiX.ui.ContextMenu({}, this);
+    }
     return this.subMenu.addOption(params);
 }
 
@@ -67,10 +69,12 @@ QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
 QuiX.ui.MenuOption.prototype.destroy = function() {
     var parent = this.parent;
     parent.options.removeItem(this);
-    if (this.base)
+    if (this.base) {
         this.base.prototype.destroy.apply(this, arguments);
-    else
+    }
+    else {
         QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
+    }
 
     if (parent.options.length==0
             && parent.owner instanceof QuiX.ui.MenuOption) {
@@ -138,15 +142,18 @@ QuiX.ui.MenuOption._onmouseover = function(evt, w) {
 }
 
 QuiX.ui.MenuOption._onclick = function(evt, w) {
-    if (w.type) w.select();
+    if (w.type) {
+        w.select();
+    }
     if (QuiX.utils.BrowserInfo.family == 'ie' && !w.subMenu) {
         // clear hover state
         var dv = w.div.cloneNode(true);
         w.div.parentNode.replaceChild(dv, w.div);
         w.div = dv;
     }
-    if (!w.subMenu)
+    if (!w.subMenu) {
         QuiX.cleanupOverlays();
+    }
 }
 
 // context menu
@@ -157,7 +164,6 @@ QuiX.ui.ContextMenu = function(params, owner) {
         id : params.id,
         border : params.border || QuiX.theme.contextmenu.border,
         overflow : 'visible',
-        onmousedown : QuiX.stopPropag,
         onshow : params.onshow,
         onclose : params.onclose,
         padding: params.padding || QuiX.theme.contextmenu.padding
@@ -258,14 +264,17 @@ QuiX.ui.ContextMenu.prototype.close = function() {
     if (this.activeSub) {
         this.activeSub.close();
     }
-    if (this.owner.parent && this.owner.parent.activeSub)
+    if (this.owner.parent && this.owner.parent.activeSub) {
         this.owner.parent.activeSub = null;
-    if (this.parent == document.desktop)
+    }
+    if (this.parent == document.desktop) {
         document.desktop.overlays.removeItem(this);
+    }
     this.detach();
     this.isOpen = false;
-    if (this._customRegistry.onclose)
+    if (this._customRegistry.onclose) {
         this._customRegistry.onclose(this);
+    }
 }
 
 QuiX.ui.ContextMenu.prototype.addOption = function(params) {
@@ -281,9 +290,6 @@ QuiX.ui.ContextMenu.prototype.addOption = function(params) {
         oOption.div.className = 'separator';
         oOption.setPosition('relative');
     }
-
-    oOption.left -= pad[0];
-    oOption.top = -pad[2];
 
     this.appendChild(oOption);
     oOption.redraw();
@@ -317,8 +323,9 @@ QuiX.ui.ContextMenu._showWidgetContextMenu = function (w, menu) {
 
 QuiX.ui.ContextMenu._oncontextmenu = function(evt, w) {
     var x = evt.clientX;
-    if (QuiX.dir == 'rtl')
+    if (QuiX.dir == 'rtl') {
         x = QuiX.transformX(x);
+    }
     w.contextMenu.target = QuiX.getTargetWidget(evt);
     w.contextMenu.show(document.desktop, x, evt.clientY);
     QuiX.cancelDefault(evt);
@@ -329,7 +336,7 @@ QuiX.ui.ContextMenu._oncontextmenu = function(evt, w) {
 QuiX.ui.MenuBar = function(/*params*/) {
     var params = arguments[0] || {};
     params.border = params.border || 1;
-    params.padding = '2,4,0,1';
+    params.padding = params.padding || '2,4,0,1';
     params.overflow = 'hidden';
     this.base = QuiX.ui.Widget;
     this.base(params);
@@ -352,16 +359,22 @@ QuiX.ui.MenuBar.prototype.redraw = function(bForceAll /*, memo*/) {
 
 QuiX.ui.MenuBar.prototype.addRootMenu = function(params) {
     var oMenu = new QuiX.ui.Label({
+        id: params.id,
         top : 'center',
-        border : 0,
-        padding : '8,8,3,4',
+        border : 1,
+        padding : '8,8,0,0',
         height: '100%',
+        width: params.width,
+        align: params.align,
         caption : params.caption,
-        onclick : QuiX.ui.MenuBar._menuonclick,
-        onmouseover : QuiX.ui.MenuBar._menuonmouseover,
-        onmouseout : QuiX.ui.MenuBar._menuonmouseout
+        tooltip: params.tooltip,
+        onclick: params.onclick
     });
     this.appendChild(oMenu);
+    oMenu.attachEvent('onclick', QuiX.ui.MenuBar._menuonclick);
+    oMenu.attachEvent('onmouseover', QuiX.ui.MenuBar._menuonmouseover);
+    oMenu.attachEvent('onmouseout', QuiX.ui.MenuBar._menuonmouseout);
+
     oMenu.div.className = 'menu';
     oMenu.setPosition();
     oMenu.destroy = QuiX.ui.MenuBar._menuDestroy;
@@ -381,18 +394,20 @@ QuiX.ui.MenuBar._menuDestroy = function() {
 
 QuiX.ui.MenuBar._menuonclick = function(evt, w) {
     w.div.className = 'menu selected';
-    QuiX.ui.ContextMenu._showWidgetContextMenu(w, w.contextMenu);
-    QuiX.stopPropag(evt);
+    if (w.contextMenu.options.length > 0) {
+        if (w.contextMenu.isOpen) {
+            w.contextMenu.close();
+        }
+        else {
+            QuiX.ui.ContextMenu._showWidgetContextMenu(w, w.contextMenu);
+        }
+    }
 }
 
 QuiX.ui.MenuBar._menuonmouseover = function(evt, w) {
-    w.setBorderWidth(1);
-    w.setPadding([7,7,2,3]);
     w.div.className = 'menu over';
 }
 
 QuiX.ui.MenuBar._menuonmouseout = function(evt, w) {
-    w.setBorderWidth(0);
-    w.setPadding([8,8,3,4]);
     w.div.className = 'menu';
 }
