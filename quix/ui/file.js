@@ -122,6 +122,10 @@ QuiX.ui.File.prototype.openDocument = function() {
     window.location.href = this.href;
 }
 
+QuiX.ui.File.prototype.setFileTypes = function(filetypes, description) {
+	this.uploader.setFileTypes(filetypes, description);
+}
+
 QuiX.ui.File.prototype.fileSelected = function(file) {
     this.file = file;
 }
@@ -286,6 +290,8 @@ QuiX.ui.MultiFile.prototype.fileSelected = function(f) {
     this.total_bytes += f.size;
 }
 
+QuiX.ui.MultiFile.prototype.setFileTypes = QuiX.ui.File.prototype.setFileTypes;
+
 QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
     if (queued > 0) {
         var self = this;
@@ -389,8 +395,9 @@ QuiX.ui.MultiFile.prototype.uploadComplete = function(file) {
         }
         else {
             this.attributes.pbars[0].getParentByType(QuiX.ui.Dialog).close();
-            if (this._customRegistry.oncomplete)
+            if (this._customRegistry.oncomplete) {
                 this._customRegistry.oncomplete(this);
+            }
             this.total_bytes = 0;
         }
     }
