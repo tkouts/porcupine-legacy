@@ -21,88 +21,93 @@ QuiX.ui.Widget = function(/*params*/) {
     var params = arguments[0] || {};
     this.left = params.left || 0;
     this.top = params.top || 0;
-    this.width = params.width || null;
-    this.height = params.height || null;
+    this.width = params.width;
+    this.height = params.height;
     this.minw = params.minw || 0;
     this.minh = params.minh || 0;
     this.tooltip = params.tooltip;
     this.widgets = [];
     this.attributes = params.attributes || {};
     this.maxz = 0;
+    this.minz = 0;
     this._isDisabled = false;
-    this._isContainer = true;
     this.contextMenu = null;
     this.div = ce('DIV');
-    if (params.style)
+    if (params.style) {
         QuiX.setStyle(this.div, params.style);
+    }
     this.div.widget = this;
     this._uniqueid = QuiX.utils.uid();
     if (params.id) {
         this.setId(params.id);
     }
-    if (params.bgcolor)
+    if (params.bgcolor) {
         this.setBgColor(params.bgcolor);
+    }
     this.setBorderWidth(parseInt(params.border) || 0);
     if (params.padding) {
         var padding = params.padding.split(',');
         this.setPadding(padding);
     }
-    else
+    else {
         this.div.style.padding = '0px 0px 0px 0px';
+    }
 
     this.div.dir = params.dir || QuiX.dir;
 
-    if (params.display)
+    if (params.display) {
         this.setDisplay(params.display);
-    if (params.overflow)
+    }
+    if (params.overflow) {
         this.setOverflow(params.overflow);
+    }
     this.setPosition('absolute');
 
+    this._buildEventRegistry(params);
+    this._attachEvents();
+
     if (params.tooltip) {
-        params.onmouseover = QuiX.wrappers.eventWrapper(
-            QuiX.ui.Widget._onmouseover,
-            params.onmouseover);
-        params.onmouseout = QuiX.wrappers.eventWrapper(
-            QuiX.ui.Widget._onmouseout,
-            params.onmouseout);
+        this.attachEvent('onmouseover', QuiX.ui.Widget._onmouseover);
+        this.attachEvent('onmouseout', QuiX.ui.Widget._onmouseout);
     }
     if (typeof params.opacity != 'undefined') {
         this.setOpacity(parseFloat(params.opacity));
     }
     this.dragable = (params.dragable == 'true' || params.dragable == true);
     if (this.dragable) {
-        params.onmousedown = QuiX.wrappers.eventWrapper(
-            QuiX.ui.Widget._startDrag,
-            params.onmousedown);
+        this.attachEvent('onmousedown', QuiX.ui.Widget._startDrag);
     }
-    this.dropable = (params.dropable == 'true' || params.dropable == true);
-
-    this._buildEventRegistry(params);
-    this._attachEvents();
-
-    if (params.disabled=='true' || params.disabled==true)
+    if (params.dropable) {
+        this.dropable =
+            (params.dropable == 'true' || params.dropable == true)?
+            true:QuiX.getEventListener(params.dropable);
+    }
+    if (params.disabled == 'true' || params.disabled == true) {
         this.disable();
+    }
+    if(params.shadow) {
+    	this.setShadow(params.shadow.split(','));
+    }
 }
 
 QuiX.constructors['rect'] = QuiX.ui.Widget;
 
 QuiX.ui.Widget.prototype.appendChild = function(w /*, index*/) {
-    var index = arguments[1] || null;
-    this.widgets.push(w);
+    var index = (typeof arguments[1] != 'undefined')? arguments[1]:null;
     w.parent = this;
-    if (QuiX.utils.BrowserInfo.family == 'ie' && w.height == '100%' &&
-            w.width == '100%') {
-        this.setOverflow('hidden');
-    }
     w.bringToFront();
+
     if (this._isDisabled) {
         w.disable();
     }
-    if (index != null) {
-        this.div.insertBefore(w.div, this.div.childNodes[index]);
+
+    if (index != null && index >= 0 && index < this.widgets.length) {
+        this.div.insertBefore(w.div, this.widgets[index].div);
+        this.widgets.splice(index, 0, w);
     }
     else {
         this.div.appendChild(w.div);
+        this.widgets.push(w);
     }
 }
 
@@ -113,8 +118,9 @@ QuiX.ui.Widget.prototype.disable = function() {
         this._statecursor = this.div.style.cursor;
         this.div.style.cursor = 'default';
         this._isDisabled = true;
-        if (this.__tooltip || this.__tooltipID)
+        if (this.__tooltip || this.__tooltipID) {
             QuiX.ui.Widget._onmouseout(null, this);
+        }
         this._detachEvents();
         for (var i=0; i<this.widgets.length; i++) {
             this.widgets[i].disable();
@@ -174,8 +180,9 @@ QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
                     dom = xmlhttp.responseXML;
                 }
             }
-            else
+            else {
                 dom = xmlhttp.responseXML;
+            }
             QuiX.XHRPool.release(xmlhttp);
             self.parse(dom, oncomplete);
         }
@@ -192,8 +199,9 @@ QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
             xmlhttp.send('');
         });
     }
-    else
+    else {
         xmlhttp.send('');
+    }
 }
 
 QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
@@ -205,18 +213,7 @@ QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
     return null;
 }
 
-QuiX.ui.Widget.prototype.getWidgetById = function(sid /*, shallow*/) {
-    var shallow = arguments[1] || false;
-    var ws = this.query('w._id==param', sid, shallow);
-    if (ws.length == 0)
-        return null;
-    else if (ws.length==1)
-        return ws[0];
-    else
-        return ws;
-}
-
-QuiX.ui.Widget.prototype.query = function(eval_condition, param, shallow) {
+QuiX.ui.Widget.prototype.query = function(eval_condition, param, shallow, limit) {
     var w;
     var ws = [];
     for (var i=0; i<this.widgets.length; i++) {
@@ -224,46 +221,80 @@ QuiX.ui.Widget.prototype.query = function(eval_condition, param, shallow) {
         if (eval(eval_condition)) {
             ws.push(w);
         }
-        if (!shallow)
+        if (!shallow) {
             ws = ws.concat(w.query(eval_condition, param, shallow));
+        }
+        if (limit && ws.length >= limit) {
+            break;
+        }
     }
     return ws;
 }
 
-QuiX.ui.Widget.prototype.getWidgetsByType = function(wtype, shallow) {
-    return this.query('w instanceof param', wtype, shallow);
+QuiX.ui.Widget.prototype.getWidgetById = function(sid /*, shallow, limit*/) {
+    var shallow = arguments[1] || false,
+        limit = arguments[2] || null,
+        ws = this.query('w._id==param', sid, shallow, limit);
+
+    if (ws.length == 0) {
+        return null;
+    }
+    else if (ws.length == 1) {
+        return ws[0];
+    }
+    else {
+        return ws;
+    }
 }
 
-QuiX.ui.Widget.prototype.getWidgetsByClassName = function(cssName, shallow) {
-    return this.query('w.div.className == param', cssName, shallow);
+QuiX.ui.Widget.prototype.getWidgetsByType = function(wtype /*, shallow*/) {
+    var shallow = arguments[1] || false;
+    return this.query('w instanceof param', wtype, shallow, null);
+}
+
+QuiX.ui.Widget.prototype.getWidgetsByClassName = function(cssName /*, shallow*/) {
+    var shallow = arguments[1] || false;
+    return this.query('w.div.className == param', cssName, shallow, null);
 } 
 
-QuiX.ui.Widget.prototype.getWidgetsByAttribute = function(attr_name, shallow) {
-    return this.query('w[param] != undefined', attr_name, shallow);
+QuiX.ui.Widget.prototype.getWidgetsByAttribute = function(attr_name /*, shallow*/) {
+    var shallow = arguments[1] || false;
+    return this.query('w[param] != undefined', attr_name, shallow, null);
 }
 
 QuiX.ui.Widget.prototype.getWidgetsByAttributeValue =
-function(attr_name, value, shallow) {
-    return this.query('w[param[0]] == param[1]', [attr_name, value], shallow);
+function(attr_name, value /*, shallow*/) {
+    var shallow = arguments[1] || false;
+    return this.query('w[param[0]] == param[1]', [attr_name, value], shallow, null);
 }
 
 QuiX.ui.Widget.prototype._setAbsProps = function(memo) {
-    var left = this._calcLeft(memo);
+    var left = this._calcLeft(memo) || 0;
     if (this.parent && QuiX.dir == 'rtl'
-            && this.div.style.position == 'absolute' && !this._xformed)
+            && this.div.style.position == 'absolute' && !this._xformed) {
         // rtl xform
         this.div.style.left = QuiX.transformX(
-            left + this.getWidth(true), this.parent) + 'px';
-    else
+            left + this.getWidth(true, memo), this.parent) + 'px';
+    }
+    else {
         this.div.style.left = left + 'px';
-    this.div.style.top = this._calcTop(memo) + 'px';
+    }
+    this.div.style.top = (this._calcTop(memo) || 0) + 'px';
 }
 
 QuiX.ui.Widget.prototype._setCommonProps = function(memo) {
-    if (this.height!=null)
-        this.div.style.height = this._calcHeight(false, memo) + 'px';
-    if (this.width!=null)
+    if (this.width != null) {
         this.div.style.width = this._calcWidth(false, memo) + 'px';
+    }
+    else {
+        this.div.style.width = '';
+    }
+    if (this.height != null) {
+        this.div.style.height = this._calcHeight(false, memo) + 'px';
+    }
+    else {
+        this.div.style.height = '';
+    }
 }
 
 // id attribute
@@ -277,10 +308,50 @@ QuiX.ui.Widget.prototype.getId = function() {
 
 // bgColor attribute
 QuiX.ui.Widget.prototype.setBgColor = function(color) {
-    this.div.style.backgroundColor = color;
+    var bgc = color.split(',');
+    if (bgc.length > 1) {
+        // gradient
+        switch (QuiX.utils.BrowserInfo.family) {
+            case 'moz':
+                this.div.style.backgroundImage = '-moz-linear-gradient(' +
+                    bgc[0] + ',' + bgc[1] + ',' + bgc[2] + ')';
+                break;
+            case 'saf':
+                var dir;
+                switch (bgc[0]) {
+                    case 'left':
+                        dir = 'left top, right top';
+                        break;
+                    case 'top':
+                        dir = 'left top, left bottom';
+                        break;
+                }
+                this.div.style.backgroundImage = '-webkit-gradient(linear,' +
+                    dir + ',from(' + bgc[1] + '),to(' + bgc[2] + '))';
+                break;
+            case 'ie':
+                var types = {left:1, top:0};
+                this.div.style.filter =
+                    'progid:DXImageTransform.Microsoft.gradient(' +
+                    "GradientType=" + types[bgc[0]] + "," +
+                    "startColorstr='" + bgc[1] + "'," +
+                    "endColorstr='" + bgc[2] + "')";
+                break;
+            case 'op':
+                // fallback to single color
+                this.div.style.backgroundColor = bgc[1];
+                this._bgc = color;
+        }
+        this._bgc = bgc;
+    }
+    else {
+        // single color
+        this.div.style.backgroundColor = color;
+        this._bgc = color;
+    }
 }
 QuiX.ui.Widget.prototype.getBgColor = function() {
-    return this.div.style.backgroundColor;
+    return this._bgc || '';
 }
 
 //borderWidth attribute
@@ -288,7 +359,8 @@ QuiX.ui.Widget.prototype.setBorderWidth = function(iWidth) {
     this.div.style.borderWidth = iWidth + 'px';
 }
 QuiX.ui.Widget.prototype.getBorderWidth = function() {
-    return parseInt(this.div.style.borderWidth);
+    return parseInt(this.div.style.borderWidth) ||
+           parseInt(this.div.style.borderTopWidth);
 }
 
 //display attribute
@@ -310,21 +382,27 @@ QuiX.ui.Widget.prototype.setOverflow = function(sOverflow) {
         this.div.style.overflowY = value[1];
     }
     if (QuiX.utils.BrowserInfo.family == 'moz'
-            && QuiX.utils.BrowserInfo.OS == 'MacOS')
+            && QuiX.utils.BrowserInfo.OS == 'MacOS') {
         this._overflow = sOverflow;
+    }
 }
 QuiX.ui.Widget.prototype.getOverflow = function() {
     if (QuiX.utils.BrowserInfo.family == 'saf') {
-        if (this.div.style.overflowX == this.div.style.overflowY)
+        if (this.div.style.overflowX == this.div.style.overflowY) {
             return this.div.style.overflowX;
-        else
+        }
+        else {
             return this.div.style.overflowX + " " + this.div.style.overflowY;
+        }
     }
     else {
-        if (this.div.style.overflow != '')
+        if (this.div.style.overflow != '') {
             return this.div.style.overflow;
-        else
-            return this.div.style.overflowX + " " + this.div.style.overflowY;
+        }
+        else {
+            return (this.div.style.overflowX + " " +
+                    this.div.style.overflowY).trim();
+        }
     }
 }
 
@@ -341,7 +419,21 @@ QuiX.ui.Widget.prototype.setOpacity = function(fOpacity) {
     QuiX.setOpacity(this.div, fOpacity);
 }
 QuiX.ui.Widget.prototype.getOpacity = function() {
-    return QuiX.getOpacity(this.div);
+    return QuiX.getOpacity(this.div) || 1;
+}
+
+function handleIEBox(w, shadow) {
+	
+}
+
+//box shadow attribute
+QuiX.ui.Widget.prototype.setShadow = function(shadow) {
+	this._shadow = shadow;
+	QuiX.setShadow(this.div, shadow);
+}
+
+QuiX.ui.Widget.prototype.getShadow = function() {
+    return this._shadow || null;
 }
 
 //padding attribute
@@ -368,143 +460,161 @@ QuiX.ui.Widget.prototype.getPadding = function() {
 QuiX.ui.Widget.prototype.addPaddingOffset = function(where, iOffset) {
     var old_offset = parseInt(this.div.style['padding' + where]);
     var new_offset = old_offset + iOffset;
-    if (new_offset < 0)
+    if (new_offset < 0) {
         new_offset = 0;
+    }
     this.div.style['padding' + where] = new_offset + 'px';
 }
 
 QuiX.ui.Widget.prototype._mustRedraw = function () {
-    return  isNaN(this.left)||isNaN(this.top)
-            ||isNaN(this.height)||isNaN(this.width);
+    return  isNaN(this.left) || isNaN(this.top) || isNaN(this.height)
+            || isNaN(this.width);
 }
 
-QuiX.ui.Widget.prototype.getScrollWidth = function(/*memo*/) {
-    var memo = arguments[0] || {},
-        sw;
-    if (memo[this._uniqueid + 'sw']) {
-        sw = memo[this._uniqueid + 'sw'];
-    }
-    else {
-        var lengths = [];
-        for (var i=0; i<this.widgets.length; i++)
-            lengths.push(this.widgets[i]._calcLeft(memo) +
-                         this.widgets[i]._calcWidth(true, memo));
-        sw = Math.max.apply(Math, lengths);
-        memo[this._uniqueid + 'sw'] = sw;
-    }
-    return sw;
-}
-
-QuiX.ui.Widget.prototype.getScrollHeight = function(/*memo*/) {
-    var memo = arguments[0] || {},
-        sh;
-    if (memo[this._uniqueid + 'sh']) {
-        sh = memo[this._uniqueid + 'sh'];
-    }
-    else {
-        var lengths = [];
-        for (var i=0; i<this.widgets.length; i++) {
-            lengths.push(this.widgets[i]._calcTop(memo) +
-                         this.widgets[i]._calcHeight(true, memo));
+QuiX.ui.Widget.prototype._shallowRedraw = function(memo) {
+    var i, w;
+    for (i=0; i<this.widgets.length; i++) {
+        w = this.widgets[i];
+        if (w.div.style.display != 'none') {
+            sig = w._getSig(memo);
+            if (sig != w._rds) {
+                w._setCommonProps(memo);
+            }
+            if (w.div.style.position != '') {
+                w._setAbsProps(memo);
+            }
+            w._rds = null;
         }
-        sh = Math.max.apply(Math, lengths);
-        memo[this._uniqueid + 'sh'] = sh;
     }
-    return sh;
 }
 
 QuiX.ui.Widget.prototype.getHeight = function(b /*, memo*/) {
     var memo = arguments[1] || {};
-    var ofs, hg, has_scrollbar, cached;
+    var hg1, hg2, cached;
     
     if (memo[this._uniqueid + 'gh']) {
         cached = memo[this._uniqueid + 'gh'];
-        hg = cached[0];
-        ofs = cached[1];
-        has_scrollbar = cached[2];
+        hg1 = cached[0];
+        hg2 = cached[1];
     }
     else {
-        hg = parseInt(this.div.style.height);
-        if (isNaN(hg)) return 0;
-        ofs = parseInt(this.div.style.paddingTop) +
-              parseInt(this.div.style.paddingBottom) +
-              2 * this.getBorderWidth();
-        memo[this._uniqueid + 'gh'] = [hg, ofs, false];
+        var ofs = parseInt(this.div.style.paddingTop) +
+                  parseInt(this.div.style.paddingBottom),
+            hg1 = this.div.offsetHeight,
+            hg2 = this.div.clientHeight - ofs;
 
-        has_scrollbar = this.div.style.overflowX == 'scroll' ||
-                        this.div.style.overflow == 'scroll';
-        if (!has_scrollbar && (this.div.style.overflowX == 'auto'
-                               || this.div.style.overflow == 'auto')
-                && this._calcWidth(true, memo) < this.getScrollWidth(memo)) {
-            has_scrollbar = true;
+        if (this.div.style.overflow == 'auto' ||
+                this.div.style.overflowX == 'auto') {
+            var ofs2 = parseInt(this.div.style.paddingLeft) +
+                       parseInt(this.div.style.paddingRight),
+                memo2 = {},
+                nhg;
+
+            memo2[this._uniqueid + 'gh'] = [hg1, hg2];
+            memo2[this._uniqueid + 'gw'] = [this.div.offsetWidth,
+                                            this.div.clientWidth - ofs2];
+
+            // we need to redraw children
+            this._shallowRedraw(memo2);
+
+            nhg = this.div.clientHeight - ofs;
+            if (hg2 != nhg) {
+                hg2 = nhg;
+            }
+            else {
+                for (var v in memo2) {
+                    memo[v] = memo2[v];
+                }
+            }
+
+            memo2 = null;
+            memo[this._uniqueid + 'gw'] = [this.div.offsetWidth,
+                                           this.div.clientWidth - ofs2];
         }
-        memo[this._uniqueid + 'gh'][2] = has_scrollbar;
+        memo[this._uniqueid + 'gh'] = [hg1, hg2];
     }
-    if (b)
-        hg += ofs;
-    else if (!b && has_scrollbar)
-        hg -= QuiX._scrollbarSize;
-    return hg;
+    if (b) {
+        return hg1;
+    }
+    else {
+        return hg2;
+    }
 }
 
 QuiX.ui.Widget.prototype.getWidth = function(b /*, memo*/) {
     var memo = arguments[1] || {};
-    var wd, ofs, has_scrollbar, cached;
-
+    var wd1, wd2, cached;
+    
     if (memo[this._uniqueid + 'gw']) {
         cached = memo[this._uniqueid + 'gw'];
-        wd = cached[0];
-        ofs = cached[1];
-        has_scrollbar = cached[2];
+        wd1 = cached[0];
+        wd2 = cached[1];
     }
     else {
-        wd = parseInt(this.div.style.width);
-        if (isNaN(wd)) return 0;
-        ofs = parseInt(this.div.style.paddingLeft) +
-              parseInt(this.div.style.paddingRight) +
-              2 * this.getBorderWidth();
-        memo[this._uniqueid + 'gw'] = [wd, ofs, false];
+        var ofs = parseInt(this.div.style.paddingLeft) +
+                  parseInt(this.div.style.paddingRight),
+            wd1 = this.div.offsetWidth,
+            wd2 = this.div.clientWidth - ofs;
 
-        has_scrollbar = this.div.style.overflowY == 'scroll' ||
-                        this.div.style.overflow == 'scroll';
-        if (!has_scrollbar
-                && (this.div.style.overflowY == 'auto'
-                    || this.div.style.overflow == 'auto')
-                && this._calcHeight(true, memo) < this.getScrollHeight(memo)) {
-            has_scrollbar = true;
+        if (this.div.style.overflow == 'auto' ||
+                this.div.style.overflowY == 'auto') {
+            var ofs2 = parseInt(this.div.style.paddingTop) +
+                       parseInt(this.div.style.paddingBottom),
+                memo2 = {},
+                nwd;
+
+            memo2[this._uniqueid + 'gw'] = [wd1, wd2];
+            memo2[this._uniqueid + 'gh'] = [this.div.offsetHeight,
+                                            this.div.clientHeight - ofs2];
+
+            // we need to redraw children
+            this._shallowRedraw(memo2);
+
+            nwd = this.div.clientWidth - ofs;
+            if (wd2 != nwd) {
+                wd2 = nwd;
+            }
+            else {
+                for (var v in memo2) {
+                    memo[v] = memo2[v];
+                }
+            }
+
+            memo2 = null;
+            memo[this._uniqueid + 'gh'] = [this.div.offsetHeight,
+                                           this.div.clientHeight - ofs2];
         }
-        memo[this._uniqueid + 'gw'][2] = has_scrollbar;
+        memo[this._uniqueid + 'gw'] = [wd1, wd2];
     }
-    if (b)
-        wd += ofs;
-    else if (!b && has_scrollbar)
-        wd -= QuiX._scrollbarSize;
-    return wd;
+    if (b) {
+        return wd1;
+    }
+    else {
+        return wd2;
+    }
 }
 
 QuiX.ui.Widget.prototype.getLeft = function() {
-    var ofs, lf;
-    lf = parseInt(this.div.style.left);
-    if (isNaN(lf)) return 0;
-    ofs = this.parent.getPadding()[0];
-    lf -= ofs
-    if (QuiX.dir == 'rtl')
+    var lf = this.div.offsetLeft;
+    if (this.div.style.position == 'absolute') {
+        lf -= parseInt(this.parent.div.style.paddingLeft);
+    }
+    if (QuiX.dir == 'rtl') {
         lf = QuiX.transformX(lf + this.getWidth(true), this.parent);
+    }
     return lf;
 }
 
 QuiX.ui.Widget.prototype.getTop = function() {
-    var ofs, rg;
-    rg = parseInt(this.div.style.top);
-    if (isNaN(rg)) return 0;
-    ofs = this.parent.getPadding()[2];
-    rg -= ofs
-    return rg;
+    var top = this.div.offsetTop;
+    if (this.div.style.position == 'absolute') {
+        top -= parseInt(this.parent.div.style.paddingTop);
+    }
+    return top;
 }
 
-QuiX.ui.Widget.prototype._calcSize =
-function(height, offset, getHeight, memo) {
-    var value;
+QuiX.ui.Widget.prototype._calcSize = function(height, offset, getHeight, memo) {
+    var value = 0;
     if (memo && memo[this._uniqueid + height]) {
         value = memo[this._uniqueid + height];
     }
@@ -517,9 +627,11 @@ function(height, offset, getHeight, memo) {
             var offset_func = (height == 'height')? '_calcTop':'_calcLeft';
 
             for (var i = 0; i < this.widgets.length; i++) {
-                w_length = this.widgets[i][offset_func](memo) +
-                           this.widgets[i][length_func](true, memo);
-                value = Math.max(value, w_length);
+                if (this.widgets[i].div.style.display != 'none') {
+                    w_length = this.widgets[i][offset_func](memo) +
+                               this.widgets[i][length_func](true, memo);
+                    value = Math.max(value, w_length);
+                }
             }
 
             value = value +
@@ -528,7 +640,7 @@ function(height, offset, getHeight, memo) {
         }
         else {
             value = (typeof this[height] == 'function')?
-                    this[height].apply(this, [memo]) : this[height];
+                    this[height].apply(this, [memo]):this[height];
             if (value) {
                 if (!isNaN(value)) {
                     value = parseInt(value);
@@ -560,23 +672,25 @@ function(height, offset, getHeight, memo) {
 }
 
 QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
-    var value;
+    var value = 0;
     if (memo && memo[this._uniqueid + left]) {
         value = memo[this._uniqueid + left];
     }
     else {
         value = typeof(this[left]) == 'function'?
-            this[left].apply(this, [memo]):this[left];
+                this[left].apply(this, [memo]):this[left];
         if (value) {
-            if (!isNaN(value))
+            if (!isNaN(value)) {
                 value = parseInt(value);
+            }
             else if (value.slice(value.length-1) == '%') {
                 var perc = parseInt(value) / 100;
                 value = (this.parent[getWidth](false, memo) * perc) || 0;
             }
-            else if (value == 'center')
-                value = parseInt((this.parent[getWidth](false, memo) / 2) -
-                                 (this[getWidth](true, memo) / 2)) || 0;
+            else if (value == 'center') {
+                value = Math.round((this.parent[getWidth](false, memo) / 2) -
+                                   (this[getWidth](true, memo) / 2)) || 0;
+            }
             else {
                 if (!this['__' + left] || this['__' + left].expr != value) {
                     // compile expression to a function
@@ -587,8 +701,9 @@ QuiX.ui.Widget.prototype._calcPos = function(left, offset, getWidth, memo) {
                 value = this['__' + left].apply(this, [memo]) || 0;
             }
 
-            if (typeof memo != 'undefined')
+            if (typeof memo != 'undefined') {
                 memo[this._uniqueid + left] = value;
+            }
         }
     }
     return value + offset;
@@ -599,10 +714,10 @@ QuiX.ui.Widget.prototype._calcHeight = function(b, memo) {
     if (!b) offset = parseInt(this.div.style.paddingTop) +
                      parseInt(this.div.style.paddingBottom) +
                      2 * this.getBorderWidth();
-    var s = this._calcSize("height", offset, "getHeight", memo);
+    var s = this._calcSize('height', offset, 'getHeight', memo);
     var ms = this._calcMinHeight() - offset;
     if (s < ms) s = ms;
-    return s>0?s:0;
+    return s>0? s:0;
 }
 
 QuiX.ui.Widget.prototype._calcWidth = function(b, memo) {
@@ -610,30 +725,33 @@ QuiX.ui.Widget.prototype._calcWidth = function(b, memo) {
     if (!b) offset = parseInt(this.div.style.paddingLeft) +
                      parseInt(this.div.style.paddingRight) +
                      2 * this.getBorderWidth();
-    var s = this._calcSize("width", offset, "getWidth", memo);
+    var s = this._calcSize('width', offset, 'getWidth', memo);
     var ms = this._calcMinWidth() - offset;
     if (s < ms) s = ms;
-    return s>0?s:0;
+    return s>0? s:0;
 }
 
 QuiX.ui.Widget.prototype._calcLeft = function(memo) {
     var offset;
-    if (this.parent) {
+    if (this.parent && this.div.style.position == 'absolute') {
         var near = (QuiX.dir == 'rtl')? 'paddingRight':'paddingLeft';
         offset = parseInt(this.parent.div.style[near]);
     }
-    else
+    else {
         offset = 0;
-    return this._calcPos('left', offset, '_calcWidth', memo);
+    }
+    return this._calcPos('left', offset, 'getWidth', memo);
 }
 
 QuiX.ui.Widget.prototype._calcTop = function(memo) {
     var offset;
-    if (this.parent)
+    if (this.parent && this.div.style.position == 'absolute') {
         offset = parseInt(this.parent.div.style.paddingTop);
-    else
+    }
+    else {
         offset = 0;
-    return this._calcPos('top', offset, '_calcHeight', memo);
+    }
+    return this._calcPos('top', offset, 'getHeight', memo);
 }
 
 QuiX.ui.Widget.prototype._calcMinWidth = function() {
@@ -649,22 +767,24 @@ QuiX.ui.Widget.prototype.getScreenLeft = function() {
         bf = QuiX.utils.BrowserInfo.family,
         bv = QuiX.utils.BrowserInfo.version,
         el = this.div,
-        includeBorders = !(bf == 'op' || (bf == 'ie' && bv > 7)),
-        borderMult = (bf == 'moz')? 2:1;
+        includeBorders = !(bf == 'op' || (bf == 'ie' && bv > 7));
 
     if (el.offsetParent) {
-        curleft = el.offsetLeft - QuiX.getScrollLeft(el);
+        curleft += el.offsetLeft;
         while (el = el.offsetParent) {
             if (el.tagName != 'TR') {
-                curleft += el.offsetLeft - QuiX.getScrollLeft(el);
+                curleft -= QuiX.getScrollLeft(el);
+                if (bf == 'moz' && el.style.position == 'absolute') {
+                    curleft += (parseInt(el.style.left) || 0);
+                }
+                else {
+                    curleft += el.offsetLeft;
+                }
                 if (includeBorders) {
-                    curleft += (parseInt(el.style.borderWidth) || 0) * borderMult;
+                    curleft += parseInt(el.style.borderWidth) || 0;
                 }
             }
         }
-    }
-    if (bf == 'moz') {
-        curleft--;
     }
     if (QuiX.dir == 'rtl') {
         curleft = QuiX.transformX(curleft + this.div.offsetWidth);
@@ -677,29 +797,75 @@ QuiX.ui.Widget.prototype.getScreenTop = function() {
         bf = QuiX.utils.BrowserInfo.family,
         bv = QuiX.utils.BrowserInfo.version,
         el = this.div,
-        includeBorders = !(bf == 'op' || (bf == 'ie' && bv > 7)),
-        borderMult = (bf == 'moz')? 2:1;
+        includeBorders = !(bf == 'op' || (bf == 'ie' && bv > 7));
 
     if (el.offsetParent) {
-        curtop = el.offsetTop - el.scrollTop;
+        curtop += el.offsetTop;
         while (el = el.offsetParent) {
             if (el.tagName != 'TR') {
-                curtop += el.offsetTop - el.scrollTop;
+                curtop -= el.scrollTop;
+                if (bf == 'moz' && el.style.position == 'absolute') {
+                    curtop += (parseInt(el.style.top) || 0);
+                }
+                else {
+                    curtop += el.offsetTop;
+                }
                 if (includeBorders) {
-                    curtop += (parseInt(el.style.borderWidth) || 0) * borderMult;
+                    curtop += parseInt(el.style.borderWidth) || 0;
                 }
             }
         }
     }
-    if (bf == 'moz') {
-        curtop--;
-    }
     return curtop;
 }
 
+// layering
+
+QuiX.ui.Widget.prototype.moveForward = function() {
+    if (this != this.parent.widgets[this.parent.widgets.length - 1]) {
+        var ind = this.parent.widgets.indexOf(this),
+            zindex = this.div.style.zIndex;
+
+        this.parent.widgets.splice(ind, 1);
+        this.parent.widgets.splice(ind + 1, 0, this);
+
+        this.div.style.zIndex = this.parent.widgets[ind].div.style.zIndex;
+        this.parent.widgets[ind].div.style.zIndex = zindex;
+    }
+}
+
+QuiX.ui.Widget.prototype.moveBackward = function() {
+    if (this != this.parent.widgets[0]) {
+        var ind = this.parent.widgets.indexOf(this),
+            zindex = this.div.style.zIndex;
+
+        this.parent.widgets.splice(ind, 1);
+        this.parent.widgets.splice(ind - 1, 0, this);
+
+        this.div.style.zIndex = this.parent.widgets[ind].div.style.zIndex;
+        this.parent.widgets[ind].div.style.zIndex = zindex;
+    }
+}
+
 QuiX.ui.Widget.prototype.bringToFront = function() {
-    if (this.div.style.zIndex==0 || this.div.style.zIndex < this.parent.maxz) {
+    if (this != this.parent.widgets[this.parent.widgets.length - 1]) {
+        var ind = this.parent.widgets.indexOf(this);
+        if (ind > -1) {
+            this.parent.widgets.splice(ind, 1);
+            this.parent.widgets.push(this);
+        }
         this.div.style.zIndex = ++this.parent.maxz;
+    }
+}
+
+QuiX.ui.Widget.prototype.sendToBack = function() {
+    if (this != this.parent.widgets[0]) {
+        var ind = this.parent.widgets.indexOf(this);
+        if (ind > -1) {
+            this.parent.widgets.splice(ind, 1);
+            this.parent.widgets.splice(0, 0, this);
+        }
+        this.div.style.zIndex = --this.parent.minz;
     }
 }
 
@@ -712,8 +878,9 @@ QuiX.ui.Widget.prototype.moveTo = function(x, y) {
     this.left = x;
     this.top = y;
     var padding = this.parent.getPadding();
-    if (isNaN(x))
+    if (isNaN(x)) {
         x = this._calcLeft(memo);
+    }
     else {
         x += padding[0];
         if (QuiX.dir == 'rtl')
@@ -722,14 +889,13 @@ QuiX.ui.Widget.prototype.moveTo = function(x, y) {
     y = (isNaN(y))? this._calcTop(memo) : y + padding[2];
     this.div.style.left = x + 'px';
     this.div.style.top = y + 'px';
-    QuiX._ieDomUpdate(this.div);
 }
 
 QuiX.ui.Widget.prototype.resize = function(x, y) {
     var minw = this._calcMinWidth();
     var minh = this._calcMinHeight();
-    this.width = (x>minw)?x:minw;
-    this.height = (y>minh)?y:minh;
+    this.width = (x > minw)? x:minw;
+    this.height = (y > minh)? y:minh;
     this.redraw();
 }
 
@@ -758,84 +924,86 @@ QuiX.ui.Widget.prototype.isHidden = function() {
     return (this.div.style.display == 'none');
 }
 
-QuiX.ui.Widget.prototype._startResize = function (evt) {
-    var self = this;
-    evt = evt || event;
-    QuiX.startX = evt.clientX;
-    QuiX.startY = evt.clientY;
+QuiX.ui.Widget.prototype._startResize = function(evt) {
+    var coords = QuiX.getEventCoordinates(evt);
 
-    if (QuiX.utils.BrowserInfo.family == 'op')
+    QuiX.startX = coords[0];
+    QuiX.startY = coords[1];
+    QuiX.widget = this;
+
+    if (QuiX.utils.BrowserInfo.family == 'op') {
         // required to avoid scrollbars trap
         QuiX.sendEvent(this.div, 'MouseEvents', 'onmouseup');
+    }
 
     QuiX.tmpWidget = QuiX.createOutline(this);
     QuiX.tmpWidget.bringToFront();
 
-    document.desktop.attachEvent('onmouseup',
-        function(evt){
-            self._endResize(evt)
-        });
-    document.desktop.attachEvent('onmousemove',
-        function(evt){
-            self._resizing(evt)
-        });
-    this.parent.div.style.cursor = (QuiX.dir!='rtl')?'se-resize':'sw-resize';
+    document.desktop.attachEvent('onmouseup', QuiX.ui.Widget._endResize);
+    document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._resizing);
+    this.parent.div.style.cursor = (QuiX.dir!='rtl')? 'se-resize':'sw-resize';
+
+    QuiX.cancelDefault(evt);
 }
 
-QuiX.ui.Widget.prototype._resizing = function(evt) {
-    var offsetX = evt.clientX - QuiX.startX;
-    if (QuiX.dir == 'rtl')
+QuiX.ui.Widget._resizing = function(evt) {
+    var coords = QuiX.getEventCoordinates(evt),
+        offsetX = coords[0] - QuiX.startX,
+        offsetY = coords[1] - QuiX.startY;
+
+    if (QuiX.dir == 'rtl') {
         offsetX = -offsetX;
-    var offsetY = evt.clientY - QuiX.startY;
-    if (QuiX.tmpWidget)
-        QuiX.tmpWidget.resize(this.getWidth(true) + offsetX,
-                              this.getHeight(true) + offsetY);
+    }
+
+    if (QuiX.tmpWidget) {
+        QuiX.tmpWidget.resize(QuiX.widget.getWidth(true) + offsetX,
+                              QuiX.widget.getHeight(true) + offsetY);
+    }
 }
 
-QuiX.ui.Widget.prototype._endResize = function(evt) {
+QuiX.ui.Widget._endResize = function(evt) {
+    document.desktop.detachEvent('onmouseup', QuiX.ui.Widget._endResize);
+    document.desktop.detachEvent('onmousemove', QuiX.ui.Widget._resizing);
+
+    QuiX.widget.resize(QuiX.tmpWidget.getWidth(true),
+                       QuiX.tmpWidget.getHeight(true));
+
     QuiX.tmpWidget.destroy();
-    var offsetX = evt.clientX - QuiX.startX;
-    if (QuiX.dir == 'rtl')
-        offsetX = -offsetX;
-    var offsetY = evt.clientY - QuiX.startY;
-    this.resize(this.getWidth(true) + offsetX,
-                this.getHeight(true) + offsetY);
-    this.bringToFront();
-    document.desktop.detachEvent('onmouseup');
-    document.desktop.detachEvent('onmousemove');
-    this.parent.div.style.cursor = '';
+    QuiX.tmpWidget = null;
+    QuiX.widget.bringToFront();
+
+    QuiX.widget.parent.div.style.cursor = '';
 }
 
 QuiX.ui.Widget.prototype._startMove = function(evt) {
-    var self = this;
-    var clientX = evt.clientX;
-    if (QuiX.dir == 'rtl')
-        clientX = QuiX.transformX(clientX);
-    QuiX.startX = clientX - this.getLeft();
-    QuiX.startY = evt.clientY - this.getTop();
-    document.desktop.attachEvent('onmouseup',
-        function(evt){
-            self._endMove(evt)
-        });
-    document.desktop.attachEvent('onmousemove',
-        function(evt){
-            self._moving(evt)
-        });
+    var coords = QuiX.getEventCoordinates(evt);
+
+    if (QuiX.dir == 'rtl') {
+        coords[0] = QuiX.transformX(coords[0]);
+    }
+
+    QuiX.startX = coords[0] - this.getLeft();
+    QuiX.startY = coords[1] - this.getTop();
+    QuiX.widget = this;
+
+    document.desktop.attachEvent('onmouseup', QuiX.ui.Widget._endMove);
+    document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._moving);
     this.parent.div.style.cursor = 'move';
 }
 
-QuiX.ui.Widget.prototype._moving = function(evt) {
-    var clientX = evt.clientX;
-    if (QuiX.dir == 'rtl')
-        clientX = QuiX.transformX(clientX);
-    this.moveTo(clientX - QuiX.startX,
-        evt.clientY - QuiX.startY);
+QuiX.ui.Widget._moving = function(evt) {
+    var coords = QuiX.getEventCoordinates(evt);
+    if (QuiX.dir == 'rtl') {
+        coords[0] = QuiX.transformX(coords[0]);
+    }
+    QuiX.widget.moveTo(coords[0] - QuiX.startX,
+                       coords[1] - QuiX.startY);
 }
 
-QuiX.ui.Widget.prototype._endMove = function(evt) {
-    document.desktop.detachEvent('onmouseup');
-    document.desktop.detachEvent('onmousemove');
-    this.parent.div.style.cursor = '';
+QuiX.ui.Widget._endMove = function(evt) {
+    document.desktop.detachEvent('onmouseup', QuiX.ui.Widget._endMove);
+    document.desktop.detachEvent('onmousemove', QuiX.ui.Widget._moving);
+    QuiX.widget.parent.div.style.cursor = '';
 }
 
 QuiX.ui.Widget.prototype._startDrag = function(x, y) {
@@ -846,43 +1014,60 @@ QuiX.ui.Widget.prototype._startDrag = function(x, y) {
     document.desktop.appendChild(dragable);
     dragable.div.style.zIndex = QuiX.maxz;
     dragable.redraw();
+
     QuiX.tmpWidget = dragable;
     QuiX.dragable = this;
 
-    document.desktop.attachEvent('onmouseover', QuiX.ui.Widget._detectTarget);
     document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
+}
+
+QuiX.ui.Widget.prototype._getSig = function(memo) {
+    return ((this.width == null)?
+                this.div.clientWidth:this._calcWidth(true, memo)) +
+           ((this.height == null)?
+                this.div.clientHeight:this._calcHeight(true, memo));
 }
 
 QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
     var container = QuiX.getParentNode(this.div);
     if (container && this.div.style.display != 'none') {
-        var isRoot = false;
-        if (!arguments[1]) {
-            isRoot = true;
-        }
         var memo = arguments[1] || {},
             wdth = this.div.style.width,
-            hght = this.div.style.height;
+            hght = this.div.style.height,
+            w,
+            sig;
 
         this._setCommonProps(memo);
-        if (this.div.style.position != '')
+        if (this.div.style.position != '') {
             this._setAbsProps(memo);
-
-        for (var i=0; i<this.widgets.length; i++) {
-            if (bForceAll || this.widgets[i]._mustRedraw())
-                this.widgets[i].redraw(bForceAll, memo);
         }
 
-        if (isRoot) {
-            QuiX._ieDomUpdate(this.div);
+        for (var i=0; i<this.widgets.length; i++) {
+            w = this.widgets[i];
+            if (w.div.style.display != 'none') {
+                if (bForceAll || typeof w._rds == 'undefined') {
+                    w.redraw(true, memo);
+                    w._rds = w._getSig(memo);
+                }
+                else if (w._mustRedraw()){
+                    sig = w._getSig(memo);
+                    if (sig != w._rds) {
+                        w.redraw(false, memo);
+                        w._rds = sig;
+                    }
+                    else if (w.div.style.position != '') {
+                        w._setAbsProps(memo);
+                    }
+                }
+            }
         }
 
         if ((wdth && wdth != this.div.style.width) ||
-            (hght && hght != this.div.style.height)) {
-            if (this._customRegistry.onresize)
-                this._customRegistry.onresize(this,
-                    parseInt(wdth),
-                    parseInt(hght));
+                (hght && hght != this.div.style.height)) {
+            if (this._customRegistry.onresize) {
+                this._customRegistry.onresize(this, parseInt(wdth),
+                                              parseInt(hght));
+            }
         }
     }
     return memo;
@@ -939,10 +1124,12 @@ QuiX.ui.Widget.prototype.print = function(/*expand*/) {
                 win.print();
             }
         }
-        if (browserFamily == 'ie')
+        if (browserFamily == 'ie') {
             iframe.attachEvent('onload', _onload);
-        else
+        }
+        else {
             iframe.onload = _onload;
+        }
         iframe.src = QuiX.baseUrl + 'ui/print.htm';
     }
     else {
@@ -966,8 +1153,9 @@ QuiX.ui.Widget.prototype.previousSibling = function() {
     var ns = null;
     if (p) {
         var idx = p.widgets.indexOf(this);
-        if (idx > 0)
+        if (idx > 0) {
             ns = p.widgets[idx - 1];
+        }
     }
     return ns;
 }
@@ -975,159 +1163,183 @@ QuiX.ui.Widget.prototype.previousSibling = function() {
 //events sub-system
 QuiX.ui.Widget.prototype.supportedEvents = [
     'onmousedown', 'onmouseup', 'onmousemove', 'onmouseover', 'onmouseout',
-    'onkeypress', 'onkeyup', 'onkeydown', 'onclick', 'ondblclick', 'onscroll'];
+    'onkeypress', 'onkeyup', 'onkeydown', 'onclick', 'ondblclick', 'onscroll',
+    'oncontextmenu'];
 
 QuiX.ui.Widget.prototype.customEvents = ['onload', 'onunload',
     'onresize', 'ondrop'];
 
-if (QuiX.utils.BrowserInfo.family != 'op')
-    QuiX.ui.Widget.prototype.supportedEvents.push('oncontextmenu');
-else
-    QuiX.ui.Widget.prototype.customEvents.push('oncontextmenu');
-
-QuiX.ui.Widget.prototype._registerHandler = function(evt_type, handler,
-        isCustom) {
-    var self = this;
-    var chr = (this._isDisabled)?'*':'';
-    if (!isCustom)
-        this._registry[chr + evt_type] = function(evt) {
-            return handler(window.event || evt, self);
-        };
-    else
-        this._customRegistry[chr + evt_type] = handler;
+QuiX.ui.Widget.prototype._registerHandler = function(evt_type, handler, isCustom) {
+    if (!isCustom) {
+        if (typeof this._registry[evt_type] == 'undefined') {
+            this._registry[evt_type] = [];
+        }
+        if (QuiX.utils.BrowserInfo.family != 'ie') {
+            // this works as expected
+            if (!handler.wrapper) {
+                handler.wrapper = function(evt) {
+                        return handler(evt, this.widget);
+                    }
+            }
+        }
+        else {
+            var self = this;
+            handler.wrapper = function() {
+                    return handler(window.event, self);
+                }
+        }
+        this._registry[evt_type].push(handler.wrapper);
+    }
+    else {
+        this._customRegistry[evt_type] = handler;
+    }
 }
 
 QuiX.ui.Widget.prototype._buildEventRegistry = function(params) {
-    var i, evt_type;
+    var i,
+        evt_type,
+        func;
+
     this._registry = {};
     this._customRegistry = {};
+
     // register DOM events
     for (i=0; i<this.supportedEvents.length; i++) {
         evt_type = this.supportedEvents[i];
-        if (params[evt_type])
-            this._registerHandler(evt_type,
-                QuiX.getEventListener(params[evt_type]), false);
+        if (params[evt_type]) {
+            func = QuiX.getEventListener(params[evt_type]);
+            func = this._getHandler(evt_type, func);
+            this._registerHandler(evt_type, func, false);
+        }
     }
-    //register custom events
+
+    // register custom events
     for (i=0; i<this.customEvents.length; i++) {
         evt_type = this.customEvents[i];
-        if (params[evt_type])
-            this._registerHandler(evt_type,
-                QuiX.getEventListener(params[evt_type]), true);
+        if (params[evt_type]) {
+            func = QuiX.getEventListener(params[evt_type]);
+            this._registerHandler(evt_type, func, true);
+        }
     }
+
 }
 
 QuiX.ui.Widget.prototype._attachEvents = function() {
-    for (var evt_type in this._registry) {
-        if (evt_type.slice(0,1)!='_') {
-            if (evt_type.slice(0,1)=='*')
-                evt_type=evt_type.slice(1, evt_type.length);
-            //restore events directly from registry
-            this.attachEvent(evt_type, null);
+    if (!this._isDisabled) {
+        for (var evt_type in this._registry) {
+            for (var i=0; i<this._registry[evt_type].length; i++) {
+                QuiX.addEvent(this.div, evt_type, this._registry[evt_type][i]);
+            }
         }
     }
-    // opera oncontextmenu patch
-    if (this.customEvents.hasItem('oncontextmenu')
-        && this._customRegistry['*oncontextmenu']) {
-        this.attachEvent('oncontextmenu', null);
-    }
-    //
 }
 
-QuiX.ui.Widget.prototype._detachEvents = function() {
-    var first_char;
+QuiX.ui.Widget.prototype._detachEvents = function(/*deep*/) {
+    var deep = arguments[0] || false;
     for (var evt_type in this._registry) {
-        first_char = evt_type.slice(0,1);
-        if (first_char!='_' && first_char!='*')
-            this.detachEvent(evt_type, '*');
+        for (var i=0; i<this._registry[evt_type].length; i++) {
+            QuiX.removeEvent(this.div, evt_type, this._registry[evt_type][i]);
+        }
+    }
+    if (deep) {
+        for (var i=0; i<this.widgets.length; i++) {
+            this.widgets[i]._detachEvents(true);
+        }
     }
 }
 
 QuiX.ui.Widget.prototype._getHandler = function(eventType, f) {
-    if (eventType == 'onmousemove' || eventType == 'onscroll')
-        f = QuiX.wrappers.oneAtAtime(f);
-    else
-        f = QuiX.getEventListener(f);
-    if (!f) { //restore from registry
-        f = this._registry[eventType] ||
-            this._registry['_' + eventType] ||
-            this._registry['*' + eventType] ||
-            this._customRegistry[eventType] ||
-            this._customRegistry['_' + eventType] ||
-            this._customRegistry['*' + eventType];
+    var func;
+    if (QuiX.supportTouches && eventType == 'onclick') {
+        func = QuiX.wrappers.onTap(f);
     }
-    return f;
-}
-
-QuiX.ui.Widget.prototype.attachEvent = function(eventType, f) {
-    var isCustom = this.customEvents.hasItem(eventType);
-    var registry = (isCustom)?this._customRegistry:this._registry;
-    // opera oncontextmenu patch
-    if (eventType == 'onmousedown'
-            && this.customEvents.hasItem('oncontextmenu')
-            && this._getHandler('onmousedown_')) {
-        eventType = 'onmousedown_';
-        isCustom = true;
-    }
-    //
-    f = this._getHandler(eventType, f);
-    if (f) {
-        if (!this._isDisabled && !isCustom)
-            this.detachEvent(eventType);
-        // opera oncontextmenu patch
-        if (eventType == 'oncontextmenu'
-                && isCustom
-                && !this._getHandler('oncontextmenu')
-                && !this._getHandler('onmousedown_')) {
-            this._customRegistry.onmousedown_ = this._registry.onmousedown;
-            this.attachEvent('onmousedown',
-                function(evt, w) {
-                    var r;
-                    if (w._customRegistry.onmousedown_)
-                        r = w._customRegistry.onmousedown(evt, w);
-                    if (evt.ctrlKey && w._customRegistry.oncontextmenu) {
-                        QuiX.cleanupOverlays();
-                        w._customRegistry.oncontextmenu(evt, w);
-                        QuiX.stopPropag(evt);
-                    }
-                    return r;
-                });
+    else if (eventType == 'oncontextmenu' &&
+             QuiX.utils.BrowserInfo.family == 'op') {
+        // opera context menu wrapper
+        func = function(evt) {
+            if (evt.ctrlKey) {
+                f.apply(this, arguments);
+            }
         }
-        //
-        if (f != registry[eventType])
-            this._registerHandler(eventType, f, isCustom);
     }
-
-    if (registry['_' + eventType])
-        delete registry['_' + eventType];
-
-    if (!this._isDisabled && registry['*' + eventType])
-        delete registry['*' + eventType];
-
-    if (!this._isDisabled && !isCustom)
-        QuiX.addEvent(this.div, eventType, this._registry[eventType]);
+    else {
+        if (QuiX.utils.BrowserInfo.family == 'ie') {
+            // we need to wrap it in order of .wrapper to be assigned
+            // to different functions due to "this" not working as expected
+            // inside DOM event handlers
+            func = function() {
+                f.apply(this, arguments);
+            }
+            f.wrapper = func;
+        }
+        else {
+            func = f;
+        }
+    }
+    return func;
 }
 
-QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, chr*/) {
-    var registry = null;
-    var chr = arguments[1] || '_';
-    // opera on contextmenu patch
-    if (eventType == 'onmousedown'
-            && this.customEvents.hasItem('oncontextmenu')
-            && this._getHandler('onmousedown_')) {
-        eventType = 'onmousedown_';
+QuiX.ui.Widget.prototype.attachEvent = function(eventType , f) {
+    var isCustom = this.customEvents.hasItem(eventType),
+        registry = (isCustom)? this._customRegistry:this._registry;
+
+    f = QuiX.getEventListener(f);
+    if (!isCustom) {
+        f = this._getHandler(eventType, f);
     }
-    //
-    if (this._registry[eventType]) {
-        QuiX.removeEvent(this.div, eventType, this._registry[eventType]);
-        registry = this._registry;
+
+    this._registerHandler(eventType, f, isCustom);
+
+    if (eventType == 'oncontextmenu' &&
+            QuiX.utils.BrowserInfo.family == 'op') {
+        // opera context menu patch
+        eventType = 'onclick';
     }
-    else if (this._customRegistry[eventType]) {
-        registry = this._customRegistry;
+
+    if (!this._isDisabled && !isCustom) {
+        QuiX.addEvent(this.div, eventType, f.wrapper);
     }
-    if (registry) {
-        registry[chr + eventType] = registry[eventType];
-        delete registry[eventType];
+}
+
+QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, f*/) {
+    var f = arguments[1] || null,
+        isCustom = this.customEvents.hasItem(eventType);
+
+    if (!isCustom) {
+        if (f == null) {
+            // detach all events with deregistering
+            for (var i=0; i<this._registry[eventType].length; i++) {
+                if (eventType == 'oncontextmenu' &&
+                        QuiX.utils.BrowserInfo.family == 'op') {
+                    QuiX.removeEvent(this.div, 'onclick', this._registry[eventType][i]);
+                }
+                else {
+                    QuiX.removeEvent(this.div, eventType, this._registry[eventType][i]);
+                }
+            }
+            this._registry[eventType] = [];
+        }
+        else if (this._registry[eventType] && this._registry[eventType].length > 0) {
+            while (f.wrapper) {
+                f = f.wrapper;
+            }
+            if (this._registry[eventType].indexOf(f) > -1) {
+                if (eventType == 'oncontextmenu' &&
+                        QuiX.utils.BrowserInfo.family == 'op') {
+                    // opera context menu patch
+                    QuiX.removeEvent(this.div, 'onclick', f);
+                    this._registry['onclick'].removeItem(f);
+                }
+                else {
+                    QuiX.removeEvent(this.div, eventType, f);
+                    this._registry[eventType].removeItem(f);
+                }
+            }
+        }
+    }
+    else if (this._customRegistry[eventType]
+             && f == this._customRegistry[eventType]) {
+        delete this._customRegistry[eventType];
     }
 }
 
@@ -1151,15 +1363,17 @@ QuiX.ui.Widget.prototype._showTooltip = function(x, y) {
 QuiX.ui.Widget._onmouseover = function(evt, w) {
     if (!QuiX.dragging) {
         var x1 = evt.clientX;
-        if (QuiX.dir == 'rtl')
+        if (QuiX.dir == 'rtl') {
             x1 = QuiX.transformX(x1);
-
-        var availHeight = document.desktop.getHeight(true);
-        var y1;
-        if (evt.clientY + 30 > availHeight)
+        }
+        var availHeight = document.desktop.getHeight(true),
+            y1;
+        if (evt.clientY + 30 > availHeight) {
         	y1 = evt.clientY - 30;
-        else
+        }
+        else {
        		y1 = evt.clientY + 18;
+        }
 
         if (!w.__tooltipID) {
             w.__tooltipID = window.setTimeout(
@@ -1180,30 +1394,66 @@ QuiX.ui.Widget._onmouseout = function(evt, w) {
 }
 
 QuiX.ui.Widget._startDrag = function(evt, w) {
-    if (QuiX.getMouseButton(evt) == 0 && !evt.ctrlKey) {
-        var x = evt.clientX;
-        if (QuiX.dir == 'rtl')
-            x = QuiX.transformX(x);
-        var y = evt.clientY;
+    if (QuiX.supportTouches ||
+            (QuiX.getMouseButton(evt) == 0 && !evt.ctrlKey)) {
+        var coords = QuiX.getEventCoordinates(evt);
+        if (QuiX.dir == 'rtl') {
+            coords[0] = QuiX.transformX(coords[0]);
+        }
         var el = QuiX.getTarget(evt);
         document.desktop.attachEvent('onmouseup', QuiX.ui.Widget._enddrag);
         QuiX.dragTimer = window.setTimeout(
             function _draghandler() {
-                w._startDrag(x, y, el)
-            }, 200);
-        //QuiX.cancelDefault(evt);
-        QuiX.stopPropag(evt);
-        QuiX.cleanupOverlays();
+                w._startDrag(coords[0], coords[1], el);
+            }, 400);
+        QuiX.cancelDefault(evt);
         QuiX.dragging = true;
     }
 }
 
 QuiX.ui.Widget._drag = function(evt, desktop) {
-    var x = evt.clientX + 2;
-    if (QuiX.dir == 'rtl')
-        x = QuiX.transformX(x)
-    if (QuiX.tmpWidget)
-        QuiX.tmpWidget.moveTo(x, evt.clientY + 2);
+    if (QuiX.tmpWidget) {
+        var coords = QuiX.getEventCoordinates(evt),
+            w = null,
+            dropable;
+
+        coords[0] += 2;
+        if (QuiX.dir == 'rtl') {
+            coords[0] = QuiX.transformX(coords[0]);
+        }
+
+        QuiX.tmpWidget.moveTo(coords[0], coords[1] + 2);
+
+        // detect target
+        if (!QuiX.supportTouches) {
+            w = QuiX.getTargetWidget(evt);
+        }
+        else {
+            var coords = QuiX.getEventCoordinates(evt);
+            w = QuiX.getWidgetFromPoint(coords[0], coords[1]);
+        }
+
+        while (w) {
+            if (typeof w.dropable == 'function') {
+                dropable = w.dropable.apply(w, [QuiX.dragable]);
+            }
+            else {
+                dropable = w.dropable;
+            }
+            if (dropable) break;
+            w = w.parent;
+        }
+
+        if (w && w != QuiX.dragable && w != QuiX.dragable.parent) {
+            QuiX.tmpWidget.div.style.borderColor = 'red';
+            QuiX.dropTarget = w;
+        }
+        else {
+            QuiX.tmpWidget.div.style.borderColor = 'transparent';
+            QuiX.dropTarget = null;
+        }
+
+    }
 }
 
 QuiX.ui.Widget._enddrag = function(evt, desktop) {
@@ -1211,17 +1461,16 @@ QuiX.ui.Widget._enddrag = function(evt, desktop) {
         window.clearTimeout(QuiX.dragTimer);
         QuiX.dragTimer = 0;
     }
-    desktop.detachEvent('onmouseup');
+    desktop.detachEvent('onmouseup', QuiX.ui.Widget._enddrag);
     QuiX.dragging = false;
     if (QuiX.dragable) {
-        desktop.detachEvent('onmouseover');
-        desktop.detachEvent('onmousemove');
+        desktop.detachEvent('onmousemove', QuiX.ui.Widget._drag);
         QuiX.tmpWidget.destroy();
         QuiX.tmpWidget = null;
         try {
             if (QuiX.dropTarget && QuiX.dropTarget._customRegistry['ondrop']) {
-                QuiX.dropTarget._customRegistry['ondrop'](evt, QuiX.dropTarget,
-                    QuiX.dragable);
+                QuiX.dropTarget._customRegistry['ondrop'](
+                    evt, QuiX.dropTarget, QuiX.dragable);
             }
         }
         finally {
@@ -1231,58 +1480,48 @@ QuiX.ui.Widget._enddrag = function(evt, desktop) {
     }
 }
 
-QuiX.ui.Widget._detectTarget = function(evt, desktop) {
-    var w = QuiX.getTargetWidget(evt);
-    while (w && !w.dropable)
-        w = w.parent;
-    if (w && w != QuiX.dragable && w != QuiX.dragable.parent) {
-        QuiX.tmpWidget.div.style.borderColor = 'red';
-        QuiX.dropTarget = w;
-    }
-    else {
-        QuiX.tmpWidget.div.style.borderColor = 'transparent';
-        QuiX.dropTarget = null;
-    }
-}
-
 // desktop
 
 QuiX.ui.Desktop = function(params, root) {
     QuiX.dir = params.dir || '';
     this.base = QuiX.ui.Widget;
     params.id = 'desktop';
-    params.width = 'document.documentElement.clientWidth';
-    params.height = 'document.documentElement.clientHeight';
+    params.width = params.width || 'document.body.clientWidth';
+    params.height = params.height || 'document.body.clientHeight';
     params.overflow = params.overflow  || 'hidden';
     params.onmousedown = QuiX.ui.Desktop._onmousedown;
-    if (QuiX.utils.BrowserInfo.family != 'op')
+    if (QuiX.supportTouches) {
+        // for supporting ontap events
+        params.onmousemove = QuiX.ui.Desktop._onmousemove;
+    }
+    if (QuiX.utils.BrowserInfo.family != 'op') {
         params.oncontextmenu = QuiX.ui.Desktop._oncontextmenu;
+    }
     this.base(params);
     if (QuiX.utils.BrowserInfo.family == 'ie') {
-        this.setPosition();
-        this.div.onselectstart = function() {
-            return false
-        };
+        this.div.onselectstart = QuiX.cancelDefault;
     }
+    //this.setPosition('relative');
     this._setCommonProps();
-    this.setPosition('absolute');
-    this.div.innerHTML =
-        '<p align="right" style="color:#666;margin:0px;">QuiX v' +
-        QuiX.version + '</p>';
     root.appendChild(this.div);
     this.div.className = 'desktop';
     document.desktop = this;
     window.onresize = function() {
         if (QuiX.utils.BrowserInfo.family == 'ie') {
-            var dw = document.desktop.getWidth(true);
-            var dh = document.desktop.getHeight(true);
-            if (dw != document.documentElement.clientWidth ||
-                dh != document.documentElement.clientHeight) {
-                document.desktop.redraw();
+            if (typeof document.desktop.width != 'number' ||
+                    typeof document.desktop.height != 'number') {
+                var container = QuiX.getParentNode(document.desktop.div);
+                var dw = document.desktop.div.clientWidth;
+                var dh = document.desktop.div.clientHeight;
+                if (dw != container.clientWidth ||
+                        dh != container.clientHeight) {
+                    document.desktop.redraw();
+                }
             }
         }
-        else
+        else {
             document.desktop.redraw();
+        }
     };
     this.overlays = [];
     this.parseFromString(QuiX.progress,
@@ -1299,13 +1538,13 @@ QuiX.ui.Desktop.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
         mleft, mtop /*, mwidth, mheight, container*/) {
-    var sButtons = '';
-    var handler;
-    var oButton;
-    var innHTML;
-    var mwidth = arguments[6] || 240;
-    var mheight = arguments[7] || 120;
-    var container = arguments[8] || this;
+    var sButtons = '',
+        handler,
+        oButton,
+        innHTML,
+        mwidth = arguments[6] || 240,
+        mheight = arguments[7] || 120,
+        container = arguments[8] || this;
 
     if (image) {
         QuiX.getImage(image);
@@ -1315,16 +1554,17 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
     else
         innHTML = '<td>' + message + '</td>';
 
-    if (typeof buttons=='object') {
+    if (typeof buttons == 'object') {
         for (var i=0; i<buttons.length; i++) {
             oButton = buttons[i];
             sButtons += '<dlgbutton width="' + oButton[1] +
-            '" height="22" caption="' + oButton[0] + '"/>';
+                        '" height="22" caption="' + oButton[0] + '"/>';
         }
     }
-    else
+    else {
         sButtons = '<dlgbutton onclick="__closeDialog__" caption="' +
-        buttons + '" width="80" height="22"/>';
+                   buttons + '" width="80" height="22"/>';
+    }
 
     container.parseFromString(
         '<dialog xmlns="http://www.innoscript.org/quix" ' +
@@ -1333,13 +1573,16 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
         '" top="' + mtop + '">' +
         '<wbody><xhtml><![CDATA[<table cellpadding="4"><tr>' + innHTML +
         '</tr></table>]]></xhtml></wbody>' + sButtons + '</dialog>',
+
         function(w) {
             //attach buttons click events
-            if (typeof buttons=='object') {
+            if (typeof buttons == 'object') {
                 for (var i=0; i<buttons.length; i++) {
                     oButton = buttons[i];
                     handler = '__closeDialog__';
-                    if (oButton.length > 2) handler = oButton[2];
+                    if (oButton.length > 2) {
+                        handler = oButton[2];
+                    };
                     w.buttons[i].attachEvent('onclick', handler);
                 }
             }
@@ -1347,10 +1590,64 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
     );
 }
 
-QuiX.ui.Desktop._onmousedown = function(evt, w) {
-    QuiX.cleanupOverlays();
-    QuiX.cancelDefault(evt);
-    return false;
+QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
+    var coords = QuiX.getEventCoordinates(evt);
+    QuiX.startX = QuiX.currentX = coords[0];
+    QuiX.startY = QuiX.currentY = coords[1];
+
+    // check if the widget is inside an overlay
+    var w = QuiX.getTargetWidget(evt),
+        el = QuiX.getTarget(evt),
+        overlays = [];
+
+    while (w) {
+        if (document.desktop.overlays.hasItem(w)) {
+            overlays.push(w);
+            if (w.combo) {
+                w = w.combo;
+            }
+            else if (w.owner) {
+                w = w.owner;
+            }
+        }
+        else if (w.dropdown) {
+            overlays.push(w.dropdown);
+        }
+        else if (QuiX.ui.DataGrid && QuiX.ui.DataGrid.__editwidget == w) {
+            overlays.push(QuiX.ui.DataGrid.__editwidget)
+        }
+        w = w.parent;
+    }
+
+    if (overlays.length == 0) {
+        // not inside an overlay
+        QuiX.cleanupOverlays();
+    }
+    else {
+        // inside an overlay; clear all others
+        var inactive = [],
+            active = document.desktop.overlays;
+        for (var i=0; i<active.length; i++) {
+            if (!overlays.hasItem(active[i])) {
+                inactive.push(active[i]);
+            }
+        }
+        for (i=0; i<inactive.length; i++) {
+            inactive[i].close();
+        }
+    }
+
+    if ((!QuiX.supportTouches || QuiX.utils.BrowserInfo.OS == 'iPad') &&
+            (el.tagName != 'INPUT' && el.tagName != 'TEXTAREA')) {
+        QuiX.cancelDefault(evt);
+        //return false;
+    }
+}
+
+QuiX.ui.Desktop._onmousemove = function(evt, desktop) {
+    var coords = QuiX.getEventCoordinates(evt);
+    QuiX.currentX = coords[0];
+    QuiX.currentY = coords[1];
 }
 
 QuiX.ui.Desktop._oncontextmenu = function(evt, w) {
