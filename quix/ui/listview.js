@@ -3,11 +3,12 @@
 QuiX.ui.ListView = function(/*params*/) {
     var params = arguments[0] || {};
     params.bgcolor = params.bgcolor || 'white';
+    this._overflow = params.overflow || 'auto';
     params.overflow = 'hidden';
-    
-    var dragable = (params.dragable=='true' || params.dragable==true);
+
+    this._dragable = (params.dragable=='true' || params.dragable==true);
     delete params.dragable;
-    
+
     this.base = QuiX.ui.Widget;
     this.base(params);
     this.div.className = 'listview';
@@ -20,19 +21,18 @@ QuiX.ui.ListView = function(/*params*/) {
     this.sortfunc = QuiX.getEventListener(params.sortfunc);
     this.altRows = (params.altrows ||
                     QuiX.theme.listview.altrows).split(',');
-    this.selectedClass = (params.selectedclass ||
-                          QuiX.theme.listview.selected).split(',');
+    this.selectedClass = (typeof params.selectedclass != 'undefined')?
+                         params.selectedclass:QuiX.theme.listview.selected;
     this.rowHeight = parseInt(params.rowheight) ||
                      QuiX.theme.listview.rowheight;
     this.hasSelector = false;
     this.selection = [];
+    this.columns = [];
     this.dataSet = [];
-    
+
     this._orderBy = null;
     this._sortOrder = null;
     this._sortimg = null;
-    
-    this._dragable = dragable;
 }
 
 QuiX.constructors['listview'] = QuiX.ui.ListView;
@@ -61,8 +61,8 @@ QuiX.ui.ListView._calcResizerOffset = function(w) {
     var oHeader = listview.header;
     var webkit = (QuiX.utils.BrowserInfo.family == 'saf');
     var left = listview.hasSelector? (webkit? 6 : 10) : 0;
-    var offset = (webkit)? -2 : 2 * listview.cellPadding;
-    var offset2 = (webkit)? 0 : listview.cellBorder;
+    var offset = (webkit)? -2:2 * listview.cellPadding;
+    var offset2 = (webkit)? 0:listview.cellBorder;
     var column_width;
 
     for (var i=listview._deadCells; i<listview.columns.length; i++) {
@@ -132,8 +132,9 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
     if (displayVerticalScroll) {
         oTable.style.paddingRight = QuiX._scrollbarSize + 'px';
     }
-    else
+    else {
         oTable.style.paddingRight = '0px';
+    }
     var oRow = oTable.rows[0];
 
     // opera horizontal scrollbar patch
@@ -153,9 +154,10 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
         this._deadCells = 0;
     }
 
-    var overflow = 'auto';
-    if (displayVerticalScroll)
-        overflow = 'auto scroll'
+    var overflow = this._overflow;
+    if (displayVerticalScroll) {
+        overflow = this._overflow + ' scroll';
+    }
 
     var list = new QuiX.ui.Widget({
         top : QuiX.ui.ListView._calcListTop,
@@ -196,25 +198,31 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
 }
 
 QuiX.ui.ListView.prototype.redraw = function(bForceAll /*, memo*/) {
-    var memo = arguments[1] || {};
-    var columns = this.columns;
-    var header_width = this._calcWidth(false, memo);
-    var wdth;
+    var memo = arguments[1] || {},
+        columns = this.columns,
+        header_width = this._calcWidth(false, memo),
+        webkit = (QuiX.utils.BrowserInfo.family == 'saf'),
+        wdth,
+        offset = (webkit)? 0:(2 * this.cellPadding) + this.cellBorder + 2;
+
     // resize proportional cells
     for (var i = this._deadCells; i<columns.length; i++) {
         if (columns[i].proportion) {
-            wdth = (parseInt(header_width * columns[i].proportion) -
-                    2*this.cellPadding - 2) + 'px';
+            wdth = (Math.round(header_width * columns[i].proportion) -
+                    offset) + 'px';
             columns[i].style.width = wdth;
-            if (this.list.firstChild.rows.length > 0)
+            if (this.list.firstChild.rows.length > 0) {
                 this.list.rows[0].cells[i].style.width = wdth;
+            }
         }
     }
+
     // opera horizontal scrollbar patch
     if (QuiX.dir == 'rtl' && QuiX.utils.BrowserInfo.family == 'op') {
         for (i=0; i<this.header.widgets.length; i++)
             this.header.widgets[i].div.style.left = '0px';
     }
+
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
@@ -301,30 +309,34 @@ QuiX.ui.ListView.prototype.removeSelected = function() {
 
 QuiX.ui.ListView.prototype.getSelection = function() {
     var sel = [];
-    for (var i=0; i<this.selection.length; i++)
+    for (var i=0; i<this.selection.length; i++) {
         sel.push(this.dataSet[this.selection[i]]);
-    if (sel.length==0)
+    }
+    if (sel.length==0) {
         return null;
-    else if (sel.length==1)
+    }
+    else if (sel.length==1) {
         return sel[0];
-    else
+    }
+    else {
         return sel;
+    }
 }
 
 QuiX.ui.ListView.prototype.addColumn = function(params) {
     var oCol = ce('TD');
     oCol.className = 'column';
     oCol.dir = QuiX.dir;
-    oCol._isContainer = false;
     oCol.cssClass = params.cssclass || '';
     oCol.style.padding = '0px ' + this.cellPadding + 'px';
 
     if (params.width) {
-        if (params.width.slice(params.width.length-1) == '%')
+        if (params.width.slice(params.width.length-1) == '%') {
             oCol.proportion = parseInt(params.width) / 100;
+        }
         else {
             var offset = (QuiX.utils.BrowserInfo.family == 'saf')?
-                         0 : 2 * this.cellPadding + 2 * this.cellBorder;
+                         0:2 * this.cellPadding + 2 * this.cellBorder;
             oCol.style.width = (params.width - offset) + 'px';
         }
     }
@@ -335,29 +347,35 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
     oCol.name = params.name;
     var sCaption = params.caption || ' ';
     oCol.setCaption(sCaption);
-        
+
     oCol.columnType = params.type || 'str';
     if (params.xform) {
         oCol.xform = params.xform;
         oCol._xform = QuiX.getEventListener(oCol.xform);
     }
-    
+
+    if (params.typeprovider) {
+        oCol.typeProvider = QuiX.getEventListener(params.typeprovider);
+    }
+
     oCol.sortable = !(params.sortable == 'false' || params.sortable == false);
     if (oCol.sortable) {
         oCol.style.cursor = 'pointer';
-        oCol.onclick = QuiX.ui.ListView._column_onclick;
+        QuiX.addEvent(oCol, 'onclick', QuiX.ui.ListView._column_onclick);
     }
 
     var oHeaderRow = this.header.div.firstChild.rows[0];
     oHeaderRow.insertBefore(oCol, oHeaderRow.lastChild.previousSibling);
-    
-    if (oCol.columnType == 'bool')
+
+    if (oCol.columnType == 'bool') {
         oCol.trueImg = params.trueimg || this.trueImg;
-    else if (oCol.columnType == 'date')
+    }
+    else if (oCol.columnType == 'date') {
         oCol.format = params.format || this.dateFormat;
-        
+    }
+
     oCol.columnAlign = params.align || '';
-    
+
     var resizer = new QuiX.ui.Widget({
         width : 6,
         height : this.header._calcHeight(),
@@ -365,9 +383,10 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
         overflow : 'hidden'
     });
     this.header.appendChild(resizer);
-    
+
     oCol.isResizable =
         !(params.resizable == 'false' || params.resizable == false);
+
     if (oCol.isResizable) {
         var iColumn = oHeaderRow.cells.length - 2;
         var self = this;
@@ -381,22 +400,26 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
 }
 
 QuiX.ui.ListView.prototype._moveResizer = function(evt, iResizer) {
-    var oWidget = this;
+    var self = this;
     QuiX.cancelDefault(evt);
-    QuiX.startX = evt.clientX;
+    QuiX.startX = QuiX.getEventCoordinates(evt)[0];
+
     this.attachEvent('onmouseup', function(evt){
-        oWidget._endMoveResizer(evt, iResizer)});
+            self._endMoveResizer(evt, iResizer);
+        });
     this.attachEvent('onmousemove', function(evt){
-        oWidget._resizerMoving(evt, iResizer)});
+            self._resizerMoving(evt, iResizer);
+        });
 }
 
 QuiX.ui.ListView.prototype._resizerMoving = function(evt, iResizer) {
     var nw;
     var iColumn = iResizer + this._deadCells;
-    var offsetX = evt.clientX - QuiX.startX;
-
-    if (QuiX.dir == 'rtl')
+    var offsetX = QuiX.getEventCoordinates(evt)[0] - QuiX.startX;
+    if (QuiX.dir == 'rtl') {
         offsetX = -offsetX;
+    }
+
     nw = parseInt(this.columns[iColumn].style.width) + offsetX;
     nw = (nw < 2 * this.cellPadding)? 2 * this.cellPadding:nw;
     if (nw > 2 * this.cellPadding) {
@@ -410,16 +433,19 @@ QuiX.ui.ListView.prototype._resizerMoving = function(evt, iResizer) {
 
 QuiX.ui.ListView.prototype._endMoveResizer = function(evt, iResizer) {
     var iColumn = iResizer + this._deadCells;
-    if (this.columns[iColumn].proportion)
+    if (this.columns[iColumn].proportion) {
         this.columns[iColumn].proportion = null;
+    }
     this.detachEvent('onmouseup');
     this.detachEvent('onmousemove');
 }
 
 QuiX.ui.ListView.prototype.getColumnByName = function(colName) {
-    for (var i=0; i<this.columns.length; i++)
-        if (this.columns[i].name == colName)
+    for (var i=0; i<this.columns.length; i++) {
+        if (this.columns[i].name == colName) {
             return this.columns[i];
+        }
+    }
     return null;
 }
 
@@ -466,10 +492,26 @@ QuiX.ui.ListView.prototype._isSorted = function() {
     return true;
 }
 
+QuiX.ui.ListView.prototype.update = function(objList) {
+    var obj, rowIndex, row, j;
+    for (var i=0; i<objList.length; i++) {
+        obj = objList[i];
+        rowIndex = this.dataSet.indexOf(obj);
+        if (rowIndex > - 1) {
+            row = this.list.rows[rowIndex];
+            for (j=0 + this._deadCells; j<this.columns.length-2; j++) {
+                value = obj[this.columns[j].name];
+                this._renderCell(row.cells[j], j, value, obj);
+            }
+        }
+    }
+}
+
 QuiX.ui.ListView.prototype.refresh = function() {
     var tbody = this.list.tBodies[0];
-    while(tbody.firstChild)
+    while (tbody.firstChild) {
         tbody.removeChild(tbody.firstChild);
+    }
     this.selection = [];
     if (this._sortimg && !this._isSorted()) {
         QuiX.removeNode(this._sortimg);
@@ -492,58 +534,52 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
     var oRow, selector, oFiller,
         value, columnWidth,
         rowHeight, offset, cell;
-    var w = this;
-    var tbody = w.list.tBodies[0];
-    var webkit = (QuiX.utils.BrowserInfo.family=='saf');
-    if (w.rowHeight) {
-        if (QuiX.utils.BrowserInfo.family == 'ie' &&
-                QuiX.utils.BrowserInfo.version < 8) {
-            offset = 2 * w.cellPadding + 2 * w.cellBorder;
-        }
-        else {
-            offset = 0;
-        }
-        rowHeight = (w.rowHeight - offset) + 'px';
-    }
-    var cellPadding = '4px ' + (w.cellPadding + 1) + 'px';
-    var cellBorder = w.cellBorder + 'px';	
+
+    var tbody = this.list.tBodies[0];
+    var webkit = (QuiX.utils.BrowserInfo.family == 'saf');
+
+    rowHeight = this.rowHeight + 'px';
+
+    var cellPadding = '0px ' + (this.cellPadding + 1) + 'px';
+    var cellBorder = this.cellBorder + 'px';
+
     // create rows
-    for (var i=start; i < start + step && i < w.dataSet.length; i++) {
-        oRow = document.createElement("tr");
+    for (var i=start; i<start+step && i<this.dataSet.length; i++) {
+        oRow = ce("TR");
         oRow.isSelected = false;
-        oRow.className = w.altRows[i%2];
-        if (rowHeight)
-            oRow.style.height = rowHeight;
-        if (w.hasSelector) {
-            selector = w._getSelector();
-            //offset = webkit? 0:2*w.cellPadding - 2;
-            //selector.style.width = (8 - offset) + 'px';
+        oRow.className = this.altRows[i%2];
+
+        if (this.hasSelector) {
+            selector = this._getSelector();
             oRow.appendChild(selector);
         }
-        for (var j=0 + w._deadCells; j<w.columns.length-2; j++) {
+        for (var j=0 + this._deadCells; j<this.columns.length-2; j++) {
             cell = document.createElement('td');
             cell.className = 'cell';
+            cell.style.height = rowHeight;
             cell.dir = QuiX.dir;
-            columnWidth = w.columns[j].style.width;
-            if (i==0 && columnWidth) {
-                offset = webkit?0:w.cellBorder;
-                if (w.columns[j].proportion) {
+
+            columnWidth = this.columns[j].style.width;
+            if (i == 0 && columnWidth) {
+                offset = webkit? 0:this.cellBorder;
+                if (this.columns[j].proportion) {
                     cell.style.width =
-                        (parseInt(w._calcWidth() * w.columns[j].proportion) -
-                         2*w.cellPadding - 2) + 'px';
+                         (Math.round(this._calcWidth() * this.columns[j].proportion)
+                         - 2 * this.cellPadding - 2 * this.cellBorder) + 'px';
                 }
-                else
-                    cell.style.width = (parseInt(columnWidth) -
-                                         offset) + 'px';
+                else {
+                    cell.style.width = (parseInt(columnWidth) - offset) + 'px';
+                }
             }
+            
             cell.style.borderWidth = cellBorder;
             cell.style.padding = cellPadding;
-            if (w.columns[j].cssClass) {
-                cell.className += ' ' + w.columns[j].cssClass;
+            if (this.columns[j].cssClass) {
+                cell.className += ' ' + this.columns[j].cssClass;
             }
             oRow.appendChild(cell);
-            value = w.dataSet[i][w.columns[j].name];
-            w._renderCell(cell, j, value, w.dataSet[i])
+            value = this.dataSet[i][this.columns[j].name];
+            this._renderCell(cell, j, value, this.dataSet[i]);
         }
         oFiller = ce('TD');
         oFiller.innerHTML = '&nbsp;';
@@ -552,34 +588,44 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
         oFiller.style.borderRight = 'none';
         
         oRow.appendChild(oFiller);
-        if (w._customRegistry.onrowprerender)
-            w._customRegistry.onrowprerender(w, oRow, w.dataSet[i]);
+        if (this._customRegistry.onrowprerender) {
+            this._customRegistry.onrowprerender(w, oRow, this.dataSet[i]);
+        }
         tbody.appendChild(oRow);
     }
-    if (i<w.dataSet.length)
-        w._timeout = window.setTimeout(
+    if (i < this.dataSet.length) {
+        var self = this;
+        this._timeout = window.setTimeout(
             function() {
-                if (w.div)
-                    w._refresh(i, step);
+                if (self.div)
+                    self._refresh(i, step);
             }, 300);
-    else
-        if (w._customRegistry.onrendercomplete)
-            w._customRegistry.onrendercomplete(w);
+    }
+    else {
+        if (this._customRegistry.onrendercomplete) {
+            this._customRegistry.onrendercomplete(this);
+        }
+    }
 }
 
-QuiX.ui.ListView.prototype._renderCell =
-function(cell, cellIndex, value, obj) {
+QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value,
+                                                  obj) {
     var elem, column, column_type;
+
     if (typeof value == 'undefined') {
         QuiX.setInnerText(cell, this.nullText);
         return;
     }
-    
+
     if (cellIndex != null) {
         column = this.columns[cellIndex];
         cell.align = column.columnAlign;
+        if (column.typeProvider) {
+            column.typeProvider(column, obj);
+        }
         column_type = column.columnType;
 
+        cell.innerHTML = '';
         switch (column_type) {
             case 'optionlist':
                 for (var i=0; i<column.options.length; i++) {
@@ -587,16 +633,20 @@ function(cell, cellIndex, value, obj) {
                         cell.appendChild(ce('SPAN'));
                         QuiX.setInnerText(cell.firstChild,
                                           column.options[i].caption);
+                        break;
                     }
                 }
                 return;
             case 'img':
                 if (value) {
-                    elem = QuiX.getImage(value);
-                    elem.align = 'absmiddle';
-                    elem.ondragstart = QuiX.cancelDefault;
-                    cell.appendChild(elem);
+                    cell.style.backgroundImage = "url('" + value + "')";
+                    cell.style.backgroundPosition = '50% 50%';
+                    cell.style.backgroundRepeat = 'no-repeat';
                 }
+                return;
+            case 'color':
+                cell.innerHTML = '<div style="width:100%;height:100%">&nbsp;</div>';
+                cell.firstChild.style.backgroundColor = value;
                 return;
             case 'bool':
                 if (value) {
@@ -607,9 +657,13 @@ function(cell, cellIndex, value, obj) {
                     elem.align = 'absmiddle';
                     cell.appendChild(elem);
                 }
-                else
+                else {
                     cell.innerHTML = '&nbsp;'
+                }
                 return;
+            case 'number':
+                cell.align = column.columnAlign || 'right';
+                break;
             case 'date':
                 cell.innerHTML = '<span>' + 
                     value.format(column.format) + '</span>';
@@ -656,8 +710,9 @@ QuiX.ui.ListView.prototype._getRow = function(evt) {
 QuiX.ui.ListView._onclick = function(evt, w, f) {
     if (!evt) return;
     var row = w._getRow(evt);
-    if (row)
+    if (row) {
         f(evt, w, w.dataSet[row.rowIndex]);
+    }
     //else
     //    QuiX.cancelDefault(evt);
 }
@@ -702,12 +757,11 @@ QuiX.ui.ListView._column_onclick = function(evt) {
     evt = evt || event;
     var lv = QuiX.getTargetWidget(evt).parent;
     if (lv._orderBy == this.name)
-        sortOrder = (lv._sortOrder=='ASC')?'DESC':'ASC';
+        sortOrder = (lv._sortOrder=='ASC')? 'DESC':'ASC';
     else
         sortOrder = 'ASC';
     orderBy = this.name;
     lv.sort(orderBy, sortOrder);
-    QuiX.stopPropag(evt);
 }
 
 QuiX.ui.ListView._startdrag = function(x, y, el) {
@@ -737,7 +791,7 @@ QuiX.ui.ListView._startdrag = function(x, y, el) {
         src_row = srcTable.rows[this.parent.selection[i]];
         dragable.height += src_row.offsetHeight;
         row = src_row.cloneNode(true);
-        if (i==0) {
+        if (i == 0) {
             for (var j=0; j<row.cells.length; j++) {
                 row.cells[j].style.width =
                     srcTable.rows[0].cells[j].style.width;
@@ -752,6 +806,5 @@ QuiX.ui.ListView._startdrag = function(x, y, el) {
     QuiX.tmpWidget = dragable;
     QuiX.dragable = this.parent;
 
-    document.desktop.attachEvent('onmouseover', QuiX.ui.Widget._detectTarget);
     document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
 }
