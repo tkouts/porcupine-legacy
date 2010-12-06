@@ -165,14 +165,24 @@ QuiX.utils.BrowserInfo = {
             identity: "Windows"
         },
         {
+            string: navigator.userAgent,
+            subString: "iPhone",
+            identity: "iPhone/iPod"
+        },
+        {
+            string: navigator.userAgent,
+            subString: "iPad",
+            identity: "iPad"
+        },
+        {
             string: navigator.platform,
             subString: "Mac",
             identity: "MacOS"
         },
         {
             string: navigator.userAgent,
-            subString: "iPhone",
-            identity: "iPhone/iPod"
+            subString: "Android",
+            identity: "Android"
         },
         {
             string: navigator.platform,
