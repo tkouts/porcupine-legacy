@@ -229,7 +229,7 @@ QuiX.theme = {
                         left: 0,
                         width: '100%',
                         height: 4,
-                        bgcolor: 'silver',
+                        bgcolor: '#CCC',
                         border: 1,
                         overflow: 'hidden'
                     });
@@ -238,8 +238,8 @@ QuiX.theme = {
         handle: {
             width: 10,
             get: function() {
-                return new QuiX.ui.Icon({
-                        img: '$THEME_URL$images/slider.gif',
+                return new QuiX.ui.Image({
+                        img: QuiX.getThemeUrl() + 'images/slider.png',
                         top: 'center',
                         width: this.width,
                         height: 18,

@@ -1,5 +1,5 @@
 HTML {
-    overflow : hidden;
+    overflow: hidden;
     width: 100%;
     height: 100%;
 }
@@ -83,7 +83,6 @@ BODY {
 
 .flat {
     text-align : center;
-    margin-right: 6px;
     cursor: pointer;
     border-style: solid;
     border-color: transparent;
@@ -252,7 +251,7 @@ BODY {
 
 .menubar .menu {
     cursor: default;
-    border-style: solid;
+    border: solid transparent;
     float: left;
     clear: right;
 }
@@ -415,7 +414,7 @@ BODY {
 }
 
 .listview .srow TD {
-    background: none !important;
+    background-color: transparent !important;
 }
 
 .listview .list .column {
@@ -465,30 +464,31 @@ BODY {
 /* Tree             */
 /********************/
 
-.tree .treenode {
+.tree {
     cursor: default;
     border-style: none;
+    font-size: 12px;
 }
 
-.tree .treenode A {
-    color: black;
+.treenode A {
+    color: inherit;
     text-decoration: none;
 }
 
 .tree .treenode A:hover {
-    color: orange;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
-.tree .treenode A.disabled, .tree .treenode A:hover.disabled {
+.treenode A.disabled,
+.tree .treenode A:hover.disabled {
     color: GrayText;
     text-decoration: none;
     cursor: default;
 }
 
-.tree .treenode A.selected {
+.treenode.selected {
     background: highlight;
-    color: highlighttext;
+    color: white;
     text-decoration: none;
 }
 

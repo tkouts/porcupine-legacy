@@ -204,7 +204,7 @@ QuiX.theme = {
             get: function() {
                 return '<vbox xmlns="http://www.innoscript.org/quix" ' +
         'width="100%" height="100%" spacing="4" childrenalign="center">' +
-    '<box height="24" spacing="2" width="200" padding="1,1,1,1" ' +
+    '<box height="24" spacing="2" width="208" padding="1,1,1,1" ' +
             'onclick="QuiX.stopPropag">' + 
         '<flatbutton id="prev" width="22" caption="&lt;&lt;"/>' +
         '<combo id="month" width="100" editable="false"/>' +
@@ -234,8 +234,8 @@ QuiX.theme = {
         handle: {
             width: 10,
             get: function() {
-                return new QuiX.ui.Icon({
-                        img: '$THEME_URL$images/slider.gif',
+                return new QuiX.ui.Image({
+                        img: QuiX.getThemeUrl() + 'images/slider.gif',
                         top: 'center',
                         width: this.width,
                         height: 18,
@@ -261,7 +261,7 @@ QuiX.theme = {
         selected: 'srow',
         trueImg: '$THEME_URL$images/check16.gif',
         headerheight: 22,
-        rowheight: null
+        rowheight: 26
     },
     selectlist: {
         optionpadding: '2,2,2,2',
