@@ -6,16 +6,15 @@
     <wbody>
         <vbox spacing="0" width="100%" height="100%">
             <label height="22" caption="@@SELECT_FOLDER@@:"/>
-            <rect height="-1" bgcolor="white" padding="2,2,2,2"
-                    overflow="auto" border="1" style="border-style:inset">
-                <foldertree id="tree" method="getSubtree">
-                    <treenode
-                        id="$ROOT_ID"
-                        haschildren="true"
-                        img="$ROOT_IMG"
-                        caption="$ROOT_DN"/>
-                </foldertree>
-            </rect>
+            <foldertree id="tree" method="getSubtree" padding="2,2,2,2"
+                    bgcolor="white" overflow="auto" border="1"
+                    style="border-style:inset">
+                <treenode
+                    id="$ROOT_ID"
+                    haschildren="true"
+                    img="$ROOT_IMG"
+                    caption="$ROOT_DN"/>
+            </foldertree>
         </vbox>
     </wbody>
     <dlgbutton onclick="__closeDialog__" width="70" height="22"

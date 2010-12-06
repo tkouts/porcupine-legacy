@@ -9,10 +9,11 @@ selectObjectsDialog.showFolders = function(evt, w) {
 		main_box.height = 0;
 	}
 	else {
-		if (btn_search.value == 'on')
+		if (btn_search.value == 'on') {
 			btn_search.toggle();
-		main_box.widgets[0].height = '-1';
-		main_box.widgets[1].height = 0;
+		}
+		main_box.widgets[0].show();
+		main_box.widgets[1].hide();
 		main_box.height = '-1';
 	}
 	main_box.parent.redraw(true);
@@ -27,10 +28,11 @@ selectObjectsDialog.showSearch = function(evt, w) {
 		main_box.height = 0;
 	}
 	else {
-		if (btn_folders.value == 'on')
+		if (btn_folders.value == 'on') {
 			btn_folders.toggle();
-		main_box.widgets[0].height = 0;
-		main_box.widgets[1].height = '-1';			
+		}
+		main_box.widgets[0].hide();
+		main_box.widgets[1].show();			
 		main_box.height = 120;
 	}
 	main_box.parent.redraw(true);
@@ -81,7 +83,7 @@ selectObjectsDialog.search = function(evt, w) {
 }
 
 selectObjectsDialog.refreshList = function(treeNodeSelected) {
-	var oDialog = treeNodeSelected.tree.getParentByType(QuiX.ui.Dialog);
+	var oDialog = treeNodeSelected.parent.getParentByType(QuiX.ui.Dialog);
 	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
 	var cc = oDialog.attributes.CC;
 	var sOql = "select id as value, __image__ as img, displayName as caption " +
@@ -89,7 +91,7 @@ selectObjectsDialog.refreshList = function(treeNodeSelected) {
 	if (cc != '*')
         sOql += " where " + selectObjectsDialog.getConditions(cc);
 	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
-	rpc.callback_info = treeNodeSelected.tree;
+	rpc.callback_info = treeNodeSelected.parent;
 	rpc.callmethod('executeOqlCommand', sOql, {SCOPE:treeNodeSelected.getId()});
 }
 
