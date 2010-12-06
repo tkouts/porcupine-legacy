@@ -23,18 +23,25 @@ QuiX.root = (new RegExp(
     "i")).exec(document.location.href) + '/';
 QuiX.baseUrl = '__quix/';
 QuiX.maxz = 999999999;
+
 QuiX.startX = 0;
 QuiX.startY = 0;
+QuiX.currentX = 0;
+QuiX.currentY = 0;
+QuiX.widget = null;
+QuiX.tmpWidget = null;
+
 QuiX.clipboard = new (function() {
     this.contains = '';
     this.action = '';
     this.items = [];
 })();
-QuiX.tmpWidget = null;
+
 QuiX.dragable = null;
 QuiX.dropTarget = null;
 QuiX.dragTimer = 0;
 QuiX.dragging = false;
+
 QuiX._strip_tags_re = /<(.|\n)+?>/gi;
 QuiX.constructors = {
     'script' : null,
@@ -46,6 +53,7 @@ QuiX._scrollbarSize = 16;
 QuiX.dir = '';
 QuiX.effectsEnabled = true;
 QuiX.ui = {};
+QuiX.supportTouches = (typeof ce('DIV').ontouchstart != 'undefined');
 
 QuiX.queryString = function(param) {
     function urlEncodeIfNecessary(s) {
@@ -165,8 +173,9 @@ QuiX.__resource_onstatechange = function() {
             QuiX.removeNode(this);
         }
         this.resource.isLoaded = true;
-        if (this.resource.callback)
+        if (this.resource.callback) {
             this.resource.callback();
+        }
     }
 }
 
@@ -192,7 +201,7 @@ QuiX.modules = [
     new QuiX.Module('Common Widgets',       //9
                     QuiX.baseUrl + 'ui/common.js', [3,8], 4),
     new QuiX.Module('Datagrid',             //10
-                    QuiX.baseUrl + 'ui/datagrid.js', [5,8], 4),
+                    QuiX.baseUrl + 'ui/datagrid.js', [5,8,14,17], 4),
     new QuiX.Module('File Control',         //11
                     QuiX.baseUrl + 'ui/file.js', [1,3,8,9,14], 4),
     new QuiX.Module('Date Picker',          //12
@@ -308,14 +317,19 @@ QuiX.removeLoader = function() {
 
 QuiX.cleanupOverlays = function() {
     var ovr = document.desktop.overlays;
-    while (ovr.length>0) ovr[0].close();
+    while (ovr.length > 0) {
+        ovr[0].close();
+    }
+    if (QuiX.ui.DataGrid) {
+        QuiX.ui.DataGrid._removeEditWidget();
+    }
 }
 
 QuiX.Exception = function(name, msg) {
     this.name = name;
     this.message = msg;
 }
-QuiX.Exception.prototype = new Error
+QuiX.Exception.prototype = new Error;
 
 QuiX.displayError = function(e) {
     var msg = e.name + '\n\n' + e.message;
@@ -362,9 +376,14 @@ QuiX.getTargetWidget = function(evt) {
 }
 
 QuiX.getWidget = function(el) {
-    while (el && !el.widget)
+    while (el && !el.widget) {
         el = QuiX.getParentNode(el);
+    }
     return (el)? el.widget:null;    
+}
+
+QuiX.getWidgetFromPoint = function(x, y) {
+    return QuiX.getWidget(document.elementFromPoint(x, y));
 }
 
 QuiX.removeNode = function(node) {
@@ -401,14 +420,6 @@ QuiX.getMouseButton = function(evt) {
             iButton = 1;
     }
     return iButton;
-}
-
-QuiX._ieDomUpdate = function(el) {
-    if (QuiX.utils.BrowserInfo.family == 'ie' && el.style.visibility == '') {
-        // IE: ie 8 requires visibility toggle in order to update DOM
-        el.style.visibility = 'hidden';
-        el.style.visibility = '';
-    }
 }
 
 QuiX.createOutline = function(w) {
@@ -450,15 +461,21 @@ QuiX.createOutline = function(w) {
 }
 
 QuiX.getEventListener = function(f) {
-    if (typeof(f) != 'function') {
-        try {
-            f = eval(f);
+    if (f && typeof(f) != 'function') {
+        if (f.charAt(0) == ':') {
+            // javascript code
+            f = new Function('evt', 'w', f.slice(1));
         }
-        catch(e) {
-            f = null;
+        else {
+            try {
+                f = eval(f);
+            }
+            catch(e) {
+                f = null;
+            }
         }
     }
-    return(f);
+    return f;
 }
 
 QuiX.wrappers = {
@@ -469,16 +486,25 @@ QuiX.wrappers = {
             var r1, r2 = null;
             if (f1) r1 = f1(evt, w);
             if (f2) r2 = f2(evt, w);
-            return (typeof(r1) != 'undefined')?r1:r1||r2;
+            return (typeof(r1) != 'undefined')? r1:r1||r2;
         }
         return wrapper;
     },
-    oneAtAtime : function(f1) {
+    onTap: function(f) {
+        function wrapper(evt, w) {
+            if (QuiX.currentX == QuiX.startX &&
+                    QuiX.currentY == QuiX.startY) {
+                f(evt, w);
+            }
+        }
+        f.wrapper = wrapper;
+        return wrapper;
+    },
+    oneAtAtime : function(f) {
         var lock = false;
-        f1 = QuiX.getEventListener(f1);
         function wrapper(evt, w) {
             function _call() {
-                f1(evt, w);
+                f(evt, w);
                 // release lock
                 lock = false;
             }
@@ -488,17 +514,16 @@ QuiX.wrappers = {
                 if (QuiX.utils.BrowserInfo.family == 'ie') {
                     // IE: we need to copy evt
                     var evt_copy = {};
-                    for (var v in evt)
+                    for (var v in evt) {
                         evt_copy[v] = evt[v];
+                    }
                     evt = evt_copy;
                 }
-                window.setTimeout(_call , 1);
+                window.setTimeout(_call, 1);
             }
         }
-        if (f1)
-            return wrapper;
-        else
-            return null;
+        f.wrapper = wrapper;
+        return wrapper;
     }
 };
 
@@ -512,7 +537,33 @@ QuiX.getImage = function(url) {
     return img;
 }
 
+QuiX._getTouchEventType = function(type) {
+    var touchType;
+    switch (type) {
+        case 'onclick':
+            touchType = 'ontouchend';
+            break;
+        case 'onmousedown':
+            touchType = 'ontouchstart';
+            break;
+        case 'onmouseup':
+            touchType = 'ontouchend';
+            break;
+        case 'onmouseover':
+        case 'onmousemove':
+            touchType = 'ontouchmove';
+            break;
+        default:
+            touchType = type;
+    }
+    return touchType;
+}
+
 QuiX.addEvent = function(el, type, proc) {
+    var wrapper = null;
+    if (QuiX.supportTouches) {
+        type = QuiX._getTouchEventType(type);
+    }
     if (el.addEventListener) {
         el.addEventListener(type.slice(2, type.length), proc, false);
         return true;
@@ -520,11 +571,15 @@ QuiX.addEvent = function(el, type, proc) {
     else if (el.attachEvent) {
         return el.attachEvent(type, proc);
     }
-    else
+    else {
         return false;
+    }
 }
 
 QuiX.removeEvent = function(el, type, proc) {
+    if (QuiX.supportTouches) {
+        type = QuiX._getTouchEventType(type);
+    }
     if (el.removeEventListener) {
         el.removeEventListener(type.slice(2,type.length), proc, false);
         return true;
@@ -532,14 +587,16 @@ QuiX.removeEvent = function(el, type, proc) {
     else if (el.detachEvent) {
         return el.detachEvent(type, proc);
     }
-    else
+    else {
         return false;
+    }
 }
 
 QuiX.sendEvent = function(el, module, type /*, args*/) {
     if (el.dispatchEvent) {
-        if (!document.implementation.hasFeature(module, ""))
+        if (!document.implementation.hasFeature(module, "")) {
             return false;
+        }
         var e = document.createEvent(module);
         e.initEvent(type.slice(2,type.length), true, false/*, args */);
         el.dispatchEvent(e);
@@ -552,16 +609,27 @@ QuiX.sendEvent = function(el, module, type /*, args*/) {
         return false;
 }
 
+QuiX.getEventCoordinates = function(evt) {
+    if (evt.touches) {
+        return [evt.touches[0].clientX, evt.touches[0].clientY];
+    }
+    else {
+        return [evt.clientX, evt.clientY];
+    }
+}
+
 QuiX.stopPropag = function(evt) {
     if (evt && evt.stopPropagation) evt.stopPropagation();
     else if (window.event) window.event.cancelBubble = true;
 }
 
 QuiX.cancelDefault = function(evt) {
-    if (evt && evt.preventDefault)
+    if (evt && evt.preventDefault) {
         evt.preventDefault();
-    else if (window.event)
+    }
+    else if (window.event) {
         window.event.returnValue = false;
+    }
 }
 
 QuiX.XHRPool = (
@@ -687,61 +755,105 @@ QuiX.localName = function(node) {
 QuiX.removeWidget = function(w) {
     var parentElement;
 
-    if (w.__tooltip || w.__tooltipID)
+    if (w.__tooltip || w.__tooltipID) {
         QuiX.ui.Widget._onmouseout(null, w);
-    if (w._customRegistry.onunload)
+    }
+    if (w._customRegistry.onunload) {
         w._customRegistry.onunload(w);
-    while (w.widgets.length>0)
+    }
+    while (w.widgets.length > 0) {
         QuiX.removeWidget(w.widgets[0]);
+    }
     if (w.contextMenu) {
         if (w.contextMenu.isOpen)
             w.contextMenu.close();
         QuiX.removeWidget(w.contextMenu);
     }
-    if (w.parent)
+    if (w.parent) {
         w.parent.widgets.removeItem(w);
+    }
 
     w._detachEvents();
 
     parentElement = QuiX.getParentNode(w.div);
-    if (parentElement)
+    if (parentElement) {
         QuiX.removeNode(w.div);
+    }
 
     w.div.widget = null;
-    for (var v in w)
+    for (var v in w) {
         w[v] = null;
+    }
     w = null;
 }
 
 QuiX.getParentNode = function(el) {
-    if (typeof el.parentElement != 'undefined')
+    if (typeof el.parentElement != 'undefined') {
         return el.parentElement;
-    else
+    }
+    else {
         return el.parentNode;
+    }
 }
 
 QuiX.setOpacity = function(el, op) {
-    if (QuiX.utils.BrowserInfo.family == 'moz')
+    if (QuiX.utils.BrowserInfo.family == 'moz') {
         el.style.MozOpacity = op;
-    else if (QuiX.utils.BrowserInfo.family == 'ie')
+    }
+    else if (QuiX.utils.BrowserInfo.family == 'ie') {
         el.style.filter = 'alpha(opacity=' + op * 100 + ')';
-    else
+    }
+    else {
         el.style.opacity = op;
+    }
+}
+
+QuiX.setShadow = function(el, shadow) {
+    if (shadow) {
+        var _shadow = shadow[0] + "px " +
+                      shadow[1] + "px " +
+                      shadow[2] + "px " +
+                      shadow[3];
+        if (QuiX.utils.BrowserInfo.family == 'moz') {
+            el.style.MozBoxShadow = _shadow;
+        }
+        else if (QuiX.utils.BrowserInfo.family == 'saf') {
+            el.style.WebkitBoxShadow = _shadow;
+        }
+        else {
+            el.style.boxShadow = _shadow;
+        }
+    }
+    else {
+        if (QuiX.utils.BrowserInfo.family == 'moz') {
+            el.style.MozBoxShadow = '';
+        }
+        else if (QuiX.utils.BrowserInfo.family == 'saf') {
+            el.style.WebkitBoxShadow = '';
+        }
+        else {
+            el.style.boxShadow = '';
+        }
+    }
 }
 
 QuiX.getOpacity = function(el) {
-    if (QuiX.utils.BrowserInfo.family == 'moz')
+    if (QuiX.utils.BrowserInfo.family == 'moz') {
         return parseFloat(el.style.MozOpacity);
-    else if (QuiX.utils.BrowserInfo.family == 'ie') {
-        var re = /alpha\(opacity=(\d+)\)/;
-        var arrOpacity = re.exec(el.style.filter);
-        if (arrOpacity.length > 1)
-            return parseInt(arrOpacity[1]) / 100;
-        else
-            return 1;
     }
-    else
+    else if (QuiX.utils.BrowserInfo.family == 'ie') {
+        var re = /alpha\(opacity=(\d+)\)/i;
+        var arrOpacity = re.exec(el.style.filter);
+        if (arrOpacity != null && arrOpacity.length > 1) {
+            return parseInt(arrOpacity[1]) / 100;
+        }
+        else {
+            return 1;
+        }
+    }
+    else {
         return parseFloat(el.style.opacity);
+    }
 }
 
 QuiX._css2Js = function(css) {
@@ -1048,7 +1160,7 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                     break;
                 case 'column':
                     var oCol = parentW.parent.addColumn(params);
-                    if (params.type=='optionlist') {
+                    if (params.type == 'optionlist') {
                         var options, p;
                         options = oNode.childNodes;
                         oCol.options = [];
@@ -1136,9 +1248,8 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                         !oWidget.owner && oWidget != document.desktop)
                     parentW.appendChild(oWidget);
 
-                if (oWidget._isContainer)
-                    for (var i=0; i<oNode.childNodes.length; i++)
-                        this.parseXul(oNode.childNodes[i], oWidget);
+                for (var i=0; i<oNode.childNodes.length; i++)
+                    this.parseXul(oNode.childNodes[i], oWidget);
 
                 if (oWidget._customRegistry.onload)
                     this.__onload.push([oWidget._customRegistry.onload,
