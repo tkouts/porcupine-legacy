@@ -213,16 +213,16 @@ QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
     return null;
 }
 
-QuiX.ui.Widget.prototype.query = function(eval_condition, param, shallow, limit) {
+QuiX.ui.Widget.prototype.query = function(eval_func, shallow, limit) {
     var w;
     var ws = [];
     for (var i=0; i<this.widgets.length; i++) {
         w = this.widgets[i];
-        if (eval(eval_condition)) {
+        if (eval_func.apply(w)) {
             ws.push(w);
         }
         if (!shallow) {
-            ws = ws.concat(w.query(eval_condition, param, shallow));
+            ws = ws.concat(w.query(eval_func, shallow, limit));
         }
         if (limit && ws.length >= limit) {
             break;
@@ -233,8 +233,11 @@ QuiX.ui.Widget.prototype.query = function(eval_condition, param, shallow, limit)
 
 QuiX.ui.Widget.prototype.getWidgetById = function(sid /*, shallow, limit*/) {
     var shallow = arguments[1] || false,
-        limit = arguments[2] || null,
-        ws = this.query('w._id==param', sid, shallow, limit);
+        limit = arguments[2] || null;
+        ws = this.query(
+            function() {
+                return this._id == sid;
+            }, shallow, limit);
 
     if (ws.length == 0) {
         return null;
@@ -247,25 +250,44 @@ QuiX.ui.Widget.prototype.getWidgetById = function(sid /*, shallow, limit*/) {
     }
 }
 
-QuiX.ui.Widget.prototype.getWidgetsByType = function(wtype /*, shallow*/) {
-    var shallow = arguments[1] || false;
-    return this.query('w instanceof param', wtype, shallow, null);
+QuiX.ui.Widget.prototype.getWidgetsByType = function(wtype /*, shallow, limit*/) {
+    var shallow = arguments[1] || false,
+        limit = arguments[2] || null;
+
+    return this.query(
+        function() {
+            return (this instanceof wtype);
+        }, shallow, limit);
 }
 
-QuiX.ui.Widget.prototype.getWidgetsByClassName = function(cssName /*, shallow*/) {
-    var shallow = arguments[1] || false;
-    return this.query('w.div.className == param', cssName, shallow, null);
+QuiX.ui.Widget.prototype.getWidgetsByClassName = function(cssName /*, shallow, limit*/) {
+    var shallow = arguments[1] || false,
+        limit = arguments[2] || null;
+
+    return this.query(
+        function() {
+            return this.div.className == cssName;
+        }, shallow, limit);
 } 
 
-QuiX.ui.Widget.prototype.getWidgetsByAttribute = function(attr_name /*, shallow*/) {
-    var shallow = arguments[1] || false;
-    return this.query('w[param] != undefined', attr_name, shallow, null);
+QuiX.ui.Widget.prototype.getWidgetsByAttribute = function(attr_name /*, shallow, limit*/) {
+    var shallow = arguments[1] || false,
+        limit = arguments[2] || null;
+
+    return this.query(
+        function() {
+            return (typeof this[attr_name] != 'undefined');
+        }, shallow, limit);
 }
 
-QuiX.ui.Widget.prototype.getWidgetsByAttributeValue =
-function(attr_name, value /*, shallow*/) {
-    var shallow = arguments[1] || false;
-    return this.query('w[param[0]] == param[1]', [attr_name, value], shallow, null);
+QuiX.ui.Widget.prototype.getWidgetsByAttributeValue = function(attr_name, value /*, shallow, limit*/) {
+    var shallow = arguments[2] || false,
+        limit = arguments[3] || null;
+
+    return this.query(
+        function() {
+            return this[attr_name] == value;
+        }, shallow, null);
 }
 
 QuiX.ui.Widget.prototype._setAbsProps = function(memo) {
