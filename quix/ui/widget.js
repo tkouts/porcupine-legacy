@@ -905,10 +905,11 @@ QuiX.ui.Widget.prototype.moveTo = function(x, y) {
     }
     else {
         x += padding[0];
-        if (QuiX.dir == 'rtl')
-            x = QuiX.transformX(x + this.getWidth(true, memo), this.parent)
+        if (QuiX.dir == 'rtl') {
+            x = QuiX.transformX(x + this.getWidth(true, memo), this.parent);
+        }
     }
-    y = (isNaN(y))? this._calcTop(memo) : y + padding[2];
+    y = (isNaN(y))? this._calcTop(memo):y + padding[2];
     this.div.style.left = x + 'px';
     this.div.style.top = y + 'px';
 }

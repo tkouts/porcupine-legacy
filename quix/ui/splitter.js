@@ -186,7 +186,7 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
         length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight',
         idx = splitter._handles.indexOf(w),
         ns = 1,
-        fc = splitter._getFillersCount();
+        fc;
 
     if (splitter.panes[idx+1].attributes._collapse) {
         idx = idx + 1;
@@ -208,7 +208,7 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
             pane2[length_var] = pane2._statelength;
             pane2._statelength = null;
         }
-        if (fc == 0) {
+        if (splitter._getFillersCount() == 0) {
             pane[length_var] = QuiX.ui.Box._calcWidgetLength;
         }
         pane.show();
@@ -217,6 +217,7 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
         w._isCollapsed = true;
         w.div.style.cursor = 'default';
         pane.hide();
+        fc = splitter._getFillersCount();
         var islastfree = (fc == 1 &&
                           pane2[length_var] == QuiX.ui.Box._calcWidgetLength);
         if (!pane2.isHidden()) {
