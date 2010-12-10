@@ -500,6 +500,32 @@ QuiX.wrappers = {
         f.wrapper = wrapper;
         return wrapper;
     },
+    onSwipe: function(f) {
+        function wrapper(evt, w) {
+            var dx = QuiX.startX - QuiX.currentX,
+                dy = QuiX.startY - QuiX.currentY;
+            if (Math.abs(dx) > 32 && Math.abs(dy) < 24) {
+                if (dx > 0) {
+                    evt.dir = 'left';
+                }
+                else {
+                    evt.dir = 'right';
+                }
+                f(evt, w);
+            }
+            else if (Math.abs(dy) > 32 && Math.abs(dx) < 24) {
+                if (dy > 0) {
+                    evt.dir = 'top';
+                }
+                else {
+                    evt.dir = 'bottom';
+                }
+                f(evt, w);
+            }
+        }
+        f.wrapper = wrapper;
+        return wrapper;
+    },
     oneAtAtime : function(f) {
         var lock = false;
         function wrapper(evt, w) {
@@ -530,8 +556,9 @@ QuiX.wrappers = {
 QuiX.getImage = function(url) {
     var img;
     url = url.replace('$THEME_URL$', QuiX.getThemeUrl());
-    if (url.slice(0,4) != 'http' && url.slice(0,1) != '/')
+    if (url.slice(0,4) != 'http' && url.slice(0,1) != '/') {
         url = QuiX.root + url;
+    }
     img = new Image();
     img.src = url;
     return img;
@@ -796,50 +823,63 @@ QuiX.getParentNode = function(el) {
     }
 }
 
+QuiX.getEventName = function(e) {
+    var evt_name = null,
+        l = e.toLowerCase();
+
+    if(('on' + l) in window) {
+      // Firefox
+      evt_name = e.toLowerCase();
+    }
+    else if(('onwebkit' + l) in window) {
+      // Chrome/Saf (+ Mobile Saf)/Android
+      evt_name = 'onwebkit' + e;
+    }
+    else if(('ono' + l) in document.desktop.div) {
+      // Opera
+      // As of Opera 10.61, there is no "onotransitionend" property added to DOM elements,
+      // so it will always use the navigator.appName fallback
+      evt_name = 'o' + e;
+    }
+
+    return evt_name;
+}
+
+QuiX.getCssAttribute = function(a) {
+    var style = document.body.style;
+        caped = a.charAt(0).toUpperCase() + a.slice(1);
+
+    if (typeof style[a] != 'undefined') {
+        return a;
+    }
+    else if (typeof style['Moz' + caped] != 'undefined') {
+        return 'Moz' + caped;
+    }
+    else if (typeof style['webkit' + caped] != 'undefined') {
+        return 'webkit' + caped;
+    }
+    else if (typeof style['o' + caped] != 'undefined') {
+        return 'o' + caped;
+    }
+    else {
+        return null;
+    }
+}
+
 QuiX.setOpacity = function(el, op) {
-    if (QuiX.utils.BrowserInfo.family == 'moz') {
-        el.style.MozOpacity = op;
+    var cssOpacity = QuiX.getCssAttribute('opacity');
+    if (cssOpacity) {
+        el.style[cssOpacity] = op;
     }
     else if (QuiX.utils.BrowserInfo.family == 'ie') {
         el.style.filter = 'alpha(opacity=' + op * 100 + ')';
     }
-    else {
-        el.style.opacity = op;
-    }
-}
-
-QuiX.setShadow = function(el, shadow) {
-    if (shadow) {
-        var _shadow = shadow[0] + "px " +
-                      shadow[1] + "px " +
-                      shadow[2] + "px " +
-                      shadow[3];
-        if (QuiX.utils.BrowserInfo.family == 'moz') {
-            el.style.MozBoxShadow = _shadow;
-        }
-        else if (QuiX.utils.BrowserInfo.family == 'saf') {
-            el.style.WebkitBoxShadow = _shadow;
-        }
-        else {
-            el.style.boxShadow = _shadow;
-        }
-    }
-    else {
-        if (QuiX.utils.BrowserInfo.family == 'moz') {
-            el.style.MozBoxShadow = '';
-        }
-        else if (QuiX.utils.BrowserInfo.family == 'saf') {
-            el.style.WebkitBoxShadow = '';
-        }
-        else {
-            el.style.boxShadow = '';
-        }
-    }
 }
 
 QuiX.getOpacity = function(el) {
-    if (QuiX.utils.BrowserInfo.family == 'moz') {
-        return parseFloat(el.style.MozOpacity);
+    var cssOpacity = QuiX.getCssAttribute('opacity');
+    if (cssOpacity) {
+        return parseFloat(el.style[cssOpacity]);
     }
     else if (QuiX.utils.BrowserInfo.family == 'ie') {
         var re = /alpha\(opacity=(\d+)\)/i;
@@ -851,8 +891,21 @@ QuiX.getOpacity = function(el) {
             return 1;
         }
     }
-    else {
-        return parseFloat(el.style.opacity);
+}
+
+QuiX.setShadow = function(el, shadow) {
+    var cssShadow = QuiX.getCssAttribute('boxShadow');
+    if (cssShadow) {
+        if (shadow) {
+            var _shadow = shadow[0] + "px " +
+                          shadow[1] + "px " +
+                          shadow[2] + "px " +
+                          shadow[3];
+            el.style[cssShadow] = _shadow;
+        }
+        else {
+            el.style[cssShadow] = '';
+        }
     }
 }
 
@@ -932,8 +985,9 @@ QuiX.getScrollLeft = function(el) {
                 return el.scrollLeft;
         }
     }
-    else
+    else {
         return el.scrollLeft;
+    }
 }
 
 QuiX.measureText = function(sourceEl, text) {

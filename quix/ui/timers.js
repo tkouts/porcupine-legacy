@@ -130,21 +130,20 @@ QuiX.ui.Effect.prototype = new QuiX.ui.Timer;
 QuiX.ui.Effect.prototype.customEvents =
     QuiX.ui.Timer.prototype.customEvents.concat(['oncomplete']);
 
-QuiX.ui.Effect.prototype._apply = function(wd) {
-    // calculate value
-    var value, begin, end,
-        stepping = 0;
-
+QuiX.ui.Effect.prototype._getRange = function(wd) {
+    var begin, end;
     switch (this.type) {
         case 'slide-x':
         case 'slide-y':
-            var f = (this.type == 'slide-x')? '_calcLeft':'_calcTop';
-            var v = (this.type == 'slide-x')? 'left':'top';
+            var f = (this.type == 'slide-x')? '_calcLeft':'_calcTop',
+                v = (this.type == 'slide-x')? 'left':'top';
+
             wd[v] = this.begin;
             begin = wd[f]();
             wd[v] = this.end;
             end = wd[f]();
             break;
+
         default:
             begin = this.begin;
             end = this.end;
@@ -155,6 +154,17 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
         begin = end;
         end = tmp;
     }
+
+    return [begin, end];
+}
+
+QuiX.ui.Effect.prototype._apply = function(wd) {
+    // calculate value
+    var value,
+        range = this._getRange(wd);
+        begin = range[0],
+        end = range[1],
+        stepping = 0;
 
     if (this._step == this.steps) {
         if (this._reverse) {
@@ -208,6 +218,59 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
     this._step++;
 }
 
+QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
+    var duration = this.steps * this.interval,
+        range = this._getRange(wd),
+        begin = range[0],
+        end = range[1],
+        cssTransition = QuiX.getCssAttribute('transition'),
+        cssTransform = QuiX.getCssAttribute('transform'),
+        evtTransitionEnd = QuiX.getEventName('TransitionEnd'),
+        transition;
+
+    // TODO: asign ease attribute
+    transition = duration + 'ms ease';
+
+    if (evtTransitionEnd) {
+        var self = this;
+        QuiX.addEvent(wd.div, evtTransitionEnd,
+            function _ontransitionend() {
+                // clear css attrs
+                this.style[cssTransition] = '';
+                this.style[cssTransform] = '';
+                // detach event
+                QuiX.removeEvent(this, evtTransitionEnd, _ontransitionend);
+                // set widget to its end state
+                self._step = self.steps;
+                self._apply(wd);
+                self._step = 0;
+                if (self._customRegistry.oncomplete) {
+                    self._customRegistry.oncomplete(self);
+                }
+            });
+    }
+    else {
+        //TODO: assign timeout?
+    }
+
+    switch (this.type) {
+        case 'slide-x':
+            wd.div.style[cssTransition] = 'all ' + transition;
+            wd.div.style[cssTransform] = 'translateX(' + (end - begin) + 'px)';
+            break;
+        case 'slide-y':
+            wd.div.style[cssTransition] = 'all ' + transition;
+            wd.div.style[cssTransform] = 'translateY(' + (end - begin) + 'px)';
+            break;
+        case 'fade-in':
+        case 'fade-out':
+            wd.setOpacity(Math.round(begin * 100) / 100);
+            wd.div.style[cssTransition] = 'all ' + transition;
+            wd.setOpacity(Math.round(end * 100) / 100);
+            break;
+    }
+}
+
 QuiX.ui.Effect.prototype.stop = function() {
     if (this._timerid) {
         QuiX.ui.Timer.prototype.stop.apply(this, arguments);
@@ -239,7 +302,13 @@ QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
     this._w = arguments[1] || null;
     this._handler(this);
     if (this._w || this.parent) {
-        this.start();
+        // check if css transitions are in place
+        if (QuiX.getCssAttribute('transition') && this.type.slice(0,4) != 'wipe') {
+            this._apply_css_effect(this._w || this.parent);
+        }
+        else {
+            this.start();
+        }
     }
 }
 

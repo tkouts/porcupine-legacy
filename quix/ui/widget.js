@@ -1187,7 +1187,7 @@ QuiX.ui.Widget.prototype.previousSibling = function() {
 QuiX.ui.Widget.prototype.supportedEvents = [
     'onmousedown', 'onmouseup', 'onmousemove', 'onmouseover', 'onmouseout',
     'onkeypress', 'onkeyup', 'onkeydown', 'onclick', 'ondblclick', 'onscroll',
-    'oncontextmenu'];
+    'oncontextmenu', 'onswipe'];
 
 QuiX.ui.Widget.prototype.customEvents = ['onload', 'onunload',
     'onresize', 'ondrop'];
@@ -1258,10 +1258,22 @@ QuiX.ui.Widget.prototype._attachEvents = function() {
 }
 
 QuiX.ui.Widget.prototype._detachEvents = function(/*deep*/) {
-    var deep = arguments[0] || false;
+    var deep = arguments[0] || false,
+        domEvent;
     for (var evt_type in this._registry) {
         for (var i=0; i<this._registry[evt_type].length; i++) {
-            QuiX.removeEvent(this.div, evt_type, this._registry[evt_type][i]);
+            if (evt_type == 'oncontextmenu' &&
+                    QuiX.utils.BrowserInfo.family == 'op') {
+                // opera context menu patch
+                domEvent = 'onclick';
+            }
+            else if (evt_type == 'onswipe') {
+                domEvent = 'onmouseup';
+            }
+            else {
+                domEvent = evt_type;
+            }
+            QuiX.removeEvent(this.div, domEvent, this._registry[evt_type][i]);
         }
     }
     if (deep) {
@@ -1275,6 +1287,9 @@ QuiX.ui.Widget.prototype._getHandler = function(eventType, f) {
     var func;
     if (QuiX.supportTouches && eventType == 'onclick') {
         func = QuiX.wrappers.onTap(f);
+    }
+    else if (eventType == 'onswipe') {
+        func = QuiX.wrappers.onSwipe(f);
     }
     else if (eventType == 'oncontextmenu' &&
              QuiX.utils.BrowserInfo.family == 'op') {
@@ -1317,6 +1332,9 @@ QuiX.ui.Widget.prototype.attachEvent = function(eventType , f) {
             QuiX.utils.BrowserInfo.family == 'op') {
         // opera context menu patch
         eventType = 'onclick';
+    }
+    else if (eventType == 'onswipe') {
+        eventType = 'onmouseup';
     }
 
     if (!this._isDisabled && !isCustom) {
@@ -1513,10 +1531,7 @@ QuiX.ui.Desktop = function(params, root) {
     params.height = params.height || 'document.body.clientHeight';
     params.overflow = params.overflow  || 'hidden';
     params.onmousedown = QuiX.ui.Desktop._onmousedown;
-    if (QuiX.supportTouches) {
-        // for supporting ontap events
-        params.onmousemove = QuiX.ui.Desktop._onmousemove;
-    }
+
     if (QuiX.utils.BrowserInfo.family != 'op') {
         params.oncontextmenu = QuiX.ui.Desktop._oncontextmenu;
     }
@@ -1618,13 +1633,16 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
     QuiX.startX = QuiX.currentX = coords[0];
     QuiX.startY = QuiX.currentY = coords[1];
 
+    desktop.attachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
+    desktop.attachEvent('onmouseup', QuiX.ui.Desktop._onmouseup);
+
     // check if the widget is inside an overlay
     var w = QuiX.getTargetWidget(evt),
         el = QuiX.getTarget(evt),
         overlays = [];
 
     while (w) {
-        if (document.desktop.overlays.hasItem(w)) {
+        if (desktop.overlays.hasItem(w)) {
             overlays.push(w);
             if (w.combo) {
                 w = w.combo;
@@ -1649,7 +1667,7 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
     else {
         // inside an overlay; clear all others
         var inactive = [],
-            active = document.desktop.overlays;
+            active = desktop.overlays;
         for (var i=0; i<active.length; i++) {
             if (!overlays.hasItem(active[i])) {
                 inactive.push(active[i]);
@@ -1665,6 +1683,11 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
         QuiX.cancelDefault(evt);
         //return false;
     }
+}
+
+QuiX.ui.Desktop._onmouseup = function(evt, desktop) {
+    desktop.detachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
+    desktop.detachEvent('onmouseup', QuiX.ui.Desktop._onmouseup);
 }
 
 QuiX.ui.Desktop._onmousemove = function(evt, desktop) {
