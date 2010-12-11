@@ -194,7 +194,8 @@ def get_full_path(item):
 def get_revision(pubdir, path):
     """
     Returns the most recent modification
-    time of the files.
+    time of the files listed in a JSMerge post-processing
+    filter of a certain registration.
 
     @param str pubdir: The name of the public directory
     @param str path: The registration's path
