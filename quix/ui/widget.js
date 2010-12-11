@@ -441,7 +441,8 @@ QuiX.ui.Widget.prototype.setOpacity = function(fOpacity) {
     QuiX.setOpacity(this.div, fOpacity);
 }
 QuiX.ui.Widget.prototype.getOpacity = function() {
-    return QuiX.getOpacity(this.div) || 1;
+    var opacity = QuiX.getOpacity(this.div);
+    return (isNaN(opacity))? 1:opacity;
 }
 
 function handleIEBox(w, shadow) {
