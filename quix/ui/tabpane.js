@@ -141,15 +141,17 @@ QuiX.ui.TabPane.prototype.activateTab = function(tab) {
     oTab.redraw();
 
     oTab.tabButton.bringToFront();
-    oTab.tabButton.div.style.top = '-2px';
+    oTab.tabButton.top = -2;
     oTab.tabButton.div.className = 'tab active';
-    oTab.tabButton.detachEvent('onclick');
+    oTab.tabButton.detachEvent('onclick', QuiX.ui.TabPane._tabClick);
+    oTab.tabButton.redraw();
 
     if (iActive != iTab) {
         activeTabButton = this.tabs[iActive].tabButton;
-        activeTabButton.div.style.top = 0;
+        activeTabButton.top = 0;
         activeTabButton.attachEvent('onclick', QuiX.ui.TabPane._tabClick);
         activeTabButton.div.className = 'tab inactive';
+        activeTabButton.redraw();
         this.tabs[iActive].hide();
     }
 
