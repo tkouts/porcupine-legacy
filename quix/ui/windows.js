@@ -11,6 +11,9 @@ function __closeDialog__(evt, w) {
 // window
 
 QuiX.ui.Window = function(/*params*/) {
+    if (typeof arguments[0] == 'undefined') {
+        return;
+    }
     var params = arguments[0] || {};
     var overflow = params.overflow;
     var padding = params.padding;
