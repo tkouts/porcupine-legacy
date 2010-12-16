@@ -84,10 +84,12 @@ QuiX.ui.Timer.prototype._detachEvents = function() {
 // effect widget
 
 QuiX.ui.Effect = function(/*params*/) {
-    var params = arguments[0] || {};
+    var params = arguments[0] || {},
+        auto = params.auto;
     params.display = 'none';
     params.handler = QuiX.ui.Effect._handler;
     params.interval = params.interval || 50;
+    params.auto = false;
 
     this.type = params.type;
     switch (this.type) {
@@ -124,6 +126,15 @@ QuiX.ui.Effect = function(/*params*/) {
     this._reverse = false;
     this.base = QuiX.ui.Timer;
     this.base(params);
+
+    this.auto = (auto == true || auto == 'true');
+    if (this.auto) {
+        var self = this;
+        window.setTimeout(
+            function() {
+                self.play();
+            }, 0);
+    }
 }
 
 QuiX.constructors['effect'] = QuiX.ui.Effect;
@@ -233,7 +244,6 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
 
     // TODO: asign ease attribute
     transition = duration + 'ms ease';
-
     if (evtTransitionEnd) {
         QuiX.addEvent(wd.div, evtTransitionEnd,
             function _ontransitionend() {
@@ -246,26 +256,28 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
             });
     }
     else {
-        //TODO: assign timeout?
+        //TODO: IE9 assign timeout?
     }
 
-    this._apply(wd);
+    //this._apply(wd);
 
     window.setTimeout(
         function() {
-            //switch (self.type) {
-            //    case 'slide-x':
-            //        wd.div.style[cssTransition] = 'left ' + transition;
-            //        break;
-            //    case 'slide-y':
-            //        wd.div.style[cssTransition] = 'top ' + transition;
-            //        break;
-            //    case 'fade-in':
-            //    case 'fade-out':
-            //        wd.div.style[cssTransition] = 'opacity ' + transition;
-            //        break;
-            //}
-            wd.div.style[cssTransition] = 'all ' + transition;
+            switch (self.type) {
+                case 'slide-x':
+                    wd.div.style[cssTransition] = 'left ' + transition;
+                    break;
+                case 'slide-y':
+                    wd.div.style[cssTransition] = 'top ' + transition;
+                    break;
+                case 'fade-in':
+                case 'fade-out':
+                    wd.div.style[cssTransition] = 'opacity ' + transition;
+                    break;
+                case 'wipe-in':
+                case 'wipe-out':
+                    wd.div.style[cssTransition] = 'clip ' + transition;
+            }
             self._step = self.steps;
             self._apply(wd);
         }, 0);
@@ -303,13 +315,23 @@ QuiX.ui.Effect.prototype.show = function() {}
 QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
     this._reverse = arguments[0] || false;
     this._w = arguments[1] || null;
-    QuiX.ui.Effect._handler(this);
-    if (this._w || this.parent) {
+
+    var wd = this._w || this.parent;
+    if (wd) {
+        //QuiX.ui.Effect._handler(this);
+        this._apply(wd);
         // check if css transitions are in place
-        if (QuiX.getCssAttribute('transition')) {
-            this._apply_css_effect(this._w || this.parent);
+        if (QuiX.getCssAttribute('transition') &&
+                // safari and opera do not animate css clip
+                // chrome does
+                (!((QuiX.utils.BrowserInfo.browser == 'Safari' ||
+                    QuiX.utils.BrowserInfo.browser == 'Opera') &&
+                   this.type.slice(0, 4) == 'wipe'))) {
+            this._apply_css_effect(wd);
         }
         else {
+            // if css transitions are not in place
+            // use timers
             this.start();
         }
     }
@@ -318,9 +340,11 @@ QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
 QuiX.ui.Effect._handler = function(effect) {
     var w = effect._w || effect.parent;
     if (w) {
-        effect._apply(w);
         if (effect._step > effect.steps) {
             effect.stop();
+        }
+        else {
+            effect._apply(w);
         }
     }
 }
