@@ -836,7 +836,8 @@ QuiX.getEventName = function(e) {
       evt_name = 'onwebkit' + e;
     }
     else if(('ono' + l) in document.desktop.div ||
-            (QuiX.utils.BrowserInfo.browser == 'Opera')) {
+            (QuiX.utils.BrowserInfo.browser == 'Opera' &&
+             QuiX.utils.BrowserInfo.version >= 10.61)) {
       // Opera
       // As of Opera 10.61, there is no "onotransitionend" property added to DOM elements,
       // so it will always use the navigator.appName fallback

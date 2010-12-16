@@ -75,7 +75,7 @@ QuiX.utils.BrowserInfo = {
         var index = dataString.indexOf(this.versionSearchString);
         if (index == -1) return null;
         var ver = dataString.substring(
-            index+this.versionSearchString.length+1);
+            index + this.versionSearchString.length + 1);
         return parseFloat(ver);
     },
     families: {
@@ -112,7 +112,8 @@ QuiX.utils.BrowserInfo = {
         {
             prop: window.opera,
             identity: "Opera",
-            family: "op"
+            family: "op",
+            versionSearch: "Version"
         },
         {
             string: navigator.vendor,
