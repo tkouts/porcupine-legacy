@@ -306,20 +306,22 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
 }
 
 QuiX.ui.Combo.prototype.destroy = function() {
-    if (this.isExpanded)
+    if (this.isExpanded) {
         this.dropdown.close();
+    }
     QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 }
 
 QuiX.ui.Combo.prototype.setBgColor = function(color) {
     this.div.style.backgroundColor = color;
-    if (this.div.firstChild)
+    if (this.div.firstChild) {
         this.div.firstChild.style.backgroundColor = color;
+    }
 }
 
 QuiX.ui.Combo.prototype.addOption = function(params) {
     params.align = params.align || ((QuiX.dir != 'rtl')? 'left':'right');
-    params.width = '100%';
+    //params.width = '100%';
     params.height = params.height || 24;
     params.overflow = 'hidden';
     var opt = new QuiX.ui.Icon(params);
@@ -399,15 +401,18 @@ QuiX.ui.AutoComplete.prototype._showResults = function(oReq) {
     var oAuto = oReq.callback_info;
     oAuto.dropdown.widgets[0].clear();
     if (oReq.response.length > 0) {
-        for (var i=0; i<oReq.response.length; i++)
+        for (var i=0; i<oReq.response.length; i++) {
             oAuto.addOption(oReq.response[i]);
-        if (!oAuto.isExpanded)
+        }
+        if (!oAuto.isExpanded) {
             oAuto.showDropdown();
+        }
         oAuto.dropdown.redraw();
     }
     else {
-        if (oAuto.isExpanded)
+        if (oAuto.isExpanded) {
             oAuto.dropdown.close();
+        }
     }
 }
 
@@ -424,13 +429,15 @@ QuiX.ui.AutoComplete.prototype._captureKey = function(evt) {
     {
         case 27: //ESC
         case 39: //Right Arrow
-            if (this.isExpanded)
+            if (this.isExpanded) {
                 this.dropdown.close();
+            }
             break;
         case 40: // Down Arrow
             if (this.options.length == 0) return;
-            if (!this.isExpanded)
+            if (!this.isExpanded) {
                 this._getResults();
+            }
             else {
                 index = this._getSelection(evt);
                 opt = this.options[index];
@@ -440,18 +447,21 @@ QuiX.ui.AutoComplete.prototype._captureKey = function(evt) {
             break;
         case 38: //Up arrow
             index = this._getSelection(evt);
-            if (index < 0)
+            if (index < 0) {
                 return;
-            if (!this.isExpanded)
+            }
+            if (!this.isExpanded) {
                 this.showDropdown();
+            }
             opt = this.options[index];
             this.dropdown.widgets[0].div.scrollTop = opt.div.offsetTop - 20;
             opt.div.className = 'option over';
             break;
         case 13: // enter
             index = this._getSelection(evt);
-            if (!this.isExpanded || index < 0)
+            if (!this.isExpanded || index < 0) {
                 return;
+            }
             this.dropdown.close();
             this.selectOption(this.options[index]);
             break;
@@ -466,12 +476,11 @@ QuiX.ui.SelectList  = function(/*params*/) {
     var params = arguments[0] || {};
     params.bgcolor = params.bgcolor || 'white';
     params.border = params.border || 1;
-    params.overflow = 'auto';
+    params.overflow = 'hidden auto';
     this.base = QuiX.ui.Widget;
     this.base(params);
     this.name = params.name;
     this.div.className = 'field';
-    this.div.style.overflowX = 'hidden';
     this.multiple = (params.multiple == 'true' ||
                      params.multiple == true)? true:false;
     this.posts = params.posts || "selected";
@@ -481,11 +490,12 @@ QuiX.ui.SelectList  = function(/*params*/) {
 
 QuiX.constructors['selectlist'] = QuiX.ui.SelectList;
 QuiX.ui.SelectList.prototype = new QuiX.ui.Widget;
+QuiX.ui.SelectList.prototype.customEvents =
+    QuiX.ui.Widget.prototype.customEvents.concat(['onselect']);
 
 QuiX.ui.SelectList.prototype.addOption = function(params) {
     params.imgalign = 'left';
     params.align = (QuiX.dir != 'rtl')? 'left':'right';
-    //params.width = '100%';
     params.height = params.height || QuiX.theme.selectlist.optionheight;
     params.overflow = 'hidden';
     params.padding = params.padding || QuiX.theme.selectlist.optionpadding;
@@ -501,6 +511,8 @@ QuiX.ui.SelectList.prototype.addOption = function(params) {
     }
     w.setPosition('relative');
     w.redraw();
+
+    w.destroy = QuiX.ui.SelectList._destroy_option;
 
     this.options.push(w);
     return w;
@@ -530,11 +542,15 @@ QuiX.ui.SelectList.prototype.clearSelection = function() {
 
 QuiX.ui.SelectList.prototype.selectOption = function(option) {
     if (!option.selected) {
-        if (!this.multiple)
+        if (!this.multiple) {
             this.clearSelection();
+        }
         option.div.className = 'optionselected';
         option.selected = true;
         this.selection.push(option);
+        if (this._customRegistry.onselect) {
+            this._customRegistry.onselect(this, option);
+        }
     }
 }
 
@@ -548,14 +564,17 @@ QuiX.ui.SelectList.prototype.deSelectOption = function(option) {
 
 QuiX.ui.SelectList.prototype.setValue = function(val) {
     var option;
-    if (!val instanceof Array)
+    if (!val instanceof Array) {
         val = [val];
+    }
     for (var i=0; i<val.length; i++) {
         option = this.getWidgetsByAttributeValue('value', val[i]);
-        if (option.length > 0)
+        if (option.length > 0) {
             this.selectOption(option[0]);
-        if (!this.multiple)
+        }
+        if (!this.multiple) {
             break;
+        }
     }
 }
 
@@ -572,26 +591,39 @@ QuiX.ui.SelectList.prototype.getValue = function() {
         for (i=0; i<this.selection.length; i++) {
             vs.push(this.selection[i].value);
         }
-        if (this.multiple)
+        if (this.multiple) {
             return vs;
-        else
+        }
+        else {
             return vs[0];
+        }
     }
+}
+
+QuiX.ui.SelectList._destroy_option = function() {
+    if (this.selected) {
+        this.parent.selection.removeItem(this);
+    }
+    this.parent.options.removeItem(this);
+    QuiX.ui.Icon.prototype.destroy.apply(this, arguments);
 }
 
 QuiX.ui.SelectList._option_onmousedown = function(evt, option) {
     var oSelectList = option.parent;
-    if (!oSelectList.multiple)
+    if (!oSelectList.multiple) {
         oSelectList.selectOption(option);
+    }
     else {
         if (!evt.shiftKey) {
             oSelectList.clearSelection();
             oSelectList.selectOption(option);
         }
         else
-            if (option.selected)
+            if (option.selected) {
                 oSelectList.deSelectOption(option);
-            else
+            }
+            else {
                 oSelectList.selectOption(option);
+            }
     }
 }
