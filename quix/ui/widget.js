@@ -287,7 +287,17 @@ QuiX.ui.Widget.prototype.getWidgetsByAttributeValue = function(attr_name, value 
     return this.query(
         function() {
             return this[attr_name] == value;
-        }, shallow, null);
+        }, shallow, limit);
+}
+
+QuiX.ui.Widget.prototype.getWidgetsByCustomAttributeValue = function(attr_name, value /*, shallow, limit*/) {
+    var shallow = arguments[2] || false,
+        limit = arguments[3] || null;
+
+    return this.query(
+        function() {
+            return this.attributes[attr_name] == value;
+        }, shallow, limit);
 }
 
 QuiX.ui.Widget.prototype._setAbsProps = function(memo) {
@@ -331,7 +341,7 @@ QuiX.ui.Widget.prototype.getId = function() {
 // bgColor attribute
 QuiX.ui.Widget.prototype.setBgColor = function(color) {
     var bgc = color.split(',');
-    if (bgc.length > 1) {
+    if (bgc.length > 1 && bgc[0].slice(0,3) != 'rgb') {
         // gradient
         switch (QuiX.utils.BrowserInfo.family) {
             case 'moz':
@@ -854,6 +864,12 @@ QuiX.ui.Widget.prototype.moveForward = function() {
 
         this.div.style.zIndex = this.parent.widgets[ind].div.style.zIndex;
         this.parent.widgets[ind].div.style.zIndex = zindex;
+
+        if (this.div.style.position != 'absolute') {
+            // reposition div
+            QuiX.removeNode(this.div);
+            this.parent.div.insertBefore(this.div, this.parent.widgets[ind].div.nextSibling);
+        }
     }
 }
 
@@ -867,6 +883,12 @@ QuiX.ui.Widget.prototype.moveBackward = function() {
 
         this.div.style.zIndex = this.parent.widgets[ind].div.style.zIndex;
         this.parent.widgets[ind].div.style.zIndex = zindex;
+
+        if (this.div.style.position != 'absolute') {
+            // reposition div
+            QuiX.removeNode(this.div);
+            this.parent.div.insertBefore(this.div, this.parent.widgets[ind].div);
+        }
     }
 }
 
@@ -1682,7 +1704,7 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
     if ((!QuiX.supportTouches || QuiX.utils.BrowserInfo.OS == 'iPad') &&
             (el.tagName != 'INPUT' && el.tagName != 'TEXTAREA')) {
         QuiX.cancelDefault(evt);
-        //return false;
+        return false;
     }
 }
 
