@@ -452,10 +452,10 @@ QuiX.createOutline = function(w) {
     w.parent.appendChild(o);
     o.redraw();
 
-    //calculate size because minw/minh procedure can
-    //depend on it's children size
-    o.minw = (typeof w.minw == "function")?w.minw(w):w.minw;
-    o.minh = (typeof w.minh == "function")?w.minh(w):w.minh;
+    // calculate size because minw/minh procedure can
+    // depend on it's children size
+    o.minw = (typeof w.minw == "function")? w.minw(w):w.minw;
+    o.minh = (typeof w.minh == "function")? w.minh(w):w.minh;
     o.div.className = 'outline';
     return(o);
 }
@@ -504,7 +504,7 @@ QuiX.wrappers = {
         function wrapper(evt, w) {
             var dx = QuiX.startX - QuiX.currentX,
                 dy = QuiX.startY - QuiX.currentY;
-            if (Math.abs(dx) > 32 && Math.abs(dy) < 24) {
+            if (Math.abs(dx) > 32) {
                 if (dx > 0) {
                     evt.dir = 'left';
                 }
@@ -513,7 +513,7 @@ QuiX.wrappers = {
                 }
                 f(evt, w);
             }
-            else if (Math.abs(dy) > 32 && Math.abs(dx) < 24) {
+            else if (Math.abs(dy) > 32) {
                 if (dy > 0) {
                     evt.dir = 'top';
                 }
@@ -829,17 +829,18 @@ QuiX.getEventName = function(e) {
 
     if(('on' + l) in window) {
       // Firefox
-      evt_name = e.toLowerCase();
+      evt_name = 'on' + l;
     }
     else if(('onwebkit' + l) in window) {
       // Chrome/Saf (+ Mobile Saf)/Android
       evt_name = 'onwebkit' + e;
     }
-    else if(('ono' + l) in document.desktop.div) {
+    else if(('ono' + l) in document.desktop.div ||
+            (QuiX.utils.BrowserInfo.browser == 'Opera')) {
       // Opera
       // As of Opera 10.61, there is no "onotransitionend" property added to DOM elements,
       // so it will always use the navigator.appName fallback
-      evt_name = 'o' + e;
+      evt_name = 'ono' + e;
     }
 
     return evt_name;
@@ -858,8 +859,8 @@ QuiX.getCssAttribute = function(a) {
     else if (typeof style['webkit' + caped] != 'undefined') {
         return 'webkit' + caped;
     }
-    else if (typeof style['o' + caped] != 'undefined') {
-        return 'o' + caped;
+    else if (typeof style['O' + caped] != 'undefined') {
+        return 'O' + caped;
     }
     else {
         return null;
@@ -1012,10 +1013,10 @@ QuiX.measureWidget = function(w, dim) {
     div.style.whiteSpace = w.div.style.whiteSpace;
     div.style.fontSize = w.div.style.fontSize;
     div.style.fontWeight = w.div.style.fontWeight;
-    var other = (dim == 'height')?'width':'height';
-    var other_func = (other == 'height')?'_calcHeight':'_calcWidth';
-    var measure = (dim == 'height')?'offsetHeight':'offsetWidth';
-    var padding_offset = (dim == 'height')?2:0;
+    var other = (dim == 'height')? 'width':'height';
+    var other_func = (other == 'height')? '_calcHeight':'_calcWidth';
+    var measure = (dim == 'height')? 'offsetHeight':'offsetWidth';
+    var padding_offset = (dim == 'height')? 2:0;
     var padding = w.getPadding();
     if (w[other] != 'auto')
         div.style[other] = w[other_func](true) + 'px';
@@ -1186,8 +1187,9 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                     }
                     break;
                 case 'field':
-                    if (params.type=='textarea')
+                    if (params.type=='textarea') {
                         params.value = QuiX.getInnerText(oNode);
+                    }
                     oWidget = new QuiX.ui.Field(params);
                     break;
                 case 'richtext':
@@ -1228,7 +1230,9 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                     break;
                 case 'tbbutton':
                     oWidget = parentW.addButton(params);
-                    if (params.type=='menu') oWidget = oWidget.contextMenu;
+                    if (params.type == 'menu') {
+                        oWidget = oWidget.contextMenu;
+                    }
                     break;
                 case 'tbsep':
                     oWidget = parentW.addSeparator();
@@ -1270,44 +1274,54 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                             break;
                         case 'strlist':
                             var delimeter = params['delimeter'] || ';';
-                            if (attr_value != '')
+                            if (attr_value != '') {
                                 attr_value = attr_value.split(delimeter);
-                            else
+                            }
+                            else {
                                 attr_value = [];
+                            }
                             break;
                         case 'json':
                             attr_value = QuiX.parsers.JSON.parse(attr_value);
                     }
-                    if (attr_value!=null)
+                    if (attr_value!=null) {
                         parentW.attributes[params['name']] = attr_value;
-                    else
+                    }
+                    else {
                         throw new QuiX.Exception('QuiX.Parser.parseXul',
                             'Illegal custom property value. ' +
                             params['name'] + '=' + params['value']);
+                    }
                     break;
                 case 'xhtml':
                     parentW.div.innerHTML = QuiX.getInnerText(oNode).xmlDecode();
                     break;
                 default:
                     var widget_contructor = QuiX.constructors[localName];
-                    if (widget_contructor != null)
+                    if (widget_contructor != null) {
                         oWidget = new widget_contructor(params, parentW);
-                    else if (typeof widget_contructor == 'undefined')
-                        throw new QuiX.Exception('QuiX.Parser.parseXul',
+                    }
+                    else if (typeof widget_contructor == 'undefined') {
+                        throw new QuiX.Exception(
+                            'QuiX.Parser.parseXul',
                             'Uknown widget tag name (' + localName + ')');
+                    }
             }
 
             if (oWidget) {
                 if (parentW && !oWidget.parent &&
-                        !oWidget.owner && oWidget != document.desktop)
+                        !oWidget.owner && oWidget != document.desktop) {
                     parentW.appendChild(oWidget);
+                }
 
-                for (var i=0; i<oNode.childNodes.length; i++)
+                for (var i=0; i<oNode.childNodes.length; i++) {
                     this.parseXul(oNode.childNodes[i], oWidget);
+                }
 
-                if (oWidget._customRegistry.onload)
+                if (oWidget._customRegistry.onload) {
                     this.__onload.push([oWidget._customRegistry.onload,
                                         oWidget]);
+                }
             }
         }
     }
