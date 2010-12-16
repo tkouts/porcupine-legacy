@@ -261,23 +261,24 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
 
     //this._apply(wd);
 
+    switch (this.type) {
+        case 'slide-x':
+            wd.div.style[cssTransition] = 'left ' + transition;
+            break;
+        case 'slide-y':
+            wd.div.style[cssTransition] = 'top ' + transition;
+            break;
+        case 'fade-in':
+        case 'fade-out':
+            wd.div.style[cssTransition] = 'opacity ' + transition;
+            break;
+        case 'wipe-in':
+        case 'wipe-out':
+            wd.div.style[cssTransition] = 'clip ' + transition;
+    }
+
     window.setTimeout(
         function() {
-            switch (self.type) {
-                case 'slide-x':
-                    wd.div.style[cssTransition] = 'left ' + transition;
-                    break;
-                case 'slide-y':
-                    wd.div.style[cssTransition] = 'top ' + transition;
-                    break;
-                case 'fade-in':
-                case 'fade-out':
-                    wd.div.style[cssTransition] = 'opacity ' + transition;
-                    break;
-                case 'wipe-in':
-                case 'wipe-out':
-                    wd.div.style[cssTransition] = 'clip ' + transition;
-            }
             self._step = self.steps;
             self._apply(wd);
         }, 0);
