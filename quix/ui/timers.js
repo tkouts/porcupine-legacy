@@ -233,23 +233,18 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
 
 QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
     var duration = this.steps * this.interval,
-        range = this._getRange(wd),
-        begin = range[0],
-        end = range[1],
-        cssTransition = QuiX.getCssAttribute('transition'),
-        cssTransform = QuiX.getCssAttribute('transform'),
         evtTransitionEnd = QuiX.getEventName('TransitionEnd'),
         self = this,
         transition;
 
     // TODO: asign ease attribute
     transition = duration + 'ms ease';
+
     if (evtTransitionEnd) {
         QuiX.addEvent(wd.div, evtTransitionEnd,
             function _ontransitionend() {
                 // clear css attrs
-                this.style[cssTransition] = '';
-                this.style[cssTransform] = '';
+                this.style[QuiX.getCssAttribute('transition')] = '';
                 // detach event
                 QuiX.removeEvent(this, evtTransitionEnd, _ontransitionend);
                 self.stop();
@@ -259,29 +254,37 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
         //TODO: IE9 assign timeout?
     }
 
-    //this._apply(wd);
-
-    switch (this.type) {
-        case 'slide-x':
-            wd.div.style[cssTransition] = 'left ' + transition;
-            break;
-        case 'slide-y':
-            wd.div.style[cssTransition] = 'top ' + transition;
-            break;
-        case 'fade-in':
-        case 'fade-out':
-            wd.div.style[cssTransition] = 'opacity ' + transition;
-            break;
-        case 'wipe-in':
-        case 'wipe-out':
-            wd.div.style[cssTransition] = 'clip ' + transition;
+    if (QuiX.utils.BrowserInfo.family == 'op') {
+        this._setCssTransition(wd, transition);
     }
 
     window.setTimeout(
         function() {
+            if (QuiX.utils.BrowserInfo.family != 'op') {
+                self._setCssTransition(wd, transition);
+            }
             self._step = self.steps;
             self._apply(wd);
         }, 0);
+}
+
+QuiX.ui.Effect.prototype._setCssTransition = function(wd, t) {
+    var cssTransition = QuiX.getCssAttribute('transition');
+    switch (this.type) {
+        case 'slide-x':
+            wd.div.style[cssTransition] = 'left ' + t;
+            break;
+        case 'slide-y':
+            wd.div.style[cssTransition] = 'top ' + t;
+            break;
+        case 'fade-in':
+        case 'fade-out':
+            wd.div.style[cssTransition] = 'opacity ' + t;
+            break;
+        case 'wipe-in':
+        case 'wipe-out':
+            wd.div.style[cssTransition] = 'clip ' + t;
+    }
 }
 
 QuiX.ui.Effect.prototype.stop = function() {
