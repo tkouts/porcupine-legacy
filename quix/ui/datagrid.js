@@ -46,6 +46,7 @@ QuiX.ui.DataGrid.prototype.getValue = function(params) {
 QuiX.ui.DataGrid._removeEditWidget = function() {
     if (QuiX.ui.DataGrid.__editwidget) {
         var w = QuiX.ui.DataGrid.__editwidget;
+        //w.blur();
         QuiX.ui.DataGrid.__editwidget = null;
         w.destroy();
     }
@@ -127,7 +128,8 @@ QuiX.ui.DataGrid.prototype.edit = function(cell /*, focus*/) {
                     min: this.columns[idx].min,
                     max: this.columns[idx].max,
                     step: this.columns[idx].step,
-                    onchange : QuiX.ui.DataGrid._update
+                    onchange: QuiX.ui.DataGrid._update,
+                    onkeyup: QuiX.ui.DataGrid._update
                 });
                 break;
             case 'bool':
@@ -176,19 +178,22 @@ QuiX.ui.DataGrid._onclick = function(evt, w) {
 
 QuiX.ui.DataGrid._onkeydown = function(evt, w) {
     if (evt.keyCode == 9) {
-        var dg = w.parent; 
-        var r = dg.attributes.__rowindex;
-        var c = dg.attributes.__cellindex;
-        var rows = dg.list.rows;
-        var current_cell = rows[r].cells[c];
+        var dg = w.parent, 
+            r = dg.attributes.__rowindex,
+            c = dg.attributes.__cellindex,
+            rows = dg.list.rows,
+            current_cell = rows[r].cells[c];
+
         if (evt.shiftKey) {
             do {
                 current_cell = current_cell.previousSibling;
                 if (!current_cell) {
-                    if (r > 0)
+                    if (r > 0) {
                         current_cell = rows[r-1].cells[dg.columns.length-2];
-                    else
+                    }
+                    else {
                         current_cell = rows[rows.length-1].cells[dg.columns.length-2];
+                    }
                 }
             } while (!dg.columns[current_cell.cellIndex].editable)
         }
@@ -224,14 +229,16 @@ QuiX.ui.DataGrid._update = function(evt, w) {
     w = w || evt;
     var dg = w.parent.parent;
     if (QuiX.ui.DataGrid.__editwidget) {
-        var r = dg.attributes.__rowindex;
-        var c = dg.attributes.__cellindex;
-        var cell = dg.list.firstChild.rows[r].cells[c];
-        var value = QuiX.ui.DataGrid.__editwidget.getValue();
+        var r = dg.attributes.__rowindex,
+            c = dg.attributes.__cellindex,
+            cell = dg.list.firstChild.rows[r].cells[c],
+            value = QuiX.ui.DataGrid.__editwidget.getValue();
+
         dg.dataSet[r][dg.columns[c].name] = value;
         dg._renderCell(cell, c, value, dg.dataSet[r]);
         if (dg._customRegistry.onchange) {
             dg._customRegistry.onchange(dg);
         }
+
     }
 }
