@@ -58,12 +58,7 @@ QuiX.ui.Combo = function(/*params*/) {
     var self = this;
     if (this.editable) {
         e.value = (params.value)? params.value:'';
-        if (!this.readonly) {
-            e.onfocus = function() {
-                self._old_value = this.value;
-            }
-        }
-        else {
+        if (this.readonly) {
             e.readonly = true;
         }
         this.div.className += ' editable';
@@ -75,7 +70,6 @@ QuiX.ui.Combo = function(/*params*/) {
     else {
         e.readOnly = true;
         e.style.cursor = 'default';
-        this._set = false;
         if (!this.readonly) {
             this.attachEvent('onclick',
                              QuiX.ui.Combo._btn_onclick);
@@ -83,12 +77,13 @@ QuiX.ui.Combo = function(/*params*/) {
         this.div.className += ' noneditable';
     }
 
-    e.onblur = function() {
-        if (self.editable && !self.readonly && self._old_value != this.value) {
-            if (self._customRegistry.onchange) {
-                self._customRegistry.onchange(self);
-            }
+    e.onchange = function() {
+        if (self._customRegistry.onchange) {
+            self._customRegistry.onchange(self);
         }
+    }
+
+    e.onblur = function() {
         if (self._customRegistry.onblur) {
             self._customRegistry.onblur(self);
         }
@@ -186,24 +181,22 @@ QuiX.ui.Combo.prototype._setCommonProps = function(memo) {
 }
 
 QuiX.ui.Combo.prototype.getValue = function() {
-    if (this.editable)
+    if (this.editable) {
         return this.div.firstChild.value;
+    }
     else {
-        if (this.selection)
+        if (this.selection) {
             return this.selection.value;
-        else
+        }
+        else {
             return null;
+        }
     }
 }
 
 QuiX.ui.Combo.prototype.setValue = function(value) {
     if (this.editable) {
         this.div.firstChild.value = value;
-        if (this._old_value != value) {
-            if (this._customRegistry.onchange)
-                this._customRegistry.onchange(this);
-        }		
-        this._old_value = value;
     }
     else {
         var opt, opt_value;
@@ -229,15 +222,9 @@ QuiX.ui.Combo.prototype.setValue = function(value) {
                     this.div.firstChild.style.backgroundPosition = '50% 50%';
                     this.div.firstChild.style.backgroundRepeat = 'no-repeat';
                 }
-                if ((this._set || old_value == null)
-                        && (value != old_value)
-                        && this.div.clientWidth)
-                    if (this._customRegistry.onchange)
-                        this._customRegistry.onchange(this);
                 break;
             }
         }
-        this._set = true;
     }
 }
 
@@ -263,8 +250,9 @@ QuiX.ui.Combo.prototype.selectOption = function(option) {
 }
 
 QuiX.ui.Combo.prototype.reset = function() {
-    if (this.editable)
+    if (this.editable) {
         this.div.firstChild.value = '';
+    }
     else {
         for (var i=0; i<this.options.length; i++) {
             this.options[i].selected = false;
@@ -281,6 +269,10 @@ QuiX.ui.Combo.prototype.clearOptions = function() {
 
 QuiX.ui.Combo.prototype.focus = function() {
     this.div.firstChild.focus();
+}
+
+QuiX.ui.Combo.prototype.blur = function() {
+    this.div.firstChild.blur();
 }
 
 QuiX.ui.Combo.prototype.showDropdown = function() {
@@ -339,7 +331,13 @@ QuiX.ui.Combo.prototype.addOption = function(params) {
 }
 
 QuiX.ui.Combo._option_onclick = function(evt, option) {
-    option.parent.parent.combo.selectOption(option);
+    var combo = option.parent.parent.combo;
+    if (!option.selected) {
+        combo.selectOption(option);
+        if (combo._customRegistry.onchange) {
+            combo._customRegistry.onchange(combo);
+        }
+    }
 }
 
 // auto complete
@@ -352,17 +350,18 @@ QuiX.ui.AutoComplete = function(/*params*/) {
     this.textField = this.div.firstChild;
     this.url = params.url;
     this.method = params.method;
-    if (this.url == '/')
+    if (this.url == '/') {
         this.url = '';
+    }
 
     //hide combo button
     this.widgets[0].hide();
 
     //attach events
-    var oAuto = this;
+    var self = this;
     this.textField.onkeyup = function(evt) {
         evt = evt || event;
-        oAuto._captureKey(evt);
+        self._captureKey(evt);
     }
 }
 

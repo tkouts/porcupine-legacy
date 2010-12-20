@@ -35,21 +35,21 @@ QuiX.ui.Datepicker.prototype.setValue = function(val) {
                 hour = parseInt(time_match[1], 10);
                 min = parseInt(time_match[2], 10);
                 sec = parseInt(time_match[3], 10);
-                if (time_match[4])
+                if (time_match[4]) {
                     msec = parseFloat(time_match[4]) * 1000;
-                else
+                }
+                else {
                     msec = 0;
+                }
                 this._dt.setHours(hour, min, sec, msec);
             }
         }
-        else
+        else {
             this._dt = Date.parseIso8601(val);
+        }
     }
     else {
-        var old_dt = this._dt;
         this._dt = new Date(val);
-        if (old_dt != this._dt && this._customRegistry.onchange)
-            QuiX.getEventListener(this._customRegistry.onchange)(this);
     }
     this._navdt = new Date(this._dt);
     this.div.firstChild.value = this._dt.format(this.format);
@@ -88,7 +88,7 @@ QuiX.ui.Datepicker.prototype.render = function(container) {
 QuiX.ui.Datepicker.prototype.fill = function() {
     var nRow = 0;
     var cell, nCol, iDate;
-    var d = new Date( this._navdt.getTime() );
+    var d = new Date(this._navdt.getTime());
     var now = new Date();
     var m = d.getMonth();
 
@@ -96,26 +96,26 @@ QuiX.ui.Datepicker.prototype.fill = function() {
     this._selectedCell = null;
     this._nowCell = null;
 
-    for (d.setDate(1); d.getMonth() == m; d.setTime(d.getTime() + 86400000) ) {
+    for (d.setDate(1); d.getMonth() == m; d.setTime(d.getTime() + 86400000)) {
         nCol = d.getDay();
         iDate = d.getDate();
         cell = this._dayTable.rows[nRow + 1].cells[nCol];
         cell.innerHTML = d.getDate();
         cell.className = 'DatePickerBtn';
         if (iDate == this._dt.getDate() &&
-             m == this._dt.getMonth() &&
-             d.getYear() == this._dt.getYear()){
+                m == this._dt.getMonth() &&
+                d.getYear() == this._dt.getYear()) {
             cell.className = 'DatePickerBtnSelect';
             this._selectedCell = cell;
         }
-        if ( iDate == now.getDate() &&
-             m == now.getMonth() &&
-             d.getYear() == now.getYear() ) {
+        if (iDate == now.getDate() &&
+                m == now.getMonth() &&
+                d.getYear() == now.getYear()) {
            cell.className = 'DatePickerBtnNow';
            this._nowCell = cell;
         }
 
-        if ( nCol == 6 ) nRow++;
+        if (nCol == 6) nRow++;
     }
     this.month.setValue(m);
     this.year.setValue(this._navdt.getFullYear());
@@ -133,7 +133,7 @@ QuiX.ui.Datepicker.prototype.clear = function() {
 
 QuiX.ui.Datepicker.prototype.onYear = function() {
     var y = this.year.getValue();
-    if ( y && !isNaN(y) ) {
+    if (y && !isNaN(y)) {
         this._navdt.setFullYear(parseInt(y));
         this.fill();
     }
@@ -146,20 +146,26 @@ QuiX.ui.Datepicker.prototype.onMonth = function() {
 
 QuiX.ui.Datepicker.prototype.onDay = function(oCell) {
     var d = parseInt(oCell.innerHTML);
-    if ( d > 0 ) {
+    if (d > 0) {
         this._navdt.setDate(d);
-        
+
         if (this._selectedCell) {
-            if (this._selectedCell == this._nowCell)
+            if (this._selectedCell == this._nowCell) {
                 this._selectedCell.className = 'DatePickerBtnNow';
-            else
+            }
+            else {
                 this._selectedCell.className = 'DatePickerBtn';
+            }
         }
-        
+
         oCell.className = 'DatePickerBtnSelect';
         this._selectedCell = oCell;
-        
+
+        var old_dt = this._dt;
         this.setValue(this._navdt);
+        if (old_dt != this._dt && this._customRegistry.onchange) {
+            this._customRegistry.onchange(this);
+        }
     }
 }
 
@@ -168,8 +174,9 @@ QuiX.ui.Datepicker.prototype.onPrev = function() {
         this._navdt.setFullYear(this._navdt.getFullYear() - 1);
         this._navdt.setMonth(11);
     }
-    else
+    else {
         this._navdt.setMonth(this._navdt.getMonth() - 1);
+    }
     this.fill();
 }
 
@@ -206,11 +213,13 @@ QuiX.ui.Datepicker._prev_onclick = function(evt, w) {
 
 QuiX.ui.Datepicker._cell_onclick = function() {
     var oDatepicker;
-    if (typeof this.parentElement != 'undefined')
+    if (typeof this.parentElement != 'undefined') {
         oDatepicker =
             this.parentElement.parentElement.parentElement.datepicker;
-    else
+    }
+    else {
         oDatepicker = this.parentNode.parentNode.parentNode.datepicker;
+    }
     oDatepicker.onDay(this);
 }
 

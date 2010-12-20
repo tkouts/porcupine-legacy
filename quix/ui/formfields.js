@@ -259,6 +259,10 @@ QuiX.ui.Field.prototype.focus = function() {
     this.div.firstChild.focus();
 }
 
+QuiX.ui.Field.prototype.blur = function() {
+    this.div.firstChild.blur();
+}
+
 QuiX.ui.Field.prototype.setBgColor = function(color) {
     this.div.style.backgroundColor = color;
     if (this.type == 'text' || this.type == 'textarea'
@@ -352,8 +356,9 @@ QuiX.ui.Field._radio_onclick = function(evt, w) {
     if (id) {
         var checked = w.div.firstChild.checked;
         w.setValue(w._value);
-        if (!checked && w._customRegistry.onchange)
+        if (!checked && w._customRegistry.onchange) {
             w._customRegistry.onchange(w);
+        }
     }
 }
 
@@ -434,7 +439,13 @@ QuiX.ui.Spin = function(/*params*/) {
             self.setValue(self.min);
         }
     }
-    
+
+    e.onblur = function() {
+        if (self._customRegistry.onblur) {
+            self._customRegistry.onblur(self);
+        }
+    }
+
     if (this._isDisabled) {
         e.disabled = true;
         e.style.backgroundColor = 'menu';
@@ -444,7 +455,7 @@ QuiX.ui.Spin = function(/*params*/) {
 QuiX.constructors['spinbutton'] = QuiX.ui.Spin;
 QuiX.ui.Spin.prototype = new QuiX.ui.Widget;
 QuiX.ui.Spin.prototype.customEvents =
-    QuiX.ui.Widget.prototype.customEvents.concat(['onchange']);
+    QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 
 QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild) {
@@ -537,16 +548,15 @@ QuiX.ui.Spin.prototype.getValue = function() {
 }
 
 QuiX.ui.Spin.prototype.setValue = function(value) {
-    if (value != this.getValue()) {
-        this.div.firstChild.value = parseFloat(value);
-        if (this._customRegistry.onchange) {
-            this._customRegistry.onchange(this);
-        }
-    }
+    this.div.firstChild.value = parseFloat(value);
 }
 
 QuiX.ui.Spin.prototype.focus = function() {
     this.div.firstChild.focus();
+}
+
+QuiX.ui.Spin.prototype.blur = function() {
+    this.div.firstChild.blur();
 }
 
 QuiX.ui.Spin._onkeypress = function(evt, w) {
@@ -565,6 +575,9 @@ QuiX.ui.Spin._btnup_onclick = function(evt, w) {
     if (!isNaN(val)) {
         if (oSpin.validate(val) == 0) {
             oSpin.setValue(val);
+            if (oSpin._customRegistry.onchange) {
+                oSpin._customRegistry.onchange(oSpin);
+            }
         }
     }
 }
@@ -575,6 +588,9 @@ QuiX.ui.Spin._btndown_onclick = function(evt, w) {
     if (!isNaN(val)) {
         if (oSpin.validate(val) == 0) {
             oSpin.setValue(val);
+            if (oSpin._customRegistry.onchange) {
+                oSpin._customRegistry.onchange(oSpin);
+            }
         }
     }
 }
