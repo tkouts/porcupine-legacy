@@ -257,20 +257,23 @@ QuiX.ui.Slider._onmousemove = function(evt, desktop) {
         offsetX = -offsetX;
     }
     var new_x = QuiX.tmpWidget.attributes.__startx + offsetX +
-                (QuiX.theme.slider.handle.width / 2);
-    var slider = QuiX.tmpWidget.parent;
-    var range_length = slider.max - slider.min;
-    var slot_width = slider.slot.getWidth(true);
+                (QuiX.theme.slider.handle.width / 2),
+        slider = QuiX.tmpWidget.parent,
+        range_length = slider.max - slider.min,
+        memo = {},
+        slot_width = slider.slot.getWidth(true, memo),
+        old_value = this._value,
+        new_value;
 
     new_x = (new_x < 0)? 0:new_x;
     new_x = (new_x > slot_width)? slot_width:new_x;
 
-    var new_value = slider.min + (new_x / slot_width) * range_length;
+    new_value = slider.min + (new_x / slot_width) * range_length;
     slider._value = Math.round(new_value * Math.pow(10, slider.decimals)) /
                     Math.pow(10, slider.decimals);
-    slider._update();
+    slider._update(memo);
 
-    if (slider._customRegistry.onchange) {
+    if (old_value != new_value && slider._customRegistry.onchange) {
         slider._customRegistry.onchange(slider);
     }
 }
