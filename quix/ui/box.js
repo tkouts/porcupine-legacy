@@ -201,12 +201,13 @@ QuiX.ui.VBox.prototype = new QuiX.ui.Box;
 
 QuiX.ui.FlowBox = function(/*params*/) {
     var params = arguments[0] || {};
+    params.spacing = params.spacing || 8;
     params.overflow = params.overflow || 'auto';
-    this.base = QuiX.ui.Widget;
+
+    this.base = QuiX.ui.HBox;
     this.base(params);
     this.div.className = 'flowbox';
-    var iSpacing = params.spacing || 8;
-    this.spacing = parseInt(iSpacing);
+
     this.select = (params.select == true || params.select == 'true');
     this.multiple = (params.multiple == true || params.multiple == 'true');
     this._filter = null;
@@ -222,74 +223,126 @@ QuiX.ui.FlowBox = function(/*params*/) {
 }
 
 QuiX.constructors['flowbox'] = QuiX.ui.FlowBox;
-QuiX.ui.FlowBox.prototype = new QuiX.ui.Widget;
+QuiX.ui.FlowBox.prototype = new QuiX.ui.HBox;
 
 QuiX.ui.FlowBox._destroy = function() {
     var fb = this.parent;
     if (this.parent.multiple) {
-        if (fb._selection.hasItem(this))
+        if (fb._selection.hasItem(this)) {
             fb._selection.removeItem(this);
+        }
     }
     else {
-        if (fb._selection == this)
+        if (fb._selection == this) {
             fb._selection = null;
+        }
     }
-    this.base.prototype.destroy.apply(this, arguments);
+    QuiX.ui.Box._destroy.apply(this, arguments);
 }
 
-QuiX.ui.FlowBox._selectItem = function(evt ,w) {
-    var fb = w.parent;
-
-    function _unselectWidget(w) {
-        var tok = w.div.className.split(' ');
-        tok.pop();
-        w.div.className = tok.join(' ');
+QuiX.ui.FlowBox.prototype.clearSelection = function() {
+    var selection = [];
+    if (this.multiple) {
+        selection = this._selection;
     }
-
-    if (!fb.multiple) {
-        if (fb._selection) {
-            _unselectWidget(fb._selection)
-        }
-        fb._selection = w;
+    else if (this._selection) {
+        selection = [this._selection];
+    }
+    for (var i=0; i<selection.length; i++) {
+        selection[i].div.className = selection[i].div.className.replace(' selected', '');
+    }
+    if (this.multiple) {
+        this._selection = [];
     }
     else {
-        if (!evt.shiftKey) {
-            for (var i=0; i<fb._selection.length; i++)
-                _unselectWidget(fb._selection[i]);
-            fb._selection = [];
+        this._selection = null;
+    }
+}
+
+QuiX.ui.FlowBox._selectItem = function(evt, w) {
+    var fb = w.parent;
+
+    if (!fb.multiple) {
+        fb.clearSelection();
+        fb._selection = w;
+        w.div.className += ' selected';
+    }
+    else {
+        if (evt.shiftKey) {
+            var start,
+                end = fb.widgets.indexOf(w);
+
+            if (fb._selection.length == 0) {
+                // first widget
+                start = 0;
+            }
+            else {
+                start = fb.widgets.indexOf(fb._selection[0]);
+            }
+
+            fb.clearSelection();
+            for (var i=start; i!=end + ((start<end)? 1:-1); (start<end)? i++:i--) {
+                fb.widgets[i].div.className += ' selected';
+                fb._selection.push(fb.widgets[i]);
+            }
         }
-        if (fb._selection.hasItem(w)) {
-            fb._selection.removeItem(w);
-            _unselectWidget(w);
-            return;
+        else if (evt.ctrlKey) {
+            if (fb._selection.hasItem(w)) {
+                w.div.className = w.div.className.replace(' selected', '');
+                fb._selection.removeItem(w);
+            }
+            else {
+                w.div.className += ' selected';
+                fb._selection.push(w);
+            }
         }
         else {
-            fb._selection.push(w);
+            if (fb._selection.hasItem(w) && evt.type == 'mousedown') {
+                // the widget is already selected
+                w.attachEvent('onmouseup', QuiX.ui.FlowBox._selectItem);
+            }
+            else {
+                fb.clearSelection();
+                w.div.className += ' selected';
+                fb._selection = [w];
+                w.detachEvent('onmouseup', QuiX.ui.FlowBox._selectItem);
+            }
         }
     }
-    w.div.className += ' selected';
 }
 
 QuiX.ui.FlowBox.prototype.appendChild = function(w) {
     var show = false;
+
+    QuiX.ui.HBox.prototype.appendChild.apply(this, arguments);
+
     w.destroy = QuiX.ui.FlowBox._destroy;
+
     if (this.select) {
         w.attachEvent('onmousedown', QuiX.ui.FlowBox._selectItem);
     }
-    w._setCommonProps();
+
     if (!w.isHidden()) {
         w.hide();
         show = (this._filter)?
                QuiX.contains(w, this._filter):true;
     }
-    QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
-    this._rearrange(this.widgets.length - 1);
+
     if (show) {
         w.show();
         if (this._filter) {
             QuiX.highlight(w.div, this._filter);
         }
     }
+}
+
+QuiX.ui.FlowBox.prototype._setChildVars = function(w) {
+    QuiX.ui.HBox.prototype._setChildVars.apply(this, arguments);
+    w.div.style['margin' +
+        ((QuiX.dir == 'rtl')?'Right':'Left')] = '0px';
+    w.div.style['margin' +
+        ((QuiX.dir == 'rtl')?'Left':'Right')] = this.spacing + 'px';
+    w.div.style.marginBottom = this.spacing + 'px';
 }
 
 QuiX.ui.FlowBox.prototype.setFilter = function(filter) {
@@ -312,13 +365,9 @@ QuiX.ui.FlowBox.prototype.setFilter = function(filter) {
 
 QuiX.ui.FlowBox.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
-    if (this.base) {
-    	this.base.prototype.redraw.apply(this, [bForceAll, memo]);
-    }
-    else {
-    	QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
-    }
-    this._rearrange(0, memo);
+
+    QuiX.ui.HBox.prototype.redraw.apply(this, [bForceAll, memo]);
+
     if (this._appliedFilter != this._filter) {
         if (this._filter != null) {
             QuiX.highlight(this.div, this._filter);
@@ -339,61 +388,63 @@ QuiX.ui.FlowBox.prototype.getSelection = function() {
     }
 }
 
-QuiX.ui.FlowBox.prototype._rearrange = function(iStart /*, memo*/) {
-    var x = 0,
-        y = 0,
-        rowHeight = 0,
-        icWidth,
-        icHeight,
-        last,
-        memo = arguments[1] || {},
-        iWidth = this._calcWidth(false, memo);
-
-    if (iStart > 0) {
-        last = this.widgets[iStart - 1];
-        while (last && last.isHidden()) {
-            last = last.previousSibling();
-        }
-        if (last) {
-            x = last._calcLeft(memo) +
-                last._calcWidth(true, memo);
-            y = last.top;
-            rowHeight = this._calcRowHeight(iStart, memo);
-        }
+QuiX.ui.FlowBox.prototype._startDrag = function(x, y, el) {
+    if (el == this.div) {
+        return;
     }
+    if (this._selection) {
+        var selected,
+            dragable,
+            d;
 
-    for (var i=iStart; i<this.widgets.length; i++) {
-        if (this._filter && !QuiX.contains(this.widgets[i], this._filter)) {
-            this.widgets[i].hide();
-            continue;
+        if (this.multiple) {
+            selected = this._selection;
         }
         else {
-            this.widgets[i].show();
+            selected = [this._selection];
         }
-        with (this.widgets[i]) {
-            icWidth = _calcWidth(true, memo);
-            icHeight = _calcHeight(true, memo)
-            if (x + icWidth + this.spacing > iWidth - QuiX._scrollbarSize
-                    && x != 0) {
-                x = 0;
-                y += rowHeight + this.spacing;
-                rowHeight = 0;
-            }
-            moveTo(x, y);
-            x += icWidth + this.spacing;
-            rowHeight = Math.max(rowHeight, icHeight);
-        }
-    }
-}
 
-QuiX.ui.FlowBox.prototype._calcRowHeight = function(iStart, memo) {
-    var rowHeight = 0;
-    var iCount = iStart - 1;
-    var prev;
-    do {
-        prev = this.widgets[iCount];
-        rowHeight = Math.max(rowHeight, prev._calcHeight(true, memo));
-        iCount -= 1;
-    } while (iCount >= 0 && prev.left != 0)
-    return rowHeight;
+        dragable = new QuiX.ui.Widget({
+            width : 'auto',
+            height : 'auto',
+            border : 1,
+            style : 'border:1px solid transparent'
+        });
+        with (dragable) {
+            left = x + 2;
+            top = y + 2;
+        }
+
+        for (var i=0; i<selected.length && i<3; i++) {
+            d = QuiX.getDraggable(selected[i]);
+            d.setBorderWidth(0);
+            d.left = d.top = i * 8;
+            d.setOpacity(.5);
+            dragable.appendChild(d);
+        }
+
+        if (selected.length > 1) {
+            dragable.appendChild(
+                new QuiX.ui.Label({
+                    width: 'auto',
+                    height: 24,
+                    top: 'center',
+                    left: 'center',
+                    padding: '4,4,4,4',
+                    bgcolor: '#EDEDED',
+                    color: '#666',
+                    caption: selected.length + ' items'
+                })
+            );
+        }
+
+        document.desktop.appendChild(dragable);
+        dragable.div.style.zIndex = QuiX.maxz;
+        dragable.redraw(true);
+
+        QuiX.tmpWidget = dragable;
+        QuiX.dragable = this;
+
+        document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
+    }
 }
