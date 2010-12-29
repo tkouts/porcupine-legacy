@@ -269,7 +269,7 @@ QuiX.theme = {
     },
     selectlist: {
         optionpadding: '9,9,9,9',
-        optionheight: 38
+        optionheight: 32
     },
     spinbutton: {
         border: 1,
