@@ -102,7 +102,7 @@ QuiX.Module.prototype.load = function(callback) {
     var oElement;
     this.callback = callback;
     if (this.type == 'script') {
-        var onload = (document.all)?'onreadystatechange':'onload';
+        var onload = (document.all)? 'onreadystatechange':'onload';
         oElement = document.createElement('SCRIPT');
         oElement.type = 'text/javascript';
         oElement.defer = true;
@@ -136,6 +136,21 @@ QuiX.Image = function(url) {
     this.height = 0;
 }
 
+QuiX.Image.loadImages = function(urlList, oncomplete) {
+    var img;// = new QuiX.Image(urlList.pop());
+    var counter = urlList.length;
+    function _decrease() {
+        counter--;
+        if (counter == 0) {
+            oncomplete();
+        }
+    }
+    for (var i=0; i<urlList.length; i++) {
+        img = new QuiX.Image(urlList[i]);
+        img.load(_decrease);
+    }
+}
+
 QuiX.Image.prototype.load = function(callback) {
     this.callback = callback;
     var img = new Image();
@@ -162,8 +177,9 @@ QuiX.__resource_onstatechange = function() {
                 QuiX.removeNode(this);
             }
             this.resource.isLoaded = true;
-            if (this.resource.callback)
+            if (this.resource.callback) {
                 this.resource.callback();
+            }
         }
     }
     else {
@@ -397,8 +413,8 @@ QuiX.removeNode = function(node) {
 
 QuiX.getDraggable = function(w) {
     var d = new QuiX.ui.Widget({
-        left : w.getLeft(),
-        top : w.getTop(),
+        //left : w.getLeft(),
+        //top : w.getTop(),
         width : w.getWidth(true),
         height : w.getHeight(true),
         border : 1
