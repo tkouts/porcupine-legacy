@@ -525,8 +525,8 @@ QuiX.ui.Spin.prototype._setCommonProps = function(memo) {
 }
 
 QuiX.ui.Spin.prototype.validate = function(val) {
-    var min = this.min;
-    var max = this.max;
+    var min = this.min,
+        max = this.max;
     if ((typeof max != 'undefined') && val > max) {
         return 1;
     }

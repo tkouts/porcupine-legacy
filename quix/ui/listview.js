@@ -6,7 +6,7 @@ QuiX.ui.ListView = function(/*params*/) {
     this._overflow = params.overflow || 'auto';
     params.overflow = 'hidden';
 
-    this._dragable = (params.dragable=='true' || params.dragable==true);
+    this._dragable = (params.dragable == 'true' || params.dragable == true);
     delete params.dragable;
 
     this.base = QuiX.ui.Widget;
@@ -765,8 +765,9 @@ QuiX.ui.ListView._column_onclick = function(evt) {
 }
 
 QuiX.ui.ListView._startdrag = function(x, y, el) {
-    if (el.tagName == 'DIV')
+    if (el.tagName == 'DIV') {
         return;
+    }
     var dragable = new QuiX.ui.Widget({
         width : this._calcWidth(true),
         height : 1,
