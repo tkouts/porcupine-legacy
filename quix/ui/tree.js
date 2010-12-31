@@ -10,7 +10,7 @@ QuiX.ui.TreeNode = function(/*params*/) {
 
     this.attachEvent('onmouseover', QuiX.ui.TreeNode._onmouseover);
     this.attachEvent('onmouseout', QuiX.ui.TreeNode._onmouseout);
-    this.attachEvent('onmousedown', QuiX.ui.TreeNode._onmousedown);
+    this.attachEvent('onmousedown', QuiX.ui.TreeNode._select);
 
     this.isExpanded = false;
     this._hasChildren = (params.haschildren == 'true' ||
@@ -39,6 +39,7 @@ QuiX.ui.TreeNode = function(/*params*/) {
     oA.href = 'javascript:void(0)';
     this.div.appendChild(oA);
     this.anchor = oA;
+    this.anchor.onclick = QuiX.cancelDefault;
     this.setCaption(params.caption || '');
     this._putImage();
 }
@@ -61,7 +62,9 @@ QuiX.ui.TreeNode.prototype.appendChild = function(w /*, index*/) {
             tree_index = this.parent.widgets.indexOf(this.childNodes[index]);
         }
         else {
-            tree_index = this.parent.widgets.indexOf(this.childNodes[this.childNodes.length - 1]) + 1;
+            var last = this.childNodes[this.childNodes.length - 1];
+            tree_index = this.parent.widgets.indexOf(last) +
+                         last.childNodes.length + 1;
         }
         this.childNodes.splice(index, 0, w);
     }
@@ -70,7 +73,6 @@ QuiX.ui.TreeNode.prototype.appendChild = function(w /*, index*/) {
             var last = this.childNodes[this.childNodes.length - 1];
             tree_index = this.parent.widgets.indexOf(last) +
                          last.childNodes.length + 1;
-            
         }
         else {
             tree_index = this.parent.widgets.indexOf(this) + 1;
@@ -180,8 +182,19 @@ QuiX.ui.TreeNode.prototype.destroy = function() {
     }
     QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 
-    if (tree.selectedWidget && tree.selectedWidget.div == null) {
-        tree.selectedWidget = null;
+    // clean up selection
+    if (tree.multiple) {
+        var selection = tree._selection;
+        for (var i=selection.length - 1; i>-1; i--) {
+            if (selection[i].div == null) {
+                tree._selection.splice(i, 1);
+            }
+        }
+    }
+    else {
+        if (tree._selection && tree._selection.div == null) {
+            tree._selection = null;
+        }
     }
 }
 
@@ -314,9 +327,60 @@ QuiX.ui.TreeNode.prototype.enable = function() {
     QuiX.ui.Widget.prototype.enable.apply(this, arguments);
 }
 
-QuiX.ui.TreeNode._onmousedown = function(evt, treenode) {
-    treenode.parent.selectNode(treenode);
+QuiX.ui.TreeNode._select = function(evt, w) {
+    var tree = w.parent;
+
     QuiX.cancelDefault(evt);
+
+    if (!tree.multiple) {
+        tree.selectNode(w);
+    }
+    else {
+        if (evt.shiftKey) {
+            var start,
+                end = tree.widgets.indexOf(w);
+
+            if (tree._selection.length == 0) {
+                // first widget
+                start = 0;
+            }
+            else {
+                start = tree.widgets.indexOf(tree._selection[0]);
+            }
+
+            tree.clearSelection();
+
+            for (var i=start; i!=end + ((start<end)? 1:-1); (start<end)? i++:i--) {
+                if (!tree.widgets[i].isHidden()) {
+                    tree.selectNode(tree.widgets[i]);
+                }
+            }
+        }
+        else if (evt.ctrlKey) {
+            if (tree._selection.hasItem(w)) {
+                tree.deSelectNode(w);
+            }
+            else {
+                tree.selectNode(w);
+            }
+        }
+        else {
+            if (tree._selection.hasItem(w) && evt.type == 'mousedown') {
+                // the widget is already selected
+                w.attachEvent('onmouseup', QuiX.ui.TreeNode._select);
+                return;
+            }
+            else {
+                tree.clearSelection();
+                tree.selectNode(w);
+                w.detachEvent('onmouseup', QuiX.ui.TreeNode._select);
+            }
+        }
+    }
+
+    if (tree._customRegistry.onselect) {
+        tree._customRegistry.onselect(tree);
+    }
 }
 
 QuiX.ui.TreeNode._onmouseover = function(evt, treeNode) {
@@ -348,8 +412,16 @@ QuiX.ui.Tree = function(/*params*/) {
     if (params) {
         this.levelpadding = params.levelpadding || 12;
     }
-    this.selectedWidget = null;
+    this.multiple = (params.multiple == 'true' || params.multiple == true);
+//    this.selectedWidget = null;
     this.roots = [];
+
+    if (this.multiple) {
+        this._selection = [];
+    }
+    else {
+        this._selection = null;
+    }
 }
 
 QuiX.constructors['tree'] = QuiX.ui.Tree;
@@ -376,15 +448,49 @@ QuiX.ui.Tree.prototype.appendChild = function(w /*, index*/) {
     }
 }
 
-QuiX.ui.Tree.prototype.selectNode = function(w /*, expand*/) {
-    if (w != this.selectedWidget) {
-        var expand = arguments[1] || false;
-        if (this.selectedWidget) {
-            this.selectedWidget.div.className =
-                this.selectedWidget.div.className.replace(' selected', '');
+QuiX.ui.Tree.prototype.clearSelection = function() {
+    var selection = [];
+    if (this.multiple) {
+        selection = this._selection;
+    }
+    else if (this._selection) {
+        selection = [this._selection];
+    }
+    for (var i=0; i<selection.length; i++) {
+        selection[i].div.className = selection[i].div.className.replace(' selected', '');
+    }
+    if (this.multiple) {
+        this._selection = [];
+    }
+    else {
+        this._selection = null;
+    }
+}
+
+QuiX.ui.Tree.prototype.deSelectNode = function(w) {
+    if (w.div.className.indexOf('selected') > -1) {
+        w.div.className = w.div.className.replace(' selected', '');
+        if (!this.multiple) {
+            this._selection = null;
         }
+        else {
+            this._selection.removeItem(w);
+        }
+    }
+}
+
+QuiX.ui.Tree.prototype.selectNode = function(w /*, expand*/) {
+    var expand = arguments[1] || false;    
+
+    if (w.div.className.indexOf('selected') == -1) {
         w.div.className += ' selected';
-        this.selectedWidget = w;
+        if (!this.multiple) {
+            this.clearSelection();
+            this._selection = w;
+        }
+        else {
+            this._selection.push(w);
+        }
 
         if (expand && w.parentNode) {
             // expand parent nodes
@@ -401,15 +507,40 @@ QuiX.ui.Tree.prototype.selectNode = function(w /*, expand*/) {
                 }
             }
         }
-
-        if (this._customRegistry.onselect) {
-            this._customRegistry.onselect(w);
-        }
     }
+    //if (w != this.selectedWidget) {
+    //
+    //    if (this.selectedWidget) {
+    //        this.selectedWidget.div.className =
+    //            this.selectedWidget.div.className.replace(' selected', '');
+    //    }
+    //    w.div.className += ' selected';
+    //    this.selectedWidget = w;
+    //
+    //    if (expand && w.parentNode) {
+    //        // expand parent nodes
+    //        var parents = [],
+    //            parent = w.parentNode;
+    //        while (parent) {
+    //            parents.push(parent);
+    //            parent = parent.parentNode;
+    //        }
+    //        parents.reverse();
+    //        for (var i=0; i<parents.length; i++) {
+    //            if (!parents[i].isExpanded) {
+    //                parents[i].toggle();
+    //            }
+    //        }
+    //    }
+    //
+    //    if (this._customRegistry.onselect) {
+    //        this._customRegistry.onselect(w);
+    //    }
+    //}
 }
 
 QuiX.ui.Tree.prototype.getSelection = function() {
-    return this.selectedWidget;
+    return this._selection;
 }
 
 // folder tree

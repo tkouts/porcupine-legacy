@@ -282,8 +282,10 @@ QuiX.ui.FlowBox._selectItem = function(evt, w) {
 
             fb.clearSelection();
             for (var i=start; i!=end + ((start<end)? 1:-1); (start<end)? i++:i--) {
-                fb.widgets[i].div.className += ' selected';
-                fb._selection.push(fb.widgets[i]);
+                if (!fb.widgets[i].isHidden()) {
+                    fb.widgets[i].div.className += ' selected';
+                    fb._selection.push(fb.widgets[i]);
+                }
             }
         }
         else if (evt.ctrlKey) {
