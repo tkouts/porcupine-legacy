@@ -28,7 +28,12 @@ QuiX.ui.Label = function(/*params*/) {
 
     this.canSelect = (params.canselect == "true" || params.canselect == true);
     if (this.canSelect) {
-        this.div.onselectstart = QuiX.stopPropag;
+        if (QuiX.utils.BrowserInfo.family == 'ie') {
+            this.div.onselectstart = QuiX.stopPropag;
+        }
+        else if (QuiX.getCssAttribute('userSelect')) {
+            this.div.style[QuiX.getCssAttribute('userSelect')] = 'text';
+        }
         this.div.style.cursor = 'text';
     }
     this.wrap = (params.wrap == "true" || params.wrap == true);

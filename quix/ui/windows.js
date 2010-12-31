@@ -43,7 +43,6 @@ QuiX.ui.Window = function(/*params*/) {
     this.base(params);
 
     this.attachEvent('onmousedown', QuiX.ui.Window._onmousedown);
-    //this.attachEvent('oncontextmenu', QuiX.ui.Window._oncontextmenu);
 
     this.minw = params.minw || 120;
     this.minh = params.minh || 26;
@@ -408,14 +407,6 @@ QuiX.ui.Window._onmousedown = function(evt, w) {
     if (QuiX.supportTouches || QuiX.getMouseButton(evt) == 0) {
         w.bringToFront();
     }
-    if (QuiX.utils.BrowserInfo.family != 'ie') {
-        QuiX.cancelDefault(evt);
-    }
-}
-
-QuiX.ui.Window._oncontextmenu = function(evt, w) {
-    //QuiX.stopPropag(evt);
-    //return false;
 }
 
 QuiX.ui.Window._onminimize = function(eff) {
