@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <window xmlns="http://www.innoscript.org/quix"
 		width="480" height="300" status="true"
 		resizable="true" close="true" minimize="true" maximize="true">
@@ -11,7 +12,7 @@
             <splitter bgcolor="white" orientation="v">
                 <field id="oqlquery" type="textarea" height="100" border="0"/>
 				<splitter>
-					<rect id="resultsarea" overflow="auto" padding="4,4,4,4"/>
+					<rect id="resultsarea"/>
 					<listview id="proplist" cellborder="1">
 						<listheader>
 							<column width="100" caption="Name" name="name"/>

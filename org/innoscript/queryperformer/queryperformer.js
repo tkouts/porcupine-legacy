@@ -32,6 +32,7 @@ queryPerformer.executeQuery_oncomplete = function(req) {
                     .getWidgetById('clientArea').attributes;
         oPane.parseFromString(
             '<tree xmlns="http://www.innoscript.org/quix"\
+                width="100%" height="100%" padding="2,2,2,2" overflow="auto"\
                 onexpand="queryPerformer.expandNode"\
                 onselect="queryPerformer.showProps"></tree>',
             function (w) {
@@ -55,7 +56,7 @@ queryPerformer.about = function(evt, w) {
 }
 
 queryPerformer.showProps = function(w) {
-    var obj = w.attributes.obj;
+    var obj = w.getSelection().attributes.obj;
     if (obj) {
         var oAttr, dataset = [];
         var oList = w.getParentByType(QuiX.ui.Splitter)
