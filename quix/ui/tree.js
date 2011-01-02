@@ -413,7 +413,6 @@ QuiX.ui.Tree = function(/*params*/) {
         this.levelpadding = params.levelpadding || 12;
     }
     this.multiple = (params.multiple == 'true' || params.multiple == true);
-//    this.selectedWidget = null;
     this.roots = [];
 
     if (this.multiple) {
@@ -508,35 +507,6 @@ QuiX.ui.Tree.prototype.selectNode = function(w /*, expand*/) {
             }
         }
     }
-    //if (w != this.selectedWidget) {
-    //
-    //    if (this.selectedWidget) {
-    //        this.selectedWidget.div.className =
-    //            this.selectedWidget.div.className.replace(' selected', '');
-    //    }
-    //    w.div.className += ' selected';
-    //    this.selectedWidget = w;
-    //
-    //    if (expand && w.parentNode) {
-    //        // expand parent nodes
-    //        var parents = [],
-    //            parent = w.parentNode;
-    //        while (parent) {
-    //            parents.push(parent);
-    //            parent = parent.parentNode;
-    //        }
-    //        parents.reverse();
-    //        for (var i=0; i<parents.length; i++) {
-    //            if (!parents[i].isExpanded) {
-    //                parents[i].toggle();
-    //            }
-    //        }
-    //    }
-    //
-    //    if (this._customRegistry.onselect) {
-    //        this._customRegistry.onselect(w);
-    //    }
-    //}
 }
 
 QuiX.ui.Tree.prototype.getSelection = function() {
