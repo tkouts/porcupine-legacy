@@ -509,10 +509,12 @@ QuiX.ui.Dialog.prototype.addButton = function(params) {
 }
 
 QuiX.ui.Dialog._onkeypress = function(evt, w) {
-    if (evt.keyCode == 13 && w.defaultButton)
+    if (evt.keyCode == 13 && w.defaultButton) {
         w.defaultButton.click();
-    else if (evt.keyCode == 27 && w.title.getWidgetById('c0'))
+    }
+    else if (evt.keyCode == 27 && w.title.getWidgetById('c0')) {
         w.close();
+    }
 }
 
 QuiX.ui.Dialog._buttonHolderRedraw = function(bForceAll /*, memo*/) {
@@ -535,3 +537,16 @@ QuiX.ui.DialogButton = function(params, dialog) {
 }
 
 QuiX.ui.DialogButton.prototype = new QuiX.ui.Button;
+
+QuiX.ui.DialogButton.prototype._registerHandler = function(eventType, handler,
+                                                           isCustom) {
+    var wrapper = null;
+    if (eventType == 'onclick') {
+        var wrapper = function(evt, btn) {
+			btn.dialog.buttonIndex = btn.dialog.buttons.indexOf(btn);
+			handler(evt, btn);
+		}
+    }
+	QuiX.ui.Button.prototype._registerHandler.apply(this,
+        [eventType, wrapper || handler, isCustom]);
+}
