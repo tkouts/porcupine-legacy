@@ -540,13 +540,15 @@ QuiX.ui.DialogButton.prototype = new QuiX.ui.Button;
 
 QuiX.ui.DialogButton.prototype._registerHandler = function(eventType, handler,
                                                            isCustom) {
-    var wrapper = null;
+    var wrapper;
     if (eventType == 'onclick') {
-        var wrapper = function(evt, btn) {
-			btn.dialog.buttonIndex = btn.dialog.buttons.indexOf(btn);
-			handler(evt, btn);
-		}
+        var self = this;
+        wrapper = function(evt) {
+            self.dialog.buttonIndex = self.dialog.buttons.indexOf(self);
+            handler(evt, self);
+        }
+        handler.wrapper = wrapper;
     }
-	QuiX.ui.Button.prototype._registerHandler.apply(this,
+    QuiX.ui.Button.prototype._registerHandler.apply(this,
         [eventType, wrapper || handler, isCustom]);
 }
