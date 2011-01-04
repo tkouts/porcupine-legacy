@@ -177,9 +177,16 @@ QuiX.ui.TreeNode.prototype.destroy = function() {
         QuiX.ui.Widget.prototype.destroy.apply(next, arguments);
         next = tmp_next;
     }
-    if (this.parentNode && this.parentNode.childNodes) {
-        this.parentNode.childNodes.removeItem(this);
+    if (this.parentNode) {
+        if (this.parentNode.childNodes) {
+            this.parentNode.childNodes.removeItem(this);
+        }
     }
+    else {
+        // root node
+        this.parent.roots.removeItem(this);
+    }
+
     QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
 
     // clean up selection
