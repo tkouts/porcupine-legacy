@@ -98,6 +98,22 @@ QuiX.Module = function(sName, sFile, depends, prio) {
     this.callback = null;
 }
 
+QuiX.Module.loadModules = function(modList, oncomplete) {
+    var mod,
+        counter = modList.length;
+
+    function _decrease() {
+        counter--;
+        if (counter == 0) {
+            oncomplete();
+        }
+    }
+
+    for (var i=0; i<modList.length; i++) {
+        modList[i].load(_decrease);
+    }
+}
+
 QuiX.Module.prototype.load = function(callback) {
     var oElement;
     this.callback = callback;
@@ -137,14 +153,16 @@ QuiX.Image = function(url) {
 }
 
 QuiX.Image.loadImages = function(urlList, oncomplete) {
-    var img;// = new QuiX.Image(urlList.pop());
-    var counter = urlList.length;
+    var img,
+        counter = urlList.length;
+
     function _decrease() {
         counter--;
         if (counter == 0) {
             oncomplete();
         }
     }
+
     for (var i=0; i<urlList.length; i++) {
         img = new QuiX.Image(urlList[i]);
         img.load(_decrease);
@@ -152,8 +170,8 @@ QuiX.Image.loadImages = function(urlList, oncomplete) {
 }
 
 QuiX.Image.prototype.load = function(callback) {
-    this.callback = callback;
     var img = new Image();
+    this.callback = callback;
     img.resource = this;
     img.onload = QuiX.__resource_onstatechange;
     img.onerror = QuiX.__resource_error;
@@ -272,9 +290,9 @@ QuiX.__init__ = function(id) {
 
     QuiX.load(QuiX.bootLibraries,
         function() {
-            var root = document.body.removeChild(
-                document.getElementById(id));
-            var parser = new QuiX.Parser();
+            var root = document.body.removeChild(document.getElementById(id)),
+                parser = new QuiX.Parser();
+
             parser.oncomplete = function() {
                 document.body.style.background = '';
                 // calculate scrollbars size
@@ -310,11 +328,13 @@ QuiX.addLoader = function() {
         document.body.onmousemove = function(evt) {
             evt = evt || event;
             var loader = document.desktop._loader;
-            if (loader.div.style.display == 'none')
+            if (loader.div.style.display == 'none') {
                 loader.show();
+            }
             var x = evt.clientX + 16;
-            if (QuiX.dir == 'rtl')
+            if (QuiX.dir == 'rtl') {
                 x = QuiX.transformX(x - 16);
+            }
             loader.moveTo(x, evt.clientY + 20);
         }
     }
@@ -378,12 +398,14 @@ QuiX.displayError = function(e) {
 QuiX.getTarget = function(evt) {
     if (evt.target) {
         var node = evt.target;
-        while (node.nodeType != node.ELEMENT_NODE)
+        while (node.nodeType != node.ELEMENT_NODE) {
             node = node.parentNode;
+        }
         return node;
     }
-    else
+    else {
         return evt.srcElement;
+    }
 }
 
 QuiX.getTargetWidget = function(evt) {
@@ -404,17 +426,17 @@ QuiX.getWidgetFromPoint = function(x, y) {
 
 QuiX.removeNode = function(node) {
     var oNode;
-    if (node.removeNode)
+    if (node.removeNode) {
         oNode = node.removeNode(true);
-    else
+    }
+    else {
         oNode = node.parentNode.removeChild(node);
+    }
     return oNode;
 }
 
 QuiX.getDraggable = function(w) {
     var d = new QuiX.ui.Widget({
-        //left : w.getLeft(),
-        //top : w.getTop(),
         width : w.getWidth(true),
         height : w.getHeight(true),
         border : 1
@@ -1040,8 +1062,9 @@ QuiX.measureWidget = function(w, dim) {
     div.innerHTML = w.div.innerHTML;
     // required by webkit
     var imgs = div.getElementsByTagName('IMG');
-    if (imgs.length > 0)
+    if (imgs.length > 0) {
         imgs[imgs.length - 1].style.height = '';
+    }
     //
     document.body.appendChild(div);
     var value = div[measure] +
@@ -1076,10 +1099,12 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
         if (!document.getElementById(params.src)) {
             var oMod = new QuiX.Module(params.name, params.src, [],
                                        this.__customPrio);
-            if (sTag == 'stylesheet')
+            if (sTag == 'stylesheet') {
                 oMod.type = 'stylesheet';
-            else if (params.depends)
+            }
+            else if (params.depends) {
                 oMod.dependencies = params.depends.split(',');
+            }
             this._addModule(oMod);
             this.__customPrio--;
         }
@@ -1100,12 +1125,15 @@ QuiX.Parser.prototype._addModule = function(oMod) {
 }
 
 QuiX.Parser.prototype.loadModules = function() {
-    var module;
-    var self = this;
     if (this.__modulesToLoad.length > 0) {
-        module = this.__modulesToLoad.pop();
-        module.load(function(){self.loadModules()});
-    } else {
+        var self = this;
+        QuiX.Module.loadModules(this.__modulesToLoad.reverse(),
+            function() {
+                QuiX.removeLoader();
+                self.beginRender();
+            });
+    }
+    else {
         QuiX.removeLoader();
         this.beginRender();
     }
@@ -1128,8 +1156,9 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
     this.detectModules(dom.documentElement);
     if (this.__modulesToLoad.length > 0) {
         this.__modulesToLoad.sortByAttribute('priority');
-        if (parentW)
+        if (parentW) {
             QuiX.addLoader();
+        }
         this.loadModules();
     }
     else {
