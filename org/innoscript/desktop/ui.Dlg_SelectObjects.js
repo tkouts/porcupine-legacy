@@ -41,12 +41,12 @@ selectObjectsDialog.showSearch = function(evt, w) {
 selectObjectsDialog.search = function(evt, w) {
 	var oDialog = w.getParentByType(QuiX.ui.Dialog),
 		cc = oDialog.attributes.CC,
-		oRect = w.parent,
-		oTree = w.getParentByType(QuiX.ui.Box).getWidgetById('tree'),
-		sName = oRect.getWidgetById('displayName').getValue(),
-		sDesc = oRect.getWidgetById('description').getValue(),
-		isDeep = oRect.getWidgetById('deep').getValue(),
-		sID = oTree.getSelection().getId(),
+		oForm = w.parent,
+		oTree = oDialog.getWidgetById('tree'),
+		sName = oForm.getWidgetById('displayName').getValue(),
+		sDesc = oForm.getWidgetById('description').getValue(),
+		isDeep = oForm.getWidgetById('deep').getValue(),
+		sID = (oTree.getSelection() || oTree.roots[0]).getId(),
 		sFrom;
 
     var vars = {SCOPE : sID};
@@ -97,7 +97,7 @@ selectObjectsDialog.refreshList = function(tree) {
 	}
 	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
 	rpc.callback_info = treeNodeSelected.parent;
-	rpc.callmethod('executeOqlCommand', sOql, {SCOPE: tree.getSelection().getId()});
+	rpc.callmethod('executeOqlCommand', sOql, {SCOPE: (tree.getSelection() || oTree.roots[0]).getId()});
 }
 
 selectObjectsDialog.getConditions = function(s) {

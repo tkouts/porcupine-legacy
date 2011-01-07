@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <dialog xmlns="http://www.innoscript.org/quix"
 		title="@@SELECT_OBJECTS@@" resizable="true" close="true"
-		align="right" width="380" height="400" left="30%" top="30%">
+		align="right" width="420" height="400" left="30%" top="30%"
+		minw="420">
 	<script src="desktop/ui.Dlg_SelectObjects.js"/>
 	<prop name="CC" value="$CC"/>
 	<wbody>
@@ -21,22 +22,21 @@
 					<treenode id="$ID" haschildren="$HAS_SUBFOLDERS"
 						img="$IMG" caption="$DN"/>
 				</foldertree>
-				<rect overflow="auto" padding="4,4,4,4" display="none">
-					<label top="2" left="5" width="160" height="20"
-						caption="@@ALL_OR_PART_OF_THE_NAME@@:"/>
-					<field id="displayName" left="165" top="0" width="200"
-						value=""/>
-					<label top="29" left="5" width="160" height="20"
-						caption="@@WORD_OR_PHRASE_IN_DESCRIPTION@@:"/>
-					<field id="description" top="27" left="165" width="200"
-						value=""/>
-					<field id="deep" type="checkbox" top="54" left="165"
-						caption="@@INCLUDESUBS@@"/>
-
-					<button top="84" left="140" width="70" height="22"
+				<vbox overflow="auto" padding="4,4,4,4" display="none" spacing="8">
+					<box height="20" width="100%">
+						<label width="180" caption="@@ALL_OR_PART_OF_THE_NAME@@:"/>
+						<field id="displayName" value=""/>
+					</box>
+					<box height="20" width="100%">
+						<label width="180" caption="@@WORD_OR_PHRASE_IN_DESCRIPTION@@:"/>
+						<field id="description"	value=""/>
+					</box>
+					<field id="deep" width="200" left="180"
+						type="checkbox" caption="@@INCLUDESUBS@@"/>
+					<button width="70" height="22" left="center"
 						caption="@@SEARCH@@"
 						onclick="selectObjectsDialog.search"/>
-				</rect>
+				</vbox>
 			</vbox>
 			<selectlist id="selection" multiple="$MULTIPLE" border="0"
 					posts="selected" height="-1">
