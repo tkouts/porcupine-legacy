@@ -86,7 +86,7 @@ selectObjectsDialog.search = function(evt, w) {
 }
 
 selectObjectsDialog.refreshList = function(tree) {
-	var oDialog = treeNodeSelected.parent.getParentByType(QuiX.ui.Dialog),
+	var oDialog = tree.getParentByType(QuiX.ui.Dialog),
 		rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root),
 		cc = oDialog.attributes.CC,
 		sOql = "select id as value, __image__ as img, displayName as caption " +
@@ -95,8 +95,9 @@ selectObjectsDialog.refreshList = function(tree) {
 	if (cc != '*') {
         sOql += " where " + selectObjectsDialog.getConditions(cc);
 	}
+
 	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
-	rpc.callback_info = treeNodeSelected.parent;
+	rpc.callback_info = tree;
 	rpc.callmethod('executeOqlCommand', sOql, {SCOPE: (tree.getSelection() || oTree.roots[0]).getId()});
 }
 
