@@ -39,30 +39,33 @@ selectObjectsDialog.showSearch = function(evt, w) {
 }
 
 selectObjectsDialog.search = function(evt, w) {
-	var oDialog = w.getParentByType(QuiX.ui.Dialog);
-	var cc = oDialog.attributes.CC;
-	var oRect = w.parent;
-	var oTree = w.getParentByType(QuiX.ui.Box).getWidgetById('tree');
-	var sName = oRect.getWidgetById('displayName').getValue();
-	var sDesc = oRect.getWidgetById('description').getValue();
-	var isDeep = oRect.getWidgetById('deep').getValue();
-	var sID = oTree.getSelection().getId();
-	var sFrom;
+	var oDialog = w.getParentByType(QuiX.ui.Dialog),
+		cc = oDialog.attributes.CC,
+		oRect = w.parent,
+		oTree = w.getParentByType(QuiX.ui.Box).getWidgetById('tree'),
+		sName = oRect.getWidgetById('displayName').getValue(),
+		sDesc = oRect.getWidgetById('description').getValue(),
+		isDeep = oRect.getWidgetById('deep').getValue(),
+		sID = oTree.getSelection().getId(),
+		sFrom;
 
     var vars = {SCOPE : sID};
 	
-	if (isDeep)
+	if (isDeep) {
 		sFrom = "deep($SCOPE)";
-	else
+	}
+	else {
 		sFrom = "$SCOPE";
+	}
 
 	var sCommand =
         "select id as value, __image__ as img, displayName as caption " +
 		"from " + sFrom;
     
 	var conditions = [];
-	if (cc != '*')
+	if (cc != '*') {
         conditions.push(selectObjectsDialog.getConditions(cc));
+	}
 	if (sName != '') {
         conditions.push("$NAME in displayName");
         vars.NAME = sName;
@@ -82,23 +85,26 @@ selectObjectsDialog.search = function(evt, w) {
 	rpc.callmethod('executeOqlCommand', sCommand, vars);
 }
 
-selectObjectsDialog.refreshList = function(treeNodeSelected) {
-	var oDialog = treeNodeSelected.parent.getParentByType(QuiX.ui.Dialog);
-	var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root);
-	var cc = oDialog.attributes.CC;
-	var sOql = "select id as value, __image__ as img, displayName as caption " +
+selectObjectsDialog.refreshList = function(tree) {
+	var oDialog = treeNodeSelected.parent.getParentByType(QuiX.ui.Dialog),
+		rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root),
+		cc = oDialog.attributes.CC,
+		sOql = "select id as value, __image__ as img, displayName as caption " +
                "from $SCOPE";
-	if (cc != '*')
+
+	if (cc != '*') {
         sOql += " where " + selectObjectsDialog.getConditions(cc);
+	}
 	rpc.oncomplete = selectObjectsDialog.refreshList_oncomplete;
 	rpc.callback_info = treeNodeSelected.parent;
-	rpc.callmethod('executeOqlCommand', sOql, {SCOPE:treeNodeSelected.getId()});
+	rpc.callmethod('executeOqlCommand', sOql, {SCOPE: tree.getSelection().getId()});
 }
 
 selectObjectsDialog.getConditions = function(s) {
 	var lst = s.split('|');
-	for (var i=0; i<lst.length; i++)
+	for (var i=0; i<lst.length; i++) {
 		lst[i] = "instanceof('" + lst[i] + "')";
+	}
 	return "(" + lst.join(' or ') + ")";
 }
 
