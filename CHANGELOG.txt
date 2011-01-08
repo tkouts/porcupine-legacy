@@ -3,19 +3,22 @@ Version 0.7
 -----------
 NEW: Added support for high availability/scalability using BerkeleyDB's
      replication.
-NEW: Porcupine now integrates the py-normal-template template engine
+NEW: Porcupine now integrates the "py-normal-template" template engine
      (http://github.com/tkouts/py-normal-template).
 NEW: Added support for JSON-RPC2 for remote method calls.
 NEW: Added support for Python 3 (thanks to feedback from Alexander Slesarev).
 NEW: Added new lightweight widget "QuiX.ui.Image".
-NEW: New widget "QuiX.ui.SpriteButton".
+NEW: New widget "QuiX.ui.SpriteButton" with toggle group support.
 NEW: Added support for Firefox 4 and Safari 5.
 NEW: Added nose unit tests inside the "tests" folder (partially contributed by
      Alexander Slesarev).
 NEW: Added "onfocus" custom event for fields.
 NEW: New post-processing filter JSMin for minifying JavaScript files.
-NEW: New pre-processing filter JSMerge used for merging JavaScript files into
-     one.
+NEW: New pre-processing filter JSMerge used for merging multiple JavaScript
+     files into one.
+NEW: New "utils.misc.get_revision" handy function for getting the most recent
+     modification time of the files contained inside a JSMerge registration
+     filter.
 NEW: Added support for title and background color to QuiX pages.
 NEW: Ability for auto-sized widgets (not only boxes, labels and icons).
 NEW: New "ease" parameter for ease-in and easy-out effects.
@@ -37,8 +40,39 @@ NEW: Added new "time" parameter to "DatePicker" widget; it is set only if
 NEW: Added post-event handlers for content classes.
 NEW: New "name" attribute for "IFrame" widgets.
 NEW: QuiX now supports right-to-left layouts for the Arabic speaking countries.
+NEW: New base widget's layering methods "moveForward", "moveBackward" and
+     "sendToBack".
 NEW: Experimental reloading of packages using "porcupineadmin" without
      requiring the server to restart.
+NEW: New QuiX theme called "spirit" utilizing CSS3 goodies.
+NEW: New "QuiX.measureText" for computing the size in pixels of a text string.
+NEW: New "QuiX.getStyle" function for computing the value of CSS attribute.
+NEW: New "QuiX.ui.Colorpicker" widget.
+NEW: The widgets' event subsystem has been completely re-written in order to
+     support the registration of multiple DOM event handlers per event type.
+NEW: QuiX now supports touch enabled mobile devices.
+NEW: New "QuiX.getCssAttribute" and "QuiX.getEventName" for getting the names
+     of vendor specific CSS attributes and events.
+NEW: QuiX now supports "ontap" and "onswipe" touch events.
+NEW: QuiX now supports hardware accelerated CSS transitions for effects.
+NEW: New base widget method "getWidgetsByCustomAttributeValue".
+NEW: New "typeprovider" parameter for list view columns. This is a function
+     that allows the mutation of the column's data type during run-time.
+NEW: List views now have a new "update" method that allows faster partial
+     updates.
+NEW: New "onselect" custom event for select list widgets.
+NEW: New "labeled" parameter for sliders. If set to "false" then the slider's
+     value is not displayed while dragging.
+NEW: New "focus" method for spin buttons.
+NEW: New "spacing" icon parameter that defines the space between the image and
+     the caption.
+NEW: New methods "setPadding", "getPadding", "setImageURL" and "getImageURL"
+     for buttons.
+NEW: New "blur" method for fields, combos and spin buttons.
+NEW: New "onblur" custom event for spin buttons and combos.
+NEW: New "QuiX.Image.loadImages" function for pre-loading a series of images.
+NEW: New "QuiX.Module.loadModules" function for loading a series of modules
+     faster.
 
 OPT: Using btree instead of hash for main database in order to exploit
      locality of reference for containers' children.
@@ -69,7 +103,7 @@ OPT: Optimized OQL query optimizer.
 OPT: Compile dynamic properties of QuiX widgets into functions.
 OPT: The QuiX parser does not preload images for faster responsiveness.
 OPT: Lower limit of OQL BETWEEN is now inclusive.
-OPT: Drop Etag generation for static files that have post-processing filters
+OPT: Dropped Etag generation for static files that have post-processing filters
      that mutate output.
 OPT: Improved error handling for QuiX parser, rpc calls and file widget by
      introducing "onerror" handlers that can be overridden.
@@ -78,6 +112,35 @@ OPT: The request's language returned with "get_lang" method firstly checks the
      language is returned.
 OPT: Added boot loader image while QuiX modules are being loaded.
 OPT: OQL parser is now based on PLY 3.2.
+OPT: All QuiX labels and fields now have their text middle aligned on the Y
+     axis.
+OPT: "QuiX.utils.BrowserInfo" now detects iPad and Android OSes.
+OPT: QuiX now supports widgets of undefined size.
+OPT: The base QuiX widget now supports CSS3 shadows by using the "shadow"
+     attribute in the form of x-offset,y-offset,blur,color. New methods
+     "getShadow" and "setShadow".
+OPT: Added support for gradient background colors in the form of
+     bgcolor="[left|top],color1,color2".
+OPT: The base widget's "query" method now accepts an optional "limit" argument
+     for faster UI queries.
+OPT: Faster QuiX redraws by using an internal signature for each widget.
+OPT: Added support for removable tabs by using the "editable" parameter for
+     tab panes.
+OPT: Added support for statically defined QuiX effects without having to be
+     in the widget hierarchy (the "play" method now optionally accepts the
+     target widget).
+OPT: Added support for combo options without captions (icon only).
+OPT: Faster box widgets by using relative positioned children.
+OPT: Ability to define the buttons' border width.
+OPT: New tree widget implementation (all nodes are tree's direct children -
+     the structure is kept internally).
+OPT: List view and data grids now support color and number column types.
+OPT: The "onchange" custom event is only fired by user actions and not
+     by changing a widget's value with scripts.
+OPT: Flow box widget now derives from horizontal box.
+OPT: Added support for multiple selection tree widgets.
+OPT: Added support for multiple items drag and drop to flow box and tree
+     widgets.
 
 FIX: Fixed etag generation of web methods in order to be template,
      implementation, request language and containment aware.
@@ -100,12 +163,27 @@ FIX: Avoid indexing of unique attributes of deleted objects.
 FIX: Fixed parent container's timestamp update on cascade deletes of relators.
 FIX: Fixed indexing of floats.
 FIX: Do not index composite objects.
+FIX: Database based session value changes were not reflected to the in-memory
+     instance. Fixed.
+FIX: Fixed default values initialization for external datatypes.
+FIX: Added missing dependencies for the data grid QuiX module.
+FIX: Fixed enabling and disabling of spin buttons.
 
 DEP: Schema "__props__" attribute is now a dict instead of iterable.
 DEP: Removed deprecated APIs.
 DEP: Removed "QuiX._image_cache".
 DEP: "QuiX.getEventListener" is now "QuiX.wrappers.eventListener".
 DEP: The "pakager" utility is now part of "porcupineadmin" utility.
+DEP: When adding columns to a list view the use the "cssclass" param instead
+     of the deprecated "bgcolor" param.
+DEP: List views' "highlightcolors" parameter is deprecated. Use the
+     "selectedclass" parameter instead. This is the CSS class name of the
+     selected rows.
+DEP: List views' "altcolors" is deprecated. Use "altrows" instead using a
+     comma separated list of two CSS class names.
+DEP: The base widget's "detachEvent" method now requires an additional argument
+     of the handler to be detached. Otherwise detaches all handlers of ceratin
+     type.
 
 -----------
 Version 0.6
