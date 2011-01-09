@@ -46,7 +46,7 @@ NEW: Experimental reloading of packages using "porcupineadmin" without
      requiring the server to restart.
 NEW: New QuiX theme called "spirit" utilizing CSS3 goodies.
 NEW: New "QuiX.measureText" for computing the size in pixels of a text string.
-NEW: New "QuiX.getStyle" function for computing the value of CSS attribute.
+NEW: New "QuiX.getStyle" function for computing the value of a CSS attribute.
 NEW: New "QuiX.ui.Colorpicker" widget.
 NEW: The widgets' event subsystem has been completely re-written in order to
      support the registration of multiple DOM event handlers per event type.
