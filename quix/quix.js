@@ -124,21 +124,21 @@ QuiX.Module.prototype.load = function(callback) {
         oElement.defer = true;
         oElement.src = this.file;
         oElement[onload] = QuiX.__resource_onstatechange;
-        document.body.appendChild(oElement);
     }
     else {
         oElement = document.createElement('LINK');
         oElement.type = 'text/css';
         oElement.href = this.file;
         oElement.rel = 'stylesheet';
-        document.getElementsByTagName('head')[0].appendChild(oElement);
     }
+    document.getElementsByTagName('head')[0].appendChild(oElement);
     oElement.resource = this;
     oElement.id = this.file;
-    if (this.type=='stylesheet') {
+    if (this.type == 'stylesheet') {
         this.isLoaded = true;
-        if (callback)
+        if (callback) {
             callback();
+        }
     }
 }
 
@@ -964,12 +964,13 @@ QuiX._css2Js = function(css) {
 }
 
 QuiX.getStyle = function(el, styleProp) {
+    var y;
     if (el.currentStyle) {
-        var y = el.currentStyle[QuiX._css2Js(styleProp)];
+        y = el.currentStyle[QuiX._css2Js(styleProp)];
     }
     else if (window.getComputedStyle)
-        var y = document.defaultView.getComputedStyle(el, null)
-                .getPropertyValue(styleProp);
+        y = document.defaultView.getComputedStyle(el, null)
+            .getPropertyValue(styleProp);
     return y;
 }
 
@@ -1125,13 +1126,12 @@ QuiX.Parser.prototype._addModule = function(oMod) {
 }
 
 QuiX.Parser.prototype.loadModules = function() {
+    var module,
+        self = this;
+
     if (this.__modulesToLoad.length > 0) {
-        var self = this;
-        QuiX.Module.loadModules(this.__modulesToLoad.reverse(),
-            function() {
-                QuiX.removeLoader();
-                self.beginRender();
-            });
+        module = this.__modulesToLoad.pop();
+        module.load(function(){self.loadModules()});
     }
     else {
         QuiX.removeLoader();
