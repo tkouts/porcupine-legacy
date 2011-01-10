@@ -111,9 +111,8 @@ QuiX.ui.Field = function(/*params*/) {
         default:
             this.div.className = 'field';
             e = (this.type=='textarea')? ce('TEXTAREA'):ce('INPUT');
-            e.style.borderWidth = '1px';
-            e.style.position = 'relative';
-            e.style.height = '100%';
+            //e.style.borderWidth = '1px';
+            e.style.position = 'absolute';
 
             e.style.textAlign = this.textAlign;
             e.style.padding = '0px';
@@ -282,20 +281,19 @@ QuiX.ui.Field.prototype.redraw = function(bForceAll /*, memo*/) {
 }
 
 QuiX.ui.Field.prototype._adjustFieldSize = function(memo) {
-    if (this.type != 'checkbox' && this.type != 'radio' && this.div.firstChild) {
-
+    if (this.type != 'checkbox' && this.type != 'radio'
+            && this.div.firstChild && this.div.offsetWidth) {
         var input = this.div.firstChild,
             borders = input.offsetHeight - input.clientHeight,
             bf = QuiX.utils.BrowserInfo.family,
             br = QuiX.utils.BrowserInfo.browser,
             bv = QuiX.utils.BrowserInfo.version,
-            nw = this.getWidth(false, memo) || 0,
-            nh = this.getHeight(false, memo) || 0;
+            nw = this._calcWidth(false, memo) || 0,
+            nh = this._calcHeight(false, memo) || 0;
 
         if (nh != this._sh) {
-            if ((this.type == 'textarea' && bf == 'moz') ||
-                    (bf == 'ie' && bv <= 7)) {
-                this.div.firstChild.style.top = '-1px';
+            if (this.type == 'textarea' && bf == 'moz') {
+                input.style.top = '-1px';
             }
             this._sh = nh;
             if ((this.type == 'text' || this.type == 'password') &&
@@ -308,17 +306,17 @@ QuiX.ui.Field.prototype._adjustFieldSize = function(memo) {
                     input.style.paddingBottom = padding + 'px';
                 }
             }
-            if (bf == 'ie') {
-                nh = nh - parseInt(input.style.paddingTop || 0) -
-                          parseInt(input.style.paddingBottom || 0) - borders;
-                input.style.height = (nh > 0? nh:0) + 'px';
-            }
+            nh -= parseInt(input.style.paddingTop || 0) +
+                  parseInt(input.style.paddingBottom || 0) +
+                  borders;
+            input.style.height = (nh > 0? nh:0) + 'px';
         }
 
         if (nw != this._sw) {
             this._sw = nw;
-            nw = nw - parseInt(input.style.paddingLeft || 0) -
-                      parseInt(input.style.paddingRight || 0) - borders;
+            nw -= parseInt(input.style.paddingLeft || 0) +
+                  parseInt(input.style.paddingRight || 0) +
+                  borders;
             input.style.width = (nw > 0? nw:0) + 'px';
         }
     }
@@ -386,9 +384,8 @@ QuiX.ui.Spin = function(/*params*/) {
     var e = ce('INPUT');
     e.style.padding = '0px ' + (params.textpadding ||
                                 QuiX.theme.combo.textpadding) + 'px';
-    e.style.position='relative';
+    e.style.position='absolute';
     e.style.textAlign = 'right';
-    e.style.height = '100%';
     this.div.appendChild(e);
 
     if (!QuiX.supportTouches) {
@@ -398,7 +395,7 @@ QuiX.ui.Spin = function(/*params*/) {
     if (params.maxlength) {
         e.maxLength = params.maxlength;
     }
-    
+
     var self = this;
 
     var upbutton = QuiX.theme.spinbutton.getUp();
@@ -458,7 +455,7 @@ QuiX.ui.Spin.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 
 QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
-    if (this.div.firstChild) {
+    if (this.div.firstChild && this.div.offsetWidth) {
         var input = this.div.firstChild,
             borders = input.offsetHeight - input.clientHeight,
             nw = this._calcWidth(false, memo) || 0,
@@ -468,9 +465,6 @@ QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
             bv = QuiX.utils.BrowserInfo.version;
 
         if (nh != this._sh) {
-            if (bf == 'ie' && bv <= 7) {
-                this.div.firstChild.style.top = '-1px';
-            }
             this._sh = nh;
             if (bf == 'ie' || (br == 'Firefox' && bv <= 3)) {
                 // we need to adjust the text vertically
@@ -481,18 +475,18 @@ QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
                     input.style.paddingBottom = padding + 'px';
                 }
             }
-            if (bv == 'ie') {
-                nh = nh - parseInt(input.style.paddingTop || 0) -
-                          parseInt(input.style.paddingBottom || 0) - borders;
-                input.style.height = (nh > 0? nh:0) + 'px';
-            }
+            nh -= parseInt(input.style.paddingTop || 0) +
+                  parseInt(input.style.paddingBottom || 0) +
+                  borders;
+            input.style.height = (nh > 0? nh:0) + 'px';
         }
 
         if (nw != this._sw) {
             this._sw = nw;
-            nw = nw - QuiX.theme.spinbutton.btnWidth -
-                 parseInt(input.style.paddingLeft || 0) -
-                 parseInt(input.style.paddingRight || 0) - borders;
+            nw -= QuiX.theme.spinbutton.btnWidth +
+                  parseInt(input.style.paddingLeft || 0) +
+                  parseInt(input.style.paddingRight || 0) +
+                  borders;
             input.style.width = (nw > 0? nw:0) + 'px';
         }
     }
@@ -515,12 +509,12 @@ QuiX.ui.Spin.prototype.disable = function() {
 }
 
 QuiX.ui.Spin.prototype._setCommonProps = function(memo) {
-	if (this.base) {
-    	this.base.prototype._setCommonProps.apply(this, arguments);
-	}
-	else {
-		QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
-	}
+    if (this.base) {
+        this.base.prototype._setCommonProps.apply(this, arguments);
+    }
+    else {
+        QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
+    }
     this._adjustFieldSize(memo);
 }
 

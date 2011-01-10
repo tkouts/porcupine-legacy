@@ -25,8 +25,7 @@ QuiX.ui.Combo = function(/*params*/) {
     var e = ce('INPUT');
     e.style.padding = '0px ' + (params.textpadding ||
                                 QuiX.theme.combo.textpadding) + 'px';
-    e.style.position = 'relative';
-    e.style.height = '100%';
+    e.style.position = 'absolute';
     e.style.backgroundColor = bgcolor;
     this.div.appendChild(e);
 
@@ -62,7 +61,7 @@ QuiX.ui.Combo = function(/*params*/) {
             e.readonly = true;
         }
         this.div.className += ' editable';
-        this.setBorderWidth(0);
+        //this.setBorderWidth(0);
         if (!this.readonly) {
             this.button.attachEvent('onclick', QuiX.ui.Combo._btn_onclick);
         }
@@ -135,19 +134,16 @@ QuiX.ui.Combo._calcDropdownWidth = function(memo) {
 }
 
 QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
-    if (this.div.firstChild) {
+    if (this.div.firstChild && this.div.offsetWidth) {
         var input = this.div.firstChild,
             borders = input.offsetHeight - input.clientHeight,
-            nw = this.getWidth(false, memo) || 0,
-            nh = this.getHeight(false, memo) || 0,
+            nw = this._calcWidth(false, memo) || 0,
+            nh = this._calcHeight(false, memo) || 0,
             bf = QuiX.utils.BrowserInfo.family,
             br = QuiX.utils.BrowserInfo.browser,
             bv = QuiX.utils.BrowserInfo.version;
 
         if (nh != this._sh) {
-            if (bf == 'ie' && bv <= 7) {
-                this.div.firstChild.style.top = '-1px';
-            }
             this._sh = nh;
             if (bf == 'ie' || (br == 'Firefox' && bv <= 3)) {
                 // we need to adjust the text vertically
@@ -158,18 +154,18 @@ QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
                     input.style.paddingBottom = padding + 'px';
                 }
             }
-            if (bf == 'ie') {
-                nh = nh - parseInt(input.style.paddingTop || 0) -
-                          parseInt(input.style.paddingBottom || 0) - borders;
-                input.style.height = (nh > 0? nh:0) + 'px';
-            }
+            nh -= parseInt(input.style.paddingTop || 0) +
+                  parseInt(input.style.paddingBottom || 0) +
+                  borders;
+            input.style.height = (nh > 0? nh:0) + 'px';
         }
 
         if (nw != this._sw) {
             this._sw = nw;
-            nw = nw - QuiX.theme.combo.button.width -
-                 parseInt(input.style.paddingLeft || 0) -
-                 parseInt(input.style.paddingRight || 0) - borders;
+            nw -= QuiX.theme.combo.button.width +
+                  parseInt(input.style.paddingLeft || 0) +
+                  parseInt(input.style.paddingRight || 0) +
+                  borders;
             input.style.width = (nw > 0? nw:0) + 'px';
         }
     }
