@@ -530,8 +530,8 @@ QuiX.wrappers = {
     },
     onTap: function(f) {
         function wrapper(evt, w) {
-            if (QuiX.currentX == QuiX.startX &&
-                    QuiX.currentY == QuiX.startY) {
+            if (Math.abs(QuiX.currentX - QuiX.startX) <= 8 &&
+                    Math.abs(QuiX.currentY - QuiX.startY) <= 8) {
                 f(evt, w);
             }
         }
@@ -1146,6 +1146,7 @@ QuiX.Parser.prototype.onerror = function(e) {
 QuiX.Parser.prototype.parse = function(dom, parentW) {
     this.dom = dom;
     this.parentWidget = parentW;
+
     if (dom == null || dom.documentElement == null ||
             dom.documentElement.tagName == 'parsererror') {
         this.onerror(new QuiX.Exception(
@@ -1167,8 +1168,9 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
 }
 
 QuiX.Parser.prototype.beginRender = function() {
-    var on_load;
-    var widget = this.render();
+    var on_load,
+        widget = this.render();
+
     this.__onload.reverse();
     while (this.__onload.length > 0) {
         on_load = this.__onload.pop();
@@ -1192,9 +1194,10 @@ QuiX.Parser.prototype.beginRender = function() {
 }
 
 QuiX.Parser.prototype.render = function() {
-    var widget;
-    var parentW = this.parentWidget;
-    var frag = document.createDocumentFragment();
+    var widget,
+        parentW = this.parentWidget,
+        frag = document.createDocumentFragment();
+
     if (parentW) {
         var root = parentW.div;
         frag.appendChild(root.cloneNode(false));
@@ -1208,7 +1211,7 @@ QuiX.Parser.prototype.render = function() {
         document.body.appendChild(frag);
     }
     frag = null;
-    return(widget);
+    return widget;
 }
 
 QuiX.Parser.prototype.getNodeParams = function(oNode) {
@@ -1220,6 +1223,7 @@ QuiX.Parser.prototype.getNodeParams = function(oNode) {
 
 QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
     var oWidget = null;
+
     if (oNode.nodeType == 1) {
         var params = this.getNodeParams(oNode);
         if (oNode.namespaceURI == QuiX.namespace) {
@@ -1227,13 +1231,13 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
             switch(localName) {
                 case 'flatbutton':
                     oWidget = new QuiX.ui.FlatButton(params);
-                    if (params.type=='menu') {
+                    if (params.type == 'menu') {
                         parentW.appendChild(oWidget);
                         oWidget = oWidget.contextMenu;
                     }
                     break;
                 case 'field':
-                    if (params.type=='textarea') {
+                    if (params.type == 'textarea') {
                         params.value = QuiX.getInnerText(oNode);
                     }
                     oWidget = new QuiX.ui.Field(params);
