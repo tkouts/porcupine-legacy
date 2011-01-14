@@ -154,13 +154,15 @@ QuiX.ui.Widget.prototype.parse = function(dom, callback) {
 
 QuiX.ui.Widget.prototype.parseFromString = function(s /*, oncomplete*/) {
     var oncomplete = arguments[1] || null;
+
     this.parse(QuiX.parsers.domFromString(s), oncomplete);
 }
 
 QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete*/) {
-    var oncomplete = arguments[1] || null;
-    var xmlhttp = QuiX.XHRPool.getInstance();
-    var self = this;
+    var oncomplete = arguments[1] || null,
+        xmlhttp = QuiX.XHRPool.getInstance(),
+        self = this;
+
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4) {
             var dom;
@@ -386,7 +388,7 @@ QuiX.ui.Widget.prototype.getBgColor = function() {
     return this._bgc || '';
 }
 
-//borderWidth attribute
+// borderWidth attribute
 QuiX.ui.Widget.prototype.setBorderWidth = function(iWidth) {
     this.div.style.borderWidth = iWidth + 'px';
 }
@@ -395,7 +397,7 @@ QuiX.ui.Widget.prototype.getBorderWidth = function() {
            parseInt(this.div.style.borderTopWidth);
 }
 
-//display attribute
+// display attribute
 QuiX.ui.Widget.prototype.setDisplay = function(sDispl) {
     this.div.style.display = sDispl || '';
 }
@@ -403,7 +405,7 @@ QuiX.ui.Widget.prototype.getDisplay = function() {
     return this.div.style.display;
 }
 
-//overflow attribute
+// overflow attribute
 QuiX.ui.Widget.prototype.setOverflow = function(sOverflow) {
     if (sOverflow.indexOf(" ") == -1) {
         this.div.style.overflow = sOverflow;
@@ -438,7 +440,7 @@ QuiX.ui.Widget.prototype.getOverflow = function() {
     }
 }
 
-//position attribute
+// position attribute
 QuiX.ui.Widget.prototype.setPosition = function(sPos) {
     this.div.style.position = sPos || '';
 }
@@ -446,7 +448,7 @@ QuiX.ui.Widget.prototype.getPosition = function() {
     return this.div.style.position;
 }
 
-//opacity attribute
+// opacity attribute
 QuiX.ui.Widget.prototype.setOpacity = function(fOpacity) {
     QuiX.setOpacity(this.div, fOpacity);
 }
@@ -455,11 +457,7 @@ QuiX.ui.Widget.prototype.getOpacity = function() {
     return (isNaN(opacity))? 1:opacity;
 }
 
-function handleIEBox(w, shadow) {
-	
-}
-
-//box shadow attribute
+// box shadow attribute
 QuiX.ui.Widget.prototype.setShadow = function(shadow) {
 	this._shadow = shadow;
 	QuiX.setShadow(this.div, shadow);
@@ -469,7 +467,7 @@ QuiX.ui.Widget.prototype.getShadow = function() {
     return this._shadow || null;
 }
 
-//padding attribute
+// padding attribute
 QuiX.ui.Widget.prototype.setPadding = function(arrPadding) {
     var near = (QuiX.dir != 'rtl')?'paddingLeft':'paddingRight';
     var far = (QuiX.dir != 'rtl')?'paddingRight':'paddingLeft';
@@ -925,6 +923,18 @@ QuiX.ui.Widget.prototype.sendToBack = function() {
     }
 }
 
+QuiX.ui.Widget.prototype.setOrder = function(order) {
+    this.parent.widgets.removeItem(this);
+    this.parent.widgets.splice(order, 0, this);
+
+    // re-order z-index
+    this.parent.maxz = 0;
+    this.parent.minz = 0;
+    for (var i=0; i<this.parent.widgets.length; i++) {
+        this.parent.widgets[i].div.style.zIndex = ++this.parent.maxz;
+    }
+}
+
 QuiX.ui.Widget.prototype.click = function() {
     QuiX.sendEvent(this.div, 'MouseEvents', 'onclick');
 }
@@ -949,10 +959,20 @@ QuiX.ui.Widget.prototype.moveTo = function(x, y) {
 }
 
 QuiX.ui.Widget.prototype.resize = function(x, y) {
-    var minw = this._calcMinWidth();
-    var minh = this._calcMinHeight();
-    this.width = (x > minw)? x:minw;
-    this.height = (y > minh)? y:minh;
+    if (this.minw != 0) {
+        var minw = this._calcMinWidth();
+        this.width = (x > minw)? x:minw;
+    }
+    else {
+        this.width = x;
+    }
+    if (this.minh != 0) {
+        var minh = this._calcMinHeight();
+        this.height = (y > minh)? y:minh;
+    }
+    else {
+        this.height = y;
+    }
     this.redraw();
 }
 
