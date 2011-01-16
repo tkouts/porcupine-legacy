@@ -550,7 +550,7 @@ class File(ExternalAttribute):
         @return: None
         """
         f = open(fname, 'rb')
-        self.value = oFile.read()
+        self.value = f.read()
         f.close()
 
 
