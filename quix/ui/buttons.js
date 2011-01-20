@@ -5,7 +5,9 @@ Labels & Buttons
 // label
 
 QuiX.ui.Label = function(/*params*/) {
-    var params = arguments[0] || {};
+    var params = arguments[0] || {},
+    	textOpacity = params.textopacity || 1;
+
     params.padding = params.padding || '2,2,2,2';
 
     this.base = QuiX.ui.Widget;
@@ -40,6 +42,9 @@ QuiX.ui.Label = function(/*params*/) {
 
     var caption = params.caption || '';
     this.div.appendChild(ce('SPAN'));
+    if (textOpacity != 1) {
+        this.setTextOpacity(textOpacity);
+    }
     this.setCaption(caption);
 }
 
@@ -58,6 +63,16 @@ QuiX.ui.Label.prototype._calcSize = function(height, offset, getHeight, memo) {
     else {
         return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
     }
+}
+
+QuiX.ui.Label.prototype.setTextOpacity = function(op) {
+    var span = this.div.getElementsByTagName('SPAN')[0];
+    QuiX.setOpacity(span, op);
+}
+
+QuiX.ui.Label.prototype.getTextOpacity = function() {
+    var span = this.div.getElementsByTagName('SPAN')[0];
+    return QuiX.getOpacity(span) || 1;
 }
 
 QuiX.ui.Label.prototype.setCaption = function(s) {
@@ -305,7 +320,8 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
 // button
 
 QuiX.ui.Button = function(/*params*/) {
-    var params = arguments[0] || {};
+    var params = arguments[0] || {},
+    	textOpacity = params.textopacity || 1;
     this.icon = null;
     this.base = QuiX.ui.Widget;
     this.base({
@@ -353,7 +369,9 @@ QuiX.ui.Button = function(/*params*/) {
     this.icon.div.className = 'l2';
     this.icon.setPosition();
     this.appendChild(this.icon);
-
+    if (textOpacity != 1) {
+        this.setTextOpacity(textOpacity);
+    }
     if (this._isDisabled) {
         this._statecursor = 'pointer';
     }
@@ -386,7 +404,7 @@ QuiX.ui.Button.prototype._calcSize = function(height, offset, getHeight,
         // required by safari
         var imgs = div.getElementsByTagName('IMG');
         if (imgs.length > 0) {
-        	imgs[0].style.height = '';
+            imgs[0].style.height = '';
         }
         //
         document.body.appendChild(div);
@@ -403,6 +421,14 @@ QuiX.ui.Button.prototype._calcSize = function(height, offset, getHeight,
     else {
         return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
     }
+}
+
+QuiX.ui.Button.prototype.setTextOpacity = function(op) {
+    this.icon.setTextOpacity(op);
+}
+
+QuiX.ui.Button.prototype.getTextOpacity = function() {
+    return this.icon.getTextOpacity();
 }
 
 QuiX.ui.Button.prototype.setPadding = function(pad) {
