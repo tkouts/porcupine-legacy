@@ -128,18 +128,18 @@ BODY {
     color: #333;
 
     border-style: solid;
-    border-color: #666;
+    border-color: #C0C1BF;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
 
-    background-color: #E3E3E3;
-    background-image: url(images/btn.gif);
+    background-color: #D7D7D7;
+    background-image: url(images/btn.png);
     background-repeat: repeat-x;
 
     background: -webkit-gradient(linear, left top, left bottom,
-                                 from(#FBFBFB), to(#E3E3E3)); /* for webkit browsers */
-    background: -moz-linear-gradient(top,  #FBFBFB,  #E3E3E3); /* for firefox 3.6+ */
+                                 from(#F0F0F0), to(#D7D7D7)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #F0F0F0,  #D7D7D7); /* for firefox 3.6+ */
 }
 
 .btn .l2 {
@@ -429,12 +429,12 @@ BODY {
 }
 
 .tabpane .tabpage {
-    background-color: #EDEDED;
-    -webkit-border-radius: 6px 6px 0px 0px;
-    -moz-border-radius: 6px 6px 0px 0px;
-    border-radius: 6px 6px 0px 0px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
     border-style: solid;
     border-color: #999999;
+    background-color: #EDEDED;
 }
 
 /********************/
@@ -570,13 +570,11 @@ BODY {
 
 .tree {
     cursor: default;
-    border-style: none;
     color: #0099CC;
 }
 
 .treenode {
-    font-weight: bold;
-    font-size: 14px;
+    color: #333333;
 }
 
 .treenode A {
@@ -592,18 +590,32 @@ BODY {
 }
 
 .treenode.selected {
-    color: #333333;
-    background: #C3E1F5;
+    color: #FFFFFF;
+    background: #00ABE6;
 }
 
 /********************/
 /* Combo            */
 /********************/
 
+.combo {
+    border: solid #C0C1BF;
+
+    background-color: #D7D7D7;
+    background-image: url(images/btn.png);
+    background-repeat: repeat-x;
+
+    background: -webkit-gradient(linear, left top, left bottom,
+                                 from(#F0F0F0), to(#D7D7D7)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #F0F0F0,  #D7D7D7); /* for firefox 3.6+ */
+}
+
 .combo .btn {
     -webkit-border-radius: 0px 3px 3px 0px;
     -moz-border-radius: 0px 3px 3px 0px;
     border-radius: 0px 3px 3px 0px;
+    border-color: transparent transparent transparent #C0C1BF;
+    background: none;
 }
 
 .combo INPUT {
@@ -613,23 +625,9 @@ BODY {
 }
 
 .combo.noneditable {
-    border: solid #666;
-    
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
-
-    background-color: #E3E3E3;
-    background-image: url(images/btn.gif);
-    background-repeat: repeat-x;
-
-    background: -webkit-gradient(linear, left top, left bottom,
-                                 from(#FBFBFB), to(#E3E3E3)); /* for webkit browsers */
-    background: -moz-linear-gradient(top,  #FBFBFB,  #E3E3E3); /* for firefox 3.6+ */
-}
-
-.combo.noneditable .btn {
-    border-color: transparent transparent transparent #666;
 }
 
 .combo.noneditable INPUT {
@@ -637,19 +635,19 @@ BODY {
 }
 
 .combo.editable {
-    border-color: transparent;
-    background: transparent;
+    -webkit-border-radius: 0px 3px 3px 0px;
+    -moz-border-radius: 0px 3px 3px 0px;
+    border-radius: 0px 3px 3px 0px;
 }
 
 .combo.editable INPUT {
     background-color: white;
-    border: 1px solid;
-    border-color: #333 #CCC #CCC #333;
+    border: none;
 }
 
 .combodropdown {
     border-style: solid;
-    border-color: gray;
+    border-color: #C0C1BF;
     background: white;
 }
 
@@ -769,7 +767,7 @@ BODY {
 /********************/
 
 .slider .slot {
-    border-color: #666;
+    border-color: #929292;
     border-style: solid;
 
     -webkit-border-radius: 3px;
@@ -786,11 +784,7 @@ BODY {
 /********************/
 
 .flowbox .selected {
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    border-radius: 3px;
-
-    background-color: #0099FF;
+    background-color: #00ABE6 !important;
 }
 
 /********************/

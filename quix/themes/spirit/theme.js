@@ -103,7 +103,7 @@ QuiX.theme = {
                               this.width,
                         height: '100%',
                         width: this.width,
-                        img: img || '$THEME_URL$images/combo.gif'
+                        img: img || '$THEME_URL$images/combo.png'
                     });
             }
         },
@@ -228,7 +228,7 @@ QuiX.theme = {
                         top: 'center',
                         left: 0,
                         width: '100%',
-                        height: 4,
+                        height: 5,
                         bgcolor: '#CCC',
                         border: 1,
                         overflow: 'hidden'
@@ -236,13 +236,13 @@ QuiX.theme = {
             }
         },
         handle: {
-            width: 10,
+            width: 15,
             get: function() {
                 return new QuiX.ui.Image({
                         img: QuiX.getThemeUrl() + 'images/slider.png',
                         top: 'center',
                         width: this.width,
-                        height: 18,
+                        height: 15,
                         border: 0,
                         padding: '0,0,0,0',
                         overflow: 'visible'
