@@ -1732,7 +1732,7 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
         }
     }
 
-    if ((!QuiX.supportTouches || QuiX.utils.BrowserInfo.OS == 'iPad') &&
+    if ((!QuiX.supportTouches) &&
             (el.tagName != 'INPUT' && el.tagName != 'TEXTAREA')) {
         QuiX.cancelDefault(evt);
         return false;
