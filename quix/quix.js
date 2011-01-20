@@ -1058,8 +1058,9 @@ QuiX.measureWidget = function(w, dim) {
     var measure = (dim == 'height')? 'offsetHeight':'offsetWidth';
     var padding_offset = (dim == 'height')? 2:0;
     var padding = w.getPadding();
-    if (w[other] != 'auto')
+    if (w[other] != 'auto') {
         div.style[other] = w[other_func](true) + 'px';
+    }
     div.innerHTML = w.div.innerHTML;
     // required by webkit
     var imgs = div.getElementsByTagName('IMG');
