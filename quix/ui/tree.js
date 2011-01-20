@@ -62,17 +62,27 @@ QuiX.ui.TreeNode.prototype.appendChild = function(w /*, index*/) {
             tree_index = this.parent.widgets.indexOf(this.childNodes[index]);
         }
         else {
-            var last = this.childNodes[this.childNodes.length - 1];
-            tree_index = this.parent.widgets.indexOf(last) +
-                         last.childNodes.length + 1;
+            var last = this.childNodes[this.childNodes.length - 1],
+                next = last.nextSibling();
+
+            tree_index = this.parent.widgets.indexOf(last) + 1;
+            while (next && next._level > last._level) {
+                tree_index++;
+                next = next.nextSibling();
+            }
         }
         this.childNodes.splice(index, 0, w);
     }
     else {
         if (this.childNodes.length > 0) {
-            var last = this.childNodes[this.childNodes.length - 1];
-            tree_index = this.parent.widgets.indexOf(last) +
-                         last.childNodes.length + 1;
+            var last = this.childNodes[this.childNodes.length - 1],
+                next = last.nextSibling();
+
+            tree_index = this.parent.widgets.indexOf(last) + 1;
+            while (next && next._level > last._level) {
+                tree_index++;
+                next = next.nextSibling();
+            }
         }
         else {
             tree_index = this.parent.widgets.indexOf(this) + 1;
@@ -206,9 +216,10 @@ QuiX.ui.TreeNode.prototype.destroy = function() {
 }
 
 QuiX.ui.TreeNode.prototype.clear = function() {
-    for (var i=0; i<this.childNodes.length; i++) {
-        this.childNodes[i].clear();
-        this.childNodes[i].destroy();
+    var next = this.nextSibling();
+    while (next && next._level > this._level) {
+        next.destroy();
+        next = this.nextSibling();
     }
     this.childNodes = [];
 }
