@@ -455,13 +455,15 @@ QuiX.ui.ListView.prototype.sort = function(colName, order) {
         QuiX.removeNode(this._sortimg);
         this._sortimg = null;
     }
-    if (this.sortfunc)
+    if (this.sortfunc) {
         this.sortfunc(this, colName, order);
+    }
     else {
         // default sort behaviour
         this.dataSet.sortByAttribute(colName);
-        if (order.toUpperCase()=='DESC')
+        if (order.toUpperCase() == 'DESC') {
             this.dataSet.reverse();
+        }
         this.refresh();
     }
     if (column) {
@@ -477,16 +479,19 @@ QuiX.ui.ListView.prototype.sort = function(colName, order) {
 }
 
 QuiX.ui.ListView.prototype._isSorted = function() {
-    var field = this._orderBy;
-    var order = this._sortOrder;
+    var field = this._orderBy,
+        order = this._sortOrder;
+
     for (var i=0; i<this.dataSet.length - 1; i++) {
         if (order == 'ASC') {
-            if (this.dataSet[i][field] > this.dataSet[i+1][field])
+            if (this.dataSet[i][field] > this.dataSet[i+1][field]) {
                 return false;
+            }
         }
         else {
-            if (this.dataSet[i][field] < this.dataSet[i+1][field])
+            if (this.dataSet[i][field] < this.dataSet[i+1][field]) {
                 return false;
+            }
         }
     }
     return true;
@@ -521,13 +526,15 @@ QuiX.ui.ListView.prototype.refresh = function() {
     }
     if (this.dataSet.length * this.columns.length >
             QuiX.ui.ListView.cellThreshold) {
-        if (this._timeout)
-            window.clearTimeout(this._timeout);
         var self = this;
+        if (this._timeout) {
+            window.clearTimeout(this._timeout);
+        }
         this._timeout = window.setTimeout(function(){self._refresh(0, 30)}, 0);
     }
-    else
+    else {
         this._refresh(0, this.dataSet.length);
+    }
 }
 
 QuiX.ui.ListView.prototype._refresh = function(start, step) {
