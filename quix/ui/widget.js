@@ -216,14 +216,15 @@ QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
 }
 
 QuiX.ui.Widget.prototype.query = function(eval_func, shallow, limit) {
-    var w;
-    var ws = [];
+    var w,
+        ws = [];
+
     for (var i=0; i<this.widgets.length; i++) {
         w = this.widgets[i];
         if (eval_func.apply(w)) {
             ws.push(w);
         }
-        if (!shallow) {
+        if (!shallow && w.widgets.length > 0) {
             ws = ws.concat(w.query(eval_func, shallow, limit));
         }
         if (limit && ws.length >= limit) {
