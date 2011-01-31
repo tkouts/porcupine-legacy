@@ -22,125 +22,128 @@
 
 QuiX.ui.RichText = function(/*params*/) {
     var params = arguments[0] || {};
-    params.orientation = 'v';
     params.spacing = 0;
-    this.base = QuiX.ui.Box;
+    this.base = QuiX.ui.VBox;
     this.base(params);
     this.div.className = 'richtext';
 
-    var toolbarItems = params.toolbaritems ||
-        'bold,italic,hyperlink,insertunorderedlist,' +
-        'insertorderedlist,image,htmlsource,format';
-    this.toolbarItems = toolbarItems.split(',');
+    var toolbar = !(params.toolbar == false || params.toolbar == 'false');
     this.insertParagraphs = true;
     this.autoClean = (params.autoclean == 'false' || params.autoclean == false);
     this.readonly = (params.readonly == 'true' || params.readonly == true);
-    this.target = (typeof(params.target) == 'undefined')?'_blank':params.target;
+    this.target = (typeof(params.target) == 'undefined')? '_blank':params.target;
 
-    // create the toolbar
-    this.toolbar = new QuiX.ui.Box({
-        height : 36,
-        orientation : 'h',
-        padding : '2,2,2,2'
-    });
-    this.appendChild(this.toolbar);
+    if (toolbar) {
+        var toolbarItems = params.toolbaritems ||
+            'bold,italic,hyperlink,insertunorderedlist,' +
+            'insertorderedlist,image,htmlsource,format';
+        this.toolbarItems = toolbarItems.split(',');
 
-    // add buttons
-    var tbuttons = {
-        'bold' : {
-            id : 'bold',
-            img : '$THEME_URL$images/edit_bold.gif',
-            width : 32,
-            imgwidth : 24,
-            imgheight : 24,
-            type : 'toggle',
-            tooltip : 'Bold',
-            disabled : this.readonly,
-            onclick : this._toolbarAction},
-        'italic' : {
-            id : 'italic',
-            img : '$THEME_URL$images/edit_italic.gif',
-            width : 32,
-            imgwidth : 24,
-            imgheight : 24,
-            type : 'toggle',
-            tooltip : 'Italic',
-            disabled : this.readonly,
-            onclick : this._toolbarAction},
-        'hyperlink' : {
-            id : 'hyperlink',
-            img : '$THEME_URL$images/edit_link.gif',
-            width : 32,
-            imgwidth : 24,
-            imgheight : 24,
-            type : 'toggle',
-            tooltip : 'Hyperlink',
-            disabled : this.readonly,
-            onclick : this._toolbarAction},
-        'insertunorderedlist' : {
-            id : 'insertunorderedlist',
-            img : '$THEME_URL$images/edit_unordered.gif',
-            width : 32,
-            imgwidth : 24,
-            imgheight : 24,
-            type : 'toggle',
-            tooltip : 'Unordered list',
-            disabled : this.readonly,
-            onclick : this._toolbarAction},
-        'insertorderedlist' : {
-            id : 'insertorderedlist',
-            img : '$THEME_URL$images/edit_ordered.gif',
-            width : 32,
-            imgwidth : 24,
-            imgheight : 24,
-            type : 'toggle',
-            tooltip : 'Ordered list',
-            disabled : this.readonly,
-            onclick : this._toolbarAction},
-        'image' : {
-            id : 'image',
-            img : '$THEME_URL$images/edit_image.gif',
-            width : 32,
-            imgwidth : 24,
-            imgheight : 24,
-            tooltip : 'Add image',
-            disabled : this.readonly,
-            onclick : this._toolbarAction},
-        'htmlsource' : {
-            id : 'htmlsource',
-            img : '$THEME_URL$images/edit_html.gif',
-            width : 32,
-            imgwidth : 24,
-            imgheight : 24,
-            type : 'toggle',
-            tooltip : 'View source',
-            onclick : this._toolbarAction},
-        'format' : {
-            id : 'format',
-            img : '$THEME_URL$images/edit_block.gif',
-            width : 40,
-            imgwidth : 24,
-            imgheight : 24,
-            tooltip : 'Edit block',
-            disabled : this.readonly,
-            type : 'menu'}
-    }
-    for (var i=0; i<this.toolbarItems.length; i++) {
-        this.toolbar.appendChild(
-            new QuiX.ui.FlatButton(tbuttons[this.toolbarItems[i]])
-        );
-    }
-    var bt = this.toolbar.getWidgetById('format');
-    if (bt) {
-        var option;
-        for (var j=0; j<this.blockOptions.length; j+=2) {
-            option  = bt.contextMenu.addOption({
-                id : 'formatblock',
-                caption : this.blockOptions[j+1],
-                type : 'radio',
-                onclick : this._toolbarAction
-            });
-            option.attributes.block = this.blockOptions[j];
+        // create the toolbar
+        this.toolbar = new QuiX.ui.Box({
+            height : 36,
+            orientation : 'h',
+            padding : '2,2,2,2'
+        });
+        this.appendChild(this.toolbar);
+
+        // add buttons
+        var tbuttons = {
+            'bold' : {
+                id : 'bold',
+                img : '$THEME_URL$images/edit_bold.gif',
+                width : 32,
+                imgwidth : 24,
+                imgheight : 24,
+                type : 'toggle',
+                tooltip : 'Bold',
+                disabled : this.readonly,
+                onclick : QuiX.ui.RichText._toolbarAction},
+            'italic' : {
+                id : 'italic',
+                img : '$THEME_URL$images/edit_italic.gif',
+                width : 32,
+                imgwidth : 24,
+                imgheight : 24,
+                type : 'toggle',
+                tooltip : 'Italic',
+                disabled : this.readonly,
+                onclick : QuiX.ui.RichText._toolbarAction},
+            'hyperlink' : {
+                id : 'hyperlink',
+                img : '$THEME_URL$images/edit_link.gif',
+                width : 32,
+                imgwidth : 24,
+                imgheight : 24,
+                type : 'toggle',
+                tooltip : 'Hyperlink',
+                disabled : this.readonly,
+                onclick : QuiX.ui.RichText._toolbarAction},
+            'insertunorderedlist' : {
+                id : 'insertunorderedlist',
+                img : '$THEME_URL$images/edit_unordered.gif',
+                width : 32,
+                imgwidth : 24,
+                imgheight : 24,
+                type : 'toggle',
+                tooltip : 'Unordered list',
+                disabled : this.readonly,
+                onclick : QuiX.ui.RichText._toolbarAction},
+            'insertorderedlist' : {
+                id : 'insertorderedlist',
+                img : '$THEME_URL$images/edit_ordered.gif',
+                width : 32,
+                imgwidth : 24,
+                imgheight : 24,
+                type : 'toggle',
+                tooltip : 'Ordered list',
+                disabled : this.readonly,
+                onclick : QuiX.ui.RichText._toolbarAction},
+            'image' : {
+                id : 'image',
+                img : '$THEME_URL$images/edit_image.gif',
+                width : 32,
+                imgwidth : 24,
+                imgheight : 24,
+                tooltip : 'Add image',
+                disabled : this.readonly,
+                onclick : QuiX.ui.RichText._toolbarAction},
+            'htmlsource' : {
+                id : 'htmlsource',
+                img : '$THEME_URL$images/edit_html.gif',
+                width : 32,
+                imgwidth : 24,
+                imgheight : 24,
+                type : 'toggle',
+                tooltip : 'View source',
+                onclick : QuiX.ui.RichText._toolbarAction},
+            'format' : {
+                id : 'format',
+                img : '$THEME_URL$images/edit_block.gif',
+                width : 40,
+                imgwidth : 24,
+                imgheight : 24,
+                tooltip : 'Edit block',
+                disabled : this.readonly,
+                type : 'menu'}
+        }
+        for (var i=0; i<this.toolbarItems.length; i++) {
+            this.toolbar.appendChild(
+                new QuiX.ui.FlatButton(tbuttons[this.toolbarItems[i]])
+            );
+        }
+        var bt = this.toolbar.getWidgetById('format');
+        if (bt) {
+            var option;
+            for (var j=0; j<this.blockOptions.length; j+=2) {
+                option  = bt.contextMenu.addOption({
+                    id : 'formatblock',
+                    caption : this.blockOptions[j+1],
+                    type : 'radio',
+                    onclick : QuiX.ui.RichText._toolbarAction
+                });
+                option.attributes.block = this.blockOptions[j];
+            }
         }
     }
 
@@ -178,14 +181,15 @@ QuiX.ui.RichText = function(/*params*/) {
         });
 }
 
-QuiX.ui.RichText.prototype = new QuiX.ui.Box;
-QuiX.ui.RichText.prototype.blockOptions = ['<h1>', 'Heading 1',
-                                           '<h2>', 'Heading 2',
-                                           '<h3>', 'Heading 3',
-                                           '<h4>', 'Heading 4',
-                                           '<h5>', 'Heading 5',
-                                           '<h6>', 'Heading 6',
-                                           '<p>', 'Paragraph'];
+QuiX.ui.RichText.prototype = new QuiX.ui.VBox;
+QuiX.ui.RichText.prototype.blockOptions = [
+    '<h1>', 'Heading 1',
+    '<h2>', 'Heading 2',
+    '<h3>', 'Heading 3',
+    '<h4>', 'Heading 4',
+    '<h5>', 'Heading 5',
+    '<h6>', 'Heading 6',
+    '<p>', 'Paragraph'];
 
 QuiX.ui.RichText.prototype._supportsEdit = function() {
     return typeof(document.designMode) == 'string' &&
@@ -194,8 +198,9 @@ QuiX.ui.RichText.prototype._supportsEdit = function() {
 
 QuiX.ui.RichText.prototype.getValue = function() {
     var wysiwyg = this.wysiwyg;
-    if (!wysiwyg)
+    if (!wysiwyg) {
        this.writeDocument(this.field.getValue());
+    }
     this.wysiwyg = true;
     try {
         this._updateInput();
@@ -309,7 +314,7 @@ QuiX.ui.RichText.prototype.cleanPaste = function() {
 
         this.doc.body.innerHTML	= value;
         if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
-            this.convertSPANs();
+            this._convertSPANs();
         }
     }
     return true;
@@ -352,7 +357,7 @@ QuiX.ui.RichText.prototype.cleanSource = function() {
     return true;
 }
 
-QuiX.ui.RichText.prototype.convertSPANs = function(theSwitch) {
+QuiX.ui.RichText.prototype._convertSPANs = function(theSwitch) {
     var j, theChildren;
     if (theSwitch) {
         /* Replace styled spans with their semantic equivalent */
@@ -442,11 +447,12 @@ QuiX.ui.RichText.prototype.detectPaste = function(e) {
         var self = this;
         this.pasteCache = this.doc.body.innerHTML;
         this.locked = true;
-        setTimeout(function() {
-            self.cleanPaste();
-            self.locked = false;
-            return true;
-        }, 100);
+        setTimeout(
+            function() {
+                self.cleanPaste();
+                self.locked = false;
+                return true;
+            }, 100);
     }
     return true;
 }
@@ -455,17 +461,18 @@ QuiX.ui.RichText.prototype.initEdit = function() {
     var self = this;
     this.doc.designMode = 'on';
     if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
-        this.convertSPANs(false);
+        this._convertSPANs(false);
     }
     QuiX.addEvent(this.doc, "onmouseup",
         function() {
+            self._range = self._getSelectionRange();
             QuiX.cleanupOverlays();
-            self._updateToolbarState(self);
+            self._updateToolbarState();
             return true;
         });
     QuiX.addEvent(this.doc, "onkeyup",
         function() {
-            self._updateToolbarState(self);
+            self._updateToolbarState();
             return true;
         });
     QuiX.addEvent(this.doc, "onkeydown",
@@ -564,7 +571,7 @@ QuiX.ui.RichText.prototype.paragraphise = function() {
 QuiX.ui.RichText.prototype._updateInput = function() {
     /* Convert spans to semantics in Mozilla */
     if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
-        this.convertSPANs(true);
+        this._convertSPANs(true);
     }
     this._updateAnchorsTarget();
     this.paragraphise();
@@ -589,12 +596,13 @@ QuiX.ui.RichText.prototype.switchMode = function() {
             this._updateInput();
             this.frame.hide();
             this.field.show();
-            if (!this.readonly) {
+            if (!this.readonly && this.toolbar) {
                 for (i=0; i<this.toolbar.widgets.length; i++) {
                     btn = this.toolbar.widgets[i];
                     if (btn.getId() != 'htmlsource') {
-                        if (btn.type == 'toggle' && btn.value=='on')
+                        if (btn.type == 'toggle' && btn.value=='on') {
                             btn.toggle();
+                        }
                         btn.disable();
                     }
                 }
@@ -604,18 +612,20 @@ QuiX.ui.RichText.prototype.switchMode = function() {
         }
         /* Switch to WYSIWYG */
         else {
-            if (!this.readonly) {
+            if (!this.readonly && this.toolbar) {
                 for (i=0; i<this.toolbar.widgets.length; i++) {
                     btn = this.toolbar.widgets[i];
-                    if (btn.getId() != 'htmlsource')
+                    if (btn.getId() != 'htmlsource') {
                         btn.enable();
+                    }
                 }
                 this.initEdit();
             }
             this.frame.show();
             this.field.hide();
-            if (QuiX.utils.BrowserInfo.family == 'ie')
+            if (QuiX.utils.BrowserInfo.family == 'ie') {
                 this.writeDocument(this.field.getValue());
+            }
             this.wysiwyg = true;
         }
         this.redraw();
@@ -623,8 +633,8 @@ QuiX.ui.RichText.prototype.switchMode = function() {
     return true;
 }
 
-QuiX.ui.RichText.prototype.writeDocument = function(documentContent) {
-    this.doc.body.innerHTML = documentContent;
+QuiX.ui.RichText.prototype.writeDocument = function(content) {
+    this.doc.body.innerHTML = content;
     return true;
 }
 
@@ -757,30 +767,64 @@ QuiX.ui.RichText.prototype._validTags = function(theString) {
     return theString;
 }
 
+QuiX.ui.RichText.prototype.executeCommand = function(command /*, arg1, ...*/) {
+    var arg = arguments[1] || null;
+    switch (command) {
+        case 'CreateLink':
+            if (QuiX.utils.BrowserInfo.family == 'ie') {
+                this._range.select();
+            }
+            this.doc.execCommand(command, false, arg);
+            this._updateAnchorsTarget();
+            break;
+        case 'InsertImage':
+            if (QuiX.utils.BrowserInfo.family == 'ie') {
+                this._range.select();
+            }
+            this._range.collapse(false);
+            /* IE selections */
+            if (this.doc.selection)	{
+                /* Escape quotes in alt text */
+                alt = alt.replace(/"/g, "'");
+                this._range.pasteHTML('<img alt="' + arguments[2] + '" src="' + arg + '" />');
+            }
+            /* Mozilla selections */
+            else {
+                var theImageNode = this.doc.createElement("img");
+                theImageNode.src = arg;
+                theImageNode.alt = arguments[2];
+                this._range.insertNode(theImageNode);
+            }
+            break;
+        default:
+            this.doc.execCommand(command, false, arg);
+    }
+}
+
 /* Action taken when toolbar item activated */
-QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
+QuiX.ui.RichText._toolbarAction = function(evt , btn) {
     //return;
     var theWidgEditor = (btn.parent.owner || btn).parent.parent;
     var theIframe = theWidgEditor.frame.frame;
     var theSelection = "";
-    var theRange = null;
     var action = btn.getId();
+
     /* If somehow a button other than "HTML source" is clicked
      * while viewing HTML source, ignore click */
     if (!theWidgEditor.wysiwyg && action != "htmlsource") {
         return;
     }
+
     switch (action) {
         case "formatblock":
-            theWidgEditor.doc.execCommand(action, false, btn.attributes.block);
+            theWidgEditor.executeCommand(action, btn.attributes.block);
             break;
         case "htmlsource":
             theWidgEditor.switchMode();
             break;
         case "hyperlink":
-            theRange = theWidgEditor._getSelectionRange();
             if (btn.value == "off") {
-                theWidgEditor.doc.execCommand("Unlink", false, null);
+                theWidgEditor.executeCommand('Unlink');
             }
             else {
                 if (theWidgEditor.doc.selection) {
@@ -817,19 +861,13 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
                         url.focus();
                         dlg.attachEvent('onclose', function(){
                             if (dlg.buttonIndex == 0 && url.getValue() != '') {
-                                if (QuiX.utils.BrowserInfo.family=='ie')
-                                    theRange.select();
-                                theWidgEditor.doc.execCommand("CreateLink",
-                                                              false,
-                                                              url.getValue());
-                                theWidgEditor._updateAnchorsTarget();
+                                theWidgEditor.executeCommand('CreateLink', url.getValue());
                             }
                         });
                     });
             }
             return;
         case "image":
-            theRange = theWidgEditor._getSelectionRange();
             document.desktop.parseFromString(
                 '<dialog xmlns="http://www.innoscript.org/quix" \
                     title="Enter Image details" padding="4,4,4,4"\
@@ -848,36 +886,19 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
                     document.desktop.attributes.CANCEL + '"/>\
                 </dialog>',
                 function(dlg) {
-                    var url = dlg.getWidgetById('url');
-                    var alt = dlg.getWidgetById('alt').getValue();
+                    var url = dlg.getWidgetById('url'),
+                        alt = dlg.getWidgetById('alt').getValue();
+
                     url.focus();
                     dlg.attachEvent('onclose', function(){
-                        if (dlg.buttonIndex == 0 && url.getValue() != '') {
-                            if (QuiX.utils.BrowserInfo.family=='ie')
-                                theRange.select();
-                            theRange.collapse(false);
-                            /* IE selections */
-                            if (theWidgEditor.doc.selection)	{
-                                /* Escape quotes in alt text */
-                                alt = alt.replace(/"/g, "'");
-                                theRange.pasteHTML('<img alt="' +
-                                                   alt + '" src="' +
-                                                   url.getValue() + '" />');
-                            }
-                            /* Mozilla selections */
-                            else {
-                                var theImageNode =
-                                    theWidgEditor.doc.createElement("img");
-                                theImageNode.src = url.getValue();
-                                theImageNode.alt = alt;
-                                theRange.insertNode(theImageNode);
-                            }
+                        if (dlg.buttonIndex == 0 && url.getValue()) {
+                            theWidgEditor.executeCommand('InsertImage', url.getValue(), alt);
                         }
                     });
                 });
             return;
         default:
-            theWidgEditor.doc.execCommand(action, false, null);
+            theWidgEditor.executeCommand(action);
             /* If toolbar item was turned on */
             if (theWidgEditor.doc.queryCommandState(action, false, null)) {
                 theWidgEditor._setButtonState(action, "on");
@@ -894,41 +915,49 @@ QuiX.ui.RichText.prototype._toolbarAction = function(evt , btn) {
     }
 }
 
-QuiX.ui.RichText.prototype._updateToolbarState = function(theWidgEditor) {
-    if (theWidgEditor._interval)
-        clearInterval(theWidgEditor._interval);
-    theWidgEditor._interval = setTimeout(
-        function() {
-            theWidgEditor._updateToolbar(theWidgEditor);
-            return true;
-        }, 200);
-    /* strange bug in IE requires a redraw
-     * to update curret position correctly */
-    if (QuiX.utils.BrowserInfo.family == 'ie')
-        theWidgEditor.toolbar.widgets[0].redraw();
+QuiX.ui.RichText.prototype._updateToolbarState = function() {
+    if (this.toolbar) {
+        var self = this;
+        if (this._timeout) {
+            window.clearTimeout(this._interval);
+        }
+        this._timeout = window.setTimeout(
+            function() {
+                self._updateToolbar();
+                self._timeout = null;
+                return true;
+            }, 200);
+        /* strange bug in IE requires a redraw
+         * to update curret position correctly */
+        if (QuiX.utils.BrowserInfo.family == 'ie') {
+            this.toolbar.widgets[0].redraw();
+        }
+    }
 }
 
 /* Check the nesting of the current cursor position/selection */
-QuiX.ui.RichText.prototype._updateToolbar = function(theWidgEditor) {
+QuiX.ui.RichText.prototype._updateToolbar = function() {
     var theParentNode = null;
     var theLevel = 0;
-    var theRange = theWidgEditor._getSelectionRange();
+    var theRange = this._getSelectionRange();
 
     /* Turn off all the buttons */
-    var toggles = theWidgEditor.toolbar.
+    var toggles = this.toolbar.
                   getWidgetsByAttributeValue('type', 'toggle', true);
     for (var i=0; i<toggles.length; i++) {
-        if (toggles[i].value == 'on')
+        if (toggles[i].value == 'on') {
             toggles[i].toggle();
+        }
     }
     /*clear block format*/
-    var selected = theWidgEditor.toolbar.getWidgetById('format').contextMenu.
+    var selected = this.toolbar.getWidgetById('format').contextMenu.
                    getWidgetsByAttributeValue('selected', true, true);
-    if (selected.length)
+    if (selected.length) {
         selected[0].selected = false;
+    }
 
     /* IE selections */
-    if (theWidgEditor.doc.selection) {
+    if (this.doc.selection) {
         try	{
             theParentNode = theRange.parentElement();
         }
@@ -946,50 +975,46 @@ QuiX.ui.RichText.prototype._updateToolbar = function(theWidgEditor) {
     while (theParentNode.nodeName.toLowerCase() != "body") {
         switch (theParentNode.nodeName.toLowerCase()) {
             case "a":
-                theWidgEditor._setButtonState("hyperlink", "on");
+                this._setButtonState("hyperlink", "on");
                 break;
             case "em":
-                theWidgEditor._setButtonState("italic", "on");
+                this._setButtonState("italic", "on");
                 break;
             case "li":
                 break;
             case "ol":
-                theWidgEditor._setButtonState("insertorderedlist", "on");
-                theWidgEditor._setButtonState("insertunorderedlist", "off");
+                this._setButtonState("insertorderedlist", "on");
+                this._setButtonState("insertunorderedlist", "off");
                 break;
             case "span":
                 if (theParentNode.getAttribute("style") ==
-                        "font-weight: bold;")
-                {
-                    theWidgEditor._setButtonState("bold", "on");
+                        "font-weight: bold;") {
+                    this._setButtonState("bold", "on");
                 }
                 else if (theParentNode.getAttribute("style") ==
-                        "font-style: italic;")
-                {
-                    theWidgEditor._setButtonState("italic", "on");
+                        "font-style: italic;") {
+                    this._setButtonState("italic", "on");
                 }
                 else if (theParentNode.getAttribute("style") ==
-                        "font-weight: bold; font-style: italic;")
-                {
-                    theWidgEditor._setButtonState("bold", "on");
-                    theWidgEditor._setButtonState("italic", "on");
+                        "font-weight: bold; font-style: italic;") {
+                    this._setButtonState("bold", "on");
+                    this._setButtonState("italic", "on");
                 }
                 else if (theParentNode.getAttribute("style") ==
-                        "font-style: italic; font-weight: bold;")
-                {
-                    theWidgEditor._setButtonState("bold", "on");
-                    theWidgEditor._setButtonState("italic", "on");
+                        "font-style: italic; font-weight: bold;") {
+                    this._setButtonState("bold", "on");
+                    this._setButtonState("italic", "on");
                 }
                 break;
             case "strong":
-                theWidgEditor._setButtonState("bold", "on");
+                this._setButtonState("bold", "on");
                 break;
             case "ul":
-                theWidgEditor._setButtonState("insertunorderedlist", "on");
-                theWidgEditor._setButtonState("insertorderedlist", "off");
+                this._setButtonState("insertunorderedlist", "on");
+                this._setButtonState("insertorderedlist", "off");
                 break;
             default:
-                theWidgEditor._setButtonState(
+                this._setButtonState(
                     'format',
                     "<" + theParentNode.nodeName.toLowerCase() + ">");
         }
