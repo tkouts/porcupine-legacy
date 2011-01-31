@@ -136,11 +136,11 @@ QuiX.ui.TabPane.prototype.activateTab = function(tab) {
     }
 
     var oTab = this.tabs[iTab];
-    oTab.bringToFront();
+    oTab.div.style.zIndex = ++this.maxz;
     oTab.show();
     oTab.redraw();
 
-    oTab.tabButton.bringToFront();
+    oTab.tabButton.div.style.zIndex = ++this.maxz;
     oTab.tabButton.top = -2;
     oTab.tabButton.div.className = 'tab active';
     oTab.tabButton.detachEvent('onclick', QuiX.ui.TabPane._tabClick);
