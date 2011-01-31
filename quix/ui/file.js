@@ -88,7 +88,7 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
         button_image_url: params.img || (QuiX.baseUrl + 'images/transp.gif'),
         button_disabled : (params.readonly == 'true' ||
                            params.readonly == true)? true:false,
-        
+
         file_size_limit : params.maxfilesize || 0,
         file_types : params.filetypes || '*',
 
@@ -215,12 +215,12 @@ QuiX.ui.File.prototype.onerror = function(e) {
 QuiX.ui.MultiFile = function(/*params*/) {
     var params = arguments[0] || {};
     params.onunload = QuiX.ui.File.onunload;
-    
+
     this.name = params.name;
     this.method = params.method;
     this.readonly = (params.readonly == 'true' ||
                      params.readonly == true)? true:false;
-    
+
     this.base = QuiX.ui.Widget;
     this.base(params);
     this.selectlist = new QuiX.ui.SelectList({
@@ -230,7 +230,7 @@ QuiX.ui.MultiFile = function(/*params*/) {
         ondblclick : this.downloadFile
     });
     this.appendChild(this.selectlist);
-    
+
     this.removeButton = new QuiX.ui.FlatButton({
         width : 24,
         height : 24,
@@ -382,6 +382,7 @@ QuiX.ui.MultiFile.prototype.uploadSuccess =
 function(file, server_data, response) {
     this.upload_queue[0].tmpfile = server_data;
     this.upload_queue[0].img = '$THEME_URL$images/file_temporary.gif';
+    this.upload_queue[0].id = '';
 }
 
 QuiX.ui.MultiFile.prototype.uploadComplete = function(file) {
