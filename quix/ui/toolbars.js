@@ -101,8 +101,9 @@ QuiX.ui.OutlookBar.prototype.addPane = function(params) {
 
     this.appendChild(w1);
 
-    if (this.panes.length!=0)
+    if (this.panes.length != 0) {
         w1.hide();
+    }
     w1.setPosition('relative');
 
     this.panes.push(w1);
