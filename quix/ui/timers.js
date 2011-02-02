@@ -137,6 +137,8 @@ QuiX.ui.Effect = function(/*params*/) {
     }
 }
 
+QuiX.ui.Effect.cssTransition = QuiX.getCssAttribute('transition');
+
 QuiX.constructors['effect'] = QuiX.ui.Effect;
 QuiX.ui.Effect.prototype = new QuiX.ui.Timer;
 
@@ -244,7 +246,7 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
         QuiX.addEvent(wd.div, evtTransitionEnd,
             function _ontransitionend() {
                 // clear css attrs
-                this.style[QuiX.getCssAttribute('transition')] = '';
+                this.style[QuiX.ui.Effect.cssTransition] = '';
                 // detach event
                 QuiX.removeEvent(this, evtTransitionEnd, _ontransitionend);
                 self.stop();
@@ -264,47 +266,70 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
                 self._setCssTransition(wd, transition);
             }
             self._step = self.steps;
-            self._apply(wd);
+            if (self.type.slice(0,5) == 'slide') {
+                // use transforms
+                var range = self._getRange(wd);
+                if (self.type == 'slide-x') {
+                    wd.div.style[QuiX.getCssAttribute('transform')] =
+                        'translate(' + (range[1] - range[0]) + 'px,0px)';
+                }
+                else if (self.type == 'slide-y') {
+                    wd.div.style[QuiX.getCssAttribute('transform')] =
+                        'translate(0px,' + (range[1] - range[0]) + 'px)';
+                }
+            }
+            else {
+                self._apply(wd);
+            }
         }, 0);
 }
 
 QuiX.ui.Effect.prototype._setCssTransition = function(wd, t) {
-    var cssTransition = QuiX.getCssAttribute('transition');
     switch (this.type) {
         case 'slide-x':
-            wd.div.style[cssTransition] = 'left ' + t;
+            wd.div.style[QuiX.ui.Effect.cssTransition] = 'all ' + t;
             break;
         case 'slide-y':
-            wd.div.style[cssTransition] = 'top ' + t;
+            wd.div.style[QuiX.ui.Effect.cssTransition] = 'all ' + t;
             break;
         case 'fade-in':
         case 'fade-out':
-            wd.div.style[cssTransition] = 'opacity ' + t;
+            wd.div.style[QuiX.ui.Effect.cssTransition] = 'opacity ' + t;
             break;
         case 'wipe-in':
         case 'wipe-out':
-            wd.div.style[cssTransition] = 'clip ' + t;
+            wd.div.style[QuiX.ui.Effect.cssTransition] = 'clip ' + t;
     }
 }
 
 QuiX.ui.Effect.prototype.stop = function() {
+    var wd = this._w || this.parent;
+
     if (this._timerid) {
         QuiX.ui.Timer.prototype.stop.apply(this, arguments);
     }
-    if (this._step == this.steps + 1) {
+    if (this._step >= this.steps) {
         // completed
         switch (this.type) {
             case 'wipe-in':
                 var ev = this._reverse? this.begin:this.end;
                 if (ev == 1) {
                     if (QuiX.utils.BrowserInfo.family == 'ie') {
-                        with ((this._w || this.parent).div.style) {
+                        with (wd.div.style) {
                             cssText = cssText.replace(/CLIP.*?:.*?;/ig, '');
                         }
                     }
                     else {
-                        (this._w || this.parent).div.style.clip = '';
+                        wd.div.style.clip = '';
                     }
+                }
+                break;
+            case 'slide-x':
+            case 'slide-y':
+                if (QuiX.ui.Effect.cssTransition) {
+                    // restore x and y coordinates
+                    this._apply(wd);
+                    wd.div.style[QuiX.getCssAttribute('transform')] = '';
                 }
         }
         this._step = 0;
@@ -325,7 +350,7 @@ QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
         //QuiX.ui.Effect._handler(this);
         this._apply(wd);
         // check if css transitions are in place
-        if (QuiX.getCssAttribute('transition') &&
+        if (QuiX.ui.Effect.cssTransition &&
                 // safari and opera do not animate css clip
                 // chrome does
                 (!((QuiX.utils.BrowserInfo.browser == 'Safari' ||
