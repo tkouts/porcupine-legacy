@@ -37,6 +37,7 @@ BODY {
 
 #desktop {
     -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
 /********************/
@@ -69,11 +70,32 @@ BODY {
 .field INPUT, .field TEXTAREA {
     border: none;
     background-color: transparent;
-    font-family: Calibri, sans-serif;
-    font-size: 12px;
+    display: block;
+    -webkit-appearance: none;
+
+    /*IE inherit Hack*/
+    font-size: expression(this.parentNode.currentStyle.fontSize);
+    font-family: expression(this.parentNode.currentStyle.fontFamily);
+    font-weight: expression(this.parentNode.currentStyle.fontWeight);
+    font-style: expression(this.parentNode.currentStyle.fontStyle);
+    text-decoration: expression(this.parentNode.currentStyle.textDecoration);
+    text-align: expression(this.parentNode.currentStyle.textAlign);
+    letter-spacing: expression(this.parentNode.currentStyle.letterSpacing);
+    color: expression(this.parentNode.currentStyle.color);
+
+    font: inherit;
+    text-decoration: inherit;
+    text-align: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    text-shadow: inherit;
+    -webkit-border-radius: inherit;
+    -moz-border-radius: inherit;
+    border-radius: inherit;
 }
 
-.field INPUT:focus, .field TEXTAREA:focus {
+.field INPUT:focus,
+.field TEXTAREA:focus {
 }
 
 .field .optionselected {
@@ -137,9 +159,9 @@ BODY {
     background-image: url(images/btn.png);
     background-repeat: repeat-x;
 
-    background: -webkit-gradient(linear, left top, left bottom,
+    background-image: -webkit-gradient(linear, left top, left bottom,
                                  from(#F0F0F0), to(#D7D7D7)); /* for webkit browsers */
-    background: -moz-linear-gradient(top,  #F0F0F0,  #D7D7D7); /* for firefox 3.6+ */
+    background-image: -moz-linear-gradient(top,  #F0F0F0,  #D7D7D7); /* for firefox 3.6+ */
 }
 
 .btn .l2 {
@@ -703,8 +725,7 @@ BODY {
 }
 
 .spin.editable INPUT {
-    border: 1px solid;
-    border-color: #333 #CCC #CCC #333;
+    border: 1px solid #C0C1BF;
 }
 
 .spin #_up {

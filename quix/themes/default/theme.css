@@ -37,6 +37,7 @@ BODY {
 
 #desktop {
     -webkit-user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
 
 /********************/
@@ -60,8 +61,28 @@ BODY {
 .field INPUT, .field TEXTAREA {
     border: none;
     background-color: transparent;
-    font-family: Geneva, sans-serif;
-    font-size: 11px;
+    display: block;
+    -webkit-appearance: none;
+
+    /*IE inherit Hack*/
+    font-size: expression(this.parentNode.currentStyle.fontSize);
+    font-family: expression(this.parentNode.currentStyle.fontFamily);
+    font-weight: expression(this.parentNode.currentStyle.fontWeight);
+    font-style: expression(this.parentNode.currentStyle.fontStyle);
+    text-decoration: expression(this.parentNode.currentStyle.textDecoration);
+    text-align: expression(this.parentNode.currentStyle.textAlign);
+    letter-spacing: expression(this.parentNode.currentStyle.letterSpacing);
+    color: expression(this.parentNode.currentStyle.color);
+
+    font: inherit;
+    text-decoration: inherit;
+    text-align: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    text-shadow: inherit;
+    -webkit-border-radius: inherit;
+    -moz-border-radius: inherit;
+    border-radius: inherit;
 }
 
 .field INPUT:focus, .field TEXTAREA:focus {
