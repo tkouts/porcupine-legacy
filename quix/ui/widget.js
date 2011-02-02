@@ -346,6 +346,8 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
     var bgc = color.split(',');
     if (bgc.length > 1 && bgc[0].slice(0,3) != 'rgb') {
         // gradient
+        // clear background color
+        this.div.style.backgroundColor = '';
         switch (QuiX.utils.BrowserInfo.family) {
             case 'moz':
                 this.div.style.backgroundImage = '-moz-linear-gradient(' +
@@ -368,7 +370,7 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
                 var types = {left:1, top:0};
                 this.div.style.filter =
                     'progid:DXImageTransform.Microsoft.gradient(' +
-                    "GradientType=" + types[bgc[0]] + "," +
+                    'GradientType=' + types[bgc[0]] + ',' +
                     "startColorstr='" + bgc[1] + "'," +
                     "endColorstr='" + bgc[2] + "')";
                 break;
@@ -381,6 +383,13 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
     }
     else {
         // single color
+        // clear background image if gradient
+        if (this.div.style.backgroundImage.indexOf('gradient') > -1) {
+            this.div.style.backgroundImage = '';
+        }
+        else if (this.div.style.filter && this.div.style.filter.indexOf('gradient') > -1) {
+            this.div.style.filter = '';
+        }
         this.div.style.backgroundColor = color;
         this._bgc = color;
     }
@@ -395,7 +404,7 @@ QuiX.ui.Widget.prototype.setBorderWidth = function(iWidth) {
 }
 QuiX.ui.Widget.prototype.getBorderWidth = function() {
     return parseInt(this.div.style.borderWidth) ||
-           parseInt(this.div.style.borderTopWidth);
+           parseInt(this.div.style.borderTopWidth) || 0;
 }
 
 // display attribute
@@ -1585,7 +1594,6 @@ QuiX.ui.Desktop = function(params, root) {
     params.width = params.width || 'document.body.clientWidth';
     params.height = params.height || 'document.body.clientHeight';
     params.overflow = params.overflow  || 'hidden';
-    params.onmousedown = QuiX.ui.Desktop._onmousedown;
 
     if (QuiX.utils.BrowserInfo.family != 'op') {
         params.oncontextmenu = QuiX.ui.Desktop._oncontextmenu;
@@ -1594,11 +1602,15 @@ QuiX.ui.Desktop = function(params, root) {
     if (QuiX.utils.BrowserInfo.family == 'ie') {
         this.div.onselectstart = QuiX.cancelDefault;
     }
-    //this.setPosition('relative');
+
     this._setCommonProps();
     root.appendChild(this.div);
     this.div.className = 'desktop';
     document.desktop = this;
+
+    this.attachEvent('onmousedown', QuiX.ui.Desktop._onmousedown);
+    this.attachEvent('onmouseup', QuiX.ui.Desktop._onmouseup);
+
     window.onresize = function() {
         if (QuiX.utils.BrowserInfo.family == 'ie') {
             if (typeof document.desktop.width != 'number' ||
@@ -1689,7 +1701,6 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
     QuiX.startY = QuiX.currentY = coords[1];
 
     desktop.attachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
-    desktop.attachEvent('onmouseup', QuiX.ui.Desktop._onmouseup);
 
     // check if the widget is inside an overlay
     var w = QuiX.getTargetWidget(evt),
@@ -1733,16 +1744,22 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
         }
     }
 
-    if ((!QuiX.supportTouches) &&
-            (el.tagName != 'INPUT' && el.tagName != 'TEXTAREA')) {
+    if (!QuiX.supportTouches && el.tagName != 'INPUT' && el.tagName != 'TEXTAREA') {
         QuiX.cancelDefault(evt);
-        return false;
+        if (window.getSelection && window.getSelection()) {
+            window.getSelection().removeAllRanges();
+        }
     }
 }
 
 QuiX.ui.Desktop._onmouseup = function(evt, desktop) {
+    var el = QuiX.getTarget(evt);
     desktop.detachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
-    desktop.detachEvent('onmouseup', QuiX.ui.Desktop._onmouseup);
+    if (el.tagName != 'INPUT' && el.tagName != 'TEXTAREA' && !el.contentEditable) {
+        if (document.activeElement != document.body) {
+            document.activeElement.blur();
+        }
+    }
 }
 
 QuiX.ui.Desktop._onmousemove = function(evt, desktop) {
