@@ -1066,9 +1066,11 @@ QuiX.ui.RichText.prototype.getState = function() {
                 }
                 break;
             case "em":
+            case "i":
                 state.i = true;
                 break;
             case "strong":
+            case "b":
                 state.b = true;
                 break;
             case "ol":
