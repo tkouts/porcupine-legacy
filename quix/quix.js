@@ -41,7 +41,7 @@ QuiX.dragable = null;
 QuiX.dropTarget = null;
 QuiX.dragTimer = 0;
 QuiX.dragging = false;
-
+QuiX._imgCache = {},
 QuiX._strip_tags_re = /<(.|\n)+?>/gi;
 QuiX.constructors = {
     'script' : null,
@@ -78,7 +78,7 @@ QuiX.queryString = function(param) {
 }
 
 QuiX.getThemeUrl = function() {
-    var theme = QuiX.queryString('_qt') || 'default';
+    var theme = document.theme || QuiX.queryString('_qt') || 'default';
     return QuiX.baseUrl + 'themes/' + theme + '/';
 }
 
@@ -193,6 +193,7 @@ QuiX.__resource_onstatechange = function() {
                 this.resource.width = this.width;
                 this.resource.height = this.height;
                 QuiX.removeNode(this);
+                QuiX._imgCache[this.src] = true;
             }
             this.resource.isLoaded = true;
             if (this.resource.callback) {
@@ -205,6 +206,7 @@ QuiX.__resource_onstatechange = function() {
             this.resource.width = this.width;
             this.resource.height = this.height;
             QuiX.removeNode(this);
+            QuiX._imgCache[this.src] = true;
         }
         this.resource.isLoaded = true;
         if (this.resource.callback) {
@@ -283,15 +285,17 @@ QuiX.bootLibraries = [
     QuiX.getThemeUrl() + 'theme.js'
 ];
 
-QuiX.__init__ = function(id) {
-    var boot_loader_url = QuiX.getThemeUrl() + 'images/boot_loader.gif';
+QuiX.__init__ = function(id /*,preloadImages*/) {
+    var boot_loader_url = QuiX.getThemeUrl() + 'images/boot_loader.gif',
+        preloadImages = arguments[1] || false;
+
     document.body.style.background = "url('" + boot_loader_url +
                                      "') no-repeat center";
 
     QuiX.load(QuiX.bootLibraries,
         function() {
             var root = document.body.removeChild(document.getElementById(id)),
-                parser = new QuiX.Parser();
+                parser = new QuiX.Parser(preloadImages);
 
             parser.oncomplete = function() {
                 document.body.style.background = '';
@@ -533,6 +537,7 @@ QuiX.wrappers = {
             if (Math.abs(QuiX.currentX - QuiX.startX) <= 8 &&
                     Math.abs(QuiX.currentY - QuiX.startY) <= 8) {
                 f(evt, w);
+                QuiX.cancelDefault(evt);
             }
         }
         f.wrapper = wrapper;
@@ -684,8 +689,19 @@ QuiX.getEventCoordinates = function(evt) {
 }
 
 QuiX.stopPropag = function(evt) {
-    if (evt && evt.stopPropagation) evt.stopPropagation();
-    else if (window.event) window.event.cancelBubble = true;
+    if (evt && evt.stopPropagation) {
+        evt.stopPropagation();
+    }
+    else if (window.event) {
+        window.event.cancelBubble = true;
+        evt = window.event;
+    }
+    //if (evt.type == 'mousedown' || evt.type == 'touchstart') {
+    //    var coords = QuiX.getEventCoordinates(evt);
+    //    QuiX.startX = QuiX.currentX = coords[0];
+    //    QuiX.startY = QuiX.currentY = coords[1];
+    //    document.desktop.attachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
+    //}
 }
 
 QuiX.cancelDefault = function(evt) {
@@ -975,10 +991,12 @@ QuiX.getStyle = function(el, styleProp) {
 }
 
 QuiX.setStyle = function(el, cssText) {
-    if (QuiX.utils.BrowserInfo.family == 'ie')
+    if (QuiX.utils.BrowserInfo.family == 'ie') {
         el.style.cssText = cssText;
-    else
+    }
+    else {
         el.setAttribute('style', cssText);
+    }
 }
 
 QuiX.detachFrames = function(w) {
@@ -1047,17 +1065,19 @@ QuiX.measureText = function(sourceEl, text) {
 }
 
 QuiX.measureWidget = function(w, dim) {
-    var div = ce('DIV');
+    var div = ce('DIV'),
+        other = (dim == 'height')? 'width':'height',
+        other_func = (other == 'height')? '_calcHeight':'_calcWidth',
+        measure = (dim == 'height')? 'offsetHeight':'offsetWidth',
+        padding_offset = (dim == 'height')? 2:0,
+        padding = w.getPadding();
+
     div.style.position = 'absolute';
     div.id = w.div.id;
     div.style.whiteSpace = w.div.style.whiteSpace;
     div.style.fontSize = w.div.style.fontSize;
     div.style.fontWeight = w.div.style.fontWeight;
-    var other = (dim == 'height')? 'width':'height';
-    var other_func = (other == 'height')? '_calcHeight':'_calcWidth';
-    var measure = (dim == 'height')? 'offsetHeight':'offsetWidth';
-    var padding_offset = (dim == 'height')? 2:0;
-    var padding = w.getPadding();
+
     if (w[other] != 'auto') {
         div.style[other] = w[other_func](true) + 'px';
     }
@@ -1079,8 +1099,10 @@ QuiX.measureWidget = function(w, dim) {
 
 // QuiX UI Parser
 
-QuiX.Parser = function() {
-    this.__modulesToLoad = [];
+QuiX.Parser = function(/*preloadImages*/) {
+    this.preloadImages = arguments[0] || false;
+    this.__modules = [];
+    this.__images = [];
     this.__onload = [];
     this.__customPrio = -1;
     this.dom = null;
@@ -1088,13 +1110,21 @@ QuiX.Parser = function() {
 }
 
 QuiX.Parser.prototype.detectModules = function(oNode) {
-    if (oNode.nodeType != 1)
+    if (oNode.nodeType != 1) {
         return;
+    }
     var sTag = QuiX.localName(oNode),
         iMod = QuiX.tags[sTag],
         i;
+
     if (iMod > -1) {
         this._addModule(QuiX.modules[iMod]);
+    }
+    else if (this.preloadImages && iMod && oNode.getAttribute('img')) {
+        var src = oNode.getAttribute('img');
+        if (src != '' && !(QuiX._imgCache[src])) {
+            this.__images.push(src);
+        }
     }
     else if (sTag == 'script' || sTag == 'module' || sTag == 'stylesheet') {
         var params = this.getNodeParams(oNode);
@@ -1118,8 +1148,8 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
 }
 
 QuiX.Parser.prototype._addModule = function(oMod) {
-    if (!oMod.isLoaded && !this.__modulesToLoad.hasItem(oMod)) {
-        this.__modulesToLoad.push(oMod);
+    if (!oMod.isLoaded && !this.__modules.hasItem(oMod)) {
+        this.__modules.push(oMod);
         for (var i=0; i<oMod.dependencies.length; i++) {
             this._addModule(QuiX.modules[parseInt(oMod.dependencies[i])]);
         }
@@ -1128,11 +1158,17 @@ QuiX.Parser.prototype._addModule = function(oMod) {
 
 QuiX.Parser.prototype.loadModules = function() {
     var module,
+        url,
         self = this;
 
-    if (this.__modulesToLoad.length > 0) {
-        module = this.__modulesToLoad.pop();
+    if (this.__modules.length > 0) {
+        module = this.__modules.pop();
         module.load(function(){self.loadModules()});
+    }
+    else if (this.__images.length > 0) {
+        url = this.__images.pop();
+        img = new QuiX.Image(url);
+        img.load(function(){self.loadModules()});
     }
     else {
         QuiX.removeLoader();
@@ -1156,8 +1192,8 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
         return;
     }
     this.detectModules(dom.documentElement);
-    if (this.__modulesToLoad.length > 0) {
-        this.__modulesToLoad.sortByAttribute('priority');
+    if (this.__modules.length > 0) {
+        this.__modules.sortByAttribute('priority');
         if (parentW) {
             QuiX.addLoader();
         }
