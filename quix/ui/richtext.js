@@ -28,7 +28,7 @@ QuiX.ui.RichText = function(/*params*/) {
     this.div.className = 'richtext';
 
     var toolbar = !(params.toolbar == false || params.toolbar == 'false');
-    this.insertParagraphs = true;
+    this.insertParagraphs = !(params.paragraphs == false || params.paragraphs == 'false');
     this.autoClean = (params.autoclean == 'false' || params.autoclean == false);
     this.readonly = (params.readonly == 'true' || params.readonly == true);
     this.target = (typeof(params.target) == 'undefined')? '_blank':params.target;
@@ -148,17 +148,17 @@ QuiX.ui.RichText = function(/*params*/) {
     }
 
     this.field = new QuiX.ui.Field({
-        type : 'textarea',
-        value : params.value,
-        height : -1,
-        readonly : this.readonly,
-        display : 'none'
+        type: 'textarea',
+        value: params.value,
+        height: -1,
+        readonly: this.readonly,
+        display: 'none'
     });
     this.appendChild(this.field);
 
     this.frame = new QuiX.ui.IFrame({
-        src : QuiX.baseUrl + 'ui/richtext.htm',
-        border : 1
+        src: params.template || QuiX.baseUrl + 'ui/richtext.htm',
+        border: (typeof params.frameborder != 'undefined')? params.frameborder:1
     });
     this.frame.div.className = 'editframe';
     this.appendChild(this.frame);
@@ -182,6 +182,8 @@ QuiX.ui.RichText = function(/*params*/) {
 }
 
 QuiX.ui.RichText.prototype = new QuiX.ui.VBox;
+QuiX.ui.RichText.prototype.customEvents =
+    QuiX.ui.Field.prototype.customEvents.concat(['onstatechange']);
 QuiX.ui.RichText.prototype.blockOptions = [
     '<h1>', 'Heading 1',
     '<h2>', 'Heading 2',
@@ -313,7 +315,7 @@ QuiX.ui.RichText.prototype.cleanPaste = function() {
         value = value.replace(/&lt;!--[^>]+--&gt;/g, "");
 
         this.doc.body.innerHTML	= value;
-        if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
+        if (QuiX.utils.BrowserInfo.family != 'ie') {
             this._convertSPANs();
         }
     }
@@ -336,7 +338,10 @@ QuiX.ui.RichText.prototype.cleanSource = function() {
     theHTML = theHTML.replace(/\s+$/, "");
 
     /* Remove style attribute inside any tag */
-    theHTML = theHTML.replace(/ style="[^"]*"/g, "");
+    //theHTML = theHTML.replace(/ style="[^"]*"/g, "");
+
+    /* Remove class attribute inside any tag */
+    theHTML = theHTML.replace(/ class="[^"]*"/g, "");
 
     /* Replace improper BRs */
     theHTML = theHTML.replace(/<br>/g, "<br />");
@@ -362,38 +367,53 @@ QuiX.ui.RichText.prototype._convertSPANs = function(theSwitch) {
     if (theSwitch) {
         /* Replace styled spans with their semantic equivalent */
         var theSPANs = this.doc.getElementsByTagName("span");
-        while(theSPANs.length > 0) {
+        while (theSPANs.length > 0) {
+            var theReplacementElement = null,
+                theParentElement = null,
+                style;
+
             theChildren = new Array();
-            var theReplacementElement = null;
-            var theParentElement = null;
             for (j=0; j<theSPANs[0].childNodes.length; j++) {
                 theChildren.push(theSPANs[0].childNodes[j].cloneNode(true));
             }
+
+            style = theSPANs[0].getAttribute("style");
+
             /* Detect type of span style */
-            switch (theSPANs[0].getAttribute("style")) {
-                case "font-weight: bold;":
-                    theReplacementElement = this.doc.createElement("strong");
-                    theParentElement = theReplacementElement;
-                    break;
-                case "font-style: italic;":
-                    theReplacementElement = this.doc.createElement("em");
-                    theParentElement = theReplacementElement;
-                    break;
-                case "font-weight: bold; font-style: italic;":
-                    theParentElement = this.doc.createElement("em");
-                    theReplacementElement = this.doc.createElement("strong");
-                    theReplacementElement.appendChild(theParentElement);
-                    break;
-                case "font-style: italic; font-weight: bold;":
-                    theParentElement = this.doc.createElement("strong");
-                    theReplacementElement = this.doc.createElement("em");
-                    theReplacementElement.appendChild(theParentElement);
-                    break;
-                default:
-                    this._replaceNodeWithChildren(theSPANs[0]);
-                    break;
+            if (!style) {
+                this._replaceNodeWithChildren(theSPANs[0]);
             }
+            else if (style.indexOf('font-style: italic; font-weight: bold;') > -1) {
+                theParentElement = this.doc.createElement("strong");
+                theReplacementElement = this.doc.createElement("em");
+                theReplacementElement.appendChild(theParentElement);
+                style = style.replace('font-style: italic; font-weight: bold;', '');
+            }
+            else if (style.indexOf('font-weight: bold; font-style: italic;') > -1) {
+                theParentElement = this.doc.createElement("em");
+                theReplacementElement = this.doc.createElement("strong");
+                theReplacementElement.appendChild(theParentElement);
+                style = style.replace('font-weight: bold; font-style: italic;', '');
+            }
+            else if (style.indexOf('font-style: italic;') > -1) {
+                theReplacementElement = this.doc.createElement("em");
+                theParentElement = theReplacementElement;
+                style = style.replace('font-style: italic;', '');
+            }
+            else if (style.indexOf('font-weight: bold;') > -1) {
+                theReplacementElement = this.doc.createElement("strong");
+                theParentElement = theReplacementElement;
+                style = style.replace('font-weight: bold;', '');
+            }
+            else {
+                theReplacementElement = this.doc.createElement("font");
+                theParentElement = theReplacementElement;
+            }
+
             if (theReplacementElement != null) {
+                if (style.trim()) {
+                    theReplacementElement.setAttribute('style', style);
+                }
                 for (j=0; j<theChildren.length; j++) {
                     theParentElement.appendChild(theChildren[j]);
                 }
@@ -407,10 +427,11 @@ QuiX.ui.RichText.prototype._convertSPANs = function(theSwitch) {
         var theSpan;
         /* Replace em and strong tags with styled spans */
         var theEMs = this.doc.getElementsByTagName("em");
-        while(theEMs.length > 0) {
+        while (theEMs.length > 0) {
             theChildren = new Array();
             theSpan = this.doc.createElement("span");
-            theSpan.setAttribute("style", "font-style: italic;");
+            theSpan.setAttribute("style", "font-style: italic;" +
+                                 theEMs[0].getAttribute("style"));
 
             for (j=0; j<theEMs[0].childNodes.length; j++) {
                 theChildren.push(theEMs[0].childNodes[j].cloneNode(true));
@@ -423,10 +444,11 @@ QuiX.ui.RichText.prototype._convertSPANs = function(theSwitch) {
             theEMs = this.doc.getElementsByTagName("em");
         }
         var theSTRONGs = this.doc.getElementsByTagName("strong");
-        while(theSTRONGs.length > 0) {
+        while (theSTRONGs.length > 0) {
             theChildren = new Array();
             theSpan = this.doc.createElement("span");
-            theSpan.setAttribute("style", "font-weight: bold;");
+            theSpan.setAttribute("style", "font-weight: bold;" +
+                                 theSTRONGs[0].getAttribute("style"));
 
             for (j=0; j < theSTRONGs[0].childNodes.length; j++) {
                 theChildren.push(theSTRONGs[0].childNodes[j].cloneNode(true));
@@ -447,7 +469,7 @@ QuiX.ui.RichText.prototype.detectPaste = function(e) {
         var self = this;
         this.pasteCache = this.doc.body.innerHTML;
         this.locked = true;
-        setTimeout(
+        window.setTimeout(
             function() {
                 self.cleanPaste();
                 self.locked = false;
@@ -460,19 +482,18 @@ QuiX.ui.RichText.prototype.detectPaste = function(e) {
 QuiX.ui.RichText.prototype.initEdit = function() {
     var self = this;
     this.doc.designMode = 'on';
-    if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
+    if (QuiX.utils.BrowserInfo.family != 'ie') {
         this._convertSPANs(false);
     }
     QuiX.addEvent(this.doc, "onmouseup",
         function() {
-            self._range = self._getSelectionRange();
             QuiX.cleanupOverlays();
-            self._updateToolbarState();
+            self._updateState();
             return true;
         });
     QuiX.addEvent(this.doc, "onkeyup",
         function() {
-            self._updateToolbarState();
+            self._updateState();
             return true;
         });
     QuiX.addEvent(this.doc, "onkeydown",
@@ -487,8 +508,9 @@ QuiX.ui.RichText.prototype.initEdit = function() {
 
 QuiX.ui.RichText.prototype.newParagraph = function(elementArray,
                                                    succeedingElement) {
-    var theBody = this.doc.body;
-    var theParagraph = this.doc.createElement("p");
+    var theBody = this.doc.body,
+        theParagraph = this.doc.createElement("p");
+
     for (var i = 0; i < elementArray.length; i++) {
         theParagraph.appendChild(elementArray[i]);
     }
@@ -509,8 +531,7 @@ QuiX.ui.RichText.prototype.paragraphise = function() {
         /* Remove all text nodes containing just whitespace */
         for (i=0; i < nodes.length; i++) {
             if (nodes[i].nodeName.toLowerCase() == "#text" &&
-                nodes[i].data.search(/^\s*$/) != -1)
-            {
+                    nodes[i].data.search(/^\s*$/) != -1) {
                 theBody.removeChild(nodes[i]);
                 i--;
             }
@@ -570,7 +591,7 @@ QuiX.ui.RichText.prototype.paragraphise = function() {
 
 QuiX.ui.RichText.prototype._updateInput = function() {
     /* Convert spans to semantics in Mozilla */
-    if (!(QuiX.utils.BrowserInfo.family == 'ie')) {
+    if (QuiX.utils.BrowserInfo.family != 'ie') {
         this._convertSPANs(true);
     }
     this._updateAnchorsTarget();
@@ -584,6 +605,15 @@ QuiX.ui.RichText.prototype._updateAnchorsTarget = function() {
         for (var i=0; i<links.length; i++) {
             links[i].target = this.target;
         }
+    }
+}
+
+QuiX.ui.RichText.prototype.focus = function() {
+    if (this.wysiwyg == true) {
+        this.frame.frame.contentWindow.focus();
+    }
+    else {
+        this.field.focus();
     }
 }
 
@@ -680,7 +710,7 @@ QuiX.ui.RichText.prototype._isInline = function(n) {
 QuiX.ui.RichText.prototype._isAcceptedElementName = function(n) {
     return ["#text", "a", "em", "h1", "h2", "h3", "h4",
             "h5", "h6", "img", "li", "ol", "p", "strong",
-            "ul"].hasItem(n.toLowerCase());
+            "ul", "font", "sup", "sub"].hasItem(n.toLowerCase());
 }
 
 QuiX.ui.RichText.prototype._acceptableChildren = function(theNode) {
@@ -709,9 +739,10 @@ QuiX.ui.RichText.prototype._acceptableChildren = function(theNode) {
 }
 
 QuiX.ui.RichText.prototype._replaceNodeWithChildren = function(theNode) {
-    var theChildren = new Array();
-    var theParent = theNode.parentNode;
-    var i;
+    var theChildren = new Array(),
+        theParent = theNode.parentNode,
+        i;
+
     if (theParent != null) {
         for (i = 0; i < theNode.childNodes.length; i++) {
             theChildren.push(theNode.childNodes[i].cloneNode(true));
@@ -726,10 +757,11 @@ QuiX.ui.RichText.prototype._replaceNodeWithChildren = function(theNode) {
 }
 
 QuiX.ui.RichText.prototype._changeNodeType = function(theNode, nodeType) {
-    var theChildren = new Array();
-    var theNewNode = document.createElement(nodeType);
-    var theParent = theNode.parentNode;
-    var i;
+    var theChildren = new Array(),
+        theNewNode = document.createElement(nodeType),
+        theParent = theNode.parentNode,
+        i;
+
     if (theParent != null) {
         for (i=0; i < theNode.childNodes.length; i++) {
             theChildren.push(theNode.childNodes[i].cloneNode(true));
@@ -768,31 +800,47 @@ QuiX.ui.RichText.prototype._validTags = function(theString) {
 }
 
 QuiX.ui.RichText.prototype.executeCommand = function(command /*, arg1, ...*/) {
-    var arg = arguments[1] || null;
+    var arg = arguments[1] || null,
+        bf = QuiX.utils.BrowserInfo.family;
+
+    if (bf == 'ie') {
+        this._range.select();
+    }
     switch (command) {
-        case 'CreateLink':
-            if (QuiX.utils.BrowserInfo.family == 'ie') {
-                this._range.select();
+        case 'superscript':
+            if (bf != 'saf') {
+                if (this.doc.queryCommandState('subscript', false, null)) {
+                    this.doc.execCommand('subscript', false, null);
+                }
             }
+            this.doc.execCommand(command, false, null);
+            break;
+        case 'subscript':
+            if (bf != 'saf') {
+                if (this.doc.queryCommandState('superscript', false, null)) {
+                    this.doc.execCommand('superscript', false, null);
+                }
+            }
+            this.doc.execCommand(command, false, null);
+            break;
+        case 'CreateLink':
             this.doc.execCommand(command, false, arg);
             this._updateAnchorsTarget();
             break;
         case 'InsertImage':
-            if (QuiX.utils.BrowserInfo.family == 'ie') {
-                this._range.select();
-            }
+            var alt = arguments[2];
             this._range.collapse(false);
             /* IE selections */
             if (this.doc.selection)	{
                 /* Escape quotes in alt text */
                 alt = alt.replace(/"/g, "'");
-                this._range.pasteHTML('<img alt="' + arguments[2] + '" src="' + arg + '" />');
+                this._range.pasteHTML('<img alt="' + alt + '" src="' + arg + '" />');
             }
             /* Mozilla selections */
             else {
                 var theImageNode = this.doc.createElement("img");
                 theImageNode.src = arg;
-                theImageNode.alt = arguments[2];
+                theImageNode.alt = alt;
                 this._range.insertNode(theImageNode);
             }
             break;
@@ -907,118 +955,178 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
                 theWidgEditor._setButtonState(action, "off");
             }
     }
-    if (theWidgEditor.wysiwyg == true) {
-        theIframe.contentWindow.focus();
-    }
-    else {
-        theWidgEditor.field.focus();
-    }
+    theWidgEditor.focus();
 }
 
-QuiX.ui.RichText.prototype._updateToolbarState = function() {
-    if (this.toolbar) {
-        var self = this;
-        if (this._timeout) {
-            window.clearTimeout(this._interval);
-        }
-        this._timeout = window.setTimeout(
-            function() {
-                self._updateToolbar();
-                self._timeout = null;
-                return true;
-            }, 200);
-        /* strange bug in IE requires a redraw
-         * to update curret position correctly */
-        if (QuiX.utils.BrowserInfo.family == 'ie') {
-            this.toolbar.widgets[0].redraw();
-        }
+QuiX.ui.RichText.prototype._updateState = function() {
+    var self = this;
+
+    this._range = self._getSelectionRange();
+    if (this._timeout) {
+        window.clearTimeout(this._timeout);
     }
+    this._timeout = window.setTimeout(
+        function() {
+            if (self.toolbar) {
+                self._updateToolbar();
+            }
+            self._timeout = null;
+            if (self._customRegistry.onstatechange) {
+                self._customRegistry.onstatechange(self);
+            }
+            return true;
+        }, 200);
+    /* strange bug in IE requires a redraw
+     * to update curret position correctly */
+    //if (QuiX.utils.BrowserInfo.family == 'ie') {
+    //    this.toolbar.widgets[0].redraw();
+    //}
+    //}
 }
 
 /* Check the nesting of the current cursor position/selection */
 QuiX.ui.RichText.prototype._updateToolbar = function() {
-    var theParentNode = null;
-    var theLevel = 0;
-    var theRange = this._getSelectionRange();
+    var state = this.getState();
 
     /* Turn off all the buttons */
-    var toggles = this.toolbar.
-                  getWidgetsByAttributeValue('type', 'toggle', true);
+    var toggles = this.toolbar.getWidgetsByAttributeValue('type', 'toggle', true);
     for (var i=0; i<toggles.length; i++) {
         if (toggles[i].value == 'on') {
             toggles[i].toggle();
         }
     }
-    /*clear block format*/
+
+    /* Clear block format */
     var selected = this.toolbar.getWidgetById('format').contextMenu.
                    getWidgetsByAttributeValue('selected', true, true);
     if (selected.length) {
         selected[0].selected = false;
     }
 
+    if (state.b) {
+        this._setButtonState("bold", "on");
+    }
+    if (state.i) {
+        this._setButtonState("italic", "on");
+    }
+    if (state.a) {
+        this._setButtonState("hyperlink", "on");
+    }
+    if (state.ol) {
+        this._setButtonState("insertorderedlist", "on");
+    }
+    if (state.ul) {
+        this._setButtonState("insertunorderedlist", "on");
+    }
+    if (state.format) {
+        this._setButtonState('format', state.format);
+    }
+}
+
+QuiX.ui.RichText.prototype.getState = function() {
+    var theParentNode = null,
+        style,
+        state = {b: false,
+                 i: false,
+                 u: false,
+                 a: null,
+                 ol: false,
+                 ul: false,
+                 sup: false,
+                 sub: false,
+                 format: null,
+                 fontName: null,
+                 fontSize: null,
+                 color: null,
+                 align: null};
+
     /* IE selections */
     if (this.doc.selection) {
         try	{
-            theParentNode = theRange.parentElement();
+            theParentNode = this._range.parentElement();
         }
         catch (e) {
-            return;
+            return state;
         }
     }
     /* Mozilla selections */
     else {
-        theParentNode = theRange.commonAncestorContainer;
+        theParentNode = this._range.commonAncestorContainer;
     }
+
     while (theParentNode.nodeType == 3) {
         theParentNode = theParentNode.parentNode;
     }
+
     while (theParentNode.nodeName.toLowerCase() != "body") {
         switch (theParentNode.nodeName.toLowerCase()) {
             case "a":
-                this._setButtonState("hyperlink", "on");
+                if (!state.a) {
+                    state.a = theParentNode.href;
+                }
                 break;
             case "em":
-                this._setButtonState("italic", "on");
+                state.i = true;
+                break;
+            case "strong":
+                state.b = true;
+                break;
+            case "ol":
+                if (!(state.ul || state.ol)) {
+                    state.ol = true;
+                }
+                break;
+            case "ul":
+                if (!(state.ul || state.ol)) {
+                    state.ul = true;
+                }
                 break;
             case "li":
                 break;
-            case "ol":
-                this._setButtonState("insertorderedlist", "on");
-                this._setButtonState("insertunorderedlist", "off");
+            case "sup":
+                state.sup = true;
                 break;
+            case "sub":
+                state.sub = true;
+                break;
+            case "font":
             case "span":
-                if (theParentNode.getAttribute("style") ==
-                        "font-weight: bold;") {
-                    this._setButtonState("bold", "on");
-                }
-                else if (theParentNode.getAttribute("style") ==
-                        "font-style: italic;") {
-                    this._setButtonState("italic", "on");
-                }
-                else if (theParentNode.getAttribute("style") ==
-                        "font-weight: bold; font-style: italic;") {
-                    this._setButtonState("bold", "on");
-                    this._setButtonState("italic", "on");
-                }
-                else if (theParentNode.getAttribute("style") ==
-                        "font-style: italic; font-weight: bold;") {
-                    this._setButtonState("bold", "on");
-                    this._setButtonState("italic", "on");
-                }
-                break;
-            case "strong":
-                this._setButtonState("bold", "on");
-                break;
-            case "ul":
-                this._setButtonState("insertunorderedlist", "on");
-                this._setButtonState("insertorderedlist", "off");
                 break;
             default:
-                this._setButtonState(
-                    'format',
-                    "<" + theParentNode.nodeName.toLowerCase() + ">");
+                state.format = "<" + theParentNode.nodeName.toLowerCase() + ">";
+        }
+        style = theParentNode.getAttribute("style");
+        if (style) {
+            if (style.search(/font-style: italic;/i) > -1) {
+                state.i = true;
+            }
+            if (style.search(/font-weight: bold;/i) > -1) {
+                state.b = true;
+            }
+            if (style.search(/text-decoration: underline;/i) > -1) {
+                state.u = true;
+            }
+            if (style.search(/font-family:/i) > -1 && !state.fontName) {
+                state.fontName = theParentNode.style.fontFamily;
+            }
+            if (style.search(/color:/i) > -1 && !state.color) {
+                state.color = theParentNode.style.color;
+            }
+            if (style.search(/text-align:/i) > -1 && !state.align) {
+                state.align = theParentNode.style.textAlign;
+            }
+        }
+        if (theParentNode.align && !state.align) {
+            state.align = theParentNode.align;
+        }
+        if (theParentNode.size && !state.fontSize) {
+            state.fontSize = theParentNode.size;
+        }
+        if (theParentNode.face && !state.fontName) {
+            state.fontName = theParentNode.face;
         }
         theParentNode = theParentNode.parentNode;
-        theLevel++;
     }
+
+    return state;
 }
