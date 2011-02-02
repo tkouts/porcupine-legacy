@@ -145,19 +145,14 @@ QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
 
         if (nh != this._sh) {
             this._sh = nh;
-            if (bf == 'ie' || (br == 'Firefox' && bv <= 3)) {
-                // we need to adjust the text vertically
-                var fontHeight =  QuiX.measureText(input, '/Qq')[1];
-                var padding = parseInt((nh - borders - fontHeight) / 2);
-                if (padding > 0) {
-                    input.style.paddingTop =
-                    input.style.paddingBottom = padding + 'px';
-                }
-            }
             nh -= parseInt(input.style.paddingTop || 0) +
                   parseInt(input.style.paddingBottom || 0) +
                   borders;
             input.style.height = (nh > 0? nh:0) + 'px';
+            if (bf == 'ie' || (br == 'Firefox' && bv <= 3)) {
+                // we need to adjust the text vertically
+                input.style.lineHeight = input.style.height;
+            }
         }
 
         if (nw != this._sw) {
