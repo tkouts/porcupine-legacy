@@ -120,7 +120,7 @@ QuiX.ui.Field = function(/*params*/) {
             this.div.className = 'field';
             e = (this.type=='textarea')? ce('TEXTAREA'):ce('INPUT');
             e.style.position = 'absolute';
-
+            e.style.zIndex = 1;
             e.style.padding = '0px';
             if (this.readonly) {
                 e.readOnly = true;
@@ -151,6 +151,7 @@ QuiX.ui.Field = function(/*params*/) {
             e.onblur = function() {
                 if (self._prompt && this.value == '') {
                     self._prompt.show();
+                    self._prompt.redraw(true);
                 }
                 if (self._customRegistry.onblur) {
                     self._customRegistry.onblur(self);
@@ -233,16 +234,27 @@ QuiX.ui.Field.prototype.setValue = function(value) {
             break;
         default:
             this.div.firstChild.value = value;
+            if (this._prompt) {
+                if (value == '') {
+                    this._prompt.show();
+                    this._prompt.redraw(true);
+                }
+                else {
+                    this._prompt.hide();
+                }
+            }
     }
 }
 
 QuiX.ui.Field.prototype.getCaption = function() {
     if (this.type=='radio' || this.type=='checkbox') {
         var oSpan = this.div.getElementsByTagName('SPAN')[0];
-        if (oSpan)
+        if (oSpan) {
             return oSpan.innerHTML;
-        else
+        }
+        else {
             return '';
+        }
     }
     return null;
 }
@@ -287,14 +299,6 @@ QuiX.ui.Field.prototype.blur = function() {
     this.div.firstChild.blur();
 }
 
-//QuiX.ui.Field.prototype.setBgColor = function(color) {
-//    this.div.style.backgroundColor = color;
-//    if (this.type == 'text' || this.type == 'textarea'
-//            || this.type == 'password') {
-//        this.div.firstChild.style.backgroundColor = color;
-//    }
-//}
-
 QuiX.ui.Field.prototype.setPrompt = function(prompt) {
     if (this.type == 'text' || this.type == 'textarea'
             || this.type == 'password') {
@@ -308,12 +312,16 @@ QuiX.ui.Field.prototype.setPrompt = function(prompt) {
                     width: '100%',
                     height: '100%',
                     caption: prompt,
-                    opacity: .3
+                    opacity: .3,
+                    display: 'none'
                 });
                 this.appendChild(this._prompt);
                 // send to back
-                this._prompt.div.style.zIndex = -10;
+                this._prompt.div.style.zIndex = 0;
                 this._prompt.redraw(true);
+                if (this.getValue() === '') {
+                    this._prompt.show();
+                }
             }
         }
         else {
