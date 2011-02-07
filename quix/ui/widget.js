@@ -377,9 +377,7 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
             case 'op':
                 // fallback to single color
                 this.div.style.backgroundColor = bgc[1];
-                this._bgc = color;
         }
-        this._bgc = bgc;
     }
     else {
         // single color
@@ -391,8 +389,8 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
             this.div.style.filter = '';
         }
         this.div.style.backgroundColor = color;
-        this._bgc = color;
     }
+    this._bgc = color;
 }
 QuiX.ui.Widget.prototype.getBgColor = function() {
     return this._bgc || '';
@@ -1755,7 +1753,8 @@ QuiX.ui.Desktop._onmousedown = function(evt, desktop) {
 QuiX.ui.Desktop._onmouseup = function(evt, desktop) {
     var el = QuiX.getTarget(evt);
     desktop.detachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
-    if (el.tagName != 'INPUT' && el.tagName != 'TEXTAREA' && !el.contentEditable) {
+    if (el.tagName != 'INPUT' && el.tagName != 'TEXTAREA' &&
+            !(el.contentEditable.toString() == "true")) {
         if (document.activeElement != document.body) {
             document.activeElement.blur();
         }
