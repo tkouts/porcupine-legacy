@@ -350,7 +350,9 @@ QuiX.removeLoader = function() {
         QuiX._activeLoaders--;
         if (QuiX._activeLoaders == 0) {
             document.body.onmousemove = null;
-            document.desktop._loader.hide();
+            if (document.desktop._loader) {
+                document.desktop._loader.hide();
+            }
         }
     }
 }
@@ -1160,7 +1162,6 @@ QuiX.Parser.prototype.loadModules = function() {
     var module,
         url,
         self = this;
-
     if (this.__modules.length > 0) {
         module = this.__modules.pop();
         module.load(function(){self.loadModules()});
