@@ -207,7 +207,7 @@ class PorcupineThread(BaseServerThread):
         if method is None:
             candidate_methods = [meth for meth in dir(item)
                                  if meth[:4 + len(method_name)] == \
-                                 'WM_%s_' % method_name]
+                                 'WM_%s#' % method_name]
 
             if sys.version_info[0] == 2:
                 # python 2.6

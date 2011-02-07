@@ -27,7 +27,7 @@ import time
 import mimetypes
 
 from porcupine import exceptions
-from porcupine.core.compat import str
+from porcupine.core import compat
 
 
 class HttpResponse(object):
@@ -99,7 +99,7 @@ class HttpResponse(object):
 
         @return: None
         """
-        if type(value) == str:
+        if type(value) == compat.str:
             value = value.encode('utf-8')
         self.__headers[header] = value
 
@@ -134,12 +134,12 @@ class HttpResponse(object):
 
         @return: None
         """
-        if isinstance(s, str):
+        if isinstance(s, compat.str):
             self._body.write(s.encode(self.charset))
         elif isinstance(s, bytes):
             self._body.write(s)
         else:
-            self._body.write(str(s))
+            self._body.write(bytes(s))
 
     def end(self):
         """Terminates the response processing cycle

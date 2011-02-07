@@ -66,7 +66,7 @@ class WebMethodDescriptor(object):
                  template, template_engine):
         self.func = function
         self.conditions = conditions
-        self.func_name = 'WM_%s_%s' % (
+        self.func_name = 'WM_%s#%s' % (
             compat.get_func_name(function),
             utils.misc.hash(*self.conditions).hexdigest())
         # response parameters
