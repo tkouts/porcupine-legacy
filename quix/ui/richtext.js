@@ -525,9 +525,10 @@ QuiX.ui.RichText.prototype.newParagraph = function(elementArray,
 
 QuiX.ui.RichText.prototype.paragraphise = function() {
     if (this.insertParagraphs && this.wysiwyg) {
-        var theBody = this.doc.body;
-        var nodes = theBody.childNodes;
-        var i;
+        var theBody = this.doc.body,
+            nodes = theBody.childNodes,
+            i;
+
         /* Remove all text nodes containing just whitespace */
         for (i=0; i < nodes.length; i++) {
             if (nodes[i].nodeName.toLowerCase() == "#text" &&
