@@ -82,10 +82,6 @@ QuiX.getThemeUrl = function() {
     return QuiX.baseUrl + 'themes/' + theme + '/';
 }
 
-QuiX.progress = '<image xmlns="http://www.innoscript.org/quix" ' +
-    'width="16" height="16" img="' + QuiX.getThemeUrl() +
-    'images/loader.gif"></image>';
-
 // module
 
 QuiX.Module = function(sName, sFile, depends, prio) {
@@ -329,18 +325,7 @@ QuiX.load = function(modules, callback) {
 
 QuiX.addLoader = function() {
     if (QuiX._activeLoaders == 0) {
-        document.body.onmousemove = function(evt) {
-            evt = evt || event;
-            var loader = document.desktop._loader;
-            if (loader.div.style.display == 'none') {
-                loader.show();
-            }
-            var x = evt.clientX + 16;
-            if (QuiX.dir == 'rtl') {
-                x = QuiX.transformX(x - 16);
-            }
-            loader.moveTo(x, evt.clientY + 20);
-        }
+        document.body.style.cursor = 'wait';
     }
     QuiX._activeLoaders++;
 }
@@ -349,10 +334,7 @@ QuiX.removeLoader = function() {
     if (QuiX._activeLoaders > 0) {
         QuiX._activeLoaders--;
         if (QuiX._activeLoaders == 0) {
-            document.body.onmousemove = null;
-            if (document.desktop._loader) {
-                document.desktop._loader.hide();
-            }
+            document.body.style.cursor = '';
         }
     }
 }
@@ -848,8 +830,9 @@ QuiX.removeWidget = function(w) {
         QuiX.removeWidget(w.widgets[0]);
     }
     if (w.contextMenu) {
-        if (w.contextMenu.isOpen)
+        if (w.contextMenu.isOpen) {
             w.contextMenu.close();
+        }
         QuiX.removeWidget(w.contextMenu);
     }
     if (w.parent) {
@@ -1077,8 +1060,9 @@ QuiX.measureWidget = function(w, dim) {
     div.style.position = 'absolute';
     div.id = w.div.id;
     div.style.whiteSpace = w.div.style.whiteSpace;
-    div.style.fontSize = w.div.style.fontSize;
-    div.style.fontWeight = w.div.style.fontWeight;
+    div.style.fontSize = QuiX.getStyle(w.div, 'font-size');
+    div.style.fontWeight = QuiX.getStyle(w.div, 'font-weight');
+    div.style.fontFamily = QuiX.getStyle(w.div, 'font-family');
 
     if (w[other] != 'auto') {
         div.style[other] = w[other_func](true) + 'px';
@@ -1096,7 +1080,7 @@ QuiX.measureWidget = function(w, dim) {
                 padding[padding_offset + 1] +
                 2 * w.getBorderWidth();
     QuiX.removeNode(div);
-    return value
+    return value;
 }
 
 // QuiX UI Parser

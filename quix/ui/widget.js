@@ -1627,13 +1627,6 @@ QuiX.ui.Desktop = function(params, root) {
         }
     };
     this.overlays = [];
-    this.parseFromString(QuiX.progress,
-        function(loader){
-            loader.setPosition('fixed');
-            loader.div.style.zIndex = QuiX.maxz + 1;
-            loader.hide();
-            document.desktop._loader = loader;
-        });
 }
 
 QuiX.constructors['desktop'] = QuiX.ui.Desktop;
