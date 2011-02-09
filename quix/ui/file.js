@@ -177,8 +177,7 @@ QuiX.ui.File.prototype.uploadSuccess = function(file, server_data, response) {
 QuiX.ui.File.prototype.uploadComplete = function(file) {
     this.widgets[0].setCaption(file.name);
     this.attributes.pbar.getParentByType(QuiX.ui.Dialog).close();
-    if (this._customRegistry.oncomplete)
-            this._customRegistry.oncomplete(this);
+    this.trigger('oncomplete');
 }
 
 QuiX.ui.File.prototype._getCaption = function() {
@@ -396,9 +395,7 @@ QuiX.ui.MultiFile.prototype.uploadComplete = function(file) {
         }
         else {
             this.attributes.pbars[0].getParentByType(QuiX.ui.Dialog).close();
-            if (this._customRegistry.oncomplete) {
-                this._customRegistry.oncomplete(this);
-            }
+            this.trigger('oncomplete');
             this.total_bytes = 0;
         }
     }

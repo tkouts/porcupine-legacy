@@ -972,9 +972,7 @@ QuiX.ui.RichText.prototype._updateState = function() {
                 self._updateToolbar();
             }
             self._timeout = null;
-            if (self._customRegistry.onstatechange) {
-                self._customRegistry.onstatechange(self);
-            }
+            self.trigger('onstatechange');
             return true;
         }, 200);
     /* strange bug in IE requires a redraw

@@ -20,8 +20,9 @@ QuiX.ui.TabPane.prototype = new QuiX.ui.Widget;
 QuiX.ui.TabPane._destroyTab = function() {
     var oTab = this.parent;
     for (var idx=0; idx < oTab.tabs.length; idx++) {
-         if (oTab.tabs[idx] == this)
+         if (oTab.tabs[idx] == this) {
             break;
+         }
     }
     if (idx > 0) {
         oTab.activateTab(idx - 1);

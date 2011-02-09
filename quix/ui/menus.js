@@ -238,11 +238,9 @@ QuiX.ui.ContextMenu.prototype.redraw = function(bForceAll /*, memo*/) {
 
 QuiX.ui.ContextMenu.prototype.show = function(w, x, y) {
     if (!this.isOpen) {
-        var bShow = true;
-        if (this._customRegistry.onshow) {
-            var r = this._customRegistry.onshow(this);
-            bShow = (r == false)? false:true;
-        }
+        var r = this.trigger('onshow'),
+            bShow = !(r === false);
+
         if (bShow) {
             this.left = x;
             this.top = y;
@@ -272,9 +270,7 @@ QuiX.ui.ContextMenu.prototype.close = function() {
     }
     this.detach();
     this.isOpen = false;
-    if (this._customRegistry.onclose) {
-        this._customRegistry.onclose(this);
-    }
+    this.trigger('onclose');
 }
 
 QuiX.ui.ContextMenu.prototype.addOption = function(params) {

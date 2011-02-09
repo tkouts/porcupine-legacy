@@ -1149,10 +1149,7 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
 
         if ((wdth && wdth != this.div.style.width) ||
                 (hght && hght != this.div.style.height)) {
-            if (this._customRegistry.onresize) {
-                this._customRegistry.onresize(this, parseInt(wdth),
-                                              parseInt(hght));
-            }
+            this.trigger('onresize', this, parseInt(wdth), parseInt(hght));
         }
     }
     return memo;
@@ -1256,7 +1253,7 @@ QuiX.ui.Widget.prototype.customEvents = ['onload', 'onunload',
 
 QuiX.ui.Widget.prototype._registerHandler = function(evt_type, handler, isCustom) {
     if (!isCustom) {
-        if (typeof this._registry[evt_type] == 'undefined') {
+        if (typeof this._registry[evt_type] === 'undefined') {
             this._registry[evt_type] = [];
         }
         if (QuiX.utils.BrowserInfo.family != 'ie') {
@@ -1276,7 +1273,10 @@ QuiX.ui.Widget.prototype._registerHandler = function(evt_type, handler, isCustom
         this._registry[evt_type].push(handler.wrapper);
     }
     else {
-        this._customRegistry[evt_type] = handler;
+        if (typeof this._customRegistry[evt_type] === 'undefined') {
+            this._customRegistry[evt_type] = [];
+        }
+        this._customRegistry[evt_type].push(handler);
     }
 }
 
@@ -1441,21 +1441,51 @@ QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, f*/) {
         }
     }
     else if (this._customRegistry[eventType]
-             && f == this._customRegistry[eventType]) {
-        delete this._customRegistry[eventType];
+             && this._customRegistry[eventType].indexOf(f) > -1) {
+        this._customRegistry[eventType].removeItem(f);
     }
+}
+
+QuiX.ui.Widget.prototype.trigger = function(eventType /*, arg1, arg2, ...*/) {
+    var args = Array.prototype.slice.call(arguments, 1),
+        r = true, val;
+
+    if (this._customRegistry[eventType]) {
+        if (args.length == 0) {
+            args.push(this);
+        }
+        for (var i=0; this._customRegistry && i<this._customRegistry[eventType].length; i++) {
+            val = this._customRegistry[eventType][i].apply(null, args);
+            if (typeof val !== 'undefined') {
+                r = r && val;
+            }
+        }
+    }
+    else if (this._registry[eventType]) {
+        if (args.length == 0) {
+            // evt, w
+            args = [null, this];
+        }
+        for (var i=0; this._registry && i<this._registry[eventType].length; i++) {
+            val = this._registry[eventType][i].apply(null, args);
+            if (typeof val !== 'undefined') {
+                r = r && val;
+            }
+        }
+    }
+    return r;
 }
 
 QuiX.ui.Widget.prototype._showTooltip = function(x, y) {
     var tooltip = new QuiX.ui.Label({
-        left : x,
-        top : y,
-        caption : this.tooltip,
-        border : QuiX.theme.tooltip.border,
-        bgcolor : QuiX.theme.tooltip.bgcolor,
+        left: x,
+        top: y,
+        caption: this.tooltip,
+        border: QuiX.theme.tooltip.border,
+        bgcolor: QuiX.theme.tooltip.bgcolor,
         color: QuiX.theme.tooltip.color,
         padding: QuiX.theme.tooltip.padding,
-        wrap : true
+        wrap: true
     });
     tooltip.div.className = 'tooltip';
     document.desktop.appendChild(tooltip);
@@ -1571,9 +1601,8 @@ QuiX.ui.Widget._enddrag = function(evt, desktop) {
         QuiX.tmpWidget.destroy();
         QuiX.tmpWidget = null;
         try {
-            if (QuiX.dropTarget && QuiX.dropTarget._customRegistry['ondrop']) {
-                QuiX.dropTarget._customRegistry['ondrop'](
-                    evt, QuiX.dropTarget, QuiX.dragable);
+            if (QuiX.dropTarget) {
+                QuiX.dropTarget.trigger('ondrop', evt, QuiX.dropTarget, QuiX.dragable);
             }
         }
         finally {

@@ -163,8 +163,8 @@ QuiX.ui.Datepicker.prototype.onDay = function(oCell) {
 
         var old_dt = this._dt;
         this.setValue(this._navdt);
-        if (old_dt != this._dt && this._customRegistry.onchange) {
-            this._customRegistry.onchange(this);
+        if (old_dt != this._dt) {
+            this.trigger('onchange');
         }
     }
 }

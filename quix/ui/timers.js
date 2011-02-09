@@ -116,7 +116,6 @@ QuiX.ui.Effect = function(/*params*/) {
             this.begin = params.begin || '100%';
             this.end = params.end || 0;
             break;
-
     }
 
     this.steps = parseInt(params.steps) || 5;
@@ -333,9 +332,7 @@ QuiX.ui.Effect.prototype.stop = function() {
                 }
         }
         this._step = 0;
-        if (this._customRegistry.oncomplete) {
-            this._customRegistry.oncomplete(this);
-        }
+        this.trigger('oncomplete');
     }
 }
 

@@ -57,8 +57,7 @@ QuiX.ui.IFrame.prototype.getDocument = function() {
 QuiX.ui.IFrame.prototype._onload = function(evt) {
     evt = evt || event;
     var w = QuiX.getTargetWidget(evt);
-    if (w._customRegistry.ondocumentload)
-        w._customRegistry.ondocumentload(w);
+	w.trigger('ondocumentload');
 }
 
 // GroupBox
@@ -146,9 +145,7 @@ QuiX.ui.GroupBox._check_onclick = function(evt ,w) {
     else {
         box.body.disable();
     }
-    if (box._customRegistry.onstatechange) {
-        box._customRegistry.onstatechange(evt, box);
-    }
+	box.trigger('onstatechange', evt, box);
 }
 
 // slider
@@ -273,8 +270,8 @@ QuiX.ui.Slider._onmousemove = function(evt, desktop) {
                     Math.pow(10, slider.decimals);
     slider._update(memo);
 
-    if (old_value != new_value && slider._customRegistry.onchange) {
-        slider._customRegistry.onchange(slider);
+    if (old_value != new_value) {
+		slider.trigger('onchange');
     }
 }
 

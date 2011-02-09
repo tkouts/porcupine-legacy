@@ -310,9 +310,7 @@ QuiX.ui.TreeNode.prototype.toggle = function() {
         for (i=0; i < this.childNodes.length; i++) {
             this.childNodes[i].show();
         }
-        if (this.parent._customRegistry.onexpand) {
-            this.parent._customRegistry.onexpand(this);
-        }
+        this.parent.trigger('onexpand');
     }
     else {
         this._expandImg.src = QuiX.getThemeUrl() + 'images/expand.gif';
@@ -396,9 +394,7 @@ QuiX.ui.TreeNode._select = function(evt, w) {
         }
     }
 
-    if (tree._customRegistry.onselect) {
-        tree._customRegistry.onselect(tree);
-    }
+    tree.trigger('onselect');
 }
 
 QuiX.ui.TreeNode._onmouseover = function(evt, treeNode) {
@@ -535,10 +531,11 @@ QuiX.ui.Tree.prototype.getSelection = function() {
 
 QuiX.ui.FolderTree = function(params) {
     this.base = QuiX.ui.Tree;
+    this._onexpand = QuiX.getEventListener(params.onexpand);
+    delete params.onexpand;
     this.base(params);
 
     this.method = params.method;
-    this._onexpand = this._customRegistry.onexpand;
     this.attachEvent('onexpand', this.loadSubfolders);
 }
 
@@ -546,11 +543,13 @@ QuiX.constructors['foldertree'] = QuiX.ui.FolderTree;
 QuiX.ui.FolderTree.prototype = new QuiX.ui.Tree;
 
 QuiX.ui.FolderTree.prototype.loadSubfolders = function(treeNode) {
-    var sID = treeNode.getId() || '';
-    var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + sID);
+    var sID = treeNode.getId() || '',
+        rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + sID);
+
     rpc.oncomplete = treeNode.parent.load_oncomplete;
     rpc.callback_info = treeNode;
     rpc.callmethod(treeNode.parent.method);
+
     for (var i=0; i< treeNode.childNodes.length; i++ ) {
         treeNode.childNodes[i].hide();
     }
@@ -574,6 +573,7 @@ QuiX.ui.FolderTree.prototype.load_oncomplete = function(req) {
         treeNode.appendChild(newNode);
         newNode.redraw();
     }
+
     if (treeNode.parent._onexpand) {
         treeNode.parent._onexpand(treeNode);
     }

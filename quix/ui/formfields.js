@@ -144,26 +144,20 @@ QuiX.ui.Field = function(/*params*/) {
             }
 
             e.onchange = function() {
-                if (self._customRegistry.onchange) {
-                    self._customRegistry.onchange(self);
-                }
+                self.trigger('onchange');
             }
             e.onblur = function() {
                 if (self._prompt && this.value == '') {
                     self._prompt.show();
                     self._prompt.redraw(true);
                 }
-                if (self._customRegistry.onblur) {
-                    self._customRegistry.onblur(self);
-                }
+                self.trigger('onblur');
             }
             e.onfocus = function(evt) {
                 if (self._prompt && this.value == '') {
                     self._prompt.hide();
                 }
-                if (self._customRegistry.onfocus) {
-                    self._customRegistry.onfocus(self);
-                }
+                self.trigger('onfocus');
             }
     }
 
@@ -449,9 +443,7 @@ QuiX.ui.Field._checkbox_onclick = function(evt, w) {
     if (QuiX.getTarget(evt).tagName != 'INPUT') {
         w.div.firstChild.checked = !w.div.firstChild.checked;
     }
-    if (w._customRegistry.onchange) {
-        w._customRegistry.onchange(w);
-    }
+    w.trigger('onchange');
 }
 
 QuiX.ui.Field._radio_onclick = function(evt, w) {
@@ -459,9 +451,7 @@ QuiX.ui.Field._radio_onclick = function(evt, w) {
     if (id) {
         var checked = w.div.firstChild.checked;
         w.setValue(w._value);
-        if (!checked && w._customRegistry.onchange) {
-            w._customRegistry.onchange(w);
-        }
+        w.trigger('onchange');
     }
 }
 
@@ -530,9 +520,7 @@ QuiX.ui.Spin = function(/*params*/) {
     e.onchange = function() {
         var v = self.validate(self.getValue());
         if (v == 0) {
-            if (self._customRegistry.onchange) {
-                self._customRegistry.onchange(self);
-            }
+            self.trigger('onchange');
         }
         else if (v == 1) {
             self.setValue(self.max);
@@ -543,9 +531,7 @@ QuiX.ui.Spin = function(/*params*/) {
     }
 
     e.onblur = function() {
-        if (self._customRegistry.onblur) {
-            self._customRegistry.onblur(self);
-        }
+        self.trigger('onblur');
     }
 
     if (this._isDisabled) {
@@ -669,9 +655,7 @@ QuiX.ui.Spin._btnup_onclick = function(evt, w) {
     if (!isNaN(val)) {
         if (oSpin.validate(val) == 0) {
             oSpin.setValue(val);
-            if (oSpin._customRegistry.onchange) {
-                oSpin._customRegistry.onchange(oSpin);
-            }
+            oSpin.trigger('onchange');
         }
     }
 }
@@ -682,9 +666,7 @@ QuiX.ui.Spin._btndown_onclick = function(evt, w) {
     if (!isNaN(val)) {
         if (oSpin.validate(val) == 0) {
             oSpin.setValue(val);
-            if (oSpin._customRegistry.onchange) {
-                oSpin._customRegistry.onchange(oSpin);
-            }
+            oSpin.trigger('onchange');
         }
     }
 }

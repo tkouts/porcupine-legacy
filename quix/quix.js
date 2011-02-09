@@ -823,9 +823,7 @@ QuiX.removeWidget = function(w) {
     if (w.__tooltip || w.__tooltipID) {
         QuiX.ui.Widget._onmouseout(null, w);
     }
-    if (w._customRegistry.onunload) {
-        w._customRegistry.onunload(w);
-    }
+    w.trigger('onunload');
     while (w.widgets.length > 0) {
         QuiX.removeWidget(w.widgets[0]);
     }
@@ -1193,9 +1191,8 @@ QuiX.Parser.prototype.beginRender = function() {
     var on_load,
         widget = this.render();
 
-    this.__onload.reverse();
     while (this.__onload.length > 0) {
-        on_load = this.__onload.pop();
+        on_load = this.__onload.shift();
         try {
             on_load[0](on_load[1]);
         }
@@ -1391,7 +1388,7 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                 }
 
                 if (oWidget._customRegistry.onload) {
-                    this.__onload.push([oWidget._customRegistry.onload,
+                    this.__onload.push([oWidget._customRegistry.onload[0],
                                         oWidget]);
                 }
             }

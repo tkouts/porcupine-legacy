@@ -236,9 +236,6 @@ QuiX.ui.DataGrid._update = function(evt, w) {
 
         dg.dataSet[r][dg.columns[c].name] = value;
         dg._renderCell(cell, c, value, dg.dataSet[r]);
-        if (dg._customRegistry.onchange) {
-            dg._customRegistry.onchange(dg);
-        }
-
+        dg.trigger('onchange');
     }
 }

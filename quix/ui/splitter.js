@@ -143,11 +143,8 @@ QuiX.ui.Splitter._destroy = function() {
 
 QuiX.ui.Splitter._onmousedown = function(evt, w) {
     if (!w._isCollapsed) {
-        var splitter = w.parent,
-            coords = QuiX.getEventCoordinates(evt);
-        QuiX.startX = coords[0];
-        QuiX.startY = coords[1];
-        QuiX.cancelDefault(evt);
+        var splitter = w.parent;
+
         QuiX.dragging = true;
         QuiX.detachFrames(splitter);
 
@@ -176,7 +173,6 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
             function(evt, w){w._handleMoving(evt, idx)});
         splitter.div.style.cursor = (w.parent.orientation == "h")?
                                     'e-resize':'n-resize';
-        QuiX.cancelDefault(evt);
     }
 }
 

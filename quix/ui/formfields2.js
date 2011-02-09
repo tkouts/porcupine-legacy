@@ -77,15 +77,11 @@ QuiX.ui.Combo = function(/*params*/) {
     }
 
     e.onchange = function() {
-        if (self._customRegistry.onchange) {
-            self._customRegistry.onchange(self);
-        }
+        self.trigger('onchange');
     }
 
     e.onblur = function() {
-        if (self._customRegistry.onblur) {
-            self._customRegistry.onblur(self);
-        }
+        self.trigger('onblur');
     }
 
     if (this._isDisabled) {
@@ -325,9 +321,7 @@ QuiX.ui.Combo._option_onclick = function(evt, option) {
     var combo = option.parent.parent.combo;
     if (!option.selected) {
         combo.selectOption(option);
-        if (combo._customRegistry.onchange) {
-            combo._customRegistry.onchange(combo);
-        }
+        combo.trigger('onchange');
     }
 }
 
@@ -538,9 +532,7 @@ QuiX.ui.SelectList.prototype.selectOption = function(option) {
         option.div.className = 'optionselected';
         option.selected = true;
         this.selection.push(option);
-        if (this._customRegistry.onselect) {
-            this._customRegistry.onselect(this, option);
-        }
+        this.trigger('onselect', this, option);
     }
 }
 

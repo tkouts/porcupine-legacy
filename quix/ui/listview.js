@@ -268,9 +268,8 @@ QuiX.ui.ListView.prototype._selectline = function(evt, row) {
         this._selrow(row);
         this.selection.push(row.rowIndex);
     }
-    if (fire && this._customRegistry.onselect) {
-        QuiX.getEventListener(this._customRegistry.onselect)(
-            evt, this, this.dataSet[row.rowIndex]);
+    if (fire) {
+        this.trigger('onselect', evt, this, this.dataSet[row.rowIndex]);
     }
     return true;
 }
@@ -595,9 +594,7 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
         oFiller.style.borderRight = 'none';
         
         oRow.appendChild(oFiller);
-        if (this._customRegistry.onrowprerender) {
-            this._customRegistry.onrowprerender(w, oRow, this.dataSet[i]);
-        }
+        this.trigger('onrowprerender', oRow, this.dataSet[i]);
         tbody.appendChild(oRow);
     }
     if (i < this.dataSet.length) {
@@ -609,9 +606,7 @@ QuiX.ui.ListView.prototype._refresh = function(start, step) {
             }, 300);
     }
     else {
-        if (this._customRegistry.onrendercomplete) {
-            this._customRegistry.onrendercomplete(this);
-        }
+        this.trigger('onrendercomplete');
     }
 }
 
