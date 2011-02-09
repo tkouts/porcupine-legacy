@@ -310,7 +310,7 @@ QuiX.ui.TreeNode.prototype.toggle = function() {
         for (i=0; i < this.childNodes.length; i++) {
             this.childNodes[i].show();
         }
-        this.parent.trigger('onexpand');
+        this.parent.trigger('onexpand', this);
     }
     else {
         this._expandImg.src = QuiX.getThemeUrl() + 'images/expand.gif';
