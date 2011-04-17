@@ -11,8 +11,26 @@ QuiX.ui.Combo = function(/*params*/) {
     params.border = 1;
     params.overflow = 'hidden';
     params.height = params.height || 22;
+    
     this.base = QuiX.ui.Widget;
     this.base(params);
+
+    if (params.rules) {
+        this._validator = new QuiX.ui.Validator({
+            widget : this,
+            rules : params.rules
+        });
+    }
+
+    this.attachEvent('onunload',
+        function(w) {
+            if (w.isExpanded) {
+                w.dropdown.close();
+            }
+            if (w._validator && w._validator.parent) {
+                w._validator.destroy();
+            }
+        });
 
     this.name = params.name;
     this.editable = (params.editable == 'true' || params.editable == true);
@@ -26,7 +44,13 @@ QuiX.ui.Combo = function(/*params*/) {
     e.style.padding = '0px ' + (params.textpadding ||
                                 QuiX.theme.combo.textpadding) + 'px';
     e.style.position = 'absolute';
+    e.style.zIndex = 1;
     e.style.backgroundColor = bgcolor;
+
+    if (params.tabindex) {
+        e.tabIndex = params.tabindex;
+    }
+
     this.div.appendChild(e);
 
     if (!QuiX.supportTouches) {
@@ -54,6 +78,13 @@ QuiX.ui.Combo = function(/*params*/) {
     this.button = QuiX.theme.combo.button.get(params.img);
     this.appendChild(this.button);
 
+    this.attachEvent('onkeydown',
+        function(evt, w) {
+            if (w.isExpanded && evt.keyCode == 9) {
+                w.dropdown.close();
+            }
+        });
+
     var self = this;
     if (this.editable) {
         e.value = (params.value)? params.value:'';
@@ -61,6 +92,9 @@ QuiX.ui.Combo = function(/*params*/) {
             e.readonly = true;
         }
         this.div.className += ' editable';
+        if (params.prompt) {
+            this.setPrompt(params.prompt);
+        }
         //this.setBorderWidth(0);
         if (!this.readonly) {
             this.button.attachEvent('onclick', QuiX.ui.Combo._btn_onclick);
@@ -81,7 +115,20 @@ QuiX.ui.Combo = function(/*params*/) {
     }
 
     e.onblur = function() {
+        if (params.rules) {
+            self.validate();
+        }
+        if (self._prompt && this.value == '') {
+            self._prompt.show();
+            self._prompt.redraw(true);
+        }
         self.trigger('onblur');
+    }
+
+    e.onfocus = function(evt) {
+        if (self._prompt && this.value == '') {
+            self._prompt.hide();
+        }
     }
 
     if (this._isDisabled) {
@@ -96,12 +143,14 @@ QuiX.ui.Combo.prototype.customEvents =
 
 QuiX.ui.Combo._btn_onclick = function(evt, w) {
     var oCombo;
+
     if (w instanceof QuiX.ui.Combo) {
         oCombo = w;
     }
     else {
         oCombo = w.parent;
     }
+
     if (!oCombo.isExpanded) {
         oCombo.showDropdown();
     }
@@ -129,10 +178,57 @@ QuiX.ui.Combo._calcDropdownWidth = function(memo) {
     return this.combo._calcWidth(true, memo);
 }
 
+QuiX.ui.Combo.prototype.validate = function() {
+    if (this._validator) {
+        return this._validator.validate();
+    }
+    return false;
+}
+
+QuiX.ui.Combo.prototype.setPrompt = function(prompt) {
+    if (this.editable) {
+        if (prompt) {
+            if (this._prompt) {
+                this._prompt.setCaption(prompt);
+            }
+            else {
+                this._prompt = new QuiX.ui.Label({
+                    id: '_o',
+                    width: '100%',
+                    height: '100%',
+                    caption: prompt,
+                    display: 'none'
+                });
+                this.appendChild(this._prompt);
+                // send to back
+                this._prompt.div.style.zIndex = 0;
+                this._prompt.redraw(true);
+                if (this.getValue() === '') {
+                    this._prompt.show();
+                }
+            }
+        }
+        else {
+            if (this._prompt) {
+                this._prompt.destroy();
+                this._prompt = null;
+            }
+        }
+    }
+}
+
+QuiX.ui.Combo.prototype.getPrompt = function() {
+    var prompt = '';
+    if (this._prompt) {
+        prompt = this._prompt.getCaption();
+    }
+    return prompt;
+}
+
 QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
     if (this.div.firstChild && this.div.offsetWidth) {
         var input = this.div.firstChild,
-            borders = input.offsetHeight - input.clientHeight,
+            borders = 2 * QuiX.getStyle(input, 'border-top-width') || 0,
             nw = this._calcWidth(false, memo) || 0,
             nh = this._calcHeight(false, memo) || 0,
             bf = QuiX.utils.BrowserInfo.family,
@@ -153,7 +249,7 @@ QuiX.ui.Combo.prototype._adjustFieldSize = function(memo) {
 
         if (nw != this._sw) {
             this._sw = nw;
-            nw -= QuiX.theme.combo.button.width +
+            nw -= ((this.button.isHidden())? 0:QuiX.theme.combo.button.width) +
                   parseInt(input.style.paddingLeft || 0) +
                   parseInt(input.style.paddingRight || 0) +
                   borders;
@@ -195,7 +291,7 @@ QuiX.ui.Combo.prototype.setValue = function(value) {
         }
         for (i=0; i<this.options.length; i++) {
             opt = this.options[i];
-            opt_value = (opt.value != undefined)? opt.value:opt.getCaption();
+            opt_value = (typeof opt.value != 'undefined')? opt.value:opt.getCaption();
             if (opt_value == value) {
                 this.selection = opt;
                 opt.selected = true;
@@ -203,7 +299,7 @@ QuiX.ui.Combo.prototype.setValue = function(value) {
                     this.div.style.backgroundImage = '';
                     this.div.firstChild.value = opt.getCaption();
                 }
-                else {
+                else if (opt.img) {
                     this.div.firstChild.style.backgroundImage =
                         "url('" + opt.img + "')";
                     this.div.firstChild.style.backgroundPosition = '50% 50%';
@@ -246,7 +342,7 @@ QuiX.ui.Combo.prototype.reset = function() {
         }
         this.selection = null;
         this.div.firstChild.value = '';
-    }	
+    }
 }
 
 QuiX.ui.Combo.prototype.clearOptions = function() {
@@ -266,8 +362,9 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
     var iLeft = this.getScreenLeft();
     var iTop = this.getScreenTop() + this.getHeight(true);
 
-    if (iTop + this.menuHeight > document.desktop.getHeight(true))
+    if (iTop + this.menuHeight > document.desktop.getHeight(true)) {
         iTop = this.getScreenTop() - this.menuHeight;
+    }
 
     this.dropdown.top = iTop;
     this.dropdown.left = iLeft;
@@ -284,13 +381,6 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
     this.isExpanded = true;
 }
 
-QuiX.ui.Combo.prototype.destroy = function() {
-    if (this.isExpanded) {
-        this.dropdown.close();
-    }
-    QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
-}
-
 QuiX.ui.Combo.prototype.setBgColor = function(color) {
     this.div.style.backgroundColor = color;
     if (this.div.firstChild) {
@@ -305,6 +395,7 @@ QuiX.ui.Combo.prototype.addOption = function(params) {
     params.overflow = 'hidden';
     var opt = new QuiX.ui.Icon(params);
     opt.div.className = 'option';
+    opt.div.style.textOverflow = 'ellipsis';
     opt.selected = false;
     opt.value = params.value;
     this.dropdown.widgets[0].appendChild(opt);
@@ -322,7 +413,9 @@ QuiX.ui.Combo._option_onclick = function(evt, option) {
     if (!option.selected) {
         combo.selectOption(option);
         combo.trigger('onchange');
+        combo.validate();
     }
+    
 }
 
 // auto complete
@@ -330,19 +423,26 @@ QuiX.ui.Combo._option_onclick = function(evt, option) {
 QuiX.ui.AutoComplete = function(/*params*/) {
     var params = arguments[0] || {};
     params.editable = true;
+
     this.base = QuiX.ui.Combo;
     this.base(params);
+
     this.textField = this.div.firstChild;
     this.url = params.url;
     this.method = params.method;
+    this.dataSet = false;
+
     if (this.url == '/') {
         this.url = '';
     }
 
-    //hide combo button
+    // hide combo button
     this.widgets[0].hide();
+    if(params.cachedataset == 'true' || params.cachedataset == true) {
+        this._getDataSet();
+    }
 
-    //attach events
+    // attach events
     var self = this;
     this.textField.onkeyup = function(evt) {
         evt = evt || event;
@@ -352,6 +452,22 @@ QuiX.ui.AutoComplete = function(/*params*/) {
 
 QuiX.constructors['autocomplete'] = QuiX.ui.AutoComplete;
 QuiX.ui.AutoComplete.prototype = new QuiX.ui.Combo;
+
+QuiX.ui.AutoComplete.prototype._getDataSet = function() {
+    var rpc = new QuiX.rpc.JSONRPCRequest(this.url, false);
+    this.dataSet = rpc.callmethod(this.method);
+}
+
+QuiX.ui.AutoComplete.prototype._getDataSetResults = function(value) {
+    var ret = [];
+    this.dataSet.each(
+        function(){
+            if (this.indexOf(value) === 0) {
+                ret.push(String(this));
+            }
+        });
+    return ret;
+}
 
 QuiX.ui.AutoComplete.prototype._getSelection = function(evt) {
     var sel = this.dropdown.widgets[0].getWidgetsByClassName('option over');
@@ -375,23 +491,42 @@ QuiX.ui.AutoComplete.prototype._getSelection = function(evt) {
 }
 
 QuiX.ui.AutoComplete.prototype._getResults = function() {
-    var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + this.url);
-    rpc.oncomplete = this._showResults;
-    rpc.callback_info = this;
-    rpc.callmethod(this.method, this.textField.value);
+    if(this.dataSet) {
+        var res = this._getDataSetResults(this.textField.value);
+        this._showResults({
+            response : res,
+            callback_info : this
+        });
+    }
+    else {
+        var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + this.url);
+        rpc.oncomplete = this._showResults;
+        rpc.callback_info = this;
+        rpc.callmethod(this.method, this.textField.value);
+    }
 }
 
 QuiX.ui.AutoComplete.prototype._showResults = function(oReq) {
-    var oAuto = oReq.callback_info;
+    var oAuto = oReq.callback_info,
+        option;
+
     oAuto.dropdown.widgets[0].clear();
+
     if (oReq.response.length > 0) {
         for (var i=0; i<oReq.response.length; i++) {
-            oAuto.addOption(oReq.response[i]);
+            option = oReq.response[i];
+            if (typeof(option) == 'string'){
+                option = {
+                    caption : option,
+                    value : option
+                };
+            }
+            oAuto.addOption(option);
         }
         if (!oAuto.isExpanded) {
             oAuto.showDropdown();
         }
-        oAuto.dropdown.redraw();
+        oAuto.dropdown.redraw(true);
     }
     else {
         if (oAuto.isExpanded) {
@@ -461,8 +596,28 @@ QuiX.ui.SelectList  = function(/*params*/) {
     params.bgcolor = params.bgcolor || 'white';
     params.border = params.border || 1;
     params.overflow = 'hidden auto';
+
     this.base = QuiX.ui.Widget;
     this.base(params);
+    if(params.rules) {
+        this._validator = new QuiX.ui.Validator({
+            widget: this,
+            rules: params.rules
+        });
+
+        this.attachEvent('onunload',
+            function(w){
+                if (w._validator.parent) {
+                    w._validator.destroy();
+                }
+            });
+
+        this.attachEvent('onmouseout',
+            function(evt, w){
+                w.validate();
+            });
+    }
+
     this.name = params.name;
     this.div.className = 'field';
     this.multiple = (params.multiple == 'true' ||
@@ -477,6 +632,13 @@ QuiX.ui.SelectList.prototype = new QuiX.ui.Widget;
 QuiX.ui.SelectList.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onselect']);
 
+QuiX.ui.SelectList.prototype.validate = function() {
+    if (this._validator) {
+        return this._validator.validate();
+    }
+    return false;
+}
+
 QuiX.ui.SelectList.prototype.addOption = function(params) {
     params.imgalign = 'left';
     params.align = (QuiX.dir != 'rtl')? 'left':'right';
@@ -488,6 +650,7 @@ QuiX.ui.SelectList.prototype.addOption = function(params) {
     w.attachEvent('onmousedown', QuiX.ui.SelectList._option_onmousedown);
     this.appendChild(w);
 
+    w.div.style.textOverflow = 'ellipsis';
     w.selected = false;
     w.value = params.value;
     if (params.selected == 'true' || params.selected == true) {
