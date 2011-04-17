@@ -13,14 +13,7 @@ QuiX.ui.Box = function(/*params*/) {
     this.orientation = params.orientation || 'h';
     var spacing = (typeof params.spacing == 'undefined')? 2:params.spacing;
     this.spacing = parseInt(spacing);
-    this.childrenAlign = params.childrenalign;
-
-    if (params.height == 'auto') {
-        this.height = null;
-    }
-    if (params.width == 'auto') {
-        this.width = null;
-    }
+    this.childrenAlign = params.childrenalign || '';
 }
 
 QuiX.constructors['box'] = QuiX.ui.Box;
@@ -41,35 +34,88 @@ QuiX.ui.Box._destroy = function() {
         }
     }
     if (this.base) {
-    	this.base.prototype.destroy.apply(this, arguments);
+        this.base.prototype.destroy.apply(this, arguments);
     }
     else {
-    	QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
+        QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
     }
+}
+
+QuiX.ui.Box._getAvailableLength = function(memo) {
+    var box = this.parent,
+        length_var = (box.orientation == 'h')? 'width':'height';
+
+    if (box[length_var] == null || box[length_var] == 'auto') {
+        return 0;
+    }
+
+    var length_func = (box.orientation == 'h')? 'getWidth':'getHeight',
+        l = box[length_func](false, memo);
+        attrs = box._getFreeWidgets(memo);
+        total_percent = (attrs[4] > 100)? attrs[4]:100,
+        calc_percentage = ((100 / total_percent) * this._percentage / 100);
+
+    return (l - attrs[1] - (attrs[2] - 1) * box.spacing) * calc_percentage;
+}
+
+QuiX.ui.Box.prototype._getFreeWidgets = function(memo) {
+    var tl = 0,
+        free_widgets = 0,
+        perc_widgets = 0,
+        total_percent = 0,
+        vw = 0,
+        length_var = (this.orientation == 'h')? 'width':'height',
+        length_func = (this.orientation == 'h')? 'getWidth':'getHeight';
+
+    this.widgets.each(
+        function() {
+            if (this.div.style.display == 'none') {
+                return;
+            }
+            if (this[length_var] == QuiX.ui.Box._calcWidgetLength) {
+                free_widgets += 1;
+            }
+            else if (this[length_var] && 
+                     this[length_var] == QuiX.ui.Box._getAvailableLength) {
+                perc_widgets += 1;
+                total_percent += this._percentage;
+            }
+            else {
+                tl += this[length_func](true, memo);
+            }
+            vw += 1;
+        });
+
+    return [free_widgets, tl, vw, perc_widgets, total_percent];
 }
 
 QuiX.ui.Box._calcWidgetLength = function(memo) {
     var box = this.parent,
-        tl = 0,
+        length_var = (box.orientation == 'h')? 'width':'height';
+
+    if (box[length_var] == null || box[length_var] == 'auto') {
+        return 0;
+    }
+
+    var tl = 0,
         free_widgets = 0,
         vw = 0,
-        length_var = (box.orientation == 'h')? 'width':'height',
-        length_func = (box.orientation == 'h')? '_calcWidth':'_calcHeight';
+        length_func = (box.orientation == 'h')? 'getWidth':'getHeight',
+        l = box[length_func](false, memo);
 
-    for (var i=0; i<box.widgets.length; i++) {
-        if (box.widgets[i].div.style.display == 'none') {
-            continue;
-        }
-        if (box.widgets[i][length_var] == QuiX.ui.Box._calcWidgetLength) {
-            free_widgets += 1;
-        }
-        else {
-            tl += box.widgets[i][length_func](true, memo);
-        }
-        vw += 1;
-    }
-    var l = (box.orientation == 'h')?
-        box.getWidth(false, memo):box.getHeight(false, memo);
+    box.widgets.each(
+        function() {
+            if (this.div.style.display == 'none') {
+                return;
+            }
+            if (this[length_var] == QuiX.ui.Box._calcWidgetLength) {
+                free_widgets += 1;
+            }
+            else {
+                tl += this[length_func](true, memo);
+            }
+            vw += 1;
+        });
 
     var nl = (l - tl - ((vw - 1) * box.spacing)) / free_widgets;
 
@@ -90,7 +136,7 @@ QuiX.ui.Box._getWidgetPos = function(memo) {
         case 'right':
         case 'bottom':
             return (w1 - w2);
-        default: 	
+        default:
             return 0;
     }
 }
@@ -121,24 +167,79 @@ QuiX.ui.Box.prototype.appendChild = function(w) {
     w._setCommonProps({});
 }
 
-QuiX.ui.Box.prototype._setChildVars = function(w) {
+QuiX.ui.Box.prototype._calcAuto = function(dim, memo) {
+    if (this.orientation == 'h') {
+        var wdth = this.div.style.width,
+            padding = this.getPadding(),
+            value;
+
+        if (dim == 'width') {
+            if (this.widgets.length > 0) {
+                var last = this.widgets[this.widgets.length - 1];
+
+                this.div.style.width = '10000px';
+                value = last.getLeft(memo) + last.getWidth(true, memo);
+                this.div.style.width = (value - padding[0]) + 'px';
+                return value +
+                       //padding[0] +
+                       padding[1] +
+                       2 * this.getBorderWidth();
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            if (this.widgets.length > 0) {
+                return QuiX.ui.Widget.prototype._calcAuto.call(this, dim, memo, '_calc');
+            }
+            else {
+                return 0;
+            }
+        }
+    }
+    return QuiX.ui.Widget.prototype._calcAuto.apply(this, arguments);
+}
+
+QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
     var center_var = (this.orientation == 'h')? 'top':'left',
         length_var = (this.orientation == 'h')? 'width':'height',
-        width_var = (this.orientation == 'h')? 'height':'width';
+        width_var = (this.orientation == 'h')? 'height':'width',
+        ffloat = arguments[1] || false;
 
     w.setPosition('relative');
+
     if (this.orientation == 'h') {
-        w.div.style[QuiX.utils.BrowserInfo.family == 'ie'?
-            'styleFloat':'cssFloat'] = (QuiX.dir == 'rtl')?'right':'left';
-        if (w._i > 0) {
-            w.div.style['margin' +
-                ((QuiX.dir == 'rtl')?'Right':'Left')] = this.spacing + 'px';
+        var margin = 'margin' + ((QuiX.dir == 'rtl')?'Right':'Left');
+        if (ffloat || (document.all && QuiX.utils.BrowserInfo.version < 8)) {
+            w.div.style[QuiX.utils.BrowserInfo.family == 'ie'?
+                'styleFloat':'cssFloat'] = (QuiX.dir == 'rtl')?'right':'left';
         }
+        else {
+            if (w.isHidden()) {
+                w._statedisplay = 'inline-block';
+            }
+            else {
+                w.setDisplay('inline-block');
+            }
+            w.div.style.verticalAlign = 'top';
+        }
+        if (w._i > 0) {
+            w.div.style[margin] = this.spacing + 'px';
+        }
+        else {
+            w.div.style[margin] = '0px';
+        }
+        w.left = 0;
     }
     else {
         if (w._i > 0) {
             w.div.style.marginTop = this.spacing + 'px';
         }
+        else {
+            w.div.style.marginTop = '0px';
+        }
+        w.top = 0;
     }
 
     if (isNaN(parseInt(w[center_var]))) {
@@ -150,29 +251,63 @@ QuiX.ui.Box.prototype._setChildVars = function(w) {
     else if (w[center_var] == 0 && this.childrenAlign) {
         w[center_var] = QuiX.ui.Box._getWidgetPos;
     }
+    else {
+        w[center_var] = 0;
+    }
 
     if (typeof(w[length_var]) == 'undefined' || w[length_var] == '-1') {
         w[length_var] = QuiX.ui.Box._calcWidgetLength;
+    }
+
+    if (typeof(w[length_var]) == 'string' && w[length_var].indexOf('@') == 0 
+            && w[length_var].match('%$')) {
+        w._percentage = parseInt(w[length_var].slice(1));
+        w[length_var] = QuiX.ui.Box._getAvailableLength;
     }
 
     if (w[width_var] == '-1') {
         w[width_var] = QuiX.ui.Box._calcWidgetMinSize;
     }
     else {
-        w[width_var] = w[width_var] || '100%';
+        w[width_var] = (typeof w[width_var] == 'undefined')? '100%':w[width_var];
     }
 }
 
 QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
-    if (bForceAll) {
-        var w;
-        for (var i=0; i<this.widgets.length; i++) {
-            w = this.widgets[i];
-            w._i = i;
-            this._setChildVars(w);
+    var memo = arguments[1] | {};
+
+    if (this.div.style.position == 'absolute') {
+        if (this.height == 'auto') {
+            this.height = null;
+        }
+        if (this.width == 'auto' && this.orientation == 'v') {
+            this.width = null;
         }
     }
-    QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+    else {
+        if (this.height == 'auto' && this.orientation == 'v') {
+            this.height = null;
+        }
+    }
+
+    if (bForceAll) {
+        this.widgets.each(
+            function(i) {
+                this._i = i;
+                this.parent._setChildVars(this);
+            });
+    }
+
+    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
+
+    // mozilla and ie require this redraw
+    if ((QuiX.utils.BrowserInfo.family == 'moz' || document.all) && this.orientation == 'v' &&
+            this.height == null && this.div.style.position != 'absolute') {
+        this.widgets.each(
+            function() {
+                this.redraw(false, memo)
+            });
+    }
 }
 
 // horizontal box
@@ -339,7 +474,7 @@ QuiX.ui.FlowBox.prototype.appendChild = function(w) {
 }
 
 QuiX.ui.FlowBox.prototype._setChildVars = function(w) {
-    QuiX.ui.HBox.prototype._setChildVars.apply(this, arguments);
+    QuiX.ui.HBox.prototype._setChildVars.call(this, w, true);
     w.div.style['margin' +
         ((QuiX.dir == 'rtl')?'Right':'Left')] = '0px';
     w.div.style['margin' +
