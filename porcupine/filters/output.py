@@ -55,46 +55,48 @@ class Gzip(PostProcessFilter):
             Gzip.staticLevel = int(config['static_compress_level'])
             Gzip.dynamicLevel = int(config['dynamic_compress_level'])
 
-        context.response.set_header('Content-Encoding', 'gzip')
-        isStatic = (registration is not None and registration.type == 0)
-
-        if isStatic:
-            filename = registration.context
-            modified = hex(int(os.path.getmtime(filename)))[2:]
-
-            compressed = filename.replace(os.path.sep, '_')
-            if os.name == 'nt':
-                compressed = (compressed.replace(os.path.altsep, '_').
-                              replace(':', ''))
-
-            glob_f = '%s/%s' % (Gzip.cache_folder, compressed)
-            compressed = '%s#%s.gzip' % (glob_f, modified)
-
-            if not(os.path.exists(compressed)):
-                Gzip.lock.acquire()
-                try:
-                    # remove old compressed files
-                    oldfiles = glob.glob(glob_f + '*.gzip')
-                    [os.remove(old) for old in oldfiles]
-
-                    output = io.FileIO(compressed, 'wb')
-                    Gzip.compress(context.response._get_body(),
-                                  output,
-                                  Gzip.staticLevel)
-                    output.close()
-                finally:
-                    Gzip.lock.release()
-
-            context.response.clear()
-            cache_file = io.FileIO(compressed)
-            context.response.write(cache_file.read())
-            cache_file.close()
-
-        else:
-            output = io.BytesIO()
-            Gzip.compress(
-                context.response._get_body(), output, Gzip.dynamicLevel)
-            context.response._body = output
+        # check if the client accepts gzipped content
+        if 'gzip' in context.request.HTTP_ACCEPT_ENCODING:
+            context.response.set_header('Content-Encoding', 'gzip')
+            isStatic = (registration is not None and registration.type == 0)
+    
+            if isStatic:
+                filename = registration.context
+                modified = hex(int(os.path.getmtime(filename)))[2:]
+    
+                compressed = filename.replace(os.path.sep, '_')
+                if os.name == 'nt':
+                    compressed = (compressed.replace(os.path.altsep, '_').
+                                  replace(':', ''))
+    
+                glob_f = '%s/%s' % (Gzip.cache_folder, compressed)
+                compressed = '%s#%s.gzip' % (glob_f, modified)
+    
+                if not(os.path.exists(compressed)):
+                    Gzip.lock.acquire()
+                    try:
+                        # remove old compressed files
+                        oldfiles = glob.glob(glob_f + '*.gzip')
+                        [os.remove(old) for old in oldfiles]
+    
+                        output = io.FileIO(compressed, 'wb')
+                        Gzip.compress(context.response._get_body(),
+                                      output,
+                                      Gzip.staticLevel)
+                        output.close()
+                    finally:
+                        Gzip.lock.release()
+    
+                context.response.clear()
+                cache_file = io.FileIO(compressed)
+                context.response.write(cache_file.read())
+                cache_file.close()
+    
+            else:
+                output = io.BytesIO()
+                Gzip.compress(
+                    context.response._get_body(), output, Gzip.dynamicLevel)
+                context.response._body = output
 
 
 class I18n(PostProcessFilter):
