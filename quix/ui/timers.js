@@ -144,6 +144,34 @@ QuiX.ui.Effect.prototype = new QuiX.ui.Timer;
 QuiX.ui.Effect.prototype.customEvents =
     QuiX.ui.Timer.prototype.customEvents.concat(['oncomplete']);
 
+QuiX.ui.Effect._getTransitionEndEvent = function() {
+    var evt_name = null,
+        e = 'TransitionEnd',
+        l = e.toLowerCase();
+
+    if (('on' + l) in window) {
+        evt_name = 'on' + l;
+    }
+    else if (('onwebkit' + l) in window) {
+        // Chrome/Saf (+ Mobile Saf)/Android
+        evt_name = 'onwebkit' + e;
+    }
+    else if (('ono' + l) in document.desktop.div ||
+            (QuiX.utils.BrowserInfo.browser == 'Opera' &&
+             QuiX.utils.BrowserInfo.version >= 10.61)) {
+        // Opera
+        // As of Opera 10.61, there is no "onotransitionend" property added to DOM elements,
+        // so it will always use the navigator.appName fallback
+        evt_name = 'ono' + e;
+    }
+    else if (QuiX.utils.BrowserInfo.browser == 'Firefox' &&
+             QuiX.utils.BrowserInfo.version >= 4) {
+        return 'on' + l;
+    }
+
+    return evt_name;
+}
+
 QuiX.ui.Effect.prototype._getRange = function(wd) {
     var begin, end;
     switch (this.type) {
@@ -234,7 +262,7 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
 
 QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
     var duration = this.steps * this.interval,
-        evtTransitionEnd = QuiX.getEventName('TransitionEnd'),
+        evtTransitionEnd = QuiX.ui.Effect._getTransitionEndEvent(),
         self = this,
         transition;
 
@@ -330,6 +358,7 @@ QuiX.ui.Effect.prototype.stop = function() {
                     this._apply(wd);
                     wd.div.style[QuiX.getCssAttribute('transform')] = '';
                 }
+                break;
         }
         this._step = 0;
         this.trigger('oncomplete');
@@ -341,11 +370,17 @@ QuiX.ui.Effect.prototype.show = function() {}
 QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
     this._reverse = arguments[0] || false;
     this._w = arguments[1] || null;
-
     var wd = this._w || this.parent;
     if (wd) {
         //QuiX.ui.Effect._handler(this);
+        if (document.all && this.type.slice(0,4) == 'fade') {
+            wd.hide();
+        }
         this._apply(wd);
+        if (document.all && this.type.slice(0,4) == 'fade') {
+            wd.show();
+        }
+
         // check if css transitions are in place
         if (QuiX.ui.Effect.cssTransition &&
                 // safari and opera do not animate css clip
