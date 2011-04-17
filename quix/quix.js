@@ -18,9 +18,9 @@
 var QuiX = {};
 QuiX.version = '1.1 build 20100825';
 QuiX.namespace = 'http://www.innoscript.org/quix';
-QuiX.root = (new RegExp(
-    "https?://[^/]+(?:/[^/\?]+)?(?:/(?:{|%7B)(?:.*?)(?:}|%7D))?",
-    "i")).exec(document.location.href) + '/';
+QuiX.root = document.location.href.slice(0, 4) == 'http'?
+    (new RegExp("https?://[^/]+(?:/[^/\?]+)?(?:/(?:{|%7B)(?:.*?)(?:}|%7D))?",
+     "i")).exec(document.location.href) + '/':'';
 QuiX.baseUrl = '__quix/';
 QuiX.maxz = 999999999;
 
@@ -118,8 +118,8 @@ QuiX.Module.prototype.load = function(callback) {
         oElement = document.createElement('SCRIPT');
         oElement.type = 'text/javascript';
         oElement.defer = true;
-        oElement.src = this.file;
         oElement[onload] = QuiX.__resource_onstatechange;
+        oElement.src = this.file;
     }
     else {
         oElement = document.createElement('LINK');
@@ -127,7 +127,7 @@ QuiX.Module.prototype.load = function(callback) {
         oElement.href = this.file;
         oElement.rel = 'stylesheet';
     }
-    document.getElementsByTagName('head')[0].appendChild(oElement);
+    document.getElementsByTagName('HEAD')[0].appendChild(oElement);
     oElement.resource = this;
     oElement.id = this.file;
     if (this.type == 'stylesheet') {
@@ -154,6 +154,9 @@ QuiX.Image.loadImages = function(urlList, oncomplete) {
 
     function _decrease() {
         counter--;
+        if (document._progress) {
+            document._progress.increase(1);
+        }
         if (counter == 0) {
             oncomplete();
         }
@@ -183,14 +186,8 @@ QuiX.__resource_error = function() {
 }
 
 QuiX.__resource_onstatechange = function() {
-    if (this.readyState) {
+    if (this.tagName.toLowerCase() == 'script' && this.readyState) {
         if (this.readyState == 'loaded' || this.readyState == 'complete') {
-            if (this.tagName == 'IMG') {
-                this.resource.width = this.width;
-                this.resource.height = this.height;
-                QuiX.removeNode(this);
-                QuiX._imgCache[this.src] = true;
-            }
             this.resource.isLoaded = true;
             if (this.resource.callback) {
                 this.resource.callback();
@@ -229,7 +226,7 @@ QuiX.modules = [
     new QuiX.Module('Toolbars',             //7
                     QuiX.baseUrl + 'ui/toolbars.js', [3], 5),
     new QuiX.Module('Forms & Fields',       //8
-                    QuiX.baseUrl + 'ui/formfields.js', [3], 5),
+                    QuiX.baseUrl + 'ui/formfields.js', [3,18], 5),
     new QuiX.Module('Common Widgets',       //9
                     QuiX.baseUrl + 'ui/common.js', [3,8], 4),
     new QuiX.Module('Datagrid',             //10
@@ -241,13 +238,15 @@ QuiX.modules = [
     new QuiX.Module('Timers & Effects',     //13
                     QuiX.baseUrl + 'ui/timers.js', [], 10),
     new QuiX.Module('Forms & Fields 2',     //14
-                    QuiX.baseUrl + 'ui/formfields2.js', [3], 5),
+                    QuiX.baseUrl + 'ui/formfields2.js', [3,18], 5),
     new QuiX.Module('VBox & HBox',          //15
                     QuiX.baseUrl + 'ui/box.js', [], 10),
     new QuiX.Module('Rich Text Editor',     //16
                     QuiX.baseUrl + 'ui/richtext.js', [8,15,9], 4),
     new QuiX.Module('Color Picker',         //17
-                    QuiX.baseUrl + 'ui/colorpicker.js', [8], 4)
+                    QuiX.baseUrl + 'ui/colorpicker.js', [8], 4),
+    new QuiX.Module('Validator',            //18
+                    QuiX.baseUrl + 'ui/validator.js', [3], 5)
 ];
 
 QuiX.tags = {
@@ -269,7 +268,7 @@ QuiX.tags = {
     'file':11, 'multifile':11,
     'datepicker':12,
     'timer':13, 'effect':13,
-    'combo':14, 'selectlist':14,
+    'combo':14, 'selectlist':14, 'autocomplete':'14',
     'box':15, 'vbox':15, 'hbox':15, 'flowbox':15,
     'richtext':16,
     'colorpicker':17
@@ -281,46 +280,65 @@ QuiX.bootLibraries = [
     QuiX.getThemeUrl() + 'theme.js'
 ];
 
-QuiX.__init__ = function(id /*,preloadImages*/) {
-    var boot_loader_url = QuiX.getThemeUrl() + 'images/boot_loader.gif',
-        preloadImages = arguments[1] || false;
+QuiX.__init__ = function(id /*,params*/) {
+    var params = arguments[1] || {},
+        boot_loader_url = params.bootLoader || QuiX.getThemeUrl() + 'images/boot_loader.gif',
+        preloadImages = (typeof params.preload == 'undefined')? false:params.preload;
 
-    document.body.style.background = "url('" + boot_loader_url +
-                                     "') no-repeat center";
+    var modules = [];
+    QuiX.bootLibraries.each(
+        function() {
+            var m = new QuiX.Module(null, this, []);
+            m.type = (this.substring(this.length - 3) == 'css')?
+                     'stylesheet':'script';
+            modules.push(m);
+        });
 
-    QuiX.load(QuiX.bootLibraries,
+    QuiX.Module.loadModules(modules,
         function() {
             var root = document.body.removeChild(document.getElementById(id)),
                 parser = new QuiX.Parser(preloadImages);
 
+            var desktop = new QuiX.ui.Desktop({
+                style: "background: url('" + boot_loader_url + "') no-repeat center"
+            }, document.body);
+            document._progress = new QuiX.ui.ProgressBar({
+                width: 170,
+                height: 14,
+                top: '75%',
+                left: 'center',
+                padding: '1,1,1,1'
+            });
+            desktop.appendChild(document._progress);
+            desktop.redraw();
+
             parser.oncomplete = function() {
-                document.body.style.background = '';
-                // calculate scrollbars size
-                var w1 = document.desktop.div.clientWidth;
-                var overflow = document.desktop.getOverflow()
-                document.desktop.div.style.overflow = 'scroll';
-                QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
-                document.desktop.setOverflow(overflow);
+                desktop.destroy();
+                document._progress = null;
+
+                if (!QuiX.supportTouches) {
+                    // calculate scrollbars size
+                    var w1 = document.desktop.div.clientWidth,
+                        overflow = document.desktop.getOverflow();
+
+                    document.desktop.div.style.overflow = 'scroll';
+                    QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
+                    document.desktop.setOverflow(overflow);
+                }
+                else {
+                    if (QuiX.utils.BrowserInfo.OS == 'Android') {
+                        document.desktop.hide();
+                        window.setTimeout(
+                            function() {
+                                  document.desktop.show();
+                            }, 0);
+                    }
+                }
             }
+
             parser.parse(QuiX.parsers.domFromString(root.value));
         }
     );
-}
-
-QuiX.load = function(modules, callback) {
-    function bootstrap() {
-        if (modules.length > 0) {
-            var r_info = modules.shift();
-            var m = new QuiX.Module(null, r_info, []);
-            m.type = (r_info.substring(r_info.length - 3) == 'css')?
-                     'stylesheet':'script';
-            m.load(bootstrap);
-        }
-        else {
-            callback();
-        }
-    }
-    bootstrap();
 }
 
 QuiX.addLoader = function() {
@@ -440,10 +458,12 @@ QuiX.getDraggable = function(w) {
 QuiX.getMouseButton = function(evt) {
     var iButton = evt.button;
     if (QuiX.utils.BrowserInfo.family == 'ie') {
-        if (iButton == 1) //left
+        if (iButton == 1) { //left
             iButton = 0;
-        else if (iButton == 4) //middle
+        }
+        else if (iButton == 4) { //middle
             iButton = 1;
+        }
     }
     return iButton;
 }
@@ -518,8 +538,8 @@ QuiX.wrappers = {
     },
     onTap: function(f) {
         function wrapper(evt, w) {
-            if (Math.abs(QuiX.currentX - QuiX.startX) <= 8 &&
-                    Math.abs(QuiX.currentY - QuiX.startY) <= 8) {
+            if (Math.abs(QuiX.currentX - QuiX.startX) <= 16 &&
+                    Math.abs(QuiX.currentY - QuiX.startY) <= 16) {
                 f(evt, w);
                 QuiX.cancelDefault(evt);
             }
@@ -786,13 +806,19 @@ QuiX.setInnerText = function(node, text) {
 }
 
 QuiX.getInnerText = function(node) {
-    var text = '';
-    var i;
+    var text = '',
+        i;
     if (typeof XMLSerializer != "undefined") {
         var serializer = new XMLSerializer();
-        for (i=0; i<node.childNodes.length; i++) {
-            text += serializer.serializeToString(node.childNodes[i]);
-        }
+        Array.prototype.slice.call(node.childNodes, 0).each(
+            function() {
+                if (this.nodeType == 4 && this.text) {
+                    text += this.text;
+                }
+                else {
+                    text += serializer.serializeToString(this).xmlDecode();
+                }
+            });
     }
     else if (node.xml) {
         for (i=0; i<node.childNodes.length; i++) {
@@ -860,30 +886,6 @@ QuiX.getParentNode = function(el) {
     }
 }
 
-QuiX.getEventName = function(e) {
-    var evt_name = null,
-        l = e.toLowerCase();
-
-    if(('on' + l) in window) {
-      // Firefox
-      evt_name = 'on' + l;
-    }
-    else if(('onwebkit' + l) in window) {
-      // Chrome/Saf (+ Mobile Saf)/Android
-      evt_name = 'onwebkit' + e;
-    }
-    else if(('ono' + l) in document.desktop.div ||
-            (QuiX.utils.BrowserInfo.browser == 'Opera' &&
-             QuiX.utils.BrowserInfo.version >= 10.61)) {
-      // Opera
-      // As of Opera 10.61, there is no "onotransitionend" property added to DOM elements,
-      // so it will always use the navigator.appName fallback
-      evt_name = 'ono' + e;
-    }
-
-    return evt_name;
-}
-
 QuiX.getCssAttribute = function(a) {
     var style = document.body.style;
         caped = a.charAt(0).toUpperCase() + a.slice(1);
@@ -911,7 +913,18 @@ QuiX.setOpacity = function(el, op) {
         el.style[cssOpacity] = op;
     }
     else if (QuiX.utils.BrowserInfo.family == 'ie') {
-        el.style.filter = 'alpha(opacity=' + op * 100 + ')';
+        if (op < 1) {
+            opacity = ' alpha(opacity=' + parseInt(op * 100) + ')';
+        }
+        else {
+            opacity = '';
+        }
+        if (el.style.filter.indexOf('opacity') > -1) {
+            el.style.filter = el.style.filter.replace(/ alpha\(opacity=.*?\)/ig, opacity);
+        }
+        else {
+            el.style.filter += opacity;
+        }
     }
 }
 
@@ -967,9 +980,10 @@ QuiX.getStyle = function(el, styleProp) {
     if (el.currentStyle) {
         y = el.currentStyle[QuiX._css2Js(styleProp)];
     }
-    else if (window.getComputedStyle)
-        y = document.defaultView.getComputedStyle(el, null)
-            .getPropertyValue(styleProp);
+    else if (window.getComputedStyle) {
+        y = document.defaultView.getComputedStyle(el, null);
+        y = y? y.getPropertyValue(styleProp):'';
+    }
     return y;
 }
 
@@ -986,8 +1000,9 @@ QuiX.detachFrames = function(w) {
     if (QuiX.modules[9].isLoaded) {
         var frms = w.getWidgetsByType(QuiX.ui.IFrame);
         for (var i=0; i<frms.length; i++) {
-            if (QuiX.getParentNode(frms[i].frame))
+            if (QuiX.getParentNode(frms[i].frame)) {
                 QuiX.removeNode(frms[i].frame);
+            }
         }
     }
 }
@@ -995,9 +1010,11 @@ QuiX.detachFrames = function(w) {
 QuiX.attachFrames = function(w) {
     if (QuiX.modules[9].isLoaded) {
         var frms = w.getWidgetsByType(QuiX.ui.IFrame);
-        for (var i=0; i<frms.length; i++)
-            if (!QuiX.getParentNode(frms[i].frame))
+        for (var i=0; i<frms.length; i++) {
+            if (!QuiX.getParentNode(frms[i].frame)) {
                 frms[i].div.appendChild(frms[i].frame);
+            }
+        }
     }
 }
 
@@ -1104,7 +1121,8 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
     if (iMod > -1) {
         this._addModule(QuiX.modules[iMod]);
     }
-    else if (this.preloadImages && iMod && oNode.getAttribute('img')) {
+    else if (this.preloadImages && iMod && oNode.getAttribute('img') &&
+             !(QuiX.utils.BrowserInfo.family == 'ie' && QuiX.utils.BrowserInfo.version <= 8)) {
         var src = oNode.getAttribute('img');
         if (src != '' && !(QuiX._imgCache[src])) {
             this.__images.push(src);
@@ -1146,12 +1164,20 @@ QuiX.Parser.prototype.loadModules = function() {
         self = this;
     if (this.__modules.length > 0) {
         module = this.__modules.pop();
-        module.load(function(){self.loadModules()});
+        module.load(
+            function(){
+                if (document._progress) {
+                    document._progress.increase(1);
+                }
+                self.loadModules()
+            });
     }
     else if (this.__images.length > 0) {
-        url = this.__images.pop();
-        img = new QuiX.Image(url);
-        img.load(function(){self.loadModules()});
+        QuiX.Image.loadImages(this.__images,
+            function(){
+                self.__images = [];
+                self.loadModules();
+            });
     }
     else {
         QuiX.removeLoader();
@@ -1180,6 +1206,9 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
         if (parentW) {
             QuiX.addLoader();
         }
+        else if (document._progress) {
+            document._progress.maxvalue = this.__modules.length + this.__images.length;
+        }
         this.loadModules();
     }
     else {
@@ -1200,8 +1229,8 @@ QuiX.Parser.prototype.beginRender = function() {
             this.onerror(e);
         }
     }
-    widget.redraw(true);
     this.dom = null;
+    widget.redraw(true);
     if (this.oncomplete) {
         try {
             this.oncomplete(widget);
@@ -1235,9 +1264,10 @@ QuiX.Parser.prototype.render = function() {
 
 QuiX.Parser.prototype.getNodeParams = function(oNode) {
     var params = {};
-    for (var i=0; i<oNode.attributes.length; i++)
+    for (var i=0; i<oNode.attributes.length; i++) {
         params[oNode.attributes[i].name] = oNode.attributes[i].value;
-    return(params);
+    }
+    return params;
 }
 
 QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
