@@ -59,7 +59,7 @@ QuiX.rpc._requests = {};
 
 QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
     if (typeof url != 'undefined') {
-        this.async = arguments[1] || true;
+        this.async = (typeof arguments[1] != 'undefined')? arguments[1] : true;
         this.url = url || '.';
         this.response = null;
         this.use_cache = true;
@@ -124,19 +124,28 @@ QuiX.rpc.BaseRPCRequest.prototype.onerror = function(e) {
     QuiX.displayError(e);
 }
 
+QuiX.rpc.BaseRPCRequest.prototype._getResponse = function(xmlhttp) {
+    return this._parser.parseResponse(
+                    (xmlhttp.responseXML && xmlhttp.responseXML.documentElement)?
+                     xmlhttp.responseXML:xmlhttp.responseText, xmlhttp.id);
+}
+
 QuiX.rpc.BaseRPCRequest.prototype.callmethod =
 function(method_name /*, arg1, arg2, ...*/) {
     if (this._validateMethodName(method_name)) {
         var args = Array.prototype.slice.call(arguments);
         var request = this._parser.packRequest(this.id, method_name,
                                                args.slice(1, args.length));
-
         var xmlhttp = QuiX.XHRPool.getInstance();
+
         xmlhttp.id = this.id;
         xmlhttp.open('POST', this.url, this.async);
         xmlhttp.setRequestHeader('Content-Type', this._contentType);
-        xmlhttp.onreadystatechange = function() {
-            QuiX.rpc.BaseRPCRequest._onstatechange.apply(this);
+
+        if (this.async) {
+            xmlhttp.onreadystatechange = function() {
+                QuiX.rpc.BaseRPCRequest._onstatechange.apply(this);
+            }
         }
 
         if (this.use_cache) {
@@ -147,7 +156,7 @@ function(method_name /*, arg1, arg2, ...*/) {
         QuiX.rpc._requests[this.id] = this;
         QuiX.addLoader();
 
-        if (QuiX.rpc._cache && this.use_cache) {
+        if (QuiX.rpc._cache && this.use_cache && this.async) {
             var self = this;
             QuiX.rpc._cache.get(this.key, function(val) {
                 if (val != null) {
@@ -157,19 +166,31 @@ function(method_name /*, arg1, arg2, ...*/) {
                 xmlhttp.send(request);
             });
         }
-        else
+        else {
             xmlhttp.send(request);
+            if (!this.async) {
+                try {
+                    return this._getResponse(xmlhttp);
+                }
+                finally {
+                    QuiX.removeLoader();
+                    QuiX.XHRPool.release(xmlhttp);
+                    delete QuiX.rpc._requests[this.id];
+                }
+            }
+        }
     }
-    else
+    else {
         throw new QuiX.Exception('QuiX.rpc.BaseRPCRequest.callMethod',
                                  'Invalid RPC method name "' +
                                  method_name + '"');
+    }
 }
 
 // XML-RPC request
 
 QuiX.rpc.XMLRPCRequest = function(url /*, async*/) {
-    var async = arguments[1] || true;
+    var async = (typeof arguments[1] != 'undefined')? arguments[1]:true;
     this.base = QuiX.rpc.BaseRPCRequest;
     this.base(url, async);
     this.type = 'xml-rpc';
@@ -180,16 +201,18 @@ QuiX.rpc.XMLRPCRequest = function(url /*, async*/) {
 QuiX.rpc.XMLRPCRequest.prototype = new QuiX.rpc.BaseRPCRequest;
 
 QuiX.rpc.XMLRPCRequest.prototype._validateMethodName = function(mname) {
-    if( /^[A-Za-z0-9\._\/:]+$/.test(mname) )
+    if(/^[A-Za-z0-9\._\/:]+$/.test(mname)) {
         return true
-    else
+    }
+    else {
         return false
+    }
 }
 
 // JSON-RPC 2.0 request
 
 QuiX.rpc.JSONRPCRequest = function(url /*, async*/) {
-    var async = arguments[1] || true;
+    var async = (typeof arguments[1] != 'undefined')? arguments[1]:true;
     this.base = QuiX.rpc.BaseRPCRequest;
     this.base(url, async);
     this.type = 'json-rpc';
