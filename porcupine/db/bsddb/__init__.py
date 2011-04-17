@@ -297,6 +297,9 @@ class DB(object):
     def delete_external(self, id):
         try:
             self._docdb.delete(id.encode('ascii'), context._trans.txn)
+        except db.DBNotFoundError:
+            # virtual external due to elastic schema
+            pass
         except (db.DBLockDeadlockError, db.DBLockNotGrantedError):
             context._trans.abort()
             raise exceptions.DBRetryTransaction
