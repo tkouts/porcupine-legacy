@@ -17,17 +17,19 @@ QuiX.ui.HR.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.IFrame = function(/*params*/) {
     var params = arguments[0] || {};
-    params.overflow = 'hidden';
+    params.overflow = params.overflow || 'visible';
     this.base = QuiX.ui.Widget;
     this.base(params);
     this.div.className = 'ifrm';
     this.frame = ce("IFRAME");
     this.frame.frameBorder = 0;
+    this.frame.scrolling = params.scrolling || 'auto';
     this.frame.name = params.name || '';
+    this.frame.allowTransparency = true;
     QuiX.addEvent(this.frame, 'onload', QuiX.ui.IFrame.prototype._onload);
-    this.frame.src = params.src || "";
     this.frame.style.width = "100%";
     this.frame.style.height = "100%";
+    this.setSource(params.src);
     this.div.appendChild(this.frame);
 }
 
@@ -37,17 +39,27 @@ QuiX.ui.IFrame.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['ondocumentload']);
 
 QuiX.ui.IFrame.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
     this.frame.style.visibility = 'hidden';
-    QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
     this.frame.style.visibility = '';
 }
 
 QuiX.ui.IFrame.prototype.setSource = function(src) {
-    this.frame.src = src;
+    this.frame.src = src || 'about:blank';
 }
 
 QuiX.ui.IFrame.prototype.getSource = function() {
     return this.frame.src;
+}
+
+QuiX.ui.IFrame.prototype.setScrolling = function(scrolling) {
+    this.frame.scrolling = scrolling;
+    this.frame.src = this.frame.src;
+}
+
+QuiX.ui.IFrame.prototype.getScrolling = function() {
+    return this.frame.scrolling;
 }
 
 QuiX.ui.IFrame.prototype.getDocument = function() {
@@ -57,7 +69,7 @@ QuiX.ui.IFrame.prototype.getDocument = function() {
 QuiX.ui.IFrame.prototype._onload = function(evt) {
     evt = evt || event;
     var w = QuiX.getTargetWidget(evt);
-	w.trigger('ondocumentload');
+    w.trigger('ondocumentload');
 }
 
 // GroupBox
@@ -145,7 +157,7 @@ QuiX.ui.GroupBox._check_onclick = function(evt ,w) {
     else {
         box.body.disable();
     }
-	box.trigger('onstatechange', evt, box);
+    box.trigger('onstatechange', evt, box);
 }
 
 // slider
@@ -213,14 +225,9 @@ QuiX.ui.Slider.prototype.setValue = function(val) {
     this._update();
 }
 
-QuiX.ui.Slider.prototype.redraw = function() {
+QuiX.ui.Slider.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
-    if (this.base) {
-    	this.base.prototype.redraw.apply(this, arguments);
-    }
-    else {
-    	QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
-    }
+    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
     this._update(memo);
 }
 
@@ -271,7 +278,7 @@ QuiX.ui.Slider._onmousemove = function(evt, desktop) {
     slider._update(memo);
 
     if (old_value != new_value) {
-		slider.trigger('onchange');
+        slider.trigger('onchange');
     }
 }
 
@@ -282,39 +289,4 @@ QuiX.ui.Slider._onmouseup = function(evt, desktop) {
     if (slider.label) {
         slider.label.hide();
     }
-}
-
-// progress bar
-
-QuiX.ui.ProgressBar = function(/*params*/) {
-    var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
-    params.border = 1;
-    params.overflow = 'hidden';
-    this.base(params);
-    this.div.className = 'progressbar';
-    this.bar = new QuiX.ui.Widget({height:"100%", overflow:'hidden'});
-    this.appendChild(this.bar);
-    this.bar.div.className = 'bar';
-    this.maxvalue = parseInt(params.maxvalue) || 100;
-    this.value = parseInt(params.value) || 0;
-    this.setValue(this.value);
-}
-
-QuiX.constructors['progressbar'] = QuiX.ui.ProgressBar;
-QuiX.ui.ProgressBar.prototype = new QuiX.ui.Widget;
-
-QuiX.ui.ProgressBar.prototype._update = function() {
-    this.bar.width = parseInt((this.value / this.maxvalue) * 100) + '%';
-    this.bar.redraw();
-}
-
-QuiX.ui.ProgressBar.prototype.setValue = function(v) {
-    this.value = parseInt(v);
-    if (this.value>this.maxvalue) this.value = this.maxvalue;
-    this._update();
-}
-
-QuiX.ui.ProgressBar.prototype.increase = function(amount) {
-    this.setValue(this.value + parseInt(amount));
 }
