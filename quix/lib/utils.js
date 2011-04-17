@@ -188,6 +188,11 @@ QuiX.utils.BrowserInfo = {
             identity: "Android"
         },
         {
+            string: navigator.userAgent,
+            subString: "BlackBerry",
+            identity: "BlackBerry"
+        },
+        {
             string: navigator.platform,
             subString: "Linux",
             identity: "Linux"
