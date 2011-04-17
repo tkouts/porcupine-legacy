@@ -103,6 +103,11 @@ BODY {
     background-color: #0099FF;
 }
 
+.field #_o{
+    opacity : .3;
+    filter: alpha(opacity = 30);
+}
+
 /********************/
 /* Label            */
 /********************/
@@ -579,11 +584,19 @@ BODY {
 
 .progressbar {
     border-style: solid;
-    border-color: black;
+    border-color: #ccc;
+
+    -webkit-border-radius: 16px;
+    -moz-border-radius: 16px;
+    border-radius: 16px;
 }
 
 .progressbar .bar {
-    background-color: #6699FF;
+    background-color: #ccc;
+
+    -webkit-border-radius: 16px;
+    -moz-border-radius: 16px;
+    border-radius: 16px;
 }
 
 /********************/
@@ -678,6 +691,7 @@ BODY {
     white-space: nowrap;
 }
 
+.combodropdown .over,
 .combodropdown .option:hover {
     color: white;
     background-color: #6699FF;

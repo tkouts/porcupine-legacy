@@ -95,6 +95,11 @@ BODY {
     background-color: navy;
 }
 
+.field #_o{
+    opacity : .3;
+    filter: alpha(opacity = 30);
+}
+
 /********************/
 /* Label            */
 /********************/
@@ -522,7 +527,7 @@ BODY {
 /* Combo            */
 /********************/
 
-.combo.noneditable {
+.combo {
     border-style: solid;
     border-color: DarkGray;
     background-color: white;
@@ -531,16 +536,19 @@ BODY {
 .combo INPUT {
     font-family: Geneva, sans-serif;
     font-size: 11px;
+    border: none;    
 }
 
+/*
 .combo.noneditable INPUT {
     border: none;
 }
 
 .combo.editable INPUT {
     border: 1px solid;
-    border-color: #333 #CCC transparent #333;
+    border-color: #333 #CCC #CCC #333;
 }
+*/
 
 .combodropdown {
     border-style: solid;
@@ -553,6 +561,7 @@ BODY {
     white-space: nowrap;
 }
 
+.combodropdown .over,
 .combodropdown .option:hover {
     color: white;
     background-color: #6699FF;
