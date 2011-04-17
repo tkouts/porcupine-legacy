@@ -39,7 +39,7 @@ def webmethod(of_type, http_method='GET', client='', lang='', qs='',
 
 
 def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
-           lang='', qs='',
+           lang='', qs='', body='',
            max_age=0, encoding='utf-8',
            template=None, template_engine='string_template'):
 
@@ -47,10 +47,10 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
         def __init__(self, function):
             WebMethodDescriptor.__init__(self, function, of_type,
                 ('GET',
-                 '(MSIE [6-8].+Windows NT)|' +
+                 '(MSIE [6-9].+Windows NT)|' +
                  '(Mozilla/5\.0.+rv:(1\.[7-9]|2\.\d))|' +
                  'Version/[3-5]\.\d(.*)Safari|' +
-                 'Chrome/\d\.\d|' +
+                 'Chrome/(\d)+\.(\d)+|' +
                  'Opera/9',
                  lang,
                  qs),
@@ -109,7 +109,9 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
             WebMethodDescriptor.execute(self, item, context)
 
             if isPage:
-                context.response.write('</textarea></body></html>')
+                context.response.write('</textarea>')
+                context.response.write(body)
+                context.response.write('</body></html>')
 
     return WebMethod
 
