@@ -92,7 +92,7 @@
 
     <!-- Flash files -->
     <context match="(.*)\.swf"
-        method="GET"
+        method="GET|HEAD"
         client=".*"
         lang=".*"
         action="$1.swf"
