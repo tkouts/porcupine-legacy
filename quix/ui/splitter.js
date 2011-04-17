@@ -7,7 +7,6 @@ QuiX.ui.Splitter = function(/*params*/) {
     var spacing = parseInt(params.spacing) || 6;
     params.overflow = 'hidden';
     params.spacing = 0;
-    params.onresize = QuiX.ui.Splitter._onresize;
     this.base = QuiX.ui.Box;
     this.base(params);
 
@@ -15,6 +14,7 @@ QuiX.ui.Splitter = function(/*params*/) {
     this.div.className = 'splitter';
     this.panes = [];
     this._handles = [];
+    this.attachEvent('onresize', QuiX.ui.Splitter._onresize);
 }
 
 QuiX.constructors['splitter'] = QuiX.ui.Splitter;
@@ -62,27 +62,21 @@ QuiX.ui.Splitter.prototype._handleMoving = function(evt, iHandle) {
     }
 
     if (-offset < this._l1 && offset < this._l2) {
-        var fc = this._getFillersCount(),
-            memo = {};
-        if ((this._w1 + offset >= this._m1) &&
-                (this._w2 - offset >= this._m2)) {
-            if (!this._f1 || (this._f1 && this._f2) || fc > 1) {
-                pane1[length_var] = Math.max(this._w1 + offset, this._m1);
-            }
-            if (!this._f2 || (fc > 1 && !(this._f1 && this._f2))) {
-                pane2[length_var] = Math.max(this._w2 - offset, this._m2);
-            }
+        var memo = {};
+
+        if (this._w1 + offset < this._m1) {
+            pane1[length_var] = this._m1;
+            pane2[length_var] = (this._w1 + this._w2) - this._m1;
+        }
+        else if (this._w2 - offset < this._m2) {
+            pane2[length_var] = this._m2;
+            pane1[length_var] = (this._w1 + this._w2) - this._m2;
         }
         else {
-            if (!this._f1 && (this._w1 + offset < this._m1)) {
-                pane1[length_var] = this._m1;
-            }
-            if (!this._f2 && (this._w2 - offset < this._m2)) {
-                pane2[length_var] = this._m2;
-            }
+            pane1[length_var] = this._w1 + offset;
+            pane2[length_var] = this._w2 - offset;
         }
         pane1.redraw(false, memo);
-        this._handles[iHandle].redraw(false, memo);
         pane2.redraw(false, memo);
     }
 }
@@ -91,27 +85,15 @@ QuiX.ui.Splitter.prototype._endMoveHandle = function(evt, iHandle) {
     this.detachEvent('onmouseup');
     this.detachEvent('onmousemove');
     this.div.style.cursor = '';
-    QuiX.attachFrames(this);
+    //QuiX.attachFrames(this);
     QuiX.dragging = false;
 }
 
-QuiX.ui.Splitter.prototype._getFillersCount = function() {
-    var c = 0,
-        length_var = (this.orientation == 'h')?'width':'height';
-
-    for (var i=0; i<this.panes.length; i++) {
-        if (this.panes[i][length_var] == QuiX.ui.Box._calcWidgetLength
-                && !this.panes[i].isHidden()) {
-            c += 1;
-        }
-    }
-    return c;
-}
-
 QuiX.ui.Splitter._destroy = function() {
-    var oSplitter = this.parent;
-    var length_var = (oSplitter.orientation == 'h')?'width':'height';
-    var idx = oSplitter.panes.indexOf(this);
+    var oSplitter = this.parent,
+        length_var = (oSplitter.orientation == 'h')? 'width':'height',
+        idx = oSplitter.panes.indexOf(this);
+
     if (this[length_var] == QuiX.ui.Box._calcWidgetLength &&
             oSplitter.panes.length > 1) {
         if (idx == 0) {
@@ -121,22 +103,25 @@ QuiX.ui.Splitter._destroy = function() {
             oSplitter.panes[idx - 1][length_var] = '-1';
         }
     }
+
     if (oSplitter.panes.length > 1) {
         if (idx == 0) {
             oSplitter._handles[0].destroy();
-            oSplitter._handles.splice(0, 1);			
+            oSplitter._handles.splice(0, 1);
         }
         else {
             oSplitter._handles[idx - 1].destroy();
             oSplitter._handles.splice(idx - 1, 1);
         }
     }
+
     if (this.base) {
-    	this.base.prototype.destroy.apply(this, arguments);
+        this.base.prototype.destroy.apply(this, arguments);
     }
     else {
-    	QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
+        QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
     }
+
     oSplitter.panes.splice(idx, 1);
     oSplitter.redraw(true);
 }
@@ -146,7 +131,7 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
         var splitter = w.parent;
 
         QuiX.dragging = true;
-        QuiX.detachFrames(splitter);
+        //QuiX.detachFrames(splitter);
 
         var idx = splitter._handles.indexOf(w);
 
@@ -156,8 +141,8 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
         var min_length_var = (splitter.orientation == 'h')?
                              '_calcMinWidth':'_calcMinHeight';
         var memo = {};
-        var	pane1 = splitter.panes[idx];
-        var	pane2 = splitter.panes[idx + 1];
+        var pane1 = splitter.panes[idx];
+        var pane2 = splitter.panes[idx + 1];
         splitter._w1 = pane1[length_func](true, memo);
         splitter._w2 = pane2[length_func](true, memo);
         splitter._l1 = pane1[length_func](false, memo);
@@ -180,76 +165,105 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
     var splitter = w.parent,
         length_var = (splitter.orientation == 'h')? 'width':'height',
         length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight',
+        min_func = (splitter.orientation == 'h')? '_calcMinWidth':'_calcMinHeight',
         idx = splitter._handles.indexOf(w),
         ns = 1,
-        fc;
+        memo = {};
 
     if (splitter.panes[idx+1].attributes._collapse) {
         idx = idx + 1;
         ns = -1;
     }
+
     var pane = splitter.panes[idx],
         pane2 = splitter.panes[idx + ns];
 
     while (pane2.isHidden()) {
-        ns += (ns>0)?1:-1;
+        ns += (ns>0)? 1:-1;
         pane2 = splitter.panes[idx + ns];
     }
 
     if (pane.isHidden()) {
+        var targetLength;
+
         w._isCollapsed = false;
-        w.div.style.cursor = (splitter.orientation == "h")?
+        w.div.style.cursor = (splitter.orientation == 'h')?
                              'e-resize':'n-resize';
-        if (pane2._statelength) {
-            pane2[length_var] = pane2._statelength;
-            pane2._statelength = null;
-        }
-        if (splitter._getFillersCount() == 0) {
-            pane[length_var] = QuiX.ui.Box._calcWidgetLength;
-        }
         pane.show();
+        targetLength = pane2[length_func](true, memo) - pane[length_func](true, memo);
+        pane2[length_var] = Math.max(targetLength, pane2[min_func]());
+        if (pane2[length_var] > targetLength) {
+            var diff = pane2[length_var] - targetLength;
+            splitter.panes.each(
+                function() {
+                    var length = this[length_func](true),
+                        avail = length - this[min_func]();
+                    if (avail > 0) {
+                        this[length_var] = length - Math.min(avail, diff);
+                        diff -= avail;
+                        if (diff <= 0) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+        }
     }
     else {
         w._isCollapsed = true;
         w.div.style.cursor = 'default';
-        pane.hide();
-        fc = splitter._getFillersCount();
-        var islastfree = (fc == 1 &&
-                          pane2[length_var] == QuiX.ui.Box._calcWidgetLength);
         if (!pane2.isHidden()) {
-            if (!pane2._statelength && !islastfree) {
-                pane2._statelength = pane2[length_func](true);
-            }
-            if (fc == 0) {
-                pane2[length_var] = QuiX.ui.Box._calcWidgetLength;
-            }
-            else if (!islastfree) {
-                pane2[length_var] = pane[length_func](true) +
-                                    pane2[length_func](true);
-            }
+            pane2[length_var] = pane[length_func](true, memo) +
+                                pane2[length_func](true, memo);
         }
+        pane.hide();
     }
+
     splitter.redraw();
 }
 
-QuiX.ui.Splitter._onresize = function(splitter, w, h) {
+QuiX.ui.Splitter._onresize = function(splitter, memo) {
     var length_var = (splitter.orientation == 'h')? 'width':'height',
-        ol = (splitter.orientation == 'h')? w:h,
-        nl = parseInt(splitter.div.style[length_var]),
-        pane,
-        perc = nl / ol;
+        length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight',
+        min_func = (splitter.orientation == 'h')? '_calcMinWidth':'_calcMinHeight',
+        nl = splitter[length_func](false, memo);
 
-    if (ol != nl) {
-        for (var i=0; i<splitter.panes.length; i++) {
-            pane = splitter.panes[i];
-            if (pane._statelength) {
-                pane._statelength = Math.round(perc * pane._statelength);
+    var sum = 0;
+    splitter.widgets.each(
+        function() {
+            if (!this.isHidden()) {
+                sum += this[length_func](true, memo);
             }
-            if (typeof pane[length_var] != 'string' &&
-                    typeof pane[length_var] != 'function') {
-                pane[length_var] = Math.round(perc * pane[length_var]) - 1;
-            }
-        }
+        });
+
+    if (Math.abs(sum - nl) > 1) {
+        // we need to resize panes
+        var space1 = nl - ((splitter.panes.length - 1) * splitter._spacing),
+            space2 = sum - ((splitter.panes.length - 1) * splitter._spacing);
+
+        splitter.panes.each(
+            function(i) {
+                if (!this.isHidden()) {
+                    var nl = parseInt(Math.round(this[length_func](true, memo) * space1 / space2));
+                    space2 -= this[length_func](true, memo);
+                    this[length_var] = Math.max(nl, this[min_func]());
+                    if (this[length_var] > nl && i == splitter.panes.length - 1) {
+                        // the last cannot fit
+                        var diff = this[length_var] - nl,
+                            previousPane;
+
+                        while (i > 0) {
+                            previousPane = splitter.panes[--i];
+                            if (previousPane[length_var] - diff >= previousPane[min_func]()) {
+                                previousPane[length_var] -= diff;
+                                break;
+                            }
+                        }
+                    }
+                    space1 -= this[length_var];
+                }
+            });
+
         splitter.redraw();
     }
 }
