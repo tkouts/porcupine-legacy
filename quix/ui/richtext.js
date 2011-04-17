@@ -214,10 +214,11 @@ QuiX.ui.RichText.prototype.getValue = function() {
 }
 
 QuiX.ui.RichText.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
     if (QuiX.utils.BrowserInfo.family == 'moz' && this.wysiwyg && this.doc) {
         this._updateInput();
     }
-    QuiX.ui.Box.prototype.redraw.apply(this, arguments);
+    QuiX.ui.Box.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 QuiX.ui.RichText.prototype.cleanPaste = function() {

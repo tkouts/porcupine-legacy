@@ -53,8 +53,9 @@ QuiX.ui.DataGrid._removeEditWidget = function() {
 }
 
 QuiX.ui.DataGrid.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
     QuiX.ui.DataGrid._removeEditWidget();
-    QuiX.ui.ListView.prototype.redraw.apply(this, arguments);
+    QuiX.ui.ListView.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 QuiX.ui.DataGrid.prototype.disable = function() {

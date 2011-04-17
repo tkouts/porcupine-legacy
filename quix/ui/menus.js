@@ -40,6 +40,7 @@ QuiX.ui.MenuOption.prototype.addOption = function(params) {
 }
 
 QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
     if (this.subMenu) {
         this.div.className = 'option submenu';
     }
@@ -63,7 +64,7 @@ QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
     else if (!this.img) {
         this.img = QuiX.baseUrl + 'images/transp.gif';
     }
-    QuiX.ui.Icon.prototype.redraw.apply(this, arguments);
+    QuiX.ui.Icon.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 QuiX.ui.MenuOption.prototype.destroy = function() {
@@ -115,7 +116,7 @@ QuiX.ui.MenuOption.prototype.expand = function() {
     }
     if (this.subMenu && !this.subMenu.isOpen) {
         this.parent.activeSub = this.subMenu;
-        this.subMenu.show(
+        this.subMenu._show(
             this.parent,
             this.div.offsetWidth,
             this.getScreenTop() - this.parent.getScreenTop() -
@@ -236,7 +237,7 @@ QuiX.ui.ContextMenu.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
-QuiX.ui.ContextMenu.prototype.show = function(w, x, y) {
+QuiX.ui.ContextMenu.prototype._show = function(w, x, y) {
     if (!this.isOpen) {
         var r = this.trigger('onshow'),
             bShow = !(r === false);
@@ -303,7 +304,7 @@ QuiX.ui.ContextMenu._showWidgetContextMenu = function (w, menu) {
     var nx = w.getScreenLeft();
     var ny = w.getScreenTop() + w.div.offsetHeight;
 
-    menu.show(document.desktop, nx, ny);
+    menu._show(document.desktop, nx, ny);
 
     if (ny + menu.div.offsetHeight > document.desktop.getHeight(true)) {
         menu.top = menu.owner.getScreenTop() - menu.div.offsetHeight;
@@ -323,7 +324,7 @@ QuiX.ui.ContextMenu._oncontextmenu = function(evt, w) {
         x = QuiX.transformX(x);
     }
     w.contextMenu.target = QuiX.getTargetWidget(evt);
-    w.contextMenu.show(document.desktop, x, evt.clientY);
+    w.contextMenu._show(document.desktop, x, evt.clientY);
     QuiX.cancelDefault(evt);
 }
 
@@ -347,10 +348,11 @@ QuiX.constructors['menubar'] = QuiX.ui.MenuBar;
 QuiX.ui.MenuBar.prototype = new QuiX.ui.Widget;
 
 QuiX.ui.MenuBar.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
     for (var i=0; i<this.menus.length; i++) {
         this.menus[i].div.style.marginRight = this.spacing + 'px';
     }
-    QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 QuiX.ui.MenuBar.prototype.addRootMenu = function(params) {
