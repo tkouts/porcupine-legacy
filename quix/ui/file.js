@@ -45,7 +45,8 @@ QuiX.ui.File = function(/*params*/) {
             params.img = null;
             btn = new QuiX.ui.Widget({
                 width : 24,
-                border : 1
+                border : 1,
+                overflow: 'visible'
             });
             btn.div.className = 'btnupload';
             self.appendChild(btn);
@@ -94,6 +95,7 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
 
         //events
         upload_error_handler : function() {
+            uploader.cancelUpload(null, false);
             obj.uploadError.apply(obj, arguments);
         },
         file_queue_error_handler : function() {
@@ -111,8 +113,21 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
         upload_success_handler : function() {
             obj.uploadSuccess.apply(obj, arguments);
         },
-        upload_complete_handler : function() {
-            obj.uploadComplete.apply(obj, arguments);
+        upload_complete_handler : function(file) {
+            if(SWFUpload.FILE_STATUS.ERROR != file.filestatus) {
+                obj.uploadComplete.apply(obj, arguments);
+            }
+            else {
+                // ERROR
+                try {
+                    if (obj.attributes.pbars) {
+                       obj.attributes.pbars[0].getParentByType(QuiX.ui.Dialog).close();
+                    }
+                    else if (obj.attributes.pbar) {
+                        obj.attributes.pbar.getParentByType(QuiX.ui.Dialog).close();
+                    }
+                } catch(e) {}
+            }
         }
     });
     return uploader;
@@ -123,7 +138,7 @@ QuiX.ui.File.prototype.openDocument = function() {
 }
 
 QuiX.ui.File.prototype.setFileTypes = function(filetypes, description) {
-	this.uploader.setFileTypes(filetypes, description);
+    this.uploader.setFileTypes(filetypes, description);
 }
 
 QuiX.ui.File.prototype.fileSelected = function(file) {
@@ -321,6 +336,7 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
                             f = self.upload_queue.shift();
                             self.uploader.cancelUpload(f.id, false);
                         }
+                        self.total_bytes = 0;
                         dlg.close();
                     }
                 );
