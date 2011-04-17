@@ -51,18 +51,8 @@ QuiX.ui.Label = function(/*params*/) {
 QuiX.constructors['label'] = QuiX.ui.Label;
 QuiX.ui.Label.prototype = new QuiX.ui.Widget;
 
-QuiX.ui.Label.prototype._calcSize = function(height, offset, getHeight, memo) {
-    if (this[height] == 'auto' &&
-            (!memo || (memo && !memo[this._uniqueid + height]))) {
-        // we need to measure
-        var value = QuiX.measureWidget(this, height);
-        if (typeof memo != 'undefined')
-            memo[this._uniqueid + height] = value;
-        return value - offset;
-    }
-    else {
-        return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
-    }
+QuiX.ui.Label.prototype._calcAuto = function(dim, memo) {
+    return QuiX.measureWidget(this, dim);
 }
 
 QuiX.ui.Label.prototype.setTextOpacity = function(op) {
@@ -85,18 +75,21 @@ QuiX.ui.Label.prototype.getCaption = function() {
 }
 
 QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
-    QuiX.ui.Widget.prototype.redraw.apply(this, arguments);
+    var memo = arguments[1] || {};
+    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
     if (!this.wrap) {
         this.div.style.lineHeight = this.div.style.height;
+        this.div.style.whiteSpace = 'nowrap';
+    }
+    else {
+        this.div.style.whiteSpace = 'normal';
     }
     if (bForceAll) {
         with (this.div.style) {
-            if (!this.wrap) {
-                whiteSpace = 'nowrap';
-            }
-            else {
-                whiteSpace = 'normal';
-                lineHeight = '';
+            if (this.wrap) {
+                if (lineHeight.match('\\d+px')) {
+                    lineHeight = '';
+                }
             }
             if (this.align) {
                 if (this.align == 'auto') {
@@ -198,7 +191,7 @@ QuiX.ui.Icon = function(/*params*/) {
     this.spacing = parseInt(params.spacing) || 4;
     this.imgHeight = params.imgheight;
     this.imgWidth = params.imgwidth;
-    this.redraw(true);
+    //this.redraw(true);
 }
 
 QuiX.constructors['icon'] = QuiX.ui.Icon;
@@ -224,79 +217,78 @@ QuiX.ui.Icon.prototype.getImageURL = function() {
 }
 
 QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
-    QuiX.ui.Label.prototype.redraw.apply(this, arguments);
+    var memo = arguments[1] || {};
+    QuiX.ui.Label.prototype.redraw.apply(this, [bForceAll, memo]);
 
     if (this.img && (this.imgAlign == 'top' || this.imgAlign == 'bottom')) {
         this.div.style.lineHeight = '';
     }
 
-    if (bForceAll) {
-        if (this.img + this.imgAlign + this.spacing != this._sig) {
-            var imgs = this.div.getElementsByTagName('IMG');
-            while (imgs.length > 0) {
-                imgs[0].ondragstart = null;
-                QuiX.removeNode(imgs[0]);
-            }
-            var br = this.div.getElementsByTagName('BR')[0];
-            if (br) QuiX.removeNode(br);
+    if (bForceAll || (this.img + this.imgAlign + this.spacing != this._sig)) {
+        var imgs = this.div.getElementsByTagName('IMG');
+        while (imgs.length > 0) {
+            imgs[0].ondragstart = null;
+            QuiX.removeNode(imgs[0]);
+        }
+        var br = this.div.getElementsByTagName('BR')[0];
+        if (br) QuiX.removeNode(br);
 
-            if (this.img) {
-                var percentage;
-                var caption = this.getCaption();
+        if (this.img) {
+            var percentage;
+            var caption = this.getCaption();
 
-                if (caption != '') {
-                    var img = QuiX.getImage(this.img);
-                    img.style.verticalAlign = (this.imgAlign == 'top')?
-                        'top':'middle';
-                    img.ondragstart = QuiX.cancelDefault;
-                    //if (this.imgAlign == 'left' || this.imgAlign == 'right') {
-                    //    // for vertical alignment
-                    //    this._fi = QuiX.getImage(QuiX.baseUrl +
-                    //                             'images/transp.gif');
-                    //    this._fi.style.verticalAlign = 'middle';
-                    //    this._fi.style.width = '0px';
-                    //    if (this.imgAlign == 'right') {
-                    //        this.div.appendChild(this._fi);
-                    //    }
-                    //    else {
-                    //        this.div.insertBefore(this._fi,
-                    //                              this.div.firstChild);
-                    //    }
-                    //}
-                    switch(this.imgAlign) {
-                        case "left":
-                            img.style.marginRight = this.spacing + 'px';
-                            this.div.insertBefore(img, this.div.firstChild);
-                            break;
-                        case "right":
-                            img.style.marginLeft = this.spacing + 'px';
-                            this.div.appendChild(img);
-                            break;
-                        case "top":
-                            img.style.marginBottom = this.spacing + 'px';
-                            this.div.insertBefore(ce('BR'), this.div.firstChild);
-                            this.div.insertBefore(img, this.div.firstChild);
-                            break;
-                        case "bottom":
-                            img.style.marginTop = this.spacing + 'px';
-                            this.div.appendChild(ce('BR'));
-                            this.div.appendChild(img);
-                    }
+            if (caption != '') {
+                var img = QuiX.getImage(this.img);
+                img.style.verticalAlign = (this.imgAlign == 'top')?
+                    'top':'middle';
+                img.ondragstart = QuiX.cancelDefault;
+                //if (this.imgAlign == 'left' || this.imgAlign == 'right') {
+                //    // for vertical alignment
+                //    this._fi = QuiX.getImage(QuiX.baseUrl +
+                //                             'images/transp.gif');
+                //    this._fi.style.verticalAlign = 'middle';
+                //    this._fi.style.width = '0px';
+                //    if (this.imgAlign == 'right') {
+                //        this.div.appendChild(this._fi);
+                //    }
+                //    else {
+                //        this.div.insertBefore(this._fi,
+                //                              this.div.firstChild);
+                //    }
+                //}
+                switch(this.imgAlign) {
+                    case "left":
+                        img.style.marginRight = this.spacing + 'px';
+                        this.div.insertBefore(img, this.div.firstChild);
+                        break;
+                    case "right":
+                        img.style.marginLeft = this.spacing + 'px';
+                        this.div.appendChild(img);
+                        break;
+                    case "top":
+                        img.style.marginBottom = this.spacing + 'px';
+                        this.div.insertBefore(ce('BR'), this.div.firstChild);
+                        this.div.insertBefore(img, this.div.firstChild);
+                        break;
+                    case "bottom":
+                        img.style.marginTop = this.spacing + 'px';
+                        this.div.appendChild(ce('BR'));
+                        this.div.appendChild(img);
                 }
-                else {
-                    this.div.style.backgroundImage = 'url("' +
-                        this.img.replace('$THEME_URL$', QuiX.getThemeUrl()) +
-                        '")';
-                    this.div.style.backgroundRepeat = 'no-repeat';
-                    this.div.style.backgroundPosition = '50% 50%';
-                }
-                this.imageElement = img;
             }
             else {
-                this.imageElement = null;
+                this.div.style.backgroundImage = 'url("' +
+                    this.img.replace('$THEME_URL$', QuiX.getThemeUrl()) +
+                    '")';
+                this.div.style.backgroundRepeat = 'no-repeat';
+                this.div.style.backgroundPosition = '50% 50%';
             }
-            this._sig = this.img + this.imgAlign + this.spacing;
+            this.imageElement = img;
         }
+        else {
+            this.imageElement = null;
+        }
+        this._sig = this.img + this.imgAlign + this.spacing;
     }
     //if (this._fi) {
     //    this._fi.style.height = this.div.style.height;
@@ -387,25 +379,14 @@ QuiX.ui.Button = function(/*params*/) {
 QuiX.constructors['button'] = QuiX.ui.Button;
 QuiX.ui.Button.prototype = new QuiX.ui.Widget;
 
-QuiX.ui.Button.prototype._calcSize = function(height, offset, getHeight,
-                                              memo) {
-    if (this[height] == 'auto' &&
-            (!memo || (memo && !memo[this._uniqueid + height]))) {
-        // we need to measure
-        var padding_offset = (height == 'height')?2:0;
-        var padding = this.getPadding();
-        var value = QuiX.measureWidget(this.icon, height) +
-                    padding[padding_offset] +
-                    padding[padding_offset + 1] +
-                    2 * this.getBorderWidth();
-        if (memo) {
-            memo[this._uniqueid + height] = value;
-        }
-        return value - offset;
-    }
-    else {
-        return QuiX.ui.Widget.prototype._calcSize.apply(this, arguments);
-    }
+QuiX.ui.Button.prototype._calcAuto = function(dim, memo) {
+    var padding_offset = (dim == 'height')?2:0;
+    var padding = this.getPadding();
+    var value = QuiX.measureWidget(this.icon, dim) +
+                padding[padding_offset] +
+                padding[padding_offset + 1] +
+                2 * this.getBorderWidth();
+    return value;
 }
 
 QuiX.ui.Button.prototype.setBgColor = function(color) {
@@ -598,7 +579,7 @@ QuiX.ui.SpriteButton = function(/*params*/) {
         img = new QuiX.Image(params.img),
         state = params.state;
 
-    params.overflow = 'hidden';
+    params.overflow = params.overflow || 'hidden';
     params.align = params.align || 'center';
 
     this.base = QuiX.ui.Label;
