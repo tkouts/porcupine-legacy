@@ -5,13 +5,12 @@
 // Reference1 datatype QuiX control
 function Reference1(/*params*/) {
 	var params = arguments[0] || {};
-	this.base = QuiX.ui.Box;
-	
 	params.orientation = 'h';
 	params.spacing = params.spacing || 0;
 	params.childrenalign = 'center';
 	params.height = params.height || 24;
-	this.base(params);
+
+	QuiX.ui.Box.call(this, params);
 	
 	this.root = params.root || '';
 	this.cc = params.cc;
@@ -59,6 +58,7 @@ function Reference1(/*params*/) {
 }
 
 Reference1.prototype = new QuiX.ui.Box;
+Reference1.prototype.__class__ = Reference1;
 
 Reference1._selectobject = function(evt, btn) {
 	var oWindow = btn.getParentByType(QuiX.ui.Window);
@@ -99,10 +99,9 @@ Reference1._fill = function(dlg) {
 // ReferenceN datatype QuiX control
 function ReferenceN(/*params*/) {
 	var params = arguments[0] || {};
-	this.base = QuiX.ui.Box;
-	
 	params.orientation = 'v';
-	this.base(params);
+
+	QuiX.ui.Box.call(this, params);
 	
 	this.root = params.root || '';
 	this.cc = params.cc;
@@ -151,6 +150,7 @@ function ReferenceN(/*params*/) {
 }
 
 ReferenceN.prototype = new QuiX.ui.Box;
+ReferenceN.prototype.__class__ = ReferenceN;
 
 ReferenceN._selectobject = function(evt, btn) {
 	var oWindow = btn.getParentByType(QuiX.ui.Window);
@@ -192,11 +192,10 @@ ReferenceN._fill = function(dlg) {
 // ACLEditor QuiX control
 function ACLEditor(/*params*/) {
 	var params = arguments[0] || {};
-	this.base = QuiX.ui.Box;
-	
 	params.orientation = 'v';
 	params.spacing = params.spacing || 0;
-	this.base(params);
+
+	QuiX.ui.Box.call(this, params);
 	
 	var rolesInherited = (params.rolesinherited == true ||
 						  params.rolesinherited == 'true')? true:false;
@@ -273,6 +272,7 @@ function ACLEditor(/*params*/) {
 }
 
 ACLEditor.prototype = new QuiX.ui.Box;
+ACLEditor.prototype.__class__ = ACLEditor;
 
 ACLEditor._rionclick = function(evt, check) {
 	var _aclbox = check.parent.widgets[1];
