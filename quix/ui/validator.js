@@ -8,13 +8,13 @@ QuiX.ui.Validator = function(params) {
 
     this.rules = this.parseRules(params.rules);
 
-    this.base = QuiX.ui.Label;
-    this.base(params);
+    QuiX.ui.Label.call(this, params);
 
     this._val = null;
 }
 
 QuiX.ui.Validator.prototype = new QuiX.ui.Label;
+QuiX.ui.Validator.prototype.__class__ = QuiX.ui.Validator;
 
 QuiX.ui.Validator.rules = {
     "required": function(/*message*/) {

@@ -7,8 +7,9 @@ Box layout
 QuiX.ui.Box = function(/*params*/) {
     var params = arguments[0] || {};
     params.overflow = params.overflow || 'hidden';
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
+    
     this.div.className = 'box';
     this.orientation = params.orientation || 'h';
     var spacing = (typeof params.spacing == 'undefined')? 2:params.spacing;
@@ -18,6 +19,7 @@ QuiX.ui.Box = function(/*params*/) {
 
 QuiX.constructors['box'] = QuiX.ui.Box;
 QuiX.ui.Box.prototype = new QuiX.ui.Widget;
+QuiX.ui.Box.prototype.__class__ = QuiX.ui.Box;
 
 QuiX.ui.Box._destroy = function() {
     var oBox = this.parent;
@@ -33,12 +35,8 @@ QuiX.ui.Box._destroy = function() {
             oBox.widgets[idx-1][length_var] = '-1';
         }
     }
-    if (this.base) {
-        this.base.prototype.destroy.apply(this, arguments);
-    }
-    else {
-        QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
-    }
+
+    this.__class__.prototype.destroy.apply(this, arguments);
 }
 
 QuiX.ui.Box._getAvailableLength = function(memo) {
@@ -305,7 +303,7 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
             this.height == null && this.div.style.position != 'absolute') {
         this.widgets.each(
             function() {
-                this.redraw(false, memo)
+                this.redraw(false, memo);
             });
     }
 }
@@ -315,22 +313,24 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
 QuiX.ui.HBox = function(/*params*/) {
     var params = arguments[0] || {};
     params.orientation = 'h';
-    this.base = QuiX.ui.Box;
-    this.base(params);
+
+    QuiX.ui.Box.call(this, params);
 }
 QuiX.constructors['hbox'] = QuiX.ui.HBox;
 QuiX.ui.HBox.prototype = new QuiX.ui.Box;
+QuiX.ui.HBox.prototype.__class__ = QuiX.ui.HBox;
 
 // vertical box
 
 QuiX.ui.VBox = function(/*params*/) {
     var params = arguments[0] || {};
     params.orientation = 'v';
-    this.base = QuiX.ui.Box;
-    this.base(params);
+
+    QuiX.ui.Box.call(this, params);
 }
 QuiX.constructors['vbox'] = QuiX.ui.VBox;
 QuiX.ui.VBox.prototype = new QuiX.ui.Box;
+QuiX.ui.VBox.prototype.__class__ = QuiX.ui.VBox;
 
 // flow box
 
@@ -339,8 +339,7 @@ QuiX.ui.FlowBox = function(/*params*/) {
     params.spacing = params.spacing || 8;
     params.overflow = params.overflow || 'auto';
 
-    this.base = QuiX.ui.HBox;
-    this.base(params);
+    QuiX.ui.HBox.call(this, params);
     this.div.className = 'flowbox';
 
     this.select = (params.select == true || params.select == 'true');
@@ -359,6 +358,7 @@ QuiX.ui.FlowBox = function(/*params*/) {
 
 QuiX.constructors['flowbox'] = QuiX.ui.FlowBox;
 QuiX.ui.FlowBox.prototype = new QuiX.ui.HBox;
+QuiX.ui.FlowBox.prototype.__class__ = QuiX.ui.FlowBox;
 
 QuiX.ui.FlowBox._destroy = function() {
     var fb = this.parent;

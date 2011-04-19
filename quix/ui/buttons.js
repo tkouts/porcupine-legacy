@@ -10,8 +10,7 @@ QuiX.ui.Label = function(/*params*/) {
 
     params.padding = params.padding || '2,2,2,2';
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
 
     if (!QuiX.supportTouches) {
         this.attachEvent('onmousedown', QuiX.ui.Label._onmousedown);
@@ -50,6 +49,7 @@ QuiX.ui.Label = function(/*params*/) {
 
 QuiX.constructors['label'] = QuiX.ui.Label;
 QuiX.ui.Label.prototype = new QuiX.ui.Widget;
+QuiX.ui.Label.prototype.__class__ = QuiX.ui.Label;
 
 QuiX.ui.Label.prototype._calcAuto = function(dim, memo) {
     return QuiX.measureWidget(this, dim);
@@ -116,17 +116,21 @@ QuiX.ui.Label._onmousedown = function(evt, w) {
 
 QuiX.ui.Link = function(/*params*/) {
     var params = arguments[0] || {};
+
+    QuiX.ui.Label.call(this, params);
+
     this.href = params.href;
-    if (typeof params.target != 'undefined')
+    if (typeof params.target != 'undefined') {
         this.target = params.target
-    else
+    }
+    else {
         this.target = '_blank';
-    this.base = QuiX.ui.Label;
-    this.base(params);
+    }
 }
 
 QuiX.constructors['link'] = QuiX.ui.Link;
 QuiX.ui.Link.prototype = new QuiX.ui.Label;
+QuiX.ui.Link.prototype.__class__ = QuiX.ui.Link;
 
 QuiX.ui.Link.prototype.setCaption = function(s) {
     var a;
@@ -150,8 +154,9 @@ QuiX.ui.Link.prototype.getCaption = function() {
 
 QuiX.ui.Image = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
+
     this.setImageURL(params.img);
     this.div.style.backgroundRepeat = params.repeat || 'no-repeat';
     this.div.style.backgroundPosition = params.position || '50% 50%';
@@ -160,6 +165,7 @@ QuiX.ui.Image = function(/*params*/) {
 
 QuiX.constructors['image'] = QuiX.ui.Image;
 QuiX.ui.Image.prototype = new QuiX.ui.Widget;
+QuiX.ui.Image.prototype.__class__ = QuiX.ui.Image;
 
 QuiX.ui.Image.prototype.setImageURL = function(url) {
     this._url = url || null;
@@ -183,8 +189,8 @@ QuiX.ui.Icon = function(/*params*/) {
     params.canSelect = false;
     params.align = params.align || 'center';
     
-    this.base = QuiX.ui.Label;
-    this.base(params);
+    QuiX.ui.Label.call(this, params);
+
     this.img = params.img || null;
     this.imageElement = null;
     this.imgAlign = params.imgalign || 'left';
@@ -196,6 +202,7 @@ QuiX.ui.Icon = function(/*params*/) {
 
 QuiX.constructors['icon'] = QuiX.ui.Icon;
 QuiX.ui.Icon.prototype = new QuiX.ui.Label;
+QuiX.ui.Icon.prototype.__class__ = QuiX.ui.Icon;
 
 QuiX.ui.Icon.prototype.setImageURL = function(s) {
     if (s != this.img) {
@@ -315,9 +322,7 @@ QuiX.ui.Button = function(/*params*/) {
     var params = arguments[0] || {},
         textOpacity = params.textopacity || 1;
 
-    this.icon = null;
-    this.base = QuiX.ui.Widget;
-    this.base({
+    QuiX.ui.Widget.call(this, {
         id: params.id,
         border: (typeof params.border != 'undefined')? params.border:1,
         width: params.width,
@@ -337,6 +342,8 @@ QuiX.ui.Button = function(/*params*/) {
         onclick: params.onclick,
         onload: params.onload
     });
+
+    this.icon = null;
     this.div.className = 'btn';
     this.div.style.cursor = 'pointer';
 
@@ -378,6 +385,7 @@ QuiX.ui.Button = function(/*params*/) {
 
 QuiX.constructors['button'] = QuiX.ui.Button;
 QuiX.ui.Button.prototype = new QuiX.ui.Widget;
+QuiX.ui.Button.prototype.__class__ = QuiX.ui.Button;
 
 QuiX.ui.Button.prototype._calcAuto = function(dim, memo) {
     var padding_offset = (dim == 'height')?2:0;
@@ -479,8 +487,7 @@ QuiX.ui.FlatButton = function(/*params*/) {
     params.onclick = QuiX.wrappers.eventWrapper(QuiX.ui.FlatButton._onclick,
                                                 params.onclick);
 
-    this.base = QuiX.ui.Icon;
-    this.base(params);
+    QuiX.ui.Icon.call(this, params);
     this.div.className = 'flat';
 
     this.attachEvent('onmouseover', QuiX.ui.FlatButton._onmouseover);
@@ -511,6 +518,7 @@ QuiX.ui.FlatButton = function(/*params*/) {
 
 QuiX.constructors['flatbutton'] = QuiX.ui.FlatButton;
 QuiX.ui.FlatButton.prototype = new QuiX.ui.Icon;
+QuiX.ui.FlatButton.prototype.__class__ = QuiX.ui.FlatButton;
 
 QuiX.ui.FlatButton.prototype.toggle = function() {
     if (this.value == 'off') {
@@ -582,8 +590,7 @@ QuiX.ui.SpriteButton = function(/*params*/) {
     params.overflow = params.overflow || 'hidden';
     params.align = params.align || 'center';
 
-    this.base = QuiX.ui.Label;
-    this.base(params);
+    QuiX.ui.Label.call(this, params);
 
     this.attachEvent('onmouseover', QuiX.ui.SpriteButton._onmouseover);
     this.attachEvent('onmouseout', QuiX.ui.SpriteButton._onmouseout);
@@ -617,6 +624,7 @@ QuiX.ui.SpriteButton = function(/*params*/) {
 
 QuiX.constructors['spritebutton'] = QuiX.ui.SpriteButton;
 QuiX.ui.SpriteButton.prototype = new QuiX.ui.Label;
+QuiX.ui.SpriteButton.prototype.__class__ = QuiX.ui.SpriteButton;
 
 QuiX.ui.SpriteButton.prototype.enable = function() {
     this._setBackgroundPosition('0px');

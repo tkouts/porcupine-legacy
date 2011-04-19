@@ -17,8 +17,7 @@ QuiX.ui.File = function(/*params*/) {
         }
     }
 
-    this.base = QuiX.ui.Box;
-    this.base(params);
+    QuiX.ui.HBox.call(this, params);
 
     var f = new QuiX.ui.Link({
             caption : this._getCaption(),
@@ -59,9 +58,10 @@ QuiX.ui.File = function(/*params*/) {
 }
 
 QuiX.constructors['file'] = QuiX.ui.File;
-QuiX.ui.File.prototype = new QuiX.ui.Box;
+QuiX.ui.File.prototype = new QuiX.ui.HBox;
+QuiX.ui.File.prototype.__class__ = QuiX.ui.File;
 QuiX.ui.File.prototype.customEvents =
-    QuiX.ui.Box.prototype.customEvents.concat(['oncomplete']);
+    QuiX.ui.HBox.prototype.customEvents.concat(['oncomplete']);
 
 QuiX.ui.File.onunload = function(obj) {
     obj.uploader.destroy();
@@ -235,8 +235,8 @@ QuiX.ui.MultiFile = function(/*params*/) {
     this.readonly = (params.readonly == 'true' ||
                      params.readonly == true)? true:false;
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
+
     this.selectlist = new QuiX.ui.SelectList({
         width : '100%',
         height : 'this.parent.getHeight(false, memo) - 24',
@@ -291,6 +291,7 @@ QuiX.ui.MultiFile = function(/*params*/) {
 
 QuiX.constructors['multifile'] = QuiX.ui.MultiFile;
 QuiX.ui.MultiFile.prototype = new QuiX.ui.Widget;
+QuiX.ui.MultiFile.prototype.__class__ = QuiX.ui.MultiFile;
 QuiX.ui.MultiFile.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['oncomplete']);
 

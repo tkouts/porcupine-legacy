@@ -91,6 +91,7 @@ QuiX.ui.Widget = function(/*params*/) {
 }
 
 QuiX.constructors['rect'] = QuiX.ui.Widget;
+QuiX.ui.Widget.prototype.__class__ = QuiX.ui.Widget;
 
 QuiX.ui.Widget.prototype.appendChild = function(w /*, index*/) {
     var index = (typeof arguments[1] != 'undefined')? arguments[1]:null;
@@ -1645,7 +1646,6 @@ QuiX.ui.Widget._enddrag = function(evt, desktop) {
 
 QuiX.ui.Desktop = function(params, root) {
     QuiX.dir = params.dir || '';
-    this.base = QuiX.ui.Widget;
     params.id = 'desktop';
     params.width = params.width || 'document.body.clientWidth';
     params.height = params.height || 'document.body.clientHeight';
@@ -1654,7 +1654,9 @@ QuiX.ui.Desktop = function(params, root) {
     if (QuiX.utils.BrowserInfo.family != 'op') {
         params.oncontextmenu = QuiX.ui.Desktop._oncontextmenu;
     }
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
+
     if (document.all) {
         this.div.onselectstart = QuiX.cancelDefault;
     }
@@ -1693,6 +1695,7 @@ QuiX.ui.Desktop = function(params, root) {
 
 QuiX.constructors['desktop'] = QuiX.ui.Desktop;
 QuiX.ui.Desktop.prototype = new QuiX.ui.Widget;
+QuiX.ui.Desktop.prototype.__class__ = QuiX.ui.Desktop;
 
 QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
         mleft, mtop /*, mwidth, mheight, container*/) {
@@ -1830,10 +1833,11 @@ QuiX.ui.Desktop._oncontextmenu = function(evt, w) {
 
 QuiX.ui.ProgressBar = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
     params.border = 1;
     params.overflow = 'hidden';
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'progressbar';
     this.bar = new QuiX.ui.Widget({height:"100%", overflow:'hidden'});
     this.appendChild(this.bar);
@@ -1845,6 +1849,7 @@ QuiX.ui.ProgressBar = function(/*params*/) {
 
 QuiX.constructors['progressbar'] = QuiX.ui.ProgressBar;
 QuiX.ui.ProgressBar.prototype = new QuiX.ui.Widget;
+QuiX.ui.ProgressBar.prototype.__class__ = QuiX.ui.ProgressBar;
 
 QuiX.ui.ProgressBar.prototype._update = function() {
     this.bar.width = parseInt((this.value / this.maxvalue) * 100) + '%';

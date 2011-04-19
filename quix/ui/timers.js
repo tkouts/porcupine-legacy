@@ -4,8 +4,7 @@
 QuiX.ui.Timer = function(/*params*/) {
     var params = arguments[0] || {};
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
     
     this.div.style.cursor = 'default';
     
@@ -37,6 +36,7 @@ QuiX.ui.Timer = function(/*params*/) {
 
 QuiX.constructors['timer'] = QuiX.ui.Timer;
 QuiX.ui.Timer.prototype = new QuiX.ui.Widget;
+QuiX.ui.Timer.prototype.__class__ = QuiX.ui.Timer;
 
 QuiX.ui.Timer.prototype.start = function() {
     if (!this._timerid) {
@@ -123,8 +123,8 @@ QuiX.ui.Effect = function(/*params*/) {
     this.ease = parseFloat(params.ease) || 1;
     this._step = 0;
     this._reverse = false;
-    this.base = QuiX.ui.Timer;
-    this.base(params);
+
+    QuiX.ui.Timer.call(this, params);
 
     this.auto = (auto == true || auto == 'true');
     if (this.auto) {
@@ -140,6 +140,7 @@ QuiX.ui.Effect.cssTransition = QuiX.getCssAttribute('transition');
 
 QuiX.constructors['effect'] = QuiX.ui.Effect;
 QuiX.ui.Effect.prototype = new QuiX.ui.Timer;
+QuiX.ui.Effect.prototype.__class__ = QuiX.ui.Effect;
 
 QuiX.ui.Effect.prototype.customEvents =
     QuiX.ui.Timer.prototype.customEvents.concat(['oncomplete']);

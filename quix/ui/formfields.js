@@ -8,9 +8,10 @@ QuiX.ui.Form = function(/*params*/) {
     var params = arguments[0] || {};
     params.width = params.width || '100%';
     params.height = params.height || '100%';
-    this.base = QuiX.ui.Widget;
-    this.base(params);
-    this.files = [];
+
+    QuiX.ui.Widget.call(this, params);
+
+    //this.files = [];
     this.action = params.action;
     this.method = params.method;
     this.format = params.format || 'json';
@@ -18,6 +19,7 @@ QuiX.ui.Form = function(/*params*/) {
 
 QuiX.constructors['form'] = QuiX.ui.Form;
 QuiX.ui.Form.prototype = new QuiX.ui.Widget;
+QuiX.ui.Form.prototype.__class__ = QuiX.ui.Form;
 
 QuiX.ui.Form.prototype.getElements = function() {
     return this.getWidgetsByAttribute('getValue');
@@ -101,8 +103,7 @@ QuiX.ui.Field = function(/*params*/) {
                             params.onclick);
     }
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
 
     this.name = params.name;
     //this.readonly = (params.readonly == 'true' || params.readonly == true);
@@ -208,6 +209,7 @@ QuiX.ui.Field = function(/*params*/) {
 
 QuiX.constructors['field'] = QuiX.ui.Field;
 QuiX.ui.Field.prototype = new QuiX.ui.Widget;
+QuiX.ui.Field.prototype.__class__ = QuiX.ui.Field;
 
 QuiX.ui.Field.prototype.validate = function() {
     if (this._validator) {
@@ -525,8 +527,7 @@ QuiX.ui.Spin = function(/*params*/) {
     params.overflow = 'hidden';
     params.height = params.height || 22;
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
 
     this.div.className = 'spin';
 
@@ -607,6 +608,7 @@ QuiX.ui.Spin = function(/*params*/) {
 
 QuiX.constructors['spinbutton'] = QuiX.ui.Spin;
 QuiX.ui.Spin.prototype = new QuiX.ui.Widget;
+QuiX.ui.Spin.prototype.__class__ = QuiX.ui.Spin;
 QuiX.ui.Spin.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 
@@ -660,12 +662,7 @@ QuiX.ui.Spin.prototype.disable = function() {
 }
 
 QuiX.ui.Spin.prototype._setCommonProps = function(memo) {
-    if (this.base) {
-        this.base.prototype._setCommonProps.apply(this, arguments);
-    }
-    else {
-        QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
-    }
+    QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
     this._adjustFieldSize(memo);
 }
 

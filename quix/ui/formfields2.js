@@ -11,9 +11,8 @@ QuiX.ui.Combo = function(/*params*/) {
     params.border = 1;
     params.overflow = 'hidden';
     params.height = params.height || 22;
-    
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
 
     if (params.rules) {
         this._validator = new QuiX.ui.Validator({
@@ -138,6 +137,7 @@ QuiX.ui.Combo = function(/*params*/) {
 
 QuiX.constructors['combo'] = QuiX.ui.Combo;
 QuiX.ui.Combo.prototype = new QuiX.ui.Widget;
+QuiX.ui.Combo.prototype.__class__ = QuiX.ui.Combo;
 QuiX.ui.Combo.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 
@@ -424,8 +424,7 @@ QuiX.ui.AutoComplete = function(/*params*/) {
     var params = arguments[0] || {};
     params.editable = true;
 
-    this.base = QuiX.ui.Combo;
-    this.base(params);
+    QuiX.ui.Combo.call(this, params);
 
     this.textField = this.div.firstChild;
     this.url = params.url;
@@ -452,6 +451,7 @@ QuiX.ui.AutoComplete = function(/*params*/) {
 
 QuiX.constructors['autocomplete'] = QuiX.ui.AutoComplete;
 QuiX.ui.AutoComplete.prototype = new QuiX.ui.Combo;
+QuiX.ui.AutoComplete.prototype.__class__ = QuiX.ui.AutoComplete;
 
 QuiX.ui.AutoComplete.prototype._getDataSet = function() {
     var rpc = new QuiX.rpc.JSONRPCRequest(this.url, false);
@@ -597,8 +597,8 @@ QuiX.ui.SelectList  = function(/*params*/) {
     params.border = params.border || 1;
     params.overflow = 'hidden auto';
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
+
     if(params.rules) {
         this._validator = new QuiX.ui.Validator({
             widget: this,
@@ -629,6 +629,7 @@ QuiX.ui.SelectList  = function(/*params*/) {
 
 QuiX.constructors['selectlist'] = QuiX.ui.SelectList;
 QuiX.ui.SelectList.prototype = new QuiX.ui.Widget;
+QuiX.ui.SelectList.prototype.__class__ = QuiX.ui.SelectList;
 QuiX.ui.SelectList.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onselect']);
 

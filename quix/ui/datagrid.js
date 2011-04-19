@@ -8,8 +8,7 @@ QuiX.ui.DataGrid = function(/*params*/) {
     params.cellborder = params.cellborder || 1;
     params.cellpadding = params.cellpadding || 2;
 
-    this.base = QuiX.ui.ListView;
-    this.base(params);
+    QuiX.ui.ListView.call(this, params);
     
     this.name = params.name;
     this.hasSelector = !(params.hasselector == false ||
@@ -20,6 +19,7 @@ QuiX.ui.DataGrid = function(/*params*/) {
 
 QuiX.constructors['datagrid'] = QuiX.ui.DataGrid;
 QuiX.ui.DataGrid.prototype = new QuiX.ui.ListView;
+QuiX.ui.DataGrid.prototype.__class__ = QuiX.ui.DataGrid;
 
 QuiX.ui.DataGrid.prototype.customEvents =
     QuiX.ui.ListView.prototype.customEvents.concat(['onchange']);

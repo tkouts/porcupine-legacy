@@ -39,8 +39,7 @@ QuiX.ui.Window = function(/*params*/) {
                    parseInt(arrPad[0]) + parseInt(arrPad[1]) +
                    2 * QuiX.theme.window.body.border;
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
 
     this.attachEvent('onmousedown', QuiX.ui.Window._onmousedown);
 
@@ -156,6 +155,7 @@ QuiX.ui.Window = function(/*params*/) {
 
 QuiX.constructors['window'] = QuiX.ui.Window;
 QuiX.ui.Window.prototype = new QuiX.ui.Widget;
+QuiX.ui.Window.prototype.__class__ = QuiX.ui.Window;
 QuiX.ui.Window.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onclose']);
 
@@ -438,8 +438,7 @@ QuiX.ui.Dialog = function(/*params*/) {
     params.resizable = false;
     params.onkeypress = QuiX.ui.Dialog._onkeypress;
 
-    this.base = QuiX.ui.Window;
-    this.base(params);
+    QuiX.ui.Window.call(this, params);
 
     this.footer = new QuiX.ui.Widget({
         height : 32,
@@ -477,6 +476,7 @@ QuiX.ui.Dialog = function(/*params*/) {
 
 QuiX.constructors['dialog'] = QuiX.ui.Dialog;
 QuiX.ui.Dialog.prototype = new QuiX.ui.Window;
+QuiX.ui.Dialog.prototype.__class__= QuiX.ui.Dialog;
 
 QuiX.ui.Dialog._calcButtonHolderLeft = function(memo) {
     return this.parent.getWidth(false, memo) - this.getWidth(true, memo);
@@ -533,12 +533,12 @@ QuiX.ui.Dialog._buttonHolderRedraw = function(bForceAll /*, memo*/) {
 // dialog button
 
 QuiX.ui.DialogButton = function(params, dialog) {
-    this.base = QuiX.ui.Button;
-    this.base(params);
+    QuiX.ui.Button.call(this, params);
     this.dialog = dialog;
 }
 
 QuiX.ui.DialogButton.prototype = new QuiX.ui.Button;
+QuiX.ui.DialogButton.prototype.__class__ = QuiX.ui.DialogButton;
 
 QuiX.ui.DialogButton.prototype._registerHandler = function(eventType, handler,
                                                            isCustom) {

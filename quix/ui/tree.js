@@ -5,8 +5,7 @@ QuiX.ui.TreeNode = function(/*params*/) {
     params.display = 'none';
     params.padding = '17,2,2,2';
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
 
     this.attachEvent('onmouseover', QuiX.ui.TreeNode._onmouseover);
     this.attachEvent('onmouseout', QuiX.ui.TreeNode._onmouseout);
@@ -46,6 +45,7 @@ QuiX.ui.TreeNode = function(/*params*/) {
 
 QuiX.constructors['treenode'] = QuiX.ui.TreeNode;
 QuiX.ui.TreeNode.prototype = new QuiX.ui.Widget;
+QuiX.ui.TreeNode.prototype.__class__ = QuiX.ui.TreeNode;
 
 QuiX.ui.TreeNode.prototype.appendChild = function(w /*, index*/) {
     var index = (typeof arguments[1] != 'undefined')? arguments[1]:null,
@@ -424,8 +424,8 @@ QuiX.ui.TreeNode._onmouseout = function(evt, treeNode) {
 
 QuiX.ui.Tree = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
     
     this.div.className = 'tree';
     if (params) {
@@ -444,6 +444,7 @@ QuiX.ui.Tree = function(/*params*/) {
 
 QuiX.constructors['tree'] = QuiX.ui.Tree;
 QuiX.ui.Tree.prototype = new QuiX.ui.Widget;
+QuiX.ui.Tree.prototype.__class__ = QuiX.ui.Tree;
 
 QuiX.ui.Tree.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onexpand', 'onselect']);
@@ -535,10 +536,10 @@ QuiX.ui.Tree.prototype.getSelection = function() {
 // folder tree
 
 QuiX.ui.FolderTree = function(params) {
-    this.base = QuiX.ui.Tree;
     this._onexpand = QuiX.getEventListener(params.onexpand);
     delete params.onexpand;
-    this.base(params);
+
+    QuiX.ui.Tree.call(this, params);
 
     this.method = params.method;
     this.attachEvent('onexpand', this.loadSubfolders);
@@ -546,6 +547,7 @@ QuiX.ui.FolderTree = function(params) {
 
 QuiX.constructors['foldertree'] = QuiX.ui.FolderTree;
 QuiX.ui.FolderTree.prototype = new QuiX.ui.Tree;
+QuiX.ui.FolderTree.prototype.__class__ = QuiX.ui.FolderTree;
 
 QuiX.ui.FolderTree.prototype.loadSubfolders = function(treeNode) {
     var sID = treeNode.getId() || '',

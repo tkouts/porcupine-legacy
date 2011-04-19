@@ -9,8 +9,8 @@ QuiX.ui.ListView = function(/*params*/) {
     this._dragable = (params.dragable == 'true' || params.dragable == true);
     delete params.dragable;
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+    QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'listview';
     this.cellPadding = parseInt(params.cellpadding) || 4;
     this.cellBorder = parseInt(params.cellborder) || 0;
@@ -37,7 +37,7 @@ QuiX.ui.ListView = function(/*params*/) {
 
 QuiX.constructors['listview'] = QuiX.ui.ListView;
 QuiX.ui.ListView.prototype = new QuiX.ui.Widget;
-
+QuiX.ui.ListView.prototype.__class__ = QuiX.ui.ListView;
 QuiX.ui.ListView.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onselect', 'onrowprerender',
                                                   'onrendercomplete']);
@@ -360,7 +360,7 @@ QuiX.ui.ListView.prototype.addColumn = function(params) {
     oCol.sortable = !(params.sortable == 'false' || params.sortable == false);
     if (oCol.sortable) {
         oCol.style.cursor = 'pointer';
-        QuiX.addEvent(oCol, 'onclick', QuiX.ui.ListView._column_onclick);
+        oCol.onclick = QuiX.ui.ListView._column_onclick;
     }
 
     var oHeaderRow = this.header.div.firstChild.rows[0];
@@ -628,6 +628,7 @@ QuiX.ui.ListView.prototype._renderCell = function(cell, cellIndex, value,
         column_type = column.columnType;
 
         cell.innerHTML = '';
+        cell.style.textOverflow = 'ellipsis';
         switch (column_type) {
             case 'optionlist':
                 for (var i=0; i<column.options.length; i++) {
@@ -760,10 +761,13 @@ QuiX.ui.ListView._column_onclick = function(evt) {
     var sortOrder, orderBy;
     evt = evt || event;
     var lv = QuiX.getTargetWidget(evt).parent;
-    if (lv._orderBy == this.name)
+    if (lv._orderBy == this.name) {
         sortOrder = (lv._sortOrder=='ASC')? 'DESC':'ASC';
-    else
+    }
+    else {
         sortOrder = 'ASC';
+    }
+
     orderBy = this.name;
     lv.sort(orderBy, sortOrder);
 }

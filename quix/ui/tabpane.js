@@ -4,9 +4,10 @@ Tab Pane
 
 QuiX.ui.TabPane = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
     params.overflow = 'hidden';
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'tabpane';
     this.headerSize = parseInt(params.headersize) || 24;
     this.tabs = [];
@@ -16,6 +17,7 @@ QuiX.ui.TabPane = function(/*params*/) {
 
 QuiX.constructors['tabpane'] = QuiX.ui.TabPane;
 QuiX.ui.TabPane.prototype = new QuiX.ui.Widget;
+QuiX.ui.TabPane.prototype.__class__ = QuiX.ui.TabPane;
 
 QuiX.ui.TabPane._destroyTab = function() {
     var oTab = this.parent;

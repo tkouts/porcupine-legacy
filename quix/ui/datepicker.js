@@ -7,8 +7,8 @@ QuiX.ui.Datepicker = function(/*params*/) {
     params.editable = false;
     params.menuheight = 180;
     params.img = params.img || '$THEME_URL$images/date16.gif';
-    this.base = QuiX.ui.Combo;
-    this.base(params);
+
+    QuiX.ui.Combo.call(this, params);
 
     this.format = params.dateformat || 'ddd dd/mmm/yyyy';
     this.time = params.time || '00:00:00.000';
@@ -19,6 +19,7 @@ QuiX.ui.Datepicker = function(/*params*/) {
 
 QuiX.constructors['datepicker'] = QuiX.ui.Datepicker;
 QuiX.ui.Datepicker.prototype = new QuiX.ui.Combo;
+QuiX.ui.Datepicker.prototype.__class__ = QuiX.ui.Datepicker;
 
 QuiX.ui.Datepicker.prototype.getValue = function() {
     return this._dt;

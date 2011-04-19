@@ -23,8 +23,9 @@
 QuiX.ui.RichText = function(/*params*/) {
     var params = arguments[0] || {};
     params.spacing = 0;
-    this.base = QuiX.ui.VBox;
-    this.base(params);
+
+    QuiX.ui.VBox.call(this, params);
+
     this.div.className = 'richtext';
 
     var toolbar = !(params.toolbar == false || params.toolbar == 'false');
@@ -182,6 +183,7 @@ QuiX.ui.RichText = function(/*params*/) {
 }
 
 QuiX.ui.RichText.prototype = new QuiX.ui.VBox;
+QuiX.ui.RichText.prototype.__class__ = QuiX.ui.RichText;
 QuiX.ui.RichText.prototype.customEvents =
     QuiX.ui.Field.prototype.customEvents.concat(['onstatechange']);
 QuiX.ui.RichText.prototype.blockOptions = [

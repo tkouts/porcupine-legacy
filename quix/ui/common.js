@@ -2,24 +2,27 @@
 
 QuiX.ui.HR = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
     params.border = params.border || 1;
     params.height = params.height || 2;
     params.overflow = 'hidden';
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'separator';
 }
 
 QuiX.constructors['hr'] = QuiX.ui.HR;
 QuiX.ui.HR.prototype = new QuiX.ui.Widget;
+QuiX.ui.HR.prototype.__class__ = QuiX.ui.HR;
 
 // iframe
 
 QuiX.ui.IFrame = function(/*params*/) {
     var params = arguments[0] || {};
     params.overflow = params.overflow || 'visible';
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+
+	QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'ifrm';
     this.frame = ce("IFRAME");
     this.frame.frameBorder = 0;
@@ -35,6 +38,7 @@ QuiX.ui.IFrame = function(/*params*/) {
 
 QuiX.constructors['iframe'] = QuiX.ui.IFrame;
 QuiX.ui.IFrame.prototype = new QuiX.ui.Widget;
+QuiX.ui.IFrame.prototype.__class__ = QuiX.ui.IFrame;
 QuiX.ui.IFrame.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['ondocumentload']);
 
@@ -102,8 +106,8 @@ QuiX.ui.GroupBox = function(/*params*/) {
             caption : params.caption
         });
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+	QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'groupbox';
 
     this.border = new QuiX.ui.Widget({
@@ -129,6 +133,7 @@ QuiX.ui.GroupBox = function(/*params*/) {
 
 QuiX.constructors['groupbox'] = QuiX.ui.GroupBox;
 QuiX.ui.GroupBox.prototype = new QuiX.ui.Widget;
+QuiX.ui.GroupBox.prototype.__class__ = QuiX.ui.GroupBox;
 
 QuiX.ui.GroupBox.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onstatechange']);
@@ -170,8 +175,8 @@ QuiX.ui.Slider = function(/*params*/) {
     params.height = params.height || 26;
     params.overflow = 'visible';
 
-    this.base = QuiX.ui.Widget;
-    this.base(params);
+	QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'slider';
 
     this.min = parseInt(params.min) || 0;
@@ -205,6 +210,7 @@ QuiX.ui.Slider = function(/*params*/) {
 
 QuiX.constructors['slider'] = QuiX.ui.Slider;
 QuiX.ui.Slider.prototype = new QuiX.ui.Widget;
+QuiX.ui.Slider.prototype.__class__ = QuiX.ui.Slider;
 
 QuiX.ui.Slider.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange']);

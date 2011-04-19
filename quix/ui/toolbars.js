@@ -6,11 +6,12 @@ Toolbars
 
 QuiX.ui.Toolbar = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
     params.padding = params.padding || '2,4,0,0';
     params.border = params.border || 1;
     params.overflow = 'hidden';
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
+
     this.div.className = 'toolbar';
     this.handle = QuiX.theme.toolbar.handle.get();
     this.appendChild(this.handle);
@@ -23,6 +24,7 @@ QuiX.ui.Toolbar = function(/*params*/) {
 
 QuiX.constructors['toolbar'] = QuiX.ui.Toolbar;
 QuiX.ui.Toolbar.prototype = new QuiX.ui.Widget;
+QuiX.ui.Toolbar.prototype.__class__ = QuiX.ui.Toolbar;
 
 QuiX.ui.Toolbar._calcWidgetOffset = function(memo) {
     return this.parent._getOffset(this, memo);
@@ -60,10 +62,8 @@ QuiX.ui.Toolbar.prototype.addSeparator = function() {
 QuiX.ui.Toolbar._destroy = function() {
     var parent = this.parent;
     parent.buttons.removeItem(this);
-    if (this.base)
-        this.base.prototype.destroy.apply(this, arguments);
-    else
-        QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
+
+    this.__class__.prototype.destroy.apply(this, arguments);
     parent.redraw();
 }
 
@@ -71,9 +71,9 @@ QuiX.ui.Toolbar._destroy = function() {
 
 QuiX.ui.OutlookBar = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Widget;
     params.overflow = 'hidden';
-    this.base(params);
+
+    QuiX.ui.Widget.call(this, params);
     this.div.className = 'outlookbar';
 
     this.headerHeight = params.headerheight ||
@@ -84,6 +84,7 @@ QuiX.ui.OutlookBar = function(/*params*/) {
 
 QuiX.constructors['outlookbar'] = QuiX.ui.OutlookBar;
 QuiX.ui.OutlookBar.prototype = new QuiX.ui.Widget;
+QuiX.ui.OutlookBar.prototype.__class__ = QuiX.ui.OutlookBar;
 
 QuiX.ui.OutlookBar.prototype.addPane = function(params) {
     params.height = this.headerHeight;
@@ -149,12 +150,12 @@ QuiX.ui.OutlookBar._pane_getCaption = function() {
 QuiX.ui.OutlookBar._pane_destroy = function() {
     var oBar = this.parent;
     oBar.panes.removeItem(this);
-    if (oBar.panes.length < oBar.activePane + 1)
+    if (oBar.panes.length < oBar.activePane + 1) {
         oBar.activePane = oBar.panes.length - 1;
+    }
     this.header.destroy();
-    if (this.base)
-        this.base.prototype.destroy.apply(this, arguments);
-    else
-        QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
+
+    this.__class__.prototype.destroy.apply(this, arguments);
+
     oBar.redraw();
 }

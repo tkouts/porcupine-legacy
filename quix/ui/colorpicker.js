@@ -2,12 +2,12 @@
 
 QuiX.ui.ColorPicker = function(/*params*/) {
     var params = arguments[0] || {};
-    this.base = QuiX.ui.Field;
     params.type = 'text';
     if (params.value) {
         params.value = QuiX.ui.ColorPicker._rgb2Hex(params.value);
     }
-    this.base(params);
+
+    QuiX.ui.Field.call(this, params);
 
     var picker_params = {
         pickerMode : params.mode,
@@ -30,6 +30,7 @@ QuiX.ui.ColorPicker = function(/*params*/) {
 
 QuiX.constructors['colorpicker'] = QuiX.ui.ColorPicker;
 QuiX.ui.ColorPicker.prototype = new QuiX.ui.Field;
+QuiX.ui.ColorPicker.prototype.__class__ = QuiX.ui.ColorPicker;
 
 QuiX.ui.ColorPicker._rgb2Hex = function(color) {
     var m = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/i);

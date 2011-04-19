@@ -7,8 +7,8 @@ QuiX.ui.Splitter = function(/*params*/) {
     var spacing = parseInt(params.spacing) || 6;
     params.overflow = 'hidden';
     params.spacing = 0;
-    this.base = QuiX.ui.Box;
-    this.base(params);
+
+    QuiX.ui.Box.call(this, params);
 
     this._spacing = spacing;
     this.div.className = 'splitter';
@@ -19,6 +19,7 @@ QuiX.ui.Splitter = function(/*params*/) {
 
 QuiX.constructors['splitter'] = QuiX.ui.Splitter;
 QuiX.ui.Splitter.prototype = new QuiX.ui.Box;
+QuiX.ui.Splitter.prototype.__class__ = QuiX.ui.Splitter;
 
 QuiX.ui.Splitter.prototype.appendChild = function(w) {
     if (this.panes.length > 0) {
@@ -115,12 +116,7 @@ QuiX.ui.Splitter._destroy = function() {
         }
     }
 
-    if (this.base) {
-        this.base.prototype.destroy.apply(this, arguments);
-    }
-    else {
-        QuiX.ui.Widget.prototype.destroy.apply(this, arguments);
-    }
+    this.__class__.prototype.destroy.apply(this, arguments);
 
     oSplitter.panes.splice(idx, 1);
     oSplitter.redraw(true);

@@ -1,5 +1,5 @@
 //=============================================================================
-//  Copyright (c) 2005-2010 Tassos Koutsovassilis and Contributors
+//  Copyright (c) 2005-2011 Tassos Koutsovassilis and Contributors
 //
 //  This file is part of Porcupine.
 //  Porcupine is free software; you can redistribute it and/or modify
@@ -191,8 +191,9 @@ function(method_name /*, arg1, arg2, ...*/) {
 
 QuiX.rpc.XMLRPCRequest = function(url /*, async*/) {
     var async = (typeof arguments[1] != 'undefined')? arguments[1]:true;
-    this.base = QuiX.rpc.BaseRPCRequest;
-    this.base(url, async);
+
+    QuiX.rpc.BaseRPCRequest.call(this, url, async);
+
     this.type = 'xml-rpc';
     this._contentType = 'text/xml';
     this._parser = QuiX.parsers.XMLRPC;
@@ -213,8 +214,9 @@ QuiX.rpc.XMLRPCRequest.prototype._validateMethodName = function(mname) {
 
 QuiX.rpc.JSONRPCRequest = function(url /*, async*/) {
     var async = (typeof arguments[1] != 'undefined')? arguments[1]:true;
-    this.base = QuiX.rpc.BaseRPCRequest;
-    this.base(url, async);
+
+    QuiX.rpc.BaseRPCRequest.call(this, url, async);
+
     this.type = 'json-rpc';
     this._contentType = 'application/json';
     this._parser = QuiX.parsers.JSONRPC2;
