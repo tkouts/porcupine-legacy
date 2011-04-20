@@ -482,7 +482,7 @@ class Composite(_Elastic):
 
         @rtype: dict
         """
-        return db._db.get_item(self._pid).security
+        return db._db.get_item(self._pid[1:]).security
     security = property(get_security)
 
     def get_id(self):

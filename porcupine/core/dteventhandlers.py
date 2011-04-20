@@ -54,7 +54,7 @@ class CompositionEventHandler(DatatypeEventHandler):
         dctObjects = {}
         for i, obj in enumerate(new_attr.value):
             if isinstance(obj, Composite):
-                obj._pid = item._id
+                obj._pid = ':' + item._id
             elif isinstance(obj, str):
                 obj = db._db.get_item(obj)
                 new_attr.value[i] = obj
