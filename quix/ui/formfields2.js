@@ -200,12 +200,17 @@ QuiX.ui.Combo.prototype.setPrompt = function(prompt) {
                     display: 'none'
                 });
                 this.appendChild(this._prompt);
-                // send to back
-                this._prompt.div.style.zIndex = 0;
+                // bring to front
+                this._prompt.div.style.zIndex = 2;
                 this._prompt.redraw(true);
                 if (this.getValue() === '') {
                     this._prompt.show();
                 }
+                var self = this;
+                this.attachEvent('onmousedown',
+                    function(){
+                        self.focus();
+                    });
             }
         }
         else {
@@ -377,6 +382,7 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
 
     document.desktop.appendChild(this.dropdown);
     this.dropdown.redraw(true);
+    this.dropdown.div.style.zIndex = QuiX.maxz;
     document.desktop.overlays.push(this.dropdown);
     this.isExpanded = true;
 }
