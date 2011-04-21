@@ -299,8 +299,11 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 
     // mozilla and ie require this redraw
-    if ((QuiX.utils.BrowserInfo.family == 'moz' || document.all) && this.orientation == 'v' &&
-            this.height == null && this.div.style.position != 'absolute') {
+    if (this.orientation == 'v' && this.height == null &&
+            this.div.style.position != 'absolute' &&
+            (QuiX.utils.BrowserInfo.family == 'moz' ||
+                (document.all && QuiX.utils.BrowserInfo.version < 9) ||
+                (QuiX.utils.BrowserInfo.browser == 'Safari' && QuiX.utils.BrowserInfo.OS == 'Mac'))) {
         this.widgets.each(
             function() {
                 this.redraw(false, memo);
