@@ -469,10 +469,13 @@ QuiX.ui.Button._onmousedown = function(evt, w) {
 }
 
 QuiX.ui.Button._onmouseup = function(evt, w) {
-    w.div.className = 'btn';
-    w.icon.addPaddingOffset('Left', -1);
-    w.icon.addPaddingOffset('Top', -1);
-    w._isPressed = false;
+    if (w._isPressed) {
+        w.div.className = 'btn';
+        w.icon.addPaddingOffset('Left', -1);
+        w.icon.addPaddingOffset('Top', -1);
+        w._isPressed = false;
+    }
+
 }
 
 // flat button
