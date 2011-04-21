@@ -401,8 +401,14 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
                     "endColorstr='" + bgc[2] + "')";
                 break;
             case 'op':
-                // fallback to single color
-                this.div.style.backgroundColor = bgc[1];
+                if (QuiX.utils.BrowserInfo.version >= 11.10) {
+                    this.div.style.backgroundImage = '-o-linear-gradient(' +
+                        bgc[0] + ',' + bgc[1] + ',' + bgc[2] + ')';
+                }
+                else {
+                    // fallback to single color
+                    this.div.style.backgroundColor = bgc[1];
+                }
         }
     }
     else {
