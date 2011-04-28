@@ -15,6 +15,9 @@ QuiX.ui.Box = function(/*params*/) {
     var spacing = (typeof params.spacing == 'undefined')? 2:params.spacing;
     this.spacing = parseInt(spacing);
     this.childrenAlign = params.childrenalign || '';
+    if (this.orientation == 'h') {
+        this.div.style.whiteSpace = 'nowrap';
+    }
 }
 
 QuiX.constructors['box'] = QuiX.ui.Box;
