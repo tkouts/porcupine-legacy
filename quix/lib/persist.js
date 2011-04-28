@@ -356,7 +356,12 @@ QuiX.persist = (function() {
         globalstorage: {
             size: 5 * 1024 * 1024,
             test: function() {
-                return window.globalStorage ? true: false;
+                try {
+                    return window.globalStorage ? true: false;
+                }
+                catch (e) {
+                    return false;
+                }
             },
             methods: {
                 key: function(key) {
@@ -389,7 +394,12 @@ QuiX.persist = (function() {
         localstorage: {
             size: -1,
             test: function() {
-                return window.localStorage ? true: false;
+                try {
+                    return window.localStorage ? true: false;
+                }
+                catch (e) {
+                    return false;
+                }
             },
             methods: {
                 key: function(key) {
