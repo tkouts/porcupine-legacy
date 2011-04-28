@@ -536,19 +536,9 @@ BODY {
 .combo INPUT {
     font-family: Geneva, sans-serif;
     font-size: 11px;
-    border: none;    
-}
-
-/*
-.combo.noneditable INPUT {
     border: none;
+    border-width: 0px;
 }
-
-.combo.editable INPUT {
-    border: 1px solid;
-    border-color: #333 #CCC #CCC #333;
-}
-*/
 
 .combodropdown {
     border-style: solid;
