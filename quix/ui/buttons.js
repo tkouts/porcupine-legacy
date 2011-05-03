@@ -117,8 +117,6 @@ QuiX.ui.Label._onmousedown = function(evt, w) {
 QuiX.ui.Link = function(/*params*/) {
     var params = arguments[0] || {};
 
-    QuiX.ui.Label.call(this, params);
-
     this.href = params.href;
     if (typeof params.target != 'undefined') {
         this.target = params.target
@@ -126,6 +124,8 @@ QuiX.ui.Link = function(/*params*/) {
     else {
         this.target = '_blank';
     }
+
+    QuiX.ui.Label.call(this, params);
 }
 
 QuiX.constructors['link'] = QuiX.ui.Link;
@@ -475,7 +475,6 @@ QuiX.ui.Button._onmouseup = function(evt, w) {
         w.icon.addPaddingOffset('Top', -1);
         w._isPressed = false;
     }
-
 }
 
 // flat button
