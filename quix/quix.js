@@ -1418,8 +1418,12 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                 }
 
                 if (oWidget._customRegistry.onload) {
-                    this.__onload.push([oWidget._customRegistry.onload[0],
-                                        oWidget]);
+                    var self = this;
+                    oWidget._customRegistry.onload.each(
+                        function() {
+                            self.__onload.push([this, oWidget]);
+                        }
+                    )
                 }
             }
         }
