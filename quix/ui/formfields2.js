@@ -465,10 +465,12 @@ QuiX.ui.AutoComplete.prototype._getDataSet = function() {
 }
 
 QuiX.ui.AutoComplete.prototype._getDataSetResults = function(value) {
-    var ret = [];
+    var ret = [],
+        re = new RegExp('^' + value, 'i');
+
     this.dataSet.each(
-        function(){
-            if (this.indexOf(value) === 0) {
+        function() {
+            if (this.search(re) === 0) {
                 ret.push(String(this));
             }
         });
