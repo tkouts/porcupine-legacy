@@ -293,7 +293,8 @@ QuiX.constructors['multifile'] = QuiX.ui.MultiFile;
 QuiX.ui.MultiFile.prototype = new QuiX.ui.Widget;
 QuiX.ui.MultiFile.prototype.__class__ = QuiX.ui.MultiFile;
 QuiX.ui.MultiFile.prototype.customEvents =
-    QuiX.ui.Widget.prototype.customEvents.concat(['oncomplete']);
+    QuiX.ui.Widget.prototype.customEvents.concat(['oncomplete', 'onbeforeupload', 
+                                                  'onerror', 'oncancel']);
 
 QuiX.ui.MultiFile.prototype.reset = function() {
     this.files = [];
@@ -310,8 +311,18 @@ QuiX.ui.MultiFile.prototype.setFileTypes = QuiX.ui.File.prototype.setFileTypes;
 QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
     if (queued > 0) {
         var self = this;
+        var proceed = self.trigger('onbeforeupload');
+        if (!proceed) {
+            var f;
+            while (self.upload_queue.length > 0) {
+                f = self.upload_queue.shift();
+                self.uploader.cancelUpload(f.id, false);
+            }
+            self.total_bytes = 0;
+            return;
+        }
         document.desktop.parseFromString(
-            '<dialog xmlns="http://www.innoscript.org/quix" title="" ' +
+            '<dialog xmlns="http://www.innoscript.org/quix" title="Uploading file(s)" ' +
                     'width="240" height="140" left="center" top="center">' +
                 '<wbody>' +
                     '<progressbar width="90%" height="24" left="center" ' +
@@ -338,6 +349,7 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
                             self.uploader.cancelUpload(f.id, false);
                         }
                         self.total_bytes = 0;
+                        self.trigger('oncancel');
                         dlg.close();
                     }
                 );
@@ -427,5 +439,13 @@ QuiX.ui.MultiFile.prototype.queueError = function(f, code, message) {
 }
 
 QuiX.ui.MultiFile.prototype.onerror = function(e) {
+    var f;
+    while (this.upload_queue.length > 0) {
+        f = this.upload_queue.shift();
+        this.uploader.cancelUpload(f.id, false);
+    }
+    this.total_bytes = 0;
+    this.reset();
+    this.trigger('onerror', e.code, e.message);
     QuiX.displayError(e);
 }
