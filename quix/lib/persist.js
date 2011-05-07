@@ -182,7 +182,7 @@ QuiX.persist = (function() {
         return 'PS' + str.replace(/_/g, '__').replace(/ /g, '_s');
     };
     C = {
-        search_order: ['gears', 'localstorage', 'whatwg_db',
+        search_order: ['localstorage', 'gears', 'whatwg_db',
                        'globalstorage', 'flash', 'ie', 'cookie'],
         name_re: /^[a-z][a-z0-9_ -]+$/i,
         methods: ['init', 'get', 'set', 'remove', 'load', 'save'],
