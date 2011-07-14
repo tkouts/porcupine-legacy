@@ -70,9 +70,12 @@ QuiX.ui.File.onunload = function(obj) {
 QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
     var action = params.multiple? SWFUpload.BUTTON_ACTION.SELECT_FILES:
                                   SWFUpload.BUTTON_ACTION.SELECT_FILE;
-
+    var _url = QuiX.root;
+    if (window.location.protocol == 'https') {
+        _url = "http" + QuiX.root.substr(5);
+    }
     var uploader = new SWFUpload({
-        upload_url : QuiX.root + '?cmd=http_upload',
+        upload_url : _url + '?cmd=http_upload',
         flash_url : QuiX.baseUrl + 'swfupload/swfupload.swf',
         post_params : {_state : document.cookie},
         use_query_string : false,
@@ -395,19 +398,17 @@ QuiX.ui.MultiFile.prototype.downloadFile = function(evt, w) {
                                '?cmd=' + w.parent.method;
 }
 
-QuiX.ui.MultiFile.prototype.updateProgress =
-function(file, bytes_complete, total_bytes) {
+QuiX.ui.MultiFile.prototype.updateProgress = function(file, bytes_complete, total_bytes) {
     var pbar1 = this.attributes.pbars[0];
     var pbar2 = this.attributes.pbars[1];
     pbar1.setValue(this.attributes.bytesSent + bytes_complete);
     pbar1.widgets[1].setCaption(file.name);
-    var p = (bytes_complete/total_bytes) * 100;
+    var p = (bytes_complete / total_bytes) * 100;
     pbar2.setValue(p);
     pbar2.widgets[1].setCaption(parseInt(p) + '%');
 }
 
-QuiX.ui.MultiFile.prototype.uploadSuccess =
-function(file, server_data, response) {
+QuiX.ui.MultiFile.prototype.uploadSuccess = function(file, server_data, response) {
     this.upload_queue[0].tmpfile = server_data;
     this.upload_queue[0].img = '$THEME_URL$images/file_temporary.gif';
     this.upload_queue[0].id = '';
