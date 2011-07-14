@@ -114,7 +114,7 @@ class DB(object):
         rep_config = settings['store'].get('rep_config', None)
         init_rep = kwargs.get('init_rep', False)
 
-        if rep_config and init_rep:
+        if rep_config:
             # in replicated environments use non-durable transactions
             self._env.set_flags(db.DB_TXN_NOSYNC, 1)
             additional_flags |= db.DB_INIT_REP
@@ -213,11 +213,11 @@ class DB(object):
             self._checkpoint_thread = Thread(target=self.__checkpoint,
                                              name='DB checkpoint thread')
             self._checkpoint_thread.start()
-            if hasattr(self._env, 'memp_trickle'):
-                # strart memp_trickle thread
-                self._trickle_thread = Thread(target=self.__trickle,
-                                              name='DB memp_trickle thread')
-                self._trickle_thread.start()
+            #if hasattr(self._env, 'memp_trickle'):
+            #    # strart memp_trickle thread
+            #    self._trickle_thread = Thread(target=self.__trickle,
+            #                                  name='DB memp_trickle thread')
+            #    self._trickle_thread.start()
 
     def is_open(self):
         return self._running
@@ -406,7 +406,7 @@ class DB(object):
     def __maintain(self):
         "deadlock detection thread"
         while self._running:
-            time.sleep(0.02)
+            time.sleep(0.01)
             # deadlock detection
             try:
                 aborted = self._env.lock_detect(db.DB_LOCK_YOUNGEST)
@@ -421,7 +421,7 @@ class DB(object):
         "memp_trickle thread"
         while self._running:
             self._env.memp_trickle(95)
-            time.sleep(8)
+            time.sleep(120)
 
     def __checkpoint(self):
         "checkpoint thread"
