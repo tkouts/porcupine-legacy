@@ -83,10 +83,10 @@ QuiX.rpc.BaseRPCRequest._onstatechange = function() {
         var status = this.status;
         // parse response...
         try {
-            if (status == 304 || status == 0) { //Not modified
+            if (status == 304 ||(status == 0 && QuiX.utils.BrowserInfo.family == 'op') ) { //Not modfied
                 response = request._parser.parseResponse(request._cached);
             }
-            else {
+            else if (status!=0 && this.responseText != "") {
                 response = request._parser.parseResponse(
                     (this.responseXML && this.responseXML.documentElement)?
                     this.responseXML:this.responseText, request.id);
