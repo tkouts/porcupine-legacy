@@ -47,7 +47,7 @@ QuiX.ui.ListView.cellThreshold = 2000;
 QuiX.ui.ListView._calcListHeight = function(memo) {
     var listview = this.parent;
     var lho = (listview.header.isHidden())?
-              0:parseInt(listview.header._calcHeight(true, memo));
+              0:parseInt(listview.header.getHeight(true, memo));
     return listview.getHeight(false, memo) - lho;
 }
 
@@ -174,7 +174,7 @@ QuiX.ui.ListView.prototype.addHeader = function(params) {
     list.div.className = 'list';
     oTable = ce('TABLE');
     oTable.cellSpacing = 0;
-    oTable.width = '100%';
+    oTable.style.width = '100%';
 
     // opera horizontal scrollbar patch
     if (QuiX.dir == 'rtl' && family == 'op') {
@@ -203,7 +203,7 @@ QuiX.ui.ListView.prototype.redraw = function(bForceAll /*, memo*/) {
         header_width = this._calcWidth(false, memo),
         webkit = (QuiX.utils.BrowserInfo.family == 'saf'),
         wdth,
-        offset = (webkit)? 0:(2 * this.cellPadding) + this.cellBorder + 2;
+        offset = (webkit)? this.cellBorder:(2 * this.cellPadding) + this.cellBorder + 2;
 
     // resize proportional cells
     for (var i = this._deadCells; i<columns.length; i++) {
@@ -222,8 +222,9 @@ QuiX.ui.ListView.prototype.redraw = function(bForceAll /*, memo*/) {
         for (i=0; i<this.header.widgets.length; i++)
             this.header.widgets[i].div.style.left = '0px';
     }
-
+    this.list.style.display = 'none';
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
+    this.list.style.display = '';
 }
 
 QuiX.ui.ListView.prototype._getSelector = function() {
@@ -513,26 +514,39 @@ QuiX.ui.ListView.prototype.update = function(objList) {
 
 QuiX.ui.ListView.prototype.refresh = function() {
     var tbody = this.list.tBodies[0];
-    while (tbody.firstChild) {
-        tbody.removeChild(tbody.firstChild);
+    //alert(QuiX.utils.BrowserInfo.browser);
+    if (QuiX.utils.BrowserInfo.family == 'ie' && QuiX.utils.BrowserInfo.version < 9) {
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+    }
+    else {
+        tbody.innerHTML = '';
     }
     this.selection = [];
+
     if (this._sortimg && !this._isSorted()) {
         QuiX.removeNode(this._sortimg);
         this._sortimg = null;
         this._orderBy = null;
         this._sortOrder = null;
     }
+
     if (this.dataSet.length * this.columns.length >
             QuiX.ui.ListView.cellThreshold) {
         var self = this;
         if (this._timeout) {
             window.clearTimeout(this._timeout);
         }
-        this._timeout = window.setTimeout(function(){self._refresh(0, 30)}, 0);
+        this._timeout = window.setTimeout(
+            function() {
+                self._refresh(0, 30);
+                self.redraw();
+            }, 0);
     }
     else {
         this._refresh(0, this.dataSet.length);
+        this.redraw();
     }
 }
 
@@ -723,13 +737,17 @@ QuiX.ui.ListView._onclick = function(evt, w, f) {
 }
 
 QuiX.ui.ListView._onmousedown = function(evt, w) {
-    var lv = w.parent;
-    if (lv._isDisabled) return;
+    var lv = w.parent,
+        el = QuiX.getTarget(evt);
+
+    if (lv._isDisabled) {
+        return;
+    }
     var row = lv._getRow(evt);
     if (row) {
         lv._selectline(evt, row);
     }
-    if (QuiX.utils.BrowserInfo.family != 'ie') {
+    if (QuiX.utils.BrowserInfo.family != 'ie' && el.tagName != 'INPUT') {
         QuiX.cancelDefault(evt);
     }
 }
