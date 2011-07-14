@@ -66,9 +66,6 @@ QuiX.ui.DataGrid.prototype.disable = function() {
 QuiX.ui.DataGrid.prototype.refresh = function() {
     QuiX.ui.DataGrid._removeEditWidget();
     QuiX.ui.ListView.prototype.refresh.apply(this, arguments);
-    if (QuiX.utils.BrowserInfo.family == 'ie') {  // strange bug in IE8
-        this.widgets[1].redraw();
-    }
 }
 
 QuiX.ui.DataGrid.prototype.edit = function(cell /*, focus*/) {
@@ -229,6 +226,7 @@ QuiX.ui.DataGrid._update = function(evt, w) {
     }
     w = w || evt;
     var dg = w.parent.parent;
+
     if (QuiX.ui.DataGrid.__editwidget) {
         var r = dg.attributes.__rowindex,
             c = dg.attributes.__cellindex,
@@ -237,6 +235,6 @@ QuiX.ui.DataGrid._update = function(evt, w) {
 
         dg.dataSet[r][dg.columns[c].name] = value;
         dg._renderCell(cell, c, value, dg.dataSet[r]);
-        dg.trigger('onchange');
+        dg.trigger('onchange', dg, dg.dataSet[r]);
     }
 }
