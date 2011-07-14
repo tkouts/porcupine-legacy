@@ -38,7 +38,8 @@ class Cursor(BaseCursor):
         self._get_flag = db.DB_NEXT
 
     def _get_cursor(self):
-        self._cursor = self.db.cursor(context._trans and context._trans.txn)
+        self._cursor = self.db.cursor(context._trans and context._trans.txn,
+                                      flags=db.DB_READ_COMMITTED)
         if context._trans is not None:
             context._trans._cursors.append(self)
         self._closed = False
