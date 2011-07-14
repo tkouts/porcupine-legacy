@@ -21,7 +21,7 @@ QuiX.ui.IFrame = function(/*params*/) {
     var params = arguments[0] || {};
     params.overflow = params.overflow || 'visible';
 
-	QuiX.ui.Widget.call(this, params);
+    QuiX.ui.Widget.call(this, params);
 
     this.div.className = 'ifrm';
     this.frame = ce("IFRAME");
@@ -175,7 +175,7 @@ QuiX.ui.Slider = function(/*params*/) {
     params.height = params.height || 26;
     params.overflow = 'visible';
 
-	QuiX.ui.Widget.call(this, params);
+    QuiX.ui.Widget.call(this, params);
 
     this.div.className = 'slider';
 
