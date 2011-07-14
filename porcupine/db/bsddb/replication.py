@@ -81,8 +81,8 @@ class ReplicationService(object):
 
         self.env.set_event_notify(event_notify)
 
-        if hasattr(db, 'DB_REP_CONF_BULK'):
-            self.env.rep_set_config(db.DB_REP_CONF_BULK, 1)
+        #if hasattr(db, 'DB_REP_CONF_BULK'):
+        #    self.env.rep_set_config(db.DB_REP_CONF_BULK, 1)
         self.env.repmgr_set_local_site(*self.local_site.address)
         self.env.rep_set_priority(self.config['priority'])
         #self.env.rep_set_nsites(self.config['nsites'])
