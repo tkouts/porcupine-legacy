@@ -175,8 +175,8 @@ Date.parseIso8601 = function(s) {
 //=============================================================================
 
 String.prototype.xmlDecode = function() {
-    var s = this.replace(/&amp;/g, '&').replace(/&gt;/g , '>').
-            replace(/&lt;/g, '<').replace(/&quot;/g, '"');
+    var s = this.replace(/&gt;/g , '>').replace(/&lt;/g, '<').
+            replace(/&quot;/g, '"').replace(/&amp;/g, '&');
     return s;
 }
 
