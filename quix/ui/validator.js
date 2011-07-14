@@ -11,6 +11,7 @@ QuiX.ui.Validator = function(params) {
     QuiX.ui.Label.call(this, params);
 
     this._val = null;
+    this._ajaxError = false;
 }
 
 QuiX.ui.Validator.prototype = new QuiX.ui.Label;
@@ -56,8 +57,13 @@ QuiX.ui.Validator.rules = {
                 resp = rpc.callmethod(method, this.getValue());
             
             loader.destroy();
+            this._validator._ajaxError = !resp;
 
             return {error: !resp,
+                    message: message};
+        }
+        else if (this._validator._ajaxError) {
+            return {error: true,
                     message: message};
         }
         else {
