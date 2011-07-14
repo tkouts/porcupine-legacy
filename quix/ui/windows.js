@@ -73,8 +73,9 @@ QuiX.ui.Window = function(/*params*/) {
         QuiX.ui.Window._titleonmousedown);
     this.title.getWidgetById('_t', false, 1).attachEvent('ondblclick',
         function() {
-            if (!self.isMinimized)
+            if (!self.isMinimized) {
                 self.maximize();
+            }
         });
 
     this.title.getWidgetById('c0', false, 1).attachEvent('onclick',
@@ -210,8 +211,9 @@ QuiX.ui.Window.prototype.close = function() {
         this.opener.childWindows.removeItem(this);
     }
     if (QuiX.effectsEnabled) {
-        var self = this;
-        var eff = this.getWidgetById('_eff_fade', true, 1);
+        var self = this,
+            eff = this.getWidgetById('_eff_fade', true, 1);
+
         eff.attachEvent('oncomplete', function() {
             self.destroy();
         });
@@ -249,15 +251,18 @@ QuiX.ui.Window.prototype.removeStatusBar = function() {
 }
 
 QuiX.ui.Window.prototype.setStatus = function(s) {
-    if (this.statusBar)
+    if (this.statusBar) {
         this.statusBar.setCaption(s);
+    }
 }
 
 QuiX.ui.Window.prototype.getStatus = function() {
-    if (this.statusBar)
+    if (this.statusBar) {
         return this.statusBar.getCaption();
-    else
+    }
+    else {
         return null;
+    }
 }
 
 QuiX.ui.Window.prototype.minimize = function() {
@@ -272,13 +277,15 @@ QuiX.ui.Window.prototype.minimize = function() {
         if (w.isMinimized) {
             var i;
             var padding = w.getPadding();
-            if (w._resizer)
+            if (w._resizer) {
                 w._resizer.hide();
+            }
             w._stateh = w.getHeight(true);
             w.height = w.title.getHeight(true) + 2*w.getBorderWidth() +
                 padding[2] + padding[3];
-            if (maxControl)
+            if (maxControl) {
                 maxControl.disable();
+            }
             for (i=0; i<w.childWindows.length; i++) {
                 childWindow = w.childWindows[i];
                 if (!childWindow.isHidden()) {
@@ -306,8 +313,9 @@ QuiX.ui.Window.prototype.minimize = function() {
             }
             w.redraw();
             
-            if (maxControl)
+            if (maxControl) {
                 maxControl.enable();
+            }
         }
     }
 }
@@ -326,10 +334,12 @@ QuiX.ui.Window.prototype.maximize = function() {
             w.top = 0; w.left = 0;
             w.height = '100%';
             w.width = '100%';
-            if (minControl)
+            if (minControl) {
                 minControl.disable();
-            if (w._resizer)
+            }
+            if (w._resizer) {
                 w._resizer.disable();
+            }
             w.title.getWidgetById('_t', false, 1).detachEvent('onmousedown');
             w.isMaximized = true;
         }
@@ -338,10 +348,12 @@ QuiX.ui.Window.prototype.maximize = function() {
             w.left = w._statex;
             w.width = w._statew;
             w.height = w._stateh;
-            if (minControl)
+            if (minControl) {
                 minControl.enable();
-            if (w._resizer)
+            }
+            if (w._resizer) {
                 w._resizer.enable();
+            }
             w.title.getWidgetById('_t', false, 1).attachEvent(
                 'onmousedown',
                 QuiX.ui.Window._titleonmousedown);
@@ -360,15 +372,18 @@ QuiX.ui.Window.prototype.bringToFront = function() {
         if (macff) {
             dt = document.desktop;
             //hide scrollbars
-            sw = dt.query('/(auto|scroll)/.exec(w.getOverflow()) != param',
-                          null);
+            sw = dt.query(
+                function() {
+                    return /(auto|scroll)/.exec(this.getOverflow()) != null;
+                });
             for (i=0; i<sw.length; i++) {
                 if (sw[i] != this.parent)
                     sw[i].div.style.overflow = 'hidden';
             }
             //restore scrollbars
-            for (i=0; i<sw.length; i++)
+            for (i=0; i<sw.length; i++) {
                 sw[i].setOverflow(sw[i]._overflow);
+            }
         }
     }
 }
@@ -417,10 +432,12 @@ QuiX.ui.Window._onminimize = function(eff) {
 }
 
 QuiX.ui.Window._onmmaximize = function(w) {
-    if (!(w instanceof QuiX.ui.Window))
+    if (!(w instanceof QuiX.ui.Window)) {
         w = w.parent;
-    if (w._resizer)
+    }
+    if (w._resizer) {
         w._resizer.show();
+    }
     while (w._childwindows.length > 0) {
         childWindow = w._childwindows.pop();
         childWindow.show();
@@ -441,18 +458,18 @@ QuiX.ui.Dialog = function(/*params*/) {
     QuiX.ui.Window.call(this, params);
 
     this.footer = new QuiX.ui.Widget({
-        height : 32,
-        padding : '0,0,0,0',
-        overflow : 'hidden'
+        height: 32,
+        padding: '0,0,0,0',
+        overflow: 'hidden'
     });
     this.widgets[0].appendChild(this.footer);
 
     this.buttonHolder = new QuiX.ui.Widget({
-        top : 0,
-        height : '100%',
-        width : 0,
-        border : 0,
-        overflow:'hidden'
+        top: 0,
+        height: '100%',
+        width: 0,
+        border: 0,
+        overflow: 'hidden'
     });
     this.buttonHolder.redraw = QuiX.ui.Dialog._buttonHolderRedraw;
 
