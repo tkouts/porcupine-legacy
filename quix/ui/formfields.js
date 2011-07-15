@@ -83,12 +83,14 @@ QuiX.ui.Field = function(/*params*/) {
         textOpacity = params.textopacity || 1,
         readonly = (params.readonly == 'true' || params.readonly == true);
 
-    params.border = (typeof params.border == 'undefined')? 1:params.border;
     params.overflow = 'hidden';
     params.height = params.height || 22;
     params.padding = params.padding || '0,0,0,0';
 
     this.type = params.type || 'text';
+
+    params.border = (typeof params.border == 'undefined')?
+                    ((this.type == 'radio' || this.type == 'checkbox')? 0:1):params.border;
 
     if (this.type == 'radio') {
         this._value = params.value || '';
@@ -106,7 +108,7 @@ QuiX.ui.Field = function(/*params*/) {
     QuiX.ui.Widget.call(this, params);
 
     this.name = params.name;
-    //this.readonly = (params.readonly == 'true' || params.readonly == true);
+
     this.align = params.align || 'left';
 
     var e;
@@ -128,23 +130,25 @@ QuiX.ui.Field = function(/*params*/) {
     switch (this.type) {
         case 'checkbox':
         case 'radio':
-            var val = (this.type=='checkbox')?'value':'checked';
+            var val = (this.type == 'checkbox')?'value':'checked';
             var checked = (params[val] == true || params[val] == 'true')?
                           'checked':'';
             this.div.innerHTML = '<input type="' + this.type + '" ' + checked +
-                ' style="vertical-align:middle">';
+                ' style="vertical-align:middle;">';
             this._checked = (checked == 'checked');
             e = this.div.firstChild;
+
             if (params.caption) {
                 this.setCaption(params.caption);
             }
+            this.div.style.whiteSpace = 'nowrap';
             break;
         case 'file':
             throw new QuiX.Exception('QuiX.ui.Field', 'Invalid field type');
             break;
         default:
             this.div.className = 'field';
-            e = (this.type=='textarea')? ce('TEXTAREA'):ce('INPUT');
+            e = (this.type == 'textarea')? ce('TEXTAREA'):ce('INPUT');
             e.style.position = 'absolute';
             e.style.zIndex = 1;
             e.style.padding = '0px';
@@ -154,6 +158,7 @@ QuiX.ui.Field = function(/*params*/) {
             e.value = (params.value)? params.value:'';
             this.textPadding = (params.textpadding ||
                                 QuiX.theme.field.textpadding) + 'px';
+
             if (params.maxlength) {
                 e.maxLength = params.maxlength;
             }
@@ -345,7 +350,8 @@ QuiX.ui.Field.prototype.setPrompt = function(prompt) {
                     width: '100%',
                     height: '100%',
                     caption: prompt,
-                    display: 'none'
+                    display: 'none',
+                    align: (this.type == 'textarea')? 'center':'auto'
                 });
                 this.appendChild(this._prompt);
                 // send to back
@@ -431,28 +437,38 @@ QuiX.ui.Field.prototype.getTextOpacity = function() {
 }
 
 QuiX.ui.Field.prototype.redraw = function(bForceAll /*, memo*/) {
-    var memo = arguments[1] || {};
-    if (bForceAll) {
+    var memo = arguments[1] || {},
+        sh = this._sh;
+    if (bForceAll || typeof this._rds == 'undefined') {
         if (this.type == 'text' || this.type == 'textarea'
                 || this.type == 'password') {
             var input = this.div.firstChild;
 
             input.style.paddingLeft = 
             input.style.paddingRight = this.textPadding;
-
-            if (this.align == 'auto') {
-                this.div.style.textAlign = (QuiX.dir == 'rtl')? 'right':'left';
-            }
-            else {
-                this.div.style.textAlign = this.align;
-            }
+        }
+        if (this.align == 'auto') {
+            this.div.style.textAlign = (QuiX.dir == 'rtl')? 'right':'left';
+        }
+        else {
+            this.div.style.textAlign = this.align;
         }
     }
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
+    if ((!sh || this._sh != sh) && (this.type == 'radio' || this.type == 'checkbox')) {
+        this.div.style.lineHeight = this.div.style.height;
+        if (QuiX.utils.BrowserInfo.OS == 'Android') {
+            this.div.firstChild.style.verticalAlign = 'top';
+            this.div.firstChild.style.position = 'relative';
+            this.div.firstChild.style.top =
+                ((parseInt(this.div.style.height) / 2) -
+                 parseInt((this.div.firstChild.offsetHeight + 8) / 2)) + 'px';
+        }
+    }
 }
 
 QuiX.ui.Field.prototype._adjustFieldSize = function(memo) {
-    if (this.type != 'checkbox' && this.type != 'radio' && this.div.firstChild  && this.div.offsetWidth) {
+    if (this.type != 'checkbox' && this.type != 'radio' && this.div.firstChild) {
         var input = this.div.firstChild,
             borders = 2 * QuiX.getStyle(input, 'border-top-width') || 0,
             bf = QuiX.utils.BrowserInfo.family,
@@ -465,7 +481,7 @@ QuiX.ui.Field.prototype._adjustFieldSize = function(memo) {
             if (this.type == 'textarea' && bf == 'moz') {
                 input.style.top = '-1px';
             }
-            this._sh = nh;
+            this._sh = nh + '#' + borders;
             nh -= parseInt(input.style.paddingTop || 0) +
                   parseInt(input.style.paddingBottom || 0) +
                   borders;
@@ -510,7 +526,7 @@ QuiX.ui.Field._radio_onclick = function(evt, w) {
     if (!w.isReadOnly()) {
         var id = w.getId();
         if (id) {
-            var checked = w.div.firstChild.checked;
+            //var checked = w.div.firstChild.checked;
             w.setValue(w._value);
             w.trigger('onchange');
         }
@@ -613,7 +629,7 @@ QuiX.ui.Spin.prototype.customEvents =
     QuiX.ui.Widget.prototype.customEvents.concat(['onchange', 'onblur']);
 
 QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
-    if (this.div.firstChild && this.div.offsetWidth) {
+    if (this.div.firstChild) {
         var input = this.div.firstChild,
             borders = 2 * parseInt(QuiX.getStyle(input, 'border-top-width')) || 0,
             nw = this._calcWidth(false, memo) || 0,
@@ -623,7 +639,7 @@ QuiX.ui.Spin.prototype._adjustFieldSize = function(memo) {
             bv = QuiX.utils.BrowserInfo.version;
 
         if (nh != this._sh) {
-            this._sh = nh;
+            this._sh = nh + '#' + borders;
             nh -= parseInt(input.style.paddingTop || 0) +
                   parseInt(input.style.paddingBottom || 0) +
                   borders;
@@ -661,8 +677,9 @@ QuiX.ui.Spin.prototype.disable = function() {
     QuiX.ui.Widget.prototype.disable.apply(this, arguments);
 }
 
-QuiX.ui.Spin.prototype._setCommonProps = function(memo) {
-    QuiX.ui.Widget.prototype._setCommonProps.apply(this, arguments);
+QuiX.ui.Spin.prototype._setCommonProps = function(/*memo*/) {
+    var memo = arguments[0] || {};
+    QuiX.ui.Widget.prototype._setCommonProps.apply(this, [memo]);
     this._adjustFieldSize(memo);
 }
 
