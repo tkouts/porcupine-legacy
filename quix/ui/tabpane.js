@@ -122,7 +122,9 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
     if (this.activeTab == this.tabs.length - 1) {
         oTab.top = -2;
     }
-
+    if (this.tabs.length == 1) {
+        delete w._rds;
+    }
     return w;
 }
 
