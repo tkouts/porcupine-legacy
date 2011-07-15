@@ -48,7 +48,7 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
             WebMethodDescriptor.__init__(self, function, of_type,
                 ('GET',
                  '(MSIE [6-9].+Windows NT)|' +
-                 '(Mozilla/5\.0.+rv:(1\.[7-9]|2\.\d))|' +
+                 '(Mozilla/5\.0.+rv:(1\.[7-9]|2\.\d|5\.\d))|' +
                  'Version/[3-5]\.\d(.*)Safari|' +
                  'Chrome/(\d)+\.(\d)+|' +
                  'Opera/9',
@@ -102,14 +102,14 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
                     document.location.href = '%s';
                 })();
         </script>
-    </head>
-    <body onload="QuiX.__init__('quix')">
-        <textarea id="quix" style="display:none">''' % vars).strip())
+        <script id="quix" type="application/xml">''' % vars).strip())
 
             WebMethodDescriptor.execute(self, item, context)
 
             if isPage:
-                context.response.write('</textarea>')
+                context.response.write('''</script>
+    </head>
+    <body onload="QuiX.__init__('quix')">''')
                 context.response.write(body)
                 context.response.write('</body></html>')
 
@@ -129,7 +129,9 @@ def mobileui(of_type, lang='', qs='',
     return WebMethod
 
 
-def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
+
+def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8',
+                 allowed_origins=None):
 
     class WebMethod(WebMethodDescriptor):
         def __init__(self, function):
@@ -137,8 +139,57 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8'):
                                          ('POST', client, lang, qs),
                                          'application/json', encoding, None,
                                          None, None)
+            if allowed_origins:
+                from porcupine import context
+                from porcupine import filters
+                @filters.runas('system')
+                @webmethod(of_type=of_type,
+                           http_method="OPTIONS",
+                           content_type="text/plain",
+                           max_age=-1)
+                def __blank__(self):
+                    origin = WebMethod._getAccessControlAllowOrigin(
+                        allowed_origins, context)
+                    if origin:
+                        allowheaders = (context.request.
+                                        HTTP_ACCESS_CONTROL_REQUEST_HEADERS)
+                        if not allowheaders:
+                            allowheaders = "*"
+                        context.response.set_header(
+                            "Access-Control-Allow-Origin", origin)
+                        context.response.set_header(
+                            "Access-Control-Allow-Headers", allowheaders)
+                        context.response.set_header(
+                            "Access-Control-Allow-Methods",
+                            "POST, GET, OPTIONS")
+                        context.response.set_header(
+                            "Cache-Control", "no-cache")
+
+        @staticmethod                  
+        def _getAccessControlAllowOrigin(allowed_origins, context):
+            origin = context.request.HTTP_ORIGIN
+            if origin:            
+                if "*" in allowed_origins:
+                    if origin == "null":
+                        return "*"
+                    return origin
+                if origin in allowed_origins:
+                    if origin == "null":
+                        return "*"
+                    return origin
+            return None
 
         def execute(self, item, context):
+            if allowed_origins:
+                origin = WebMethod._getAccessControlAllowOrigin(
+                    allowed_origins,
+                    context)
+                if origin:
+                    context.response.set_header("Access-Control-Allow-Origin",
+                                                origin)
+                elif context.request.HTTP_ORIGIN:
+                    return
+
             if context.request.type == 'xmlrpc':
                 rpc = xmlrpc
                 rq_body = context.request.input

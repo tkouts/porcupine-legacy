@@ -246,7 +246,9 @@ QuiX.modules = [
     new QuiX.Module('Color Picker',         //17
                     QuiX.baseUrl + 'ui/colorpicker.js', [8], 4),
     new QuiX.Module('Validator',            //18
-                    QuiX.baseUrl + 'ui/validator.js', [3], 5)
+                    QuiX.baseUrl + 'ui/validator.js', [3], 5),
+    new QuiX.Module('Mobile',               //19
+                    QuiX.baseUrl + 'ui/mobile.js', [13], 5)
 ];
 
 QuiX.tags = {
@@ -271,14 +273,14 @@ QuiX.tags = {
     'combo':14, 'selectlist':14, 'autocomplete':'14',
     'box':15, 'vbox':15, 'hbox':15, 'flowbox':15,
     'richtext':16,
-    'colorpicker':17
+    'colorpicker':17,
+    'scrollview': 19
 };
 
-QuiX.bootLibraries = [
-    // theme
-    QuiX.getThemeUrl() + 'theme.css',
-    QuiX.getThemeUrl() + 'theme.js'
-];
+QuiX.bootLibraries = function() {
+    return [QuiX.getThemeUrl() + 'theme.css',
+            QuiX.getThemeUrl() + 'theme.js'];
+}
 
 QuiX.__init__ = function(id /*,params*/) {
     var params = arguments[1] || {},
@@ -286,7 +288,7 @@ QuiX.__init__ = function(id /*,params*/) {
         preloadImages = (typeof params.preload == 'undefined')? false:params.preload;
 
     var modules = [];
-    QuiX.bootLibraries.each(
+    QuiX.bootLibraries().each(
         function() {
             var m = new QuiX.Module(null, this, []);
             m.type = (this.substring(this.length - 3) == 'css')?
@@ -296,7 +298,7 @@ QuiX.__init__ = function(id /*,params*/) {
 
     QuiX.Module.loadModules(modules,
         function() {
-            var root = document.body.removeChild(document.getElementById(id)),
+            var root = document.getElementById(id),
                 parser = new QuiX.Parser(preloadImages);
 
             var desktop = new QuiX.ui.Desktop({
@@ -325,18 +327,8 @@ QuiX.__init__ = function(id /*,params*/) {
                     QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
                     document.desktop.setOverflow(overflow);
                 }
-                else {
-                    if (QuiX.utils.BrowserInfo.OS == 'Android') {
-                        document.desktop.hide();
-                        window.setTimeout(
-                            function() {
-                                  document.desktop.show();
-                            }, 0);
-                    }
-                }
             }
-
-            parser.parse(QuiX.parsers.domFromString(root.value));
+            parser.parse(QuiX.parsers.domFromString(QuiX.getInnerText(root)));
         }
     );
 }
@@ -471,7 +463,7 @@ QuiX.getMouseButton = function(evt) {
 QuiX.createOutline = function(w) {
     var macff = QuiX.utils.BrowserInfo.family == 'moz' &&
                 QuiX.utils.BrowserInfo.OS == 'MacOS';
-    var fl = (macff)?'auto':'hidden';
+    var fl = (macff)? 'auto':'hidden';
 
     var o = new QuiX.ui.Widget({
         left : w.getLeft(),
@@ -700,12 +692,12 @@ QuiX.stopPropag = function(evt) {
         window.event.cancelBubble = true;
         evt = window.event;
     }
-    //if (evt.type == 'mousedown' || evt.type == 'touchstart') {
-    //    var coords = QuiX.getEventCoordinates(evt);
-    //    QuiX.startX = QuiX.currentX = coords[0];
-    //    QuiX.startY = QuiX.currentY = coords[1];
-    //    document.desktop.attachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
-    //}
+    if (evt.type == 'mousedown' || evt.type == 'touchstart') {
+        var coords = QuiX.getEventCoordinates(evt);
+        QuiX.startX = QuiX.currentX = coords[0];
+        QuiX.startY = QuiX.currentY = coords[1];
+        document.desktop.attachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
+    }
 }
 
 QuiX.cancelDefault = function(evt) {
@@ -808,7 +800,14 @@ QuiX.setInnerText = function(node, text) {
 QuiX.getInnerText = function(node) {
     var text = '',
         i;
-    if (typeof XMLSerializer != "undefined") {
+
+    if (node.text) {
+        text = node.text;
+    }
+    else if (node.contentText) {
+        text = node.contentText;
+    }
+    else if (typeof XMLSerializer != "undefined") {
         var serializer = new XMLSerializer();
         Array.prototype.slice.call(node.childNodes, 0).each(
             function() {
@@ -825,6 +824,7 @@ QuiX.getInnerText = function(node) {
             text += node.childNodes[i].xml;
         }
     }
+
     if (text.trim().slice(0, 11) == "<!--[CDATA[") {
             text = text.trim().slice(11, text.length - 5);
     }
@@ -844,29 +844,33 @@ QuiX.localName = function(node) {
 }
 
 QuiX.removeWidget = function(w) {
-    var parentElement;
+    var pe;
 
     if (w.__tooltip || w.__tooltipID) {
         QuiX.ui.Widget._onmouseout(null, w);
     }
+
     w.trigger('onunload');
+
+    if (w.parent) {
+        w.parent.widgets.removeItem(w);
+    }
+
     while (w.widgets.length > 0) {
         QuiX.removeWidget(w.widgets[0]);
     }
+
     if (w.contextMenu) {
         if (w.contextMenu.isOpen) {
             w.contextMenu.close();
         }
         QuiX.removeWidget(w.contextMenu);
     }
-    if (w.parent) {
-        w.parent.widgets.removeItem(w);
-    }
 
     w._detachEvents();
 
-    parentElement = QuiX.getParentNode(w.div);
-    if (parentElement) {
+    pe = QuiX.getParentNode(w.div);
+    if (pe) {
         QuiX.removeNode(w.div);
     }
 
@@ -1078,6 +1082,7 @@ QuiX.measureWidget = function(w, dim) {
     div.style.fontSize = QuiX.getStyle(w.div, 'font-size');
     div.style.fontWeight = QuiX.getStyle(w.div, 'font-weight');
     div.style.fontFamily = QuiX.getStyle(w.div, 'font-family');
+    div.style.lineHeight = QuiX.getStyle(w.div, 'line-height');
 
     if (w[other] != 'auto') {
         div.style[other] = w[other_func](true) + 'px';
@@ -1180,8 +1185,12 @@ QuiX.Parser.prototype.loadModules = function() {
             });
     }
     else {
-        QuiX.removeLoader();
-        this.beginRender();
+        try {
+            this.beginRender();
+        }
+        finally {
+            QuiX.removeLoader();
+        }
     }
 }
 
@@ -1201,7 +1210,8 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
         return;
     }
     this.detectModules(dom.documentElement);
-    if (this.__modules.length > 0) {
+
+    if (this.__modules.length > 0 || this.__images.length > 0) {
         this.__modules.sortByAttribute('priority');
         if (parentW) {
             QuiX.addLoader();
@@ -1212,7 +1222,13 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
         this.loadModules();
     }
     else {
-        this.beginRender();
+        QuiX.addLoader();
+        try {
+            this.beginRender();
+        }
+        finally {
+            QuiX.removeLoader();
+        }
     }
 }
 
@@ -1230,7 +1246,6 @@ QuiX.Parser.prototype.beginRender = function() {
         }
     }
     this.dom = null;
-    widget.redraw(true);
     if (this.oncomplete) {
         try {
             this.oncomplete(widget);
@@ -1239,6 +1254,7 @@ QuiX.Parser.prototype.beginRender = function() {
             this.onerror(e);
         }
     }
+    widget.redraw();
 }
 
 QuiX.Parser.prototype.render = function() {

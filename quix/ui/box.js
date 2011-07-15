@@ -9,7 +9,7 @@ QuiX.ui.Box = function(/*params*/) {
     params.overflow = params.overflow || 'hidden';
 
     QuiX.ui.Widget.call(this, params);
-    
+
     this.div.className = 'box';
     this.orientation = params.orientation || 'h';
     var spacing = (typeof params.spacing == 'undefined')? 2:params.spacing;
@@ -168,39 +168,7 @@ QuiX.ui.Box.prototype.appendChild = function(w) {
     w._setCommonProps({});
 }
 
-QuiX.ui.Box.prototype._calcAuto = function(dim, memo) {
-    if (this.orientation == 'h') {
-        var wdth = this.div.style.width,
-            padding = this.getPadding(),
-            value;
-
-        if (dim == 'width') {
-            if (this.widgets.length > 0) {
-                var last = this.widgets[this.widgets.length - 1];
-
-                this.div.style.width = '10000px';
-                value = last.getLeft(memo) + last.getWidth(true, memo);
-                this.div.style.width = (value - padding[0]) + 'px';
-                return value +
-                       //padding[0] +
-                       padding[1] +
-                       2 * this.getBorderWidth();
-            }
-            else {
-                return 0;
-            }
-        }
-        else {
-            if (this.widgets.length > 0) {
-                return QuiX.ui.Widget.prototype._calcAuto.call(this, dim, memo, '_calc');
-            }
-            else {
-                return 0;
-            }
-        }
-    }
-    return QuiX.ui.Widget.prototype._calcAuto.apply(this, arguments);
-}
+QuiX.ui.Box.prototype._calcAuto = null;
 
 QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
     var center_var = (this.orientation == 'h')? 'top':'left',
@@ -212,16 +180,22 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
 
     if (this.orientation == 'h') {
         var margin = 'margin' + ((QuiX.dir == 'rtl')?'Right':'Left');
-        if (ffloat || (document.all && QuiX.utils.BrowserInfo.version < 8)) {
+        if (ffloat) {
             w.div.style[QuiX.utils.BrowserInfo.family == 'ie'?
                 'styleFloat':'cssFloat'] = (QuiX.dir == 'rtl')?'right':'left';
         }
         else {
+            var isIE7 = document.all && QuiX.utils.BrowserInfo.version < 8,
+                display = isIE7? 'inline':'inline-block';
+
             if (w.isHidden()) {
-                w._statedisplay = 'inline-block';
+                w._statedisplay = display;
             }
             else {
-                w.setDisplay('inline-block');
+                w.setDisplay(display);
+            }
+            if (isIE7) {
+                w.div.style.zoom = 1;
             }
             w.div.style.verticalAlign = 'top';
         }
@@ -252,9 +226,9 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
     else if (w[center_var] == 0 && this.childrenAlign) {
         w[center_var] = QuiX.ui.Box._getWidgetPos;
     }
-    else {
-        w[center_var] = 0;
-    }
+    //else {
+    //    w[center_var] = 0;
+    //}
 
     if (typeof(w[length_var]) == 'undefined' || w[length_var] == '-1') {
         w[length_var] = QuiX.ui.Box._calcWidgetLength;
@@ -275,43 +249,17 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
 }
 
 QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
-    var memo = arguments[1] | {};
-
-    if (this.div.style.position == 'absolute') {
-        if (this.height == 'auto') {
-            this.height = null;
-        }
-        if (this.width == 'auto' && this.orientation == 'v') {
-            this.width = null;
-        }
-    }
-    else {
-        if (this.height == 'auto' && this.orientation == 'v') {
-            this.height = null;
-        }
-    }
+    var memo = arguments[1] | {},
+        rds = this._rds;
 
     if (bForceAll) {
-        this.widgets.each(
-            function(i) {
-                this._i = i;
-                this.parent._setChildVars(this);
-            });
+        for (var i=0; i<this.widgets.length; i++) {
+            this.widgets[i]._i = i;
+            this._setChildVars(this.widgets[i]);
+        }
     }
 
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
-
-    // mozilla and ie require this redraw
-    if (this.orientation == 'v' && this.height == null &&
-            this.div.style.position != 'absolute' &&
-            (QuiX.utils.BrowserInfo.family == 'moz' ||
-                (document.all && QuiX.utils.BrowserInfo.version < 9) ||
-                (QuiX.utils.BrowserInfo.browser == 'Safari' && QuiX.utils.BrowserInfo.OS == 'Mac'))) {
-        this.widgets.each(
-            function() {
-                this.redraw(false, memo);
-            });
-    }
 }
 
 // horizontal box

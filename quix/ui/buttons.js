@@ -51,9 +51,7 @@ QuiX.constructors['label'] = QuiX.ui.Label;
 QuiX.ui.Label.prototype = new QuiX.ui.Widget;
 QuiX.ui.Label.prototype.__class__ = QuiX.ui.Label;
 
-QuiX.ui.Label.prototype._calcAuto = function(dim, memo) {
-    return QuiX.measureWidget(this, dim);
-}
+QuiX.ui.Label.prototype._calcAuto = null;
 
 QuiX.ui.Label.prototype.setTextOpacity = function(op) {
     var span = this.div.getElementsByTagName('SPAN')[0];
@@ -76,15 +74,8 @@ QuiX.ui.Label.prototype.getCaption = function() {
 
 QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
-    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
-    if (!this.wrap) {
-        this.div.style.lineHeight = this.div.style.height;
-        this.div.style.whiteSpace = 'nowrap';
-    }
-    else {
-        this.div.style.whiteSpace = 'normal';
-    }
-    if (bForceAll) {
+
+    if (bForceAll || (typeof this._rds == 'undefined')) {
         with (this.div.style) {
             if (this.wrap) {
                 if (lineHeight.match('\\d+px')) {
@@ -100,6 +91,19 @@ QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
                 }
             }
         }
+    }
+    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
+    if (!this.wrap) {
+        if (this.height != 'auto') {
+            this.div.style.lineHeight = this.div.style.height;
+        }
+        else {
+            this.div.style.lineHeight = '';
+        }
+        this.div.style.whiteSpace = 'nowrap';
+    }
+    else {
+        this.div.style.whiteSpace = 'normal';
     }
 }
 
@@ -197,7 +201,6 @@ QuiX.ui.Icon = function(/*params*/) {
     this.spacing = parseInt(params.spacing) || 4;
     this.imgHeight = params.imgheight;
     this.imgWidth = params.imgwidth;
-    //this.redraw(true);
 }
 
 QuiX.constructors['icon'] = QuiX.ui.Icon;
@@ -224,14 +227,17 @@ QuiX.ui.Icon.prototype.getImageURL = function() {
 }
 
 QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
-    var memo = arguments[1] || {};
+    var memo = arguments[1] || {},
+        rds = this._rds;
+
     QuiX.ui.Label.prototype.redraw.apply(this, [bForceAll, memo]);
 
     if (this.img && (this.imgAlign == 'top' || this.imgAlign == 'bottom')) {
         this.div.style.lineHeight = '';
     }
 
-    if (bForceAll || (this.img + this.imgAlign + this.spacing != this._sig)) {
+    if (bForceAll || (typeof rds == 'undefined') ||
+            (this.img + this.imgAlign + this.spacing != this._sig)) {
         var imgs = this.div.getElementsByTagName('IMG');
         while (imgs.length > 0) {
             imgs[0].ondragstart = null;
@@ -249,20 +255,6 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
                 img.style.verticalAlign = (this.imgAlign == 'top')?
                     'top':'middle';
                 img.ondragstart = QuiX.cancelDefault;
-                //if (this.imgAlign == 'left' || this.imgAlign == 'right') {
-                //    // for vertical alignment
-                //    this._fi = QuiX.getImage(QuiX.baseUrl +
-                //                             'images/transp.gif');
-                //    this._fi.style.verticalAlign = 'middle';
-                //    this._fi.style.width = '0px';
-                //    if (this.imgAlign == 'right') {
-                //        this.div.appendChild(this._fi);
-                //    }
-                //    else {
-                //        this.div.insertBefore(this._fi,
-                //                              this.div.firstChild);
-                //    }
-                //}
                 switch(this.imgAlign) {
                     case "left":
                         img.style.marginRight = this.spacing + 'px';
@@ -297,9 +289,6 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
         }
         this._sig = this.img + this.imgAlign + this.spacing;
     }
-    //if (this._fi) {
-    //    this._fi.style.height = this.div.style.height;
-    //}
     if (this.imageElement && (this.imgHeight || this.imgWidth)) {
         if (this.imgHeight) {
             percentage = this.imgHeight.toString().charAt(
@@ -387,15 +376,7 @@ QuiX.constructors['button'] = QuiX.ui.Button;
 QuiX.ui.Button.prototype = new QuiX.ui.Widget;
 QuiX.ui.Button.prototype.__class__ = QuiX.ui.Button;
 
-QuiX.ui.Button.prototype._calcAuto = function(dim, memo) {
-    var padding_offset = (dim == 'height')?2:0;
-    var padding = this.getPadding();
-    var value = QuiX.measureWidget(this.icon, dim) +
-                padding[padding_offset] +
-                padding[padding_offset + 1] +
-                2 * this.getBorderWidth();
-    return value;
-}
+QuiX.ui.Button.prototype._calcAuto = null;
 
 QuiX.ui.Button.prototype.setBgColor = function(color) {
     if (color) {
@@ -442,14 +423,24 @@ QuiX.ui.Button.prototype.getCaption = function() {
 
 QuiX.ui.Button.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
-    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
-    if (bForceAll) {
-        this.icon.align = this.align;
-        this.icon.img = this.img;
-        this.icon.imgAlign = this.imgAlign;
-        this.icon.spacing = this.spacing;
-        this.icon.redraw(true, memo);
+    if (this.width == 'auto') {
+        this.icon.width = 'auto';
     }
+    else {
+        this.icon.width = '100%';
+    }
+    if (this.height == 'auto') {
+        this.icon.height = 'auto';
+        bForceAll = true;
+    }
+    else {
+        this.icon.height = '100%';
+    }
+    this.icon.align = this.align;
+    this.icon.img = this.img;
+    this.icon.imgAlign = this.imgAlign;
+    this.icon.spacing = this.spacing;
+    QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
 }
 
 QuiX.ui.Button._onmouseout = function(evt, w) {
