@@ -71,7 +71,7 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
     var action = params.multiple? SWFUpload.BUTTON_ACTION.SELECT_FILES:
                                   SWFUpload.BUTTON_ACTION.SELECT_FILE;
     var _url = QuiX.root;
-    if (window.location.protocol == 'https') {
+    if (window.location.protocol.indexOf('https') != -1) {
         _url = "http" + QuiX.root.substr(5);
     }
     var uploader = new SWFUpload({
