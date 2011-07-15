@@ -113,16 +113,17 @@ QuiX.ui.Effect = function(/*params*/) {
             break;
         case 'slide-y':
         case 'slide-x':
-            this.begin = params.begin || '100%';
+            this.begin = (typeof params.begin == 'undefined')? '100%':params.begin;
             this.end = params.end || 0;
             break;
     }
 
     this.steps = parseInt(params.steps) || 5;
-    // linear animations as default
-    this.ease = parseFloat(params.ease) || 1;
+    // ease animations as default
+    this.ease = params.ease || 'ease';
     this._step = 0;
     this._reverse = false;
+    this.playing = false;
 
     QuiX.ui.Timer.call(this, params);
 
@@ -137,6 +138,7 @@ QuiX.ui.Effect = function(/*params*/) {
 }
 
 QuiX.ui.Effect.cssTransition = QuiX.getCssAttribute('transition');
+QuiX.ui.Effect.cssTransform = QuiX.getCssAttribute('transform');
 
 QuiX.constructors['effect'] = QuiX.ui.Effect;
 QuiX.ui.Effect.prototype = new QuiX.ui.Timer;
@@ -144,6 +146,44 @@ QuiX.ui.Effect.prototype.__class__ = QuiX.ui.Effect;
 
 QuiX.ui.Effect.prototype.customEvents =
     QuiX.ui.Timer.prototype.customEvents.concat(['oncomplete']);
+
+QuiX.ui.Effect.easePresets = {
+    'ease': [0.25, 0.1, 0.25, 1.0],
+    'linear': [0.0, 0.0, 1.0, 1.0],
+    'ease-in': [0.42, 0.0, 1.0, 1.0],
+    'ease-out': [0.0, 0.0, 0.58, 1.0],
+    'ease-in-out': [0.42, 0.0, 0.58, 1.0]
+};
+
+QuiX.ui.Effect.supports3d = (function() {
+    // borrowed from modernizr
+    var div = document.createElement('div'),
+        ret = false,
+        properties = ['perspectiveProperty', 'WebkitPerspective', 'MozPerspective', 'OPerspective', 'msPerspective'];
+
+    for (var i=properties.length - 1; i>=0; i--) {
+        ret = ret? ret:div.style[properties[i]] != undefined;
+    };
+
+    // webkit has 3d transforms disabled for chrome, though
+    // it works fine in safari on leopard and snow leopard
+    // as a result, it 'recognizes' the syntax and throws a false positive
+    // thus we must do a more thorough check:
+    if (ret) {
+        var st = ce('style');
+        // webkit allows this media query to succeed only if the feature is enabled.    
+        // "@media (transform-3d),(-o-transform-3d),(-moz-transform-3d),(-ms-transform-3d),(-webkit-transform-3d),(modernizr){#modernizr{height:3px}}"
+        st.textContent = '@media (-webkit-transform-3d){#test3d{height:3px}}';
+        document.getElementsByTagName('head')[0].appendChild(st);
+        div.id = 'test3d';
+        document.body.appendChild(div);
+        ret = div.offsetHeight === 3;
+
+        QuiX.removeNode(st);
+        QuiX.removeNode(div);
+    }
+    return ret;
+})();
 
 QuiX.ui.Effect._getTransitionEndEvent = function() {
     var evt_name = null,
@@ -179,12 +219,14 @@ QuiX.ui.Effect.prototype._getRange = function(wd) {
         case 'slide-x':
         case 'slide-y':
             var f = (this.type == 'slide-x')? '_calcLeft':'_calcTop',
-                v = (this.type == 'slide-x')? 'left':'top';
+                v = (this.type == 'slide-x')? 'left':'top',
+                cur = wd[v];
 
             wd[v] = this.begin;
             begin = wd[f]();
             wd[v] = this.end;
             end = wd[f]();
+            wd[v] = cur;
             break;
 
         default:
@@ -200,6 +242,31 @@ QuiX.ui.Effect.prototype._getRange = function(wd) {
 
     return [begin, end];
 }
+
+QuiX.ui.Effect.cubicBezierAtTime = function (t, p1x, p1y, p2x, p2y) {
+    var ax=0,bx=0,cx=0,ay=0,by=0,cy=0;
+    // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
+    function sampleCurveX(t) {return ((ax*t+bx)*t+cx)*t;};
+    function sampleCurveY(t) {return ((ay*t+by)*t+cy)*t;};
+    function sampleCurveDerivativeX(t) {return (3.0*ax*t+2.0*bx)*t+cx;};
+    // The epsilon value to pass given that the animation is going to run over |dur| seconds. The longer the
+    // animation, the more precision is needed in the timing function result to avoid ugly discontinuities.
+    function solve(x,epsilon) {return sampleCurveY(solveCurveX(x,epsilon));};
+    // Given an x value, find a parametric value it came from.
+    function solveCurveX(x,epsilon) {var t0,t1,t2,x2,d2,i;
+        function fabs(n) {if(n>=0) {return n;}else {return 0-n;}}; 
+        // First try a few iterations of Newton's method -- normally very fast.
+        for(t2=x, i=0; i<8; i++) {x2=sampleCurveX(t2)-x; if(fabs(x2)<epsilon) {return t2;} d2=sampleCurveDerivativeX(t2); if(fabs(d2)<1e-6) {break;} t2=t2-x2/d2;}
+        // Fall back to the bisection method for reliability.
+        t0=0.0; t1=1.0; t2=x; if(t2<t0) {return t0;} if(t2>t1) {return t1;}
+        while(t0<t1) {x2=sampleCurveX(t2); if(fabs(x2-x)<epsilon) {return t2;} if(x>x2) {t0=t2;}else {t1=t2;} t2=(t1-t0)*.5+t0;}
+        return t2; // Failure.
+    };
+    // Calculate the polynomial coefficients, implicit first and last control points are (0,0) and (1,1).
+    cx=3.0*p1x; bx=3.0*(p2x-p1x)-cx; ax=1.0-cx-bx; cy=3.0*p1y; by=3.0*(p2y-p1y)-cy; ay=1.0-cy-by;
+    // Convert from input time to parametric value in curve, then from that to output time.
+    return Math.abs(solve(t, 0.00005));
+};
 
 QuiX.ui.Effect.prototype._apply = function(wd) {
     // calculate value
@@ -217,10 +284,18 @@ QuiX.ui.Effect.prototype._apply = function(wd) {
             value = this.end;
         }
     }
+    else if (this._step == 0) {
+        if (this._reverse) {
+            value = this.end;
+        }
+        else {
+            value = this.begin;
+        }
+    }
     else {
         value = begin +
-                (Math.pow(((1 / this.steps) * this._step),
-                          this.ease) * (end - begin));
+                ((end - begin) *
+                 QuiX.ui.Effect.cubicBezierAtTime.apply(null, [this._step/this.steps].concat(QuiX.ui.Effect.easePresets[this.ease])));
     }
 
     var h, w;
@@ -267,14 +342,11 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
         self = this,
         transition;
 
-    // TODO: asign ease attribute
-    transition = duration + 'ms ease';
+    transition = duration + 'ms ' + this.ease;
 
     if (evtTransitionEnd) {
         QuiX.addEvent(wd.div, evtTransitionEnd,
             function _ontransitionend() {
-                // clear css attrs
-                this.style[QuiX.ui.Effect.cssTransition] = '';
                 // detach event
                 QuiX.removeEvent(this, evtTransitionEnd, _ontransitionend);
                 self.stop();
@@ -293,21 +365,30 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
             if (QuiX.utils.BrowserInfo.family != 'op') {
                 self._setCssTransition(wd, transition);
             }
-            self._step = self.steps;
             if (self.type.slice(0,5) == 'slide') {
                 // use transforms
-                var range = self._getRange(wd);
+                var range = self._getRange(wd),
+                    tx;
+
                 if (self.type == 'slide-x') {
-                    wd.div.style[QuiX.getCssAttribute('transform')] =
-                        'translate(' + (range[1] - range[0]) + 'px,0px)';
+                    tx = (range[1] - range[0]) + 'px,0px';
                 }
                 else if (self.type == 'slide-y') {
-                    wd.div.style[QuiX.getCssAttribute('transform')] =
-                        'translate(0px,' + (range[1] - range[0]) + 'px)';
+                    tx = '0px,' + (range[1] - range[0]) + 'px';
+                }
+                if (QuiX.ui.Effect.supports3d) {
+                    wd.div.style[QuiX.ui.Effect.cssTransform] =
+                        'translate3d(' + tx + ',0px)';
+                }
+                else {
+                    wd.div.style[QuiX.ui.Effect.cssTransform] =
+                        'translate(' + tx  + ')';
                 }
             }
             else {
+                self._step = self.steps;
                 self._apply(wd);
+                self._step = 1;
             }
         }, 0);
 }
@@ -333,11 +414,21 @@ QuiX.ui.Effect.prototype._setCssTransition = function(wd, t) {
 QuiX.ui.Effect.prototype.stop = function() {
     var wd = this._w || this.parent;
 
+    if (QuiX.ui.Effect.cssTransition) {
+        wd.div.style[QuiX.ui.Effect.cssTransition] = '';
+    }
+
     if (this._timerid) {
         QuiX.ui.Timer.prototype.stop.apply(this, arguments);
     }
-    if (this._step >= this.steps) {
-        // completed
+
+    if (this.playing) {
+        this.playing =false;
+        if (this._step < this.steps) {
+            // move to end
+            this._step = this.steps;
+            this._apply(wd);
+        }
         switch (this.type) {
             case 'wipe-in':
                 var ev = this._reverse? this.begin:this.end;
@@ -356,8 +447,12 @@ QuiX.ui.Effect.prototype.stop = function() {
             case 'slide-y':
                 if (QuiX.ui.Effect.cssTransition) {
                     // restore x and y coordinates
-                    this._apply(wd);
-                    wd.div.style[QuiX.getCssAttribute('transform')] = '';
+                    if (QuiX.ui.Effect.supports3d) {
+                        wd.div.style[QuiX.ui.Effect.cssTransform] = 'translate3d(0px,0px,0px)';
+                    }
+                    else {
+                        wd.div.style[QuiX.ui.Effect.cssTransform] = 'translate(0px,0px)';
+                    }
                 }
                 break;
         }
@@ -369,7 +464,7 @@ QuiX.ui.Effect.prototype.stop = function() {
 QuiX.ui.Effect.prototype.show = function() {}
 
 QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
-    this._reverse = arguments[0] || false;
+    this._reverse = (typeof arguments[0] != 'undefined')? arguments[0]:false;
     this._w = arguments[1] || null;
     var wd = this._w || this.parent;
     if (wd) {
@@ -384,6 +479,7 @@ QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
 
         // check if css transitions are in place
         if (QuiX.ui.Effect.cssTransition &&
+                !(QuiX.supportTouches && !QuiX.ui.Effect.supports3d) &&
                 // safari and opera do not animate css clip
                 // chrome does
                 (!((QuiX.utils.BrowserInfo.browser == 'Safari' ||
@@ -396,6 +492,7 @@ QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
             // use timers
             this.start();
         }
+        this.playing = true;
     }
 }
 
