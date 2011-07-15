@@ -73,11 +73,12 @@ NEW: New "onblur" custom event for spin buttons and combos.
 NEW: New "QuiX.Image.loadImages" function for pre-loading a series of images.
 NEW: New "QuiX.Module.loadModules" function for loading a series of modules
      faster.
+NEW: New SrollView Widget.
 
 OPT: Using btree instead of hash for main database in order to exploit
      locality of reference for containers' children.
 OPT: Optimized indexes, cursors and transactions for performance.
-OPT: All dates transferred in and out on the wire are UTC.
+OPT: All dates transferred in and out on the wire are in UTC format.
 OPT: "RequiresLogin" post processing filter now adds the original requested URL
      as a query string parameter.
 OPT: The "Text" datatype's value now accepts/returns unicode strings instead of
@@ -141,6 +142,14 @@ OPT: Flow box widget now derives from horizontal box.
 OPT: Added support for multiple selection tree widgets.
 OPT: Added support for multiple items drag and drop to flow box and tree
      widgets.
+OPT: The data grid "onchange" event now provides the modified item.
+OPT: Faster implementation of list views' refresh method.
+OPT: Added ease presets and cubic bezier solving function for simulating
+     CSS transitions on browsers that do not support them.
+OPT: Mobile friendly Combo widget.
+OPT: Faster auto sized widgets.
+OPT: QuiX parser, "parseFromUrl" and "parseFromString" now accept an extra
+     optional argument for preloading images.
 
 FIX: Fixed etag generation of web methods in order to be template,
      implementation, request language and containment aware.
@@ -168,10 +177,11 @@ FIX: Database based session value changes were not reflected to the in-memory
 FIX: Fixed default values initialization for external datatypes.
 FIX: Added missing dependencies for the data grid QuiX module.
 FIX: Fixed enabling and disabling of spin buttons.
+FIX: Fixed "xmlDecode" method of JavaScript strings.
 
-DEP: Schema "__props__" attribute is now a dict instead of iterable.
+DEP: Schema "__props__" attribute is now a dict instead of a tuple.
 DEP: Removed deprecated APIs.
-DEP: Removed "QuiX._image_cache".
+DEP: "QuiX._image_cache" is now "QuiX._imgCache".
 DEP: "QuiX.getEventListener" is now "QuiX.wrappers.eventListener".
 DEP: The "pakager" utility is now part of "porcupineadmin" utility.
 DEP: When adding columns to a list view the use the "cssclass" param instead
