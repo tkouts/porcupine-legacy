@@ -54,6 +54,7 @@ QuiX.ui.File = function(/*params*/) {
         btn.div.innerHTML = '<span id="' + btn._uniqueid + '"></span>';
         self.uploader = QuiX.ui.File._getUploader(
             self, btn._uniqueid, params);
+        self.redraw();
     });
 }
 
