@@ -182,8 +182,12 @@ def __blank__(self):
 
 
 @webmethods.remotemethod(of_type=RootFolder)
-def executeOqlCommand(self, cmd, vars={}):
-    return command.execute(cmd, vars)
+def executeOqlCommand(self, cmd, vars={}, range=None):
+    res = command.execute(cmd, vars)
+    if range is None:
+        return res
+    else:
+        return [res[range[0]:range[1]], len(res)]
 
 
 @webmethods.remotemethod(of_type=RootFolder)
