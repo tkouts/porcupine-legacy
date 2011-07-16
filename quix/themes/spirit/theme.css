@@ -581,6 +581,7 @@ BODY {
 
 .listview .list .cell SPAN {
     white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 /********************/
