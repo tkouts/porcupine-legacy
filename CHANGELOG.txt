@@ -179,6 +179,8 @@ FIX: Added missing dependencies for the data grid QuiX module.
 FIX: Fixed enabling and disabling of spin buttons.
 FIX: Fixed "xmlDecode" method of JavaScript strings.
 
+DEP: The signature of "executeOqlCommand" remote method has changed. The range
+     parameter is now the third. The second refers to the query parameters.
 DEP: Schema "__props__" attribute is now a dict instead of a tuple.
 DEP: Removed deprecated APIs.
 DEP: "QuiX._image_cache" is now "QuiX._imgCache".
