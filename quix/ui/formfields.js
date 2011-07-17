@@ -458,7 +458,12 @@ QuiX.ui.Field.prototype.redraw = function(bForceAll /*, memo*/) {
     }
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
     if ((!sh || this._sh != sh) && (this.type == 'radio' || this.type == 'checkbox')) {
-        this.div.style.lineHeight = this.div.style.height;
+        if (this.height != 'auto') {
+            this.div.style.lineHeight = this.div.style.height;
+        }
+        else {
+            this.div.style.lineHeight = '';
+        }
         if (QuiX.utils.BrowserInfo.OS == 'Android') {
             this.div.firstChild.style.verticalAlign = 'top';
             this.div.firstChild.style.position = 'relative';
@@ -511,9 +516,7 @@ QuiX.ui.Field.prototype._setCommonProps = function(/*memo*/) {
     this._adjustFieldSize(memo);
 }
 
-QuiX.ui.Field.prototype._calcAuto = function(dim, memo) {
-    return QuiX.measureWidget(this, dim);
-}
+QuiX.ui.Field.prototype._calcAuto = null;
 
 QuiX.ui.Field._checkbox_onclick = function(evt, w) {
     if (!w.isReadOnly()) {
