@@ -22,7 +22,7 @@ QuiX.ui.Validator.rules = {
         var val = this.getValue(),
             message = arguments[0] || "The field is required";
 
-        if (typeof(val) == 'undefined' || val === false){
+        if (!val) {
             val = '';
         }
         return {

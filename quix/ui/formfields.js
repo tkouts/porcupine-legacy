@@ -31,9 +31,11 @@ QuiX.ui.Form.prototype.validate = function() {
         err;
 
     elements.each(
-        function(){
-           err = this.validate();
-           hasError = hasError || err;
+        function() {
+            if (this.validate) {
+                err = this.validate();
+                hasError = hasError || err;
+            }
         });
 
     return !hasError;
