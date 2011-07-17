@@ -1,3 +1,7 @@
+HTML {
+    overflow: hidden;
+}
+
 #logindialog {
     border: solid #666;
 

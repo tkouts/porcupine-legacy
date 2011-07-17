@@ -1,3 +1,7 @@
+HTML {
+    overflow: hidden;
+}
+
 .desktop {
     background-color: #AFC3D6;
     background-image: url(images/desktop.jpg);
