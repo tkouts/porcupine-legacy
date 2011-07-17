@@ -14,6 +14,7 @@ Contributors:
     * The OQL parser is using PLY by David M. Beazley
     * The Python ISO 8601 date parser is written by Michael Twomey
     * QuiX's persistence library is based on PersistJS by Paul Duncan
+    * QuiX's file uploader is powered by swfupload (http://swfupload.org)
     * QuiX's lightweight rich text editor is based on Cameron Adams'
       work (http://www.themaninblue.com/)
     * QuiX's colorpicker is based on jscolor (http://jscolor.com)
