@@ -16,7 +16,7 @@
 //=============================================================================
 
 var QuiX = {};
-QuiX.version = '1.1 build 20110416';
+QuiX.version = '1.1 build 20110715';
 QuiX.namespace = 'http://www.innoscript.org/quix';
 QuiX.root = document.location.href.slice(0, 4) == 'http'?
     (new RegExp("https?://[^/]+(?:/[^/\?]+)?(?:/(?:{|%7B)(?:.*?)(?:}|%7D))?",

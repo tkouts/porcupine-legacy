@@ -1,5 +1,5 @@
 #==============================================================================
-#   Copyright (c) 2005-2010, Tassos Koutsovassilis
+#   Copyright (c) 2005-2011, Tassos Koutsovassilis
 #
 #   This file is part of Porcupine.
 #   Porcupine is free software; you can redistribute it and/or modify
