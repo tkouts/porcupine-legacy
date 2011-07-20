@@ -1,5 +1,5 @@
 #==============================================================================
-#   Copyright (c) 2005-2011, Tassos Koutsovassilis
+#   Copyright (c) 2005-2010, Tassos Koutsovassilis
 #
 #   This file is part of Porcupine.
 #   Porcupine is free software; you can redistribute it and/or modify
@@ -252,9 +252,7 @@ class Removable(object):
         db._db.handle_post_delete(self, True)
 
         if self.isCollection:
-            conditions = (('displayName', (None, None)), )
-            cursor = db._db.query(conditions)
-            cursor.set_scope(self._id)
+            cursor = db._db.get_children(self._id)
             cursor.enforce_permissions = False
             [child._delete(False) for child in cursor]
             cursor.close()
@@ -559,9 +557,7 @@ class GenericItem(_Elastic):
         if parent is not None and self.inheritRoles:
             self.security = parent.security
         if self.isCollection and not is_new:
-            conditions = (('displayName', (None, None)), )
-            cursor = db._db.query(conditions)
-            cursor.set_scope(self._id)
+            cursor = db._db.get_children(self._id)
             cursor.enforce_permissions = False
             for child in cursor:
                 child._apply_security(self, is_new)
