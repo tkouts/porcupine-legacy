@@ -124,6 +124,7 @@ QuiX.ui.Effect = function(/*params*/) {
     this._step = 0;
     this._reverse = false;
     this.playing = false;
+    this.useTimers = (params.usetimers == 'true' || params.usetimers == true);
 
     QuiX.ui.Timer.call(this, params);
 
@@ -478,7 +479,7 @@ QuiX.ui.Effect.prototype.play = function(/*reverse, widget*/) {
         }
 
         // check if css transitions are in place
-        if (QuiX.ui.Effect.cssTransition &&
+        if (!this.useTimers && QuiX.ui.Effect.cssTransition &&
                 !(QuiX.supportTouches && !QuiX.ui.Effect.supports3d) &&
                 // safari and opera do not animate css clip
                 // chrome does
