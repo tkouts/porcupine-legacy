@@ -344,7 +344,7 @@ QuiX.ui.Widget.prototype._setCommonProps = function(/*memo*/) {
         w = w + 'px';
     }
     else if (this.minw) {
-        var minw = this._calcMinWidth();
+        var minw = this._calcMinWidth(memo);
         this.div.style.width = '';
         if (this.div.offsetWidth < minw) {
             w = minw + 'px';
@@ -365,7 +365,7 @@ QuiX.ui.Widget.prototype._setCommonProps = function(/*memo*/) {
         h = h + 'px';
     }
     else if (this.minh) {
-        var minh = this._calcMinHeight();
+        var minh = this._calcMinHeight(memo);
         this.div.style.height = '';
         if (this.div.offsetHeight < minh) {
             h = minh + 'px';
@@ -597,7 +597,7 @@ QuiX.ui.Widget.prototype._calcAuto = function(dim, memo /*, offset*/) {
         value = 0;
 
     if (this[min_size]) {
-        value = (dim == 'height')? this._calcMinHeight():this._calcMinWidth();
+        value = (dim == 'height')? this._calcMinHeight(memo):this._calcMinWidth(memo);
         this[dim] = value;
     }
     else {
@@ -665,10 +665,10 @@ QuiX.ui.Widget.prototype._calcSize = function(height, memo) {
                     }
                 }
                 else {
-                    if (!QuiX.ui.Widget._funCache[value]) {
-                        QuiX.ui.Widget._funCache[value] = new Function('memo', 'return ' + value);
-                    }
                     try {
+                        if (!QuiX.ui.Widget._funCache[value]) {
+                            QuiX.ui.Widget._funCache[value] = new Function('memo', 'return ' + value);
+                        }
                         value = QuiX.ui.Widget._funCache[value].apply(this, [memo]) || 0;
                     }
                     catch (e) {
@@ -711,10 +711,10 @@ QuiX.ui.Widget.prototype._calcPos = function(left, memo) {
             }
         }
         else {
-            if (!QuiX.ui.Widget._funCache[value]) {
-                QuiX.ui.Widget._funCache[value] = new Function('memo', 'return ' + value);
-            }
             try {
+                if (!QuiX.ui.Widget._funCache[value]) {
+                    QuiX.ui.Widget._funCache[value] = new Function('memo', 'return ' + value);
+                }
                 value = QuiX.ui.Widget._funCache[value].call(this, memo) || 0;
             }
             catch (e) {
@@ -737,7 +737,7 @@ QuiX.ui.Widget.prototype._calcHeight = function(b /*, memo*/) {
     var fs;
 
     if (typeof memo[this._uniqueid + 'height'] == 'undefined') {
-        var ms = (this.minh)? this._calcMinHeight():0;
+        var ms = (this.minh)? this._calcMinHeight(memo):0;
         fs = this._calcSize('height', memo);
         if (fs < ms) {
             fs = ms;
@@ -779,7 +779,7 @@ QuiX.ui.Widget.prototype._calcWidth = function(b /*, memo*/) {
     var fs;
 
     if (typeof memo[this._uniqueid + 'width'] == 'undefined') {
-        var ms = (this.minw)? this._calcMinWidth():0;
+        var ms = (this.minw)? this._calcMinWidth(memo):0;
         fs = this._calcSize('width', memo);
         if (fs < ms) {
             fs = ms;
@@ -846,12 +846,46 @@ QuiX.ui.Widget.prototype._calcTop = function(/*memo*/) {
     return top;
 }
 
-QuiX.ui.Widget.prototype._calcMinWidth = function() {
-    return (typeof(this.minw) == 'function')? this.minw(this):parseInt(this.minw);
+QuiX.ui.Widget.prototype._calcMinWidth = function(/*memo*/) {
+    var memo = arguments[0] || {};
+    if (!isNaN(this.minw)) {
+        return parseInt(this.minw);
+    }
+    else if (typeof(this.minw) == 'function') {
+        return this.minw.call(this, this);
+    }
+    else {
+        if (!QuiX.ui.Widget._funCache[this.minw]) {
+            QuiX.ui.Widget._funCache[this.minw] = new Function('memo', 'return ' + this.minw);
+        }
+        try {
+            return QuiX.ui.Widget._funCache[this.minw].call(this, memo) || 0;
+        }
+        catch (e) {
+            return 0;
+        }
+    }
 }
 
-QuiX.ui.Widget.prototype._calcMinHeight = function() {
-    return (typeof(this.minh) == 'function')? this.minh(this):parseInt(this.minh);
+QuiX.ui.Widget.prototype._calcMinHeight = function(/*memo*/) {
+    var memo = arguments[0] || {};
+    if (!isNaN(this.minh)) {
+        return parseInt(this.minh);
+    }
+    else if (typeof(this.minw) == 'function') {
+        return this.minh.call(this, this, memo);
+    }
+    else {
+        if (!QuiX.ui.Widget._funCache[this.minh]) {
+            QuiX.ui.Widget._funCache[this.minh] = new Function('memo', 'return ' + this.minh);
+        }
+        try {
+            return QuiX.ui.Widget._funCache[this.minh].call(this, memo) || 0;
+        }
+        catch (e) {
+            return 0;
+        }
+    }
 }
 
 QuiX.ui.Widget.prototype.getWidth = QuiX.ui.Widget.prototype._calcWidth;

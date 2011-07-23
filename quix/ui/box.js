@@ -44,9 +44,10 @@ QuiX.ui.Box._destroy = function() {
 
 QuiX.ui.Box._getAvailableLength = function(memo) {
     var box = this.parent,
-        length_var = (box.orientation == 'h')? 'width':'height';
+        length_var = (box.orientation == 'h')? 'width':'height',
+        min_size = (box.orientation == 'h')? 'minw':'minh';
 
-    if (box[length_var] == null || box[length_var] == 'auto') {
+    if (box[length_var] == null || (box[length_var] == 'auto' && !box[min_size])) {
         return 0;
     }
 
@@ -54,9 +55,21 @@ QuiX.ui.Box._getAvailableLength = function(memo) {
         l = box[length_func](false, memo);
         attrs = box._getFreeWidgets(memo);
         total_percent = (attrs[4] > 100)? attrs[4]:100,
-        calc_percentage = ((100 / total_percent) * this._percentage / 100);
+        calc_percentage = ((100 / total_percent) * this._percentage / 100),
+        fixed_space = attrs[1] + (attrs[2] - 1) * box.spacing;
 
-    return (l - attrs[1] - (attrs[2] - 1) * box.spacing) * calc_percentage;
+    if (box[min_size]) {
+        var min_func = (min_size == 'minw')? '_calcMinWidth':'_calcMinHeight',
+            min = box[min_func](memo);
+        if (fixed_space < min) {
+            l = min;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    return (l - fixed_space) * calc_percentage;
 }
 
 QuiX.ui.Box.prototype._getFreeWidgets = function(memo) {
@@ -92,9 +105,10 @@ QuiX.ui.Box.prototype._getFreeWidgets = function(memo) {
 
 QuiX.ui.Box._calcWidgetLength = function(memo) {
     var box = this.parent,
-        length_var = (box.orientation == 'h')? 'width':'height';
+        length_var = (box.orientation == 'h')? 'width':'height',
+        min_size = (box.orientation == 'h')? 'minw':'minh';
 
-    if (box[length_var] == null || box[length_var] == 'auto') {
+    if (box[length_var] == null || (box[length_var] == 'auto' && !box[min_size])) {
         return 0;
     }
 
@@ -118,7 +132,20 @@ QuiX.ui.Box._calcWidgetLength = function(memo) {
             vw += 1;
         });
 
-    var nl = (l - tl - ((vw - 1) * box.spacing)) / free_widgets;
+    var fixed_space = tl + (vw - 1) * box.spacing;
+
+    if (box[min_size]) {
+        var min_func = (min_size == 'minw')? '_calcMinWidth':'_calcMinHeight',
+            min = box[min_func](memo);
+        if (fixed_space < min) {
+            l = min;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    var nl = (l - fixed_space) / free_widgets;
 
     return nl>0? nl:0;
 }
@@ -249,10 +276,9 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
 }
 
 QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
-    var memo = arguments[1] | {},
-        rds = this._rds;
+    var memo = arguments[1] | {};
 
-    if (bForceAll) {
+    if (bForceAll || typeof this._rds == 'undefined') {
         for (var i=0; i<this.widgets.length; i++) {
             this.widgets[i]._i = i;
             this._setChildVars(this.widgets[i]);
