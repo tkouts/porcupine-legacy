@@ -74,14 +74,10 @@ QuiX.ui.ScrollView = function(params) {
                 function() {
                     var memo = {};
                     adjust(memo);
-                    if (self.dir != 'h') {
-                        self._vs.redraw(false, memo);
-                        self._vs.hide();
-                    }
-                    if (self.dir != 'v') {
-                        self._hs.redraw(false, memo);
-                        self._hs.hide();
-                    }
+                    self._vs.redraw(false, memo);
+                    self._vs.hide();
+                    self._hs.redraw(false, memo);
+                    self._hs.hide();
                 } ,0);
         });
     this._c.attachEvent('onresize',
