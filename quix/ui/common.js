@@ -179,8 +179,8 @@ QuiX.ui.Slider = function(/*params*/) {
 
     this.div.className = 'slider';
 
-    this.min = parseInt(params.min) || 0;
-    this.max = parseInt(params.max) || 100;
+    this.min = parseFloat(params.min) || 0;
+    this.max = parseFloat(params.max) || 100;
     this.decimals = parseInt(params.decimals) || 0;
     this.name = params.name;
 
