@@ -150,6 +150,7 @@ OPT: Mobile friendly Combo widget.
 OPT: Faster auto sized widgets.
 OPT: QuiX parser, "parseFromUrl" and "parseFromString" now accept an extra
      optional argument for preloading images.
+OPT: Enhanced "minw" and "minh" parameters for QuiX widgets.
 
 FIX: Fixed etag generation of web methods in order to be template,
      implementation, request language and containment aware.
