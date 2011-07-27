@@ -244,13 +244,17 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
         w.top = 0;
     }
 
-    if (isNaN(parseInt(w[center_var]))) {
-        if (w[center_var] == 'center') {
-            w.boxAlign = 'center';
-        }
+    if (w[center_var] == 0 && this.childrenAlign) {
         w[center_var] = QuiX.ui.Box._getWidgetPos;
     }
-    else if (w[center_var] == 0 && this.childrenAlign) {
+    else if (isNaN(parseInt(w[center_var]))) {
+        if (w[center_var] == 'center' ||
+                w[center_var] == 'right' ||
+                w[center_var] == 'bottom' ||
+                w[center_var] == 'left' ||
+                w[center_var] == 'top') {
+            w.boxAlign = w[center_var];
+        }
         w[center_var] = QuiX.ui.Box._getWidgetPos;
     }
     //else {
