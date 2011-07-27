@@ -118,6 +118,7 @@ QuiX.Module.prototype.load = function(callback) {
         oElement = document.createElement('SCRIPT');
         oElement.type = 'text/javascript';
         oElement.defer = true;
+        oElement.resource = this;
         oElement[onload] = QuiX.__resource_onstatechange;
         oElement.src = this.file;
     }
@@ -128,7 +129,6 @@ QuiX.Module.prototype.load = function(callback) {
         oElement.rel = 'stylesheet';
     }
     document.getElementsByTagName('HEAD')[0].appendChild(oElement);
-    oElement.resource = this;
     oElement.id = this.file;
     if (this.type == 'stylesheet') {
         this.isLoaded = true;
