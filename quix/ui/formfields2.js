@@ -337,6 +337,16 @@ QuiX.ui.Combo.prototype.setValue = function(value) {
     }
 }
 
+QuiX.ui.Combo.prototype.setBgColor = function(color) {
+    if (color) {
+        this.div.style.background = 'none';
+    }
+    else {
+        this.div.style.background = '';
+    }
+    QuiX.ui.Widget.prototype.setBgColor.apply(this, arguments);
+}
+
 QuiX.ui.Combo.prototype.enable = function() {
     if (this.div.firstChild) {
         this.div.firstChild.disabled = false;
