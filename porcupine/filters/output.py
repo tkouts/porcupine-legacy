@@ -56,7 +56,8 @@ class Gzip(PostProcessFilter):
             Gzip.dynamicLevel = int(config['dynamic_compress_level'])
 
         # check if the client accepts gzipped content
-        if 'gzip' in context.request.HTTP_ACCEPT_ENCODING:
+        if (context.request.HTTP_ACCEPT_ENCODING and
+                'gzip' in context.request.HTTP_ACCEPT_ENCODING):
             context.response.set_header('Content-Encoding', 'gzip')
             isStatic = (registration is not None and registration.type == 0)
     
