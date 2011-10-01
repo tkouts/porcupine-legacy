@@ -181,6 +181,9 @@ QuiX.Image.prototype.load = function(callback) {
 
 QuiX.__resource_error = function() {
     if (this.resource.callback) {
+        if (window.console) {
+            console.log('Failed to load image ' + this.src);
+        }
         this.resource.callback();
     }
 }
@@ -326,6 +329,10 @@ QuiX.__init__ = function(id /*,params*/) {
                     document.desktop.div.style.overflow = 'scroll';
                     QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
                     document.desktop.setOverflow(overflow);
+                    document.desktop.redraw();
+                }
+                else {
+                    QuiX._scrollbarSize = 0;
                 }
             }
             parser.parse(QuiX.parsers.domFromString(QuiX.getInnerText(root)));
@@ -599,7 +606,7 @@ QuiX.getImage = function(url) {
         url = QuiX.root + url;
     }
     img = new Image();
-    img.src = url;
+    img.src = (document.imageData && document.imageData[src])? document.imageData[src]:url;
     return img;
 }
 
@@ -1001,24 +1008,26 @@ QuiX.setStyle = function(el, cssText) {
 }
 
 QuiX.detachFrames = function(w) {
-    if (QuiX.modules[9].isLoaded) {
-        var frms = w.getWidgetsByType(QuiX.ui.IFrame);
-        for (var i=0; i<frms.length; i++) {
-            if (QuiX.getParentNode(frms[i].frame)) {
-                QuiX.removeNode(frms[i].frame);
-            }
-        }
+    var frms = w.div.getElementsByTagName('IFRAME'),
+        df = [];
+
+    for (var i=0; i<frms.length;) {
+        var p = QuiX.getParentNode(frms[i]);
+        frms[i].p = p;
+        df.push(QuiX.removeNode(frms[i]));
     }
+    w._df = df;
 }
 
 QuiX.attachFrames = function(w) {
-    if (QuiX.modules[9].isLoaded) {
-        var frms = w.getWidgetsByType(QuiX.ui.IFrame);
-        for (var i=0; i<frms.length; i++) {
-            if (!QuiX.getParentNode(frms[i].frame)) {
-                frms[i].div.appendChild(frms[i].frame);
-            }
+    if (w._df) {
+        var frm;
+
+        for (var i=0; i<w._df.length; i++) {
+            frm = w._df[i];
+            frm.p.appendChild(frm);
         }
+        w._df = null;
     }
 }
 
@@ -1126,10 +1135,12 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
     if (iMod > -1) {
         this._addModule(QuiX.modules[iMod]);
     }
-    else if (this.preloadImages && iMod && oNode.getAttribute('img') &&
+
+    if (oNode.getAttribute('img') &&
+             (oNode.getAttribute('preload') == 'true' || this.preloadImages) &&
              !(QuiX.utils.BrowserInfo.family == 'ie' && QuiX.utils.BrowserInfo.version <= 8)) {
         var src = oNode.getAttribute('img');
-        if (src != '' && !(QuiX._imgCache[src])) {
+        if (src != '' && !(QuiX._imgCache[src]) && !(document.imageData && document.imageData[src])) {
             this.__images.push(src);
         }
     }
