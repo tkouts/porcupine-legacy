@@ -474,13 +474,6 @@ QuiX.ui.ColorPicker.jscolor = {
                 case 0: var padImg = 'hs.png'; break;
                 case 1: var padImg = 'hv.png'; break;
             }
-            p.padM.style.background = "url('" + jscolor.dir + "cross.gif') no-repeat";
-            p.sldM.style.background = "url('" + jscolor.dir + "arrow.gif') no-repeat";
-            p.pad.style.background = "url('" + jscolor.dir + padImg + "') 0 0 no-repeat";
-
-            // place pointers
-            redrawPad();
-            redrawSld();
 
             jscolor.picker.owner = THIS;
 
@@ -499,6 +492,15 @@ QuiX.ui.ColorPicker.jscolor = {
 
             document.desktop.appendChild(rect);
             rect.redraw();
+
+            p.padM.style.background = "url('" + jscolor.dir + "cross.gif') no-repeat";
+            p.sldM.style.background = "url('" + jscolor.dir + "arrow.gif') no-repeat";
+            p.pad.style.background = "url('" + jscolor.dir + padImg + "') 0 0 no-repeat";
+
+            // place pointers
+            redrawPad();
+            redrawSld();
+
             document.desktop.overlays.push(rect);
         }
 
