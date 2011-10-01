@@ -7,10 +7,14 @@ Mobile Widgets
 QuiX.ui.ScrollView = function(params) {
     params.overflow = 'hidden';
 
+    this.dir = params.sdir || params.dir || 'v';
+    if (params.dir != 'ltr' && params.dir != 'rtl') {
+        delete params.dir;
+    }
+
     QuiX.ui.Widget.call(this, params);
 
     this.div.className = 'scrollview';
-    this.dir = params.dir || 'v';
     this._scx = 0;
     this._scy = 0;
 
@@ -55,59 +59,65 @@ QuiX.ui.ScrollView = function(params) {
     QuiX.ui.Widget.prototype.appendChild.call(this, this._vs);
     QuiX.ui.Widget.prototype.appendChild.call(this, this._hs);
 
-    var self = this;
-
-    function adjust(memo) {
-        if (self.dir != 'h') {
-            self._vs.left = self.getWidth(false, memo) - 6;
-            self._vs.height = (self.getHeight(false, memo) / self._c.getHeight(true, memo)) * self.getHeight(false, memo) - ((self.dir != 'v')? 8:0);
-        }
-        if (self.dir != 'v') {
-            self._hs.top = self.getHeight(false) - 6;
-            self._hs.width = (self.getWidth(false, memo) / self._c.getWidth(true, memo)) * self.getWidth(false, memo) - ((self.dir != 'h')? 8:0);
-        }
-    }
-
-    this.attachEvent('onload',
-        function() {
-            window.setTimeout(
-                function() {
-                    var memo = {};
-                    adjust(memo);
-                    self._vs.redraw(false, memo);
-                    self._vs.hide();
-                    self._hs.redraw(false, memo);
-                    self._hs.hide();
-                } ,0);
-        });
-    this._c.attachEvent('onresize',
-        function() {
-            window.setTimeout(
-                function() {
-                    var memo = {};
-                    adjust(memo);
-                    if (self.dir != 'h') {
-                        self._vs.show();
-                        self._vs.redraw(false, memo);
-                    }
-                    if (self.dir != 'v') {
-                        self._hs.show();
-                        self._hs.redraw(false, memo);
-                    }
-                    self._vs.hide();
-                    self._hs.hide();
-                    self.scrollTo(0, 0);
-                } ,0);
-        });
+    this._c.attachEvent('onresize', QuiX.ui.ScrollView._onresize);
+    this.attachEvent('onresize', QuiX.ui.ScrollView._onresize);
 }
 
 QuiX.constructors['scrollview'] = QuiX.ui.ScrollView;
 QuiX.ui.ScrollView.prototype = new QuiX.ui.Widget;
 QuiX.ui.ScrollView.prototype.__class__ = QuiX.ui.ScrollView;
 
+QuiX.ui.ScrollView._onresize = function(w ,memo) {
+    if (!w._adjust) {
+        w = w.parent;
+    }
+    window.setTimeout(
+        function() {
+            w._adjust(memo);
+            w.scrollTo(0, 0);
+        } ,0);
+}
+
 QuiX.ui.ScrollView.prototype.appendChild = function(w /*, index*/) {
     var index = arguments[1] || null;
     this._c.appendChild(w, index);
+}
+
+QuiX.ui.ScrollView.prototype._adjust = function(memo) {
+    if (this.dir != 'h') {
+        this._vs.left = this.getWidth(false, memo) - 6;
+        this._vs.height = (this.getHeight(false, memo) / this._c.getHeight(true, memo)) * this.getHeight(false, memo) - ((this.dir != 'v')? 8:0);
+    }
+    if (this.dir != 'v') {
+        this._hs.top = this.getHeight(false) - 6;
+        this._hs.width = (this.getWidth(false, memo) / this._c.getWidth(true, memo)) * this.getWidth(false, memo) - ((this.dir != 'h')? 8:0);
+    }
+
+    if (this.dir != 'h') {
+        this._vs.show();
+        this._vs.redraw(memo);
+    }
+    if (this.dir != 'v') {
+        this._hs.show();
+        this._hs.redraw(memo);
+    }
+    this._vs.hide();
+    this._hs.hide();
+
+    this._h = this.getHeight(false, memo);
+    this._w = this.getWidth(false, memo);
+    this._sh = this._c.getHeight(true, memo);
+    this._sw = this._c.getWidth(true, memo);
+}
+
+QuiX.ui.ScrollView.prototype.redraw = function(bForceAll /*, memo*/) {
+    var memo = arguments[1] || {};
+
+    if (bForceAll || typeof this._rds == 'undefined') {
+        this._adjust(memo);
+    }
+
+    QuiX.ui.Widget.prototype.redraw.call(this, bForceAll, memo);
 }
 
 QuiX.ui.ScrollView.prototype.getScrollOffset = function() {
@@ -178,10 +188,10 @@ QuiX.ui.ScrollView.prototype._moveScrollBar = function(sb, perc) {
 
 QuiX.ui.ScrollView._startScroll = function(evt, sv) {
     var memo = {},
-        h = sv.getHeight(false, memo),
-        w = sv.getWidth(false, memo),
-        sh = sv._c.getHeight(true, memo),
-        sw = sv._c.getWidth(true, memo);
+        h = sv._h,
+        w = sv._w,
+        sh = sv._sh,
+        sw = sv._sw;
 
     if (sh > h || sw > w) {
         var target = QuiX.getTarget(evt),
@@ -212,12 +222,6 @@ QuiX.ui.ScrollView._startScroll = function(evt, sv) {
 
         sv._sx = sv._scx || 0;
         sv._sy = sv._scy || 0;
-
-        // cache dims
-        sv._h = h;
-        sv._w = w;
-        sv._sh = sh;
-        sv._sw = sw;
     }
 }
 
