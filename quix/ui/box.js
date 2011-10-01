@@ -192,7 +192,6 @@ QuiX.ui.Box.prototype.appendChild = function(w) {
     this._setChildVars(w);
     QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
     w.div.style.zIndex = '';
-    w._setCommonProps({});
 }
 
 QuiX.ui.Box.prototype._calcAuto = null;
@@ -286,6 +285,21 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
         for (var i=0; i<this.widgets.length; i++) {
             this.widgets[i]._i = i;
             this._setChildVars(this.widgets[i]);
+        }
+    }
+
+    if (this.orientation == 'h') {
+        if (this.height == 'auto') {
+            for (var i=0; i<this.widgets.length; i++) {
+                if (isNaN(this.widgets[i].height)) {
+                    this.widgets[i].div.style.height = '';
+                }
+            }
+        }
+    }
+    if (this.width == 'auto') {
+        for (var i=0; i<this.widgets.length; i++) {
+            this.widgets[i]._setCommonProps(memo);
         }
     }
 
