@@ -83,6 +83,7 @@ QuiX.utils.BrowserInfo = {
     families: {
         "Chrome": "saf",
         "Safari": "saf",
+        "Mobile Safari": "saf",
         "Explorer": "ie",
         "OmniWeb": "omni",
         "Opera": "op",
@@ -108,6 +109,12 @@ QuiX.utils.BrowserInfo = {
         {
             string: navigator.vendor,
             subString: "Apple",
+            identity: "Safari",
+            versionSearch: "Version"
+        },
+        {
+            string: navigator.userAgent,
+            subString: "Mobile Safari",
             identity: "Safari",
             versionSearch: "Version"
         },
