@@ -174,7 +174,9 @@ QuiX.ui.Image.prototype.__class__ = QuiX.ui.Image;
 QuiX.ui.Image.prototype.setImageURL = function(url) {
     this._url = url || null;
     if (this._url) {
-        this.div.style.backgroundImage = "url('" + this._url + "')";
+        this.div.style.backgroundImage = "url('" +
+            ((document.imageData && document.imageData[this._url])?
+             document.imageData[this._url]:this._url) + "')";
     }
     else {
         this.div.style.backgroundImage = '';
@@ -198,7 +200,7 @@ QuiX.ui.Icon = function(/*params*/) {
     this.img = params.img || null;
     this.imageElement = null;
     this.imgAlign = params.imgalign || 'left';
-    this.spacing = parseInt(params.spacing) || 4;
+    this.spacing = (typeof params.spacing != 'undefined')? parseInt(params.spacing):4;
     this.imgHeight = params.imgheight;
     this.imgWidth = params.imgwidth;
 }
@@ -320,6 +322,7 @@ QuiX.ui.Button = function(/*params*/) {
         minh: params.minh,
         top: params.top,
         left: params.left,
+        rotation: params.rotation,
         disabled: params.disabled,
         display: params.display,
         overflow: 'visible',
@@ -347,7 +350,7 @@ QuiX.ui.Button = function(/*params*/) {
     delete params.onmouseover; delete params.onmousedown;
     delete params.onmouseup; delete params.onclick; delete params.onload;
     delete params.bgcolor; delete params.display;
-    delete params.style;
+    delete params.style; delete params.rotation;
 
     params.height = '100%';
     params.width = '100%';

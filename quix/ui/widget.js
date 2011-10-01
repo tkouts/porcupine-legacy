@@ -61,6 +61,9 @@ QuiX.ui.Widget = function(/*params*/) {
     if (params.overflow) {
         this.setOverflow(params.overflow);
     }
+    if (params.rotation) {
+        this.setRotation(params.rotation);
+    }
     this.setPosition('absolute');
 
     this._buildEventRegistry(params);
@@ -163,7 +166,7 @@ QuiX.ui.Widget.prototype.parseFromString = function(s /*, oncomplete, preloadIma
 QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete, preloadImages */) {
     var oncomplete = arguments[1] || null,
         xmlhttp = QuiX.XHRPool.getInstance(),
-        self = this; 	
+        self = this;
     var preloadImages = arguments[2] || false;
 
     xmlhttp.onreadystatechange = function() {
@@ -394,8 +397,16 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
         this.div.style.backgroundColor = '';
         switch (QuiX.utils.BrowserInfo.family) {
             case 'moz':
-                this.div.style.backgroundImage = '-moz-linear-gradient(' +
-                    bgc[0] + ',' + bgc[1] + ',' + bgc[2] + ')';
+                if (bgc.length <= 3) {
+                    this.div.style.backgroundImage = '-moz-linear-gradient(' + bgc[0] + ',' + bgc[1] + ',' + bgc[2] + ')';
+                } else {
+                    var grad = '-moz-linear-gradient(' + bgc[0] + ',';
+                    for (i = 1; i < bgc.length-1; i++) {
+                        grad += bgc[i] + ',';
+                    }
+                    grad += bgc[bgc.length-1] + ')';
+                    this.div.style.backgroundImage = grad;
+                }
                 break;
             case 'saf':
                 var dir;
@@ -406,9 +417,39 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
                     case 'top':
                         dir = 'left top, left bottom';
                         break;
+                    case 'top left':
+                        dir = 'left top, right bottom';
+                        break;
+                    case 'bottom left':
+                        dir = 'left bottom, right top';
+                        break;
+                    default:
+                        dir = 'left top, left bottom';
                 }
-                this.div.style.backgroundImage = '-webkit-gradient(linear,' +
-                    dir + ',from(' + bgc[1] + '),to(' + bgc[2] + '))';
+                if (bgc.length <= 3) {
+                    this.div.style.backgroundImage = '-webkit-gradient(linear,' + dir + ',from(' + bgc[1] + '),to(' + bgc[2] + '))';
+                } else {
+                    var grad = '-webkit-gradient(linear,' + dir + ',';
+                    for (i = 1; i < bgc.length; i++) {
+                        var parts = bgc[i].split(" ");
+                        if (parts.length > 1) {
+                            var pct = parseInt(parts[1]);
+                            if (pct < 10) {
+                                pct = '0' + pct;
+                            }
+                            grad += 'color-stop(.'+pct+','+parts[0]+'),';
+                        } else {
+                            if (i == 1) {
+                                grad += 'color-stop(0,'+parts[0]+'),';
+                            }
+                            if (i == bgc.length-1) {
+                                grad += 'color-stop(1,'+parts[0]+'))';
+                            }
+                            
+                        }
+                    }
+                    this.div.style.backgroundImage = grad;
+                }
                 break;
             case 'ie':
                 var types = {left:1, top:0};
@@ -420,8 +461,16 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
                 break;
             case 'op':
                 if (QuiX.utils.BrowserInfo.version >= 11.10) {
-                    this.div.style.backgroundImage = '-o-linear-gradient(' +
-                        bgc[0] + ',' + bgc[1] + ',' + bgc[2] + ')';
+                    if (bgc.length <= 3) {
+                        this.div.style.backgroundImage = '-o-linear-gradient(' + bgc[0] + ',' + bgc[1] + ',' + bgc[2] + ')';
+                    } else {
+                    var grad = '-o-linear-gradient(' + bgc[0] + ',';
+                        for (i = 1; i < bgc.length-1; i++) {
+                            grad += bgc[i] + ',';
+                        }
+                        grad += bgc[bgc.length-1] + ')';
+                        this.div.style.backgroundImage = grad;
+                    }
                 }
                 else {
                     // fallback to single color
@@ -432,11 +481,13 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
     else {
         // single color
         // clear background image if gradient
-        this.div.style.background = 'none';
-        if (this.div.style.filter && this.div.style.filter.indexOf('gradient') > -1) {
+        if (this.div.style.backgroundImage.indexOf('gradient(') > -1) {
+            this.div.style.backgroundImage = '';
+        }
+        else if (this.div.style.filter && this.div.style.filter.indexOf('gradient') > -1) {
             this.div.style.filter = '';
         }
-        if (color.slice(0,4) == 'rgba' && document.all && QuiX.utils.BrowserInfo.version <=8) {
+        if (color.slice(0,4) == 'rgba' && document.all && QuiX.utils.BrowserInfo.version <= 8) {
             // ie versions prior to 9 do not support rgba
             var rgb = color.match(/^rgba\((\d)+,\s*(\d)+,\s*(\d)+,\s*\d\.?\d*\)/);
             this.div.style.backgroundColor = 'rgb(' + rgb[1] + ',' + rgb[2] + ',' + rgb[3] + ')';
@@ -449,6 +500,19 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
 }
 QuiX.ui.Widget.prototype.getBgColor = function() {
     return this._bgc || '';
+}
+
+// rottation attribute
+QuiX.ui.Widget.prototype.setRotation = function(degrees) {
+    this.div.style.webkitTransform="rotate(" + degrees + "deg)";
+    this.div.style.OTransform="rotate(" + degrees + "deg)";
+    this.div.style.MozTransform="rotate(" + degrees + "deg)";
+    this.div.style.msTransform="rotate(" + degrees + "deg)";
+    this._rot = degrees;
+}
+
+QuiX.ui.Widget.prototype.getRotation = function() {
+    return (this._rot || 0);
 }
 
 // borderWidth attribute
@@ -522,8 +586,8 @@ QuiX.ui.Widget.prototype.getOpacity = function() {
 
 // box shadow attribute
 QuiX.ui.Widget.prototype.setShadow = function(shadow) {
-	this._shadow = shadow;
-	QuiX.setShadow(this.div, shadow);
+    this._shadow = shadow;
+    QuiX.setShadow(this.div, shadow);
 }
 
 QuiX.ui.Widget.prototype.getShadow = function() {
@@ -589,12 +653,13 @@ QuiX.ui.Widget._funCache = {};
 QuiX.ui.Widget.prototype._calcAuto = function(dim, memo /*, offset*/) {
     var padding_offset = (dim == 'height')? 2:0,
         padding = this.getPadding(),
-        offset = arguments[2] || 'get',
+        offset = arguments[2] || '_calc',
         offset_func = (dim == 'height')? offset + 'Top': offset + 'Left',
         min_size = (dim == 'height')? 'minh':'minw',
         offset_var = (dim == 'height')? 'top':'left',
         length_func = (dim == 'height')? '_calcHeight':'_calcWidth',
-        value = 0;
+        value = 0,
+        old_dim = this[dim];
 
     if (this[min_size]) {
         value = (dim == 'height')? this._calcMinHeight(memo):this._calcMinWidth(memo);
@@ -604,30 +669,28 @@ QuiX.ui.Widget.prototype._calcAuto = function(dim, memo /*, offset*/) {
         this[dim] = 0;
     }
 
-    var self = this;
-    this.widgets.each(
-        function() {
-            var w_length;
-            if (this.div.style.display != 'none') {
-                if (this[dim] == 'auto') {
-                    this.redraw(false, memo);
-                }
-                else if (self[min_size] && this.div.style.position != '') {
-                    if (self.width == null) {
-                        this.div.style.left = '0px';
-                    }
-                    this._setAbsProps(memo);
-                    this._setCommonProps(memo);
-                }
-                if (!isNaN(this[dim]) || this[dim] == 'auto' || self[min_size]) {
-                    w_length = ((isNaN(this[offset_var]) && !self[min_size])? 0:this[offset_func](memo)) +
-                               this[length_func](true, memo);
-                    value = Math.max(value, w_length);
-                }
-            }
-        });
+    var memo2 = {};
 
-    this[dim] = 'auto';
+    for (var i=0; i<this.widgets.length; i++) {
+        var w = this.widgets[i],
+            w_length;
+
+        if (w.div.style.display != 'none') {
+            if (w[dim] == 'auto') {
+                w.redraw(false, memo2);
+            }
+            if (!isNaN(w[dim]) || w[dim] == 'auto' || this[min_size]) {
+                var offs = 0;
+                if (!isNaN(w[offset_var])) {
+                    offs = w[offset_func](memo);
+                }
+                w_length = offs + w[length_func](true, memo);
+                value = Math.max(value, w_length);
+            }
+        }
+    }
+
+    this[dim] = old_dim;
 
     value = value +
             padding[padding_offset] +
@@ -1069,13 +1132,13 @@ QuiX.ui.Widget.prototype.moveTo = function(x, y) {
                     x = QuiX.transformX(x + this.getWidth(true, memo), this.parent);
                 }
             }
-            this.div.style.left = x + 'px';
+            this.div.style.left = (x || 0) + 'px';
         }
 
         if (y != this.top) {
             this.top = y;
             y = (isNaN(y))? this._calcTop(memo):parseInt(y) + padding[2];
-            this.div.style.top = y + 'px';
+            this.div.style.top = (y || 0) + 'px';
         }
     }
 }
@@ -1237,9 +1300,6 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
             scrollX, scrollY, borders;
 
         if (this.div.style.position != '') {
-            //if (this.width == null) {
-            //    this.div.style.left = '0px';
-            //}
             this._setAbsProps(memo);
         }
         this._setCommonProps(memo);
@@ -1273,7 +1333,7 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
                     }
                 }
             }
-    
+
             if (overflAuto &&
                 (this.div.offsetWidth - this.div.clientWidth - borders != scrollY ||
                  this.div.offsetHeight - this.div.clientHeight - borders != scrollX)) {
@@ -1646,10 +1706,10 @@ QuiX.ui.Widget._onmouseover = function(evt, w) {
         var availHeight = document.desktop.getHeight(true),
             y1;
         if (evt.clientY + 30 > availHeight) {
-        	y1 = evt.clientY - 30;
+            y1 = evt.clientY - 30;
         }
         else {
-       		y1 = evt.clientY + 18;
+            y1 = evt.clientY + 18;
         }
 
         if (!w.__tooltipID) {
@@ -1765,7 +1825,8 @@ QuiX.ui.Desktop = function(params, root) {
     QuiX.dir = params.dir || '';
     params.id = 'desktop';
     params.width = params.width || null;
-    params.height = params.height || 'document.body.clientHeight';
+    params.height = params.height || window.innerHeight?
+        'window.innerHeight':'document.documentElement.clientHeight';
     params.overflow = params.overflow || 'hidden';
 
     if (QuiX.utils.BrowserInfo.family != 'op') {
@@ -1779,7 +1840,7 @@ QuiX.ui.Desktop = function(params, root) {
     }
 
     this.setPosition('relative');
-    this._setCommonProps();
+    //this._setCommonProps();
     root.appendChild(this.div);
     this.div.className = 'desktop';
     document.desktop = this;
@@ -1787,10 +1848,10 @@ QuiX.ui.Desktop = function(params, root) {
     this.attachEvent('onmousedown', QuiX.ui.Desktop._onmousedown);
     this.attachEvent('onmouseup', QuiX.ui.Desktop._onmouseup);
 
-    if (!QuiX.supportTouches || QuiX.utils.BrowserInfo.OS == 'Android') {
+    if (!QuiX.supportTouches) {
         QuiX.addEvent(window, 'onresize', QuiX.ui.Desktop._onresize);
     }
-    if (QuiX.supportTouches) {
+    else {
         QuiX.addEvent(window, 'onorientationchange', QuiX.ui.Desktop._onresize);
     }
     this.overlays = [];
@@ -1801,19 +1862,23 @@ QuiX.ui.Desktop.prototype = new QuiX.ui.Widget;
 QuiX.ui.Desktop.prototype.__class__ = QuiX.ui.Desktop;
 
 QuiX.ui.Desktop._onresize = function() {
-    var timeout = 100;
+    var timeout = 100,
+        self = this;
+
     if (QuiX.utils.BrowserInfo.OS == 'Android') {
         timeout = 500;
     }
     if (this._rt) {
         window.clearTimeout(this._rt);
+        this._rt = null;
     }
-    var overflow = document.desktop.getOverflow();
-    document.desktop.setOverflow('hidden');
     this._rt = window.setTimeout(
         function() {
-            document.desktop.setOverflow(overflow);
             document.desktop.redraw();
+            if (QuiX._scrollbarSize > 0) {
+                document.desktop.redraw();
+            }
+            self._rt = null;
         }, timeout);
 }
 
