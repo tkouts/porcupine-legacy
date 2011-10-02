@@ -35,7 +35,6 @@ PID_FILE = 'conf/.pid'
 
 class Controller(object):
     def __init__(self):
-        #self.shutdowninprogress = False
         self.running = False
         self.services = services.services
 

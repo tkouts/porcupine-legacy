@@ -9,23 +9,34 @@ import sys
 import time
 import win32serviceutil
 import win32service
+import multiprocessing
+
+
+def is_frozen():
+    return (hasattr(sys, "frozen")          # new py2exe
+            or hasattr(sys, "importers")    # old py2exe
+            or imp.is_frozen("__main__"))   # tools/freeze
+
+
+if is_frozen():
+    multiprocessing.set_executable(os.path.join(
+        os.path.dirname(sys.executable), 'porcupineserver.exe'))
 
 
 class PorcupineServerService(win32serviceutil.ServiceFramework):
     _svc_name_ = 'Porcupine'
-    _svc_display_name_ = 'Porcupine Server'
+    _svc_display_name_ = 'Porcupine'
+    _svc_description = 'Porcupine Web Application Server'
 
-    def __init__(self, args):
-        win32serviceutil.ServiceFramework.__init__(self, args)
-        sys.stdout = open('nul', 'w')
-        sys.stderr = open('nul', 'w')
+    def __init__(self, *args):
+        win32serviceutil.ServiceFramework.__init__(self, *args)
         self.controller = None
 
     def SvcDoRun(self):
         try:
             if '' not in sys.path:
                 sys.path.insert(0, '')
-            if self.is_frozen():
+            if is_frozen():
                 os.chdir(os.path.dirname(sys.executable))
             else:
                 os.chdir(os.path.abspath(os.path.dirname(__file__)))
@@ -45,15 +56,7 @@ class PorcupineServerService(win32serviceutil.ServiceFramework):
             time.sleep(1.0)
         self.controller.shutdown()
 
-    def is_frozen(self):
-        return (hasattr(sys, "frozen")          # new py2exe
-                or hasattr(sys, "importers")    # old py2exe
-                or imp.is_frozen("__main__"))   # tools/freeze
 
 if __name__ == '__main__':
-    try:
-        import multiprocessing
-        multiprocessing.freeze_support()
-    except ImportError:
-        pass
+    multiprocessing.freeze_support()
     win32serviceutil.HandleCommandLine(PorcupineServerService)
