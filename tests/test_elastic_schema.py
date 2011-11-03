@@ -43,40 +43,44 @@ class ElasticSchemaTest(TestWithDb):
         folder.description.value = 'description...'
         return folder
 
-    @db.transactional(auto_commit=True)
     def test_datatype_addition_persistent(self):
-        schema.TestFolder.__props__['z'] = (datatypes.String, [],
-                                            {'value': 'default'})
-        # create new folder
-        folder = self._get_folder()
-        # add it to the root folder
-        folder.append_to('')
-        try:
-            # reload it
-            folder2 = db.get_item(folder.id)
-            self.assertEqual(folder2.z.value, 'default')
-        finally:
-            folder.delete()
-            # remove added attribute from schema
-            del schema.TestFolder.__props__['z']
+        @db.transactional(auto_commit=True)
+        def test():
+            schema.TestFolder.__props__['z'] = (datatypes.String, [],
+                                                {'value': 'default'})
+            # create new folder
+            folder = self._get_folder()
+            # add it to the root folder
+            folder.append_to('')
+            try:
+                # reload it
+                folder2 = db.get_item(folder.id)
+                self.assertEqual(folder2.z.value, 'default')
+            finally:
+                folder.delete()
+                # remove added attribute from schema
+                del schema.TestFolder.__props__['z']
+        test()
 
-    @db.transactional(auto_commit=True)
     def test_datatype_removal_persistent(self):
-        # create a new folder
-        folder = self._get_folder()
-        # now remove the description data type
-        description = schema.TestFolder.__props__.pop('x')
-        # add it to the root folder
-        folder.append_to('')
-        try:
-            # update it in order for schema updates to persist
-            folder.update()
-
-            # reload it
-            folder2 = db.get_item(folder.id)
-            self.assertRaises(AttributeError, getattr, folder2, 'x')
-        finally:
-            # remove item
-            folder.delete()
-            # add description back
-            schema.TestFolder.__props__['x'] = description
+        @db.transactional(auto_commit=True)
+        def test():
+            # create a new folder
+            folder = self._get_folder()
+            # now remove the description data type
+            description = schema.TestFolder.__props__.pop('x')
+            # add it to the root folder
+            folder.append_to('')
+            try:
+                # update it in order for schema updates to persist
+                folder.update()
+    
+                # reload it
+                folder2 = db.get_item(folder.id)
+                self.assertRaises(AttributeError, getattr, folder2, 'x')
+            finally:
+                # remove item
+                folder.delete()
+                # add description back
+                schema.TestFolder.__props__['x'] = description
+        test()
