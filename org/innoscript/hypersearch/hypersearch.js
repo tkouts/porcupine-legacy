@@ -12,7 +12,7 @@ hypersearch.selectFolder = function(evt, w) {
 hypersearch.updateFolder = function(dlg) {
 	if (dlg.buttonIndex == 0) {
 		var selection = dlg.getWidgetById("tree").getSelection();
-		var id = selection.getId();
+		var id = selection.getId() || '';
 		var caption = selection.getCaption();
 		dlg.opener.getWidgetById("container_id").setValue(id);
 		dlg.opener.getWidgetById("container_name").setValue(caption);

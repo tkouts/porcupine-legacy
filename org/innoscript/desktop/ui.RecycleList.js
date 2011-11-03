@@ -84,7 +84,7 @@ recycleBin.restoreTo = function(evt, w) {
 
 recycleBin.doRestoreTo = function(dlg) {
     if (dlg.buttonIndex == 0) {
-        var targetid = dlg.getWidgetById('tree').getSelection().getId(),
+        var targetid = dlg.getWidgetById('tree').getSelection().getId() || '',
             rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + dlg.attributes.ID);
 
         rpc.oncomplete = function(req) {

@@ -42,10 +42,10 @@ login.login_oncomplete = function(req) {
         }
         else {
             // no return url is provided
-            ru = document.location.href
-                .replace(/cmd=login&?/, '')
-                .replace('?&', '?')
-                .replace(/\?$/, '');
+            ru = document.location.href.
+                replace(/cmd=login&?/, '').
+                replace('?&', '?').
+                replace(/[\?\&]$/, '');
             document.location.href = ru;
         }
     }

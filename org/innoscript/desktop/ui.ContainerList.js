@@ -217,7 +217,7 @@ containerList.doCopyMove = function(dlg) {
     if (dlg.buttonIndex == 0) {
         var p_win = dlg.opener;
         var method = (dlg.attributes.method=='copy')?'copyTo':'moveTo';
-        var targetid = dlg.getWidgetById('tree').getSelection().getId();
+        var targetid = dlg.getWidgetById('tree').getSelection().getId() || '';
         
         var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + dlg.attributes.ID);
         rpc.oncomplete = function(req) {
