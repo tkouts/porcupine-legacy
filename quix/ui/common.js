@@ -30,8 +30,6 @@ QuiX.ui.IFrame = function(/*params*/) {
     this.frame.name = params.name || '';
     this.frame.allowTransparency = true;
     QuiX.addEvent(this.frame, 'onload', QuiX.ui.IFrame.prototype._onload);
-    this.frame.style.width = "100%";
-    this.frame.style.height = "100%";
     this.setSource(params.src);
     this.div.appendChild(this.frame);
 }
@@ -256,8 +254,8 @@ QuiX.ui.Slider._onmousedown = function(evt, handle) {
         handle.widgets[0].show();
         handle.widgets[0].redraw();
     }
-    document.desktop.attachEvent('onmousemove', QuiX.ui.Slider._onmousemove);
-    document.desktop.attachEvent('onmouseup', QuiX.ui.Slider._onmouseup);
+    handle.getDesktop().attachEvent('onmousemove', QuiX.ui.Slider._onmousemove);
+    handle.getDesktop().attachEvent('onmouseup', QuiX.ui.Slider._onmouseup);
     QuiX.cancelDefault(evt);
 }
 
@@ -290,8 +288,8 @@ QuiX.ui.Slider._onmousemove = function(evt, desktop) {
 
 QuiX.ui.Slider._onmouseup = function(evt, desktop) {
     var slider = QuiX.tmpWidget.parent;
-    document.desktop.detachEvent('onmousemove', QuiX.ui.Slider._onmousemove);
-    document.desktop.detachEvent('onmouseup', QuiX.ui.Slider._onmouseup);
+    desktop.detachEvent('onmousemove', QuiX.ui.Slider._onmousemove);
+    desktop.detachEvent('onmouseup', QuiX.ui.Slider._onmouseup);
     if (slider.label) {
         slider.label.hide();
     }

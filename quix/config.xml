@@ -34,6 +34,29 @@
         <filter type="porcupine.filters.output.JSMin"/>
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
+    <context path="mcore.js"
+            method="GET"
+            client=".*"
+            lang=".*"
+            max-age="31556926">
+        <filter type="porcupine.filters.output.JSMerge"
+                files="quix/quix.js,
+                       quix/lib/parsers_hashlib.js,
+                       quix/lib/utils.js,
+                       quix/lib/persist.js,
+                       quix/lib/utils.js,
+                       quix/lib/rpc.js,
+                       quix/ui/widget.js,
+                       quix/ui/common.js,
+                       quix/ui/box.js,
+                       quix/ui/timers.js,
+                       quix/ui/buttons.js,
+                       quix/ui/formfields.js,
+                       quix/ui/formfields2.js,
+                       quix/ui/mobile.js"/>
+        <filter type="porcupine.filters.output.JSMin"/>
+        <filter type="porcupine.filters.output.Gzip"/>
+    </context>
     <context path="lib/extensions.js"
         method="MSIE 6"
         client=".*"

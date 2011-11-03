@@ -10,14 +10,12 @@ QuiX.ui.Box = function(/*params*/) {
 
     QuiX.ui.Widget.call(this, params);
 
-    this.div.className = 'box';
     this.orientation = params.orientation || 'h';
-    var spacing = (typeof params.spacing == 'undefined')? 2:params.spacing;
-    this.spacing = parseInt(spacing);
+    this.div.className = this.orientation + 'box';
+
+    this.spacing = parseInt((typeof params.spacing == 'undefined')? 2:params.spacing);
+
     this.childrenAlign = params.childrenalign || '';
-    if (this.orientation == 'h') {
-        this.div.style.whiteSpace = 'nowrap';
-    }
 }
 
 QuiX.constructors['box'] = QuiX.ui.Box;
@@ -25,12 +23,11 @@ QuiX.ui.Box.prototype = new QuiX.ui.Widget;
 QuiX.ui.Box.prototype.__class__ = QuiX.ui.Box;
 
 QuiX.ui.Box._destroy = function() {
-    var oBox = this.parent;
-    var length_var = (oBox.orientation == 'h')? 'width':'height';
+    var oBox = this.parent,
+        length_var = (oBox.orientation == 'h')? 'width':'height',
+        idx = oBox.widgets.indexOf(this);
 
-    var idx = oBox.widgets.indexOf(this);
-    if (this[length_var] == QuiX.ui.Box._calcWidgetLength
-            && oBox.widgets.length == 2) {
+    if (this[length_var] == QuiX.ui.Box._calcWidgetLength && oBox.widgets.length == 2) {
         if (idx == 0) {
             oBox.widgets[1][length_var] = '-1';
         }
@@ -53,10 +50,34 @@ QuiX.ui.Box._getAvailableLength = function(memo) {
 
     var length_func = (box.orientation == 'h')? 'getWidth':'getHeight',
         l = box[length_func](false, memo);
-        attrs = box._getFreeWidgets(memo);
-        total_percent = (attrs[4] > 100)? attrs[4]:100,
-        calc_percentage = ((100 / total_percent) * this._percentage / 100),
-        fixed_space = attrs[1] + (attrs[2] - 1) * box.spacing;
+
+    if (typeof memo[box._uniqueid + 'fwsp'] == 'undefined') {
+        var tl = 0,
+            totpercent = 0,
+            vw = 0,
+            w;
+
+        for (var i=0; i<box.widgets.length; i++) {
+            w = box.widgets[i];
+            if (w.div.style.display == 'none') {
+                continue;
+            }
+            else if (w[length_var] && 
+                     w[length_var] == QuiX.ui.Box._getAvailableLength) {
+                totpercent += w._percentage;
+            }
+            else if (w[length_var] != QuiX.ui.Box._calcWidgetLength) {
+                tl += w[length_func](true, memo);
+            }
+            vw += 1;
+        }
+
+        memo[box._uniqueid + 'fwsp'] = [tl, vw, (totpercent > 100)? totpercent:100];
+    }
+
+    var attrs = memo[box._uniqueid + 'fwsp'],
+        calc_percentage = ((100 / attrs[2]) * this._percentage / 100),
+        fixed_space = attrs[0] + (attrs[1] - 1) * box.spacing;
 
     if (box[min_size]) {
         var min_func = (min_size == 'minw')? '_calcMinWidth':'_calcMinHeight',
@@ -72,37 +93,6 @@ QuiX.ui.Box._getAvailableLength = function(memo) {
     return (l - fixed_space) * calc_percentage;
 }
 
-QuiX.ui.Box.prototype._getFreeWidgets = function(memo) {
-    var tl = 0,
-        free_widgets = 0,
-        perc_widgets = 0,
-        total_percent = 0,
-        vw = 0,
-        length_var = (this.orientation == 'h')? 'width':'height',
-        length_func = (this.orientation == 'h')? 'getWidth':'getHeight';
-
-    this.widgets.each(
-        function() {
-            if (this.div.style.display == 'none') {
-                return;
-            }
-            if (this[length_var] == QuiX.ui.Box._calcWidgetLength) {
-                free_widgets += 1;
-            }
-            else if (this[length_var] && 
-                     this[length_var] == QuiX.ui.Box._getAvailableLength) {
-                perc_widgets += 1;
-                total_percent += this._percentage;
-            }
-            else {
-                tl += this[length_func](true, memo);
-            }
-            vw += 1;
-        });
-
-    return [free_widgets, tl, vw, perc_widgets, total_percent];
-}
-
 QuiX.ui.Box._calcWidgetLength = function(memo) {
     var box = this.parent,
         length_var = (box.orientation == 'h')? 'width':'height',
@@ -112,27 +102,33 @@ QuiX.ui.Box._calcWidgetLength = function(memo) {
         return 0;
     }
 
-    var tl = 0,
-        free_widgets = 0,
-        vw = 0,
-        length_func = (box.orientation == 'h')? 'getWidth':'getHeight',
-        l = box[length_func](false, memo);
+    var length_func = (box.orientation == 'h')? 'getWidth':'getHeight',
+        l = box[length_func](false, memo);   
 
-    box.widgets.each(
-        function() {
-            if (this.div.style.display == 'none') {
-                return;
+    if (typeof memo[box._uniqueid + 'fws'] == 'undefined') {
+        var tl = 0,
+            free_widgets = 0,
+            vw = 0,
+            w;
+
+        for (var i=0; i<box.widgets.length; i++) {
+            w = box.widgets[i];
+            if (w.div.style.display == 'none') {
+                continue;
             }
-            if (this[length_var] == QuiX.ui.Box._calcWidgetLength) {
+            if (w[length_var] == QuiX.ui.Box._calcWidgetLength) {
                 free_widgets += 1;
             }
             else {
-                tl += this[length_func](true, memo);
+                tl += w[length_func](true, memo);
             }
             vw += 1;
-        });
+        }
 
-    var fixed_space = tl + (vw - 1) * box.spacing;
+        memo[box._uniqueid + 'fws'] = [free_widgets, tl + (vw - 1) * box.spacing];
+    }
+
+    var fixed_space = memo[box._uniqueid + 'fws'][1];
 
     if (box[min_size]) {
         var min_func = (min_size == 'minw')? '_calcMinWidth':'_calcMinHeight',
@@ -145,7 +141,7 @@ QuiX.ui.Box._calcWidgetLength = function(memo) {
         }
     }
 
-    var nl = (l - fixed_space) / free_widgets;
+    var nl = (l - fixed_space) / memo[box._uniqueid + 'fws'][0];
 
     return nl>0? nl:0;
 }
@@ -206,31 +202,25 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
 
     if (this.orientation == 'h') {
         var margin = 'margin' + ((QuiX.dir == 'rtl')?'Right':'Left');
-        if (ffloat) {
-            w.div.style[QuiX.utils.BrowserInfo.family == 'ie'?
-                'styleFloat':'cssFloat'] = (QuiX.dir == 'rtl')?'right':'left';
-        }
-        else {
-            var isIE7 = document.all && QuiX.utils.BrowserInfo.version < 8,
-                display = isIE7? 'inline':'inline-block';
 
-            if (w.isHidden()) {
-                w._statedisplay = display;
+        if (!ffloat && document.all && QuiX.utils.BrowserInfo.version < 8) {
+            // ie7 inline-block hack
+            if (w.div.style.display == 'none') {
+                w._statedisplay = 'inline';
             }
             else {
-                w.setDisplay(display);
+                w.setDisplay('inline');
             }
-            if (isIE7) {
-                w.div.style.zoom = 1;
-            }
-            w.div.style.verticalAlign = 'top';
+            w.div.style.zoom = 1;
         }
+
         if (w._i > 0) {
             w.div.style[margin] = this.spacing + 'px';
         }
         else {
             w.div.style[margin] = '0px';
         }
+
         w.left = 0;
     }
     else {
@@ -297,7 +287,7 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
             }
         }
     }
-    if (this.width == 'auto') {
+    if (this.width == 'auto' || this.height == 'auto') {
         for (var i=0; i<this.widgets.length; i++) {
             this.widgets[i]._setCommonProps(memo);
         }
@@ -382,7 +372,7 @@ QuiX.ui.FlowBox.prototype.clearSelection = function() {
         selection = [this._selection];
     }
     for (var i=0; i<selection.length; i++) {
-        selection[i].div.className = selection[i].div.className.replace(' selected', '');
+        selection[i].removeClass('selected');
     }
     if (this.multiple) {
         this._selection = [];
@@ -398,7 +388,7 @@ QuiX.ui.FlowBox._selectItem = function(evt, w) {
     if (!fb.multiple) {
         fb.clearSelection();
         fb._selection = w;
-        w.div.className += ' selected';
+        w.addClass('selected');
     }
     else {
         if (evt.shiftKey) {
@@ -416,18 +406,18 @@ QuiX.ui.FlowBox._selectItem = function(evt, w) {
             fb.clearSelection();
             for (var i=start; i!=end + ((start<end)? 1:-1); (start<end)? i++:i--) {
                 if (!fb.widgets[i].isHidden()) {
-                    fb.widgets[i].div.className += ' selected';
+                    fb.widgets[i].addClass('selected');
                     fb._selection.push(fb.widgets[i]);
                 }
             }
         }
         else if (evt.ctrlKey) {
             if (fb._selection.hasItem(w)) {
-                w.div.className = w.div.className.replace(' selected', '');
+                w.removeClass('selected');
                 fb._selection.removeItem(w);
             }
             else {
-                w.div.className += ' selected';
+                w.addClass('selected');
                 fb._selection.push(w);
             }
         }
@@ -438,7 +428,7 @@ QuiX.ui.FlowBox._selectItem = function(evt, w) {
             }
             else {
                 fb.clearSelection();
-                w.div.className += ' selected';
+                w.addClass('selected');
                 fb._selection = [w];
                 w.detachEvent('onmouseup', QuiX.ui.FlowBox._selectItem);
             }
@@ -530,7 +520,8 @@ QuiX.ui.FlowBox.prototype._startDrag = function(x, y, el) {
     if (this._selection) {
         var selected,
             dragable,
-            d;
+            d,
+            desktop = QuiX.getDesktop(el);
 
         if (this.multiple) {
             selected = this._selection;
@@ -573,13 +564,13 @@ QuiX.ui.FlowBox.prototype._startDrag = function(x, y, el) {
             );
         }
 
-        document.desktop.appendChild(dragable);
+        desktop.appendChild(dragable);
         dragable.div.style.zIndex = QuiX.maxz;
         dragable.redraw(true);
 
         QuiX.tmpWidget = dragable;
         QuiX.dragable = this;
 
-        document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
+        desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
     }
 }

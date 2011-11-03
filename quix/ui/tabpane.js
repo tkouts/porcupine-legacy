@@ -14,6 +14,8 @@ QuiX.ui.TabPane = function(/*params*/) {
     this.editable = (params.editable == true || params.editable == 'true');
     this.activeTab = params.active || 0;
 }
+QuiX.ui.TabPane.prototype.customEvents =
+    QuiX.ui.Widget.prototype.customEvents.concat(['ontabclose']);
 
 QuiX.constructors['tabpane'] = QuiX.ui.TabPane;
 QuiX.ui.TabPane.prototype = new QuiX.ui.Widget;
@@ -72,10 +74,10 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
     oTab.attachEvent('onclick', QuiX.ui.TabPane._tabClick);
     oTab.attachEvent('onmouseover', QuiX.ui.TabPane._tabOver);
     oTab.attachEvent('onmouseout', QuiX.ui.TabPane._tabOut);
-
+    var self = this;
     if (this.editable) {
         var btn;
-        oTab.addPaddingOffset('Right', 30);
+        oTab.addPaddingOffset(QuiX.dir == 'rtl'? 'Left':'Right', 30);
         btn = new QuiX.ui.SpriteButton({
             width: 10,
             height: 11,
@@ -83,7 +85,9 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
             left: 'this.parent.div.offsetWidth - 28',
             img: QuiX.getThemeUrl() + 'images/tab_close.png',
             onclick: function(evt, btn) {
-                btn.parent.container.destroy();
+                if (self.trigger('ontabclose', oTab.container)) {
+                    btn.parent.container.destroy();
+                }
             }
         });
         oTab.appendChild(btn);
@@ -91,7 +95,6 @@ QuiX.ui.TabPane.prototype.addTab = function(params) {
 
     this.appendChild(oTab);
     oTab.redraw();
-    oTab.div.style.float = (QuiX.dir == 'rtl')? 'right':'left';
     oTab.setPosition('relative');
     oTab.div.style.zIndex = '';
     oTab.div.className = 'tab inactive';

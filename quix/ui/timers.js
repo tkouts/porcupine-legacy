@@ -7,11 +7,11 @@ QuiX.ui.Timer = function(/*params*/) {
     QuiX.ui.Widget.call(this, params);
     
     this.div.style.cursor = 'default';
-    
+
     this._timerid = null;
     this.timeout = null;
     this.interval = null;
-    
+
     this.handler = params.handler;
 
     if (params.timeout) {
@@ -157,8 +157,13 @@ QuiX.ui.Effect.easePresets = {
 };
 
 QuiX.ui.Effect.supports3d = (function() {
+    if (!document.body) {
+        setTimeout(arguments.callee, 250);
+        return false;
+    }
+
     // borrowed from modernizr
-    var div = document.createElement('div'),
+    var div = ce('div'),
         ret = false,
         properties = ['perspectiveProperty', 'WebkitPerspective', 'MozPerspective', 'OPerspective', 'msPerspective'];
 
@@ -198,7 +203,7 @@ QuiX.ui.Effect._getTransitionEndEvent = function() {
         // Chrome/Saf (+ Mobile Saf)/Android
         evt_name = 'onwebkit' + e;
     }
-    else if (('ono' + l) in document.desktop.div ||
+    else if (('ono' + l) in document.body ||
             (QuiX.utils.BrowserInfo.browser == 'Opera' &&
              QuiX.utils.BrowserInfo.version >= 10.61)) {
         // Opera

@@ -182,7 +182,7 @@ def getSubtree(self):
 def selectobjects(self):
     "Displays the select objects dialog"
     sCC = context.request.queryString['cc'][0]
-    params = {'ID': self.id or '/',
+    params = {'ID': self.id,
               'IMG': self.__image__,
               'DN': self.displayName.value,
               'HAS_SUBFOLDERS': str(self.has_subfolders()).lower(),

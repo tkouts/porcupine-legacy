@@ -11,7 +11,6 @@ QuiX.ui.Form = function(/*params*/) {
 
     QuiX.ui.Widget.call(this, params);
 
-    //this.files = [];
     this.action = params.action;
     this.method = params.method;
     this.format = params.format || 'json';
@@ -111,7 +110,7 @@ QuiX.ui.Field = function(/*params*/) {
 
     this.name = params.name;
 
-    this.align = params.align || 'left';
+    this.align = params.align || 'auto';
 
     var e;
     var self = this;
@@ -132,18 +131,17 @@ QuiX.ui.Field = function(/*params*/) {
     switch (this.type) {
         case 'checkbox':
         case 'radio':
+            this.div.className = this.type;
             var val = (this.type == 'checkbox')?'value':'checked';
             var checked = (params[val] == true || params[val] == 'true')?
                           'checked':'';
-            this.div.innerHTML = '<input type="' + this.type + '" ' + checked +
-                ' style="vertical-align:middle;">';
+            this.div.innerHTML = '<input type="' + this.type + '" ' + checked + '>';
             this._checked = (checked == 'checked');
             e = this.div.firstChild;
 
             if (params.caption) {
                 this.setCaption(params.caption);
             }
-            this.div.style.whiteSpace = 'nowrap';
             break;
         case 'file':
             throw new QuiX.Exception('QuiX.ui.Field', 'Invalid field type');
@@ -151,9 +149,6 @@ QuiX.ui.Field = function(/*params*/) {
         default:
             this.div.className = 'field';
             e = (this.type == 'textarea')? ce('TEXTAREA'):ce('INPUT');
-            e.style.position = 'absolute';
-            e.style.zIndex = 1;
-            e.style.padding = '0px';
             if (this.type != 'textarea') {
                 e.type = this.type;
             }
@@ -304,9 +299,7 @@ QuiX.ui.Field.prototype.setCaption = function(caption) {
         var textnode = this.div.getElementsByTagName('SPAN')[0];
         if (!textnode) {
             textnode = ce('SPAN');
-            textnode.style.cursor = 'default';
             QuiX.setInnerText(textnode, caption);
-            textnode.style.verticalAlign = 'middle';
             this.div.appendChild(textnode);
         }
         else {
@@ -449,10 +442,7 @@ QuiX.ui.Field.prototype.redraw = function(bForceAll /*, memo*/) {
             input.style.paddingLeft = 
             input.style.paddingRight = this.textPadding;
         }
-        if (this.align == 'auto') {
-            this.div.style.textAlign = (QuiX.dir == 'rtl')? 'right':'left';
-        }
-        else {
+        if (this.align != 'auto') {
             this.div.style.textAlign = this.align;
         }
     }
@@ -561,8 +551,6 @@ QuiX.ui.Spin = function(/*params*/) {
     var e = ce('INPUT');
     e.style.padding = '0px ' + (params.textpadding ||
                                 QuiX.theme.combo.textpadding) + 'px';
-    e.style.position='absolute';
-    e.style.textAlign = 'right';
 
     if (params.tabindex) {
         e.tabIndex = params.tabindex;
@@ -590,11 +578,10 @@ QuiX.ui.Spin = function(/*params*/) {
 
     if (!this.editable) {
         e.readOnly = true;
-        e.style.cursor = 'default';
-        this.div.className += ' noneditable';
+        this.addClass('noneditable');
     }
     else {
-        this.div.className += ' editable';
+        this.addClass('editable');
         this.setBorderWidth(0);
     }
 
@@ -700,12 +687,12 @@ QuiX.ui.Spin.prototype.validate = function(val) {
     return 0;
 }
 
-QuiX.ui.Spin.prototype.setBgColor = function(color) {
-    this.div.style.backgroundColor = color;
-    if (this.div.firstChild) {
-        this.div.firstChild.style.backgroundColor = color;
-    }
-}
+//QuiX.ui.Spin.prototype.setBgColor = function(color) {
+//    this.div.style.backgroundColor = color;
+//    if (this.div.firstChild) {
+//        this.div.firstChild.style.backgroundColor = color;
+//    }
+//}
 
 QuiX.ui.Spin.prototype.getValue = function() {
     return parseFloat(this.div.firstChild.value);

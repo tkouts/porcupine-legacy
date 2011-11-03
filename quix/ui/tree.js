@@ -2,6 +2,7 @@
 
 QuiX.ui.TreeNode = function(/*params*/) {
     var params = arguments[0] || {};
+    params.overflow = 'visible';
     params.display = 'none';
     params.padding = '17,2,2,2';
 
@@ -30,8 +31,7 @@ QuiX.ui.TreeNode = function(/*params*/) {
     this.childNodes = [];
 
     this.div.className = 'treenode';
-    this.div.style.whiteSpace = 'nowrap';
-    this.setPosition();
+    this.setPosition('relative');
 
     var oA = ce('A');
     oA.ondragstart = QuiX.cancelDefault;
@@ -92,6 +92,7 @@ QuiX.ui.TreeNode.prototype.appendChild = function(w /*, index*/) {
     this.parent.appendChild(w, tree_index);
 
     w._addChildNodes();
+    return w;
 }
 
 QuiX.ui.TreeNode.prototype._addChildNodes = function(/*index*/) {
@@ -465,6 +466,7 @@ QuiX.ui.Tree.prototype.appendChild = function(w /*, index*/) {
     if (!w._isDisabled) {
         w.enable();
     }
+    return w;
 }
 
 QuiX.ui.Tree.prototype.clearSelection = function() {
@@ -476,7 +478,7 @@ QuiX.ui.Tree.prototype.clearSelection = function() {
         selection = [this._selection];
     }
     for (var i=0; i<selection.length; i++) {
-        selection[i].div.className = selection[i].div.className.replace(' selected', '');
+        selection[i].removeClass('selected');
     }
     if (this.multiple) {
         this._selection = [];
@@ -488,7 +490,7 @@ QuiX.ui.Tree.prototype.clearSelection = function() {
 
 QuiX.ui.Tree.prototype.deSelectNode = function(w) {
     if (w.div.className.indexOf('selected') > -1) {
-        w.div.className = w.div.className.replace(' selected', '');
+        w.removeClass('selected');
         if (!this.multiple) {
             this._selection = null;
         }
@@ -502,7 +504,7 @@ QuiX.ui.Tree.prototype.selectNode = function(w /*, expand*/) {
     var expand = arguments[1] || false;    
 
     if (w.div.className.indexOf('selected') == -1) {
-        w.div.className += ' selected';
+        w.addClass('selected');
         if (!this.multiple) {
             this.clearSelection();
             this._selection = w;

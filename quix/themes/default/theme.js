@@ -232,13 +232,13 @@ QuiX.theme = {
             }
         },
         handle: {
-            width: 10,
+            width: 8,
             get: function() {
                 return new QuiX.ui.Image({
                         img: QuiX.getThemeUrl() + 'images/slider.gif',
                         top: 'center',
                         width: this.width,
-                        height: 18,
+                        height: 12,
                         border: 0,
                         padding: '0,0,0,0',
                         overflow: 'visible'

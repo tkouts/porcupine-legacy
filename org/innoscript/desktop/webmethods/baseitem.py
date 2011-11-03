@@ -220,7 +220,7 @@ def selectcontainer(self):
     "Displays a dialog for selecting the destination container"
     rootFolder = db.get_item('')
     params = {
-        'ROOT_ID': '/',
+        'ROOT_ID': '',
         'ROOT_IMG': rootFolder.__image__,
         'ROOT_DN': rootFolder.displayName.value,
         'ID': self.id}

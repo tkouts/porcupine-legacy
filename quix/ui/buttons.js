@@ -16,7 +16,7 @@ QuiX.ui.Label = function(/*params*/) {
         this.attachEvent('onmousedown', QuiX.ui.Label._onmousedown);
     }
     this.div.className = 'label';
-    this.align = params.align || '';
+    this.align = params.align || 'auto';
 
     if (params.color) {
         if (!this._isDisabled) {
@@ -83,10 +83,7 @@ QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
                 }
             }
             if (this.align) {
-                if (this.align == 'auto') {
-                    textAlign = (QuiX.dir == 'rtl')? 'right':'left';
-                }
-                else {
+                if (this.align != 'auto') {
                     textAlign = this.align;
                 }
             }
@@ -161,10 +158,14 @@ QuiX.ui.Image = function(/*params*/) {
 
     QuiX.ui.Widget.call(this, params);
 
-    this.setImageURL(params.img);
-    this.div.style.backgroundRepeat = params.repeat || 'no-repeat';
-    this.div.style.backgroundPosition = params.position || '50% 50%';
     this.div.className = 'image';
+    this.setImageURL(params.img);
+    if (params.repeat) {
+        this.div.style.backgroundRepeat = params.repeat;
+    }
+    if (params.position) {
+        this.div.style.backgroundPosition = params.position;
+    }
 }
 
 QuiX.constructors['image'] = QuiX.ui.Image;
@@ -278,9 +279,7 @@ QuiX.ui.Icon.prototype.redraw = function(bForceAll /*, memo*/) {
                 }
             }
             else {
-                this.div.style.backgroundImage = 'url("' +
-                    this.img.replace('$THEME_URL$', QuiX.getThemeUrl()) +
-                    '")';
+                this.div.style.backgroundImage = 'url("' + QuiX.resolveUrl(this.img) + '")';
                 this.div.style.backgroundRepeat = 'no-repeat';
                 this.div.style.backgroundPosition = '50% 50%';
             }
@@ -337,7 +336,6 @@ QuiX.ui.Button = function(/*params*/) {
 
     this.icon = null;
     this.div.className = 'btn';
-    this.div.style.cursor = 'pointer';
 
     if (!QuiX.supportTouches) {
         this.attachEvent('onmouseout', QuiX.ui.Button._onmouseout);
@@ -456,7 +454,7 @@ QuiX.ui.Button._onmouseout = function(evt, w) {
 }
 
 QuiX.ui.Button._onmousedown = function(evt, w) {
-    w.div.className += ' down';
+    w.addClass('down');
     w.icon.addPaddingOffset('Left', 1);
     w.icon.addPaddingOffset('Top', 1);
     w._isPressed = true;
@@ -518,7 +516,7 @@ QuiX.ui.FlatButton.prototype.__class__ = QuiX.ui.FlatButton;
 
 QuiX.ui.FlatButton.prototype.toggle = function() {
     if (this.value == 'off') {
-        this.div.className += ' on';
+        this.addClass('on');
         this.value = 'on';
     }
     else {
@@ -529,7 +527,7 @@ QuiX.ui.FlatButton.prototype.toggle = function() {
 
 QuiX.ui.FlatButton._onmouseover = function(evt, w) {
     if (!(w.type == 'toggle' && w.value == 'on')) {
-        w.div.className += ' over';
+        w.addClass('over');
     }
 }
 
@@ -543,14 +541,14 @@ QuiX.ui.FlatButton._onmouseout = function(evt, w) {
 }
 
 QuiX.ui.FlatButton._onmousedown = function(evt, w) {
-    w.div.className += ' on';
+    w.addClass('on');
     if (w.type != 'toggle') {
         w._ispressed = true;
     }
 }
 
 QuiX.ui.FlatButton._onmouseup = function(evt, w) {
-    w.div.className = w.div.className.replace(' on', '');
+    w.removeClass('on');
     if (w.type != 'toggle' && w._ispressed) {
         w._ispressed = false;
     }
@@ -562,7 +560,7 @@ QuiX.ui.FlatButton._onclick = function(evt, w) {
     }
     else if (w.type == 'menu') {
         if (!w.contextMenu.isOpen) {
-            w.div.className += ' menu';
+            w.addClass('menu');
             QuiX.ui.ContextMenu._showWidgetContextMenu(w, w.contextMenu);
         }
         else {
@@ -592,7 +590,6 @@ QuiX.ui.SpriteButton = function(/*params*/) {
     this.attachEvent('onmouseout', QuiX.ui.SpriteButton._onmouseout);
 
     this.div.className = 'spritebutton';
-    this.div.style.backgroundRepeat = 'repeat-x';
 
     this.isToggle = (params.toggle == 'true' || params.toggle == true);
     if (this.isToggle) {

@@ -794,6 +794,7 @@ QuiX.ui.ListView._startdrag = function(x, y, el) {
     if (el.tagName == 'DIV') {
         return;
     }
+    var desktop = QuiX.getDesktop(el);
     var dragable = new QuiX.ui.Widget({
         width : this._calcWidth(true),
         height : 1,
@@ -826,12 +827,12 @@ QuiX.ui.ListView._startdrag = function(x, y, el) {
         }
         table.firstChild.appendChild(row);
     }
-    document.desktop.appendChild(dragable);
+    desktop.appendChild(dragable);
     dragable.div.style.zIndex = QuiX.maxz;
     dragable.redraw(true);
 
     QuiX.tmpWidget = dragable;
     QuiX.dragable = this.parent;
 
-    document.desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
+    desktop.attachEvent('onmousemove', QuiX.ui.Widget._drag);
 }

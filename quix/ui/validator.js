@@ -88,7 +88,7 @@ QuiX.ui.Validator.rules = {
     },
 
     "equalFields": function(id, message) {
-        var w = document.desktop.getWidgetById(id, false, 1),
+        var w = this.getDesktop().getWidgetById(id, false, 1),
             fieldsMatch = true;
         if (w.getValue() != '') {
             fieldsMatch = this.getValue() == w.getValue();
@@ -181,7 +181,7 @@ QuiX.ui.Validator.prototype._showLoader = function() {
             ld.height = this.height;
             ld.left = (self.element.getScreenLeft() + self.element.getWidth()) - this.width;
             ld.top = self.element.getScreenTop() + (self.element.getHeight() - this.height) / 2;
-            document.desktop.appendChild(ld);
+            self.getDesktop().appendChild(ld);
             ld.redraw();
         });
     return ld;
@@ -192,7 +192,7 @@ QuiX.ui.Validator.prototype.displayError = function(message) {
     this.setCaption(message);
 
     if (!this.parent) {
-        document.desktop.appendChild(this);
+        this.getDesktop().appendChild(this);
     }
     this.show();
     this.redraw();

@@ -1,14 +1,3 @@
-HTML {
-    height: 100%;
-}
-
-BODY {
-    margin: 0px;
-    height: 100%;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 11px;
-}
-
 /********************/
 /* Widget outline   */
 /********************/
@@ -18,7 +7,7 @@ BODY {
     border-color: red;
 }
 
-.outline>div {
+.outline > div {
     background-color: black;
 }
 
@@ -37,6 +26,8 @@ BODY {
 #desktop {
     -webkit-user-select: none;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
 }
 
 /********************/
@@ -48,6 +39,28 @@ BODY {
 }
 
 /********************/
+/* HBox             */
+/********************/
+
+.hbox {
+    white-space: nowrap;
+}
+
+.hbox > * {
+    vertical-align: top;
+    display: inline-block;
+}
+
+/********************/
+/* Image            */
+/********************/
+
+.image {
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/********************/
 /* Field            */
 /********************/
 
@@ -55,6 +68,11 @@ BODY {
     border-style: solid;
     border-color: DarkGray;
     background-color: white;
+    white-space: nowrap;
+}
+
+.field[dir=rtl] {
+    text-align: right;
 }
 
 .field INPUT, .field TEXTAREA {
@@ -64,6 +82,9 @@ BODY {
     -webkit-appearance: none;
     -webkit-user-select: text;
     margin: 0px;
+    position: absolute;
+    z-index: 1;
+    padding: 0px;
 
     /*IE inherit Hack*/
     font-size: expression(this.parentNode.currentStyle.fontSize);
@@ -90,7 +111,12 @@ BODY {
     background-color: #FFF684;
 }
 
-.field .optionselected {
+.field .option {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.field .option.selected {
     cursor: default;
     color: white;
     background-color: navy;
@@ -102,12 +128,29 @@ BODY {
 }
 
 /********************/
+/* Checkbox / Radio */
+/********************/
+
+.checkbox input, .radio input {
+    vertical-align: middle;
+}
+
+.checkbox span, .radio span {
+    vertical-align: middle;
+    cursor: default;
+}
+
+/********************/
 /* Label            */
 /********************/
 
 .label {
     cursor: default;
     border-style: solid;
+}
+
+.label[dir=rtl] {
+    text-align: right;
 }
 
 /********************/
@@ -144,6 +187,7 @@ BODY {
 
 .btn {
     border-style: solid;
+    cursor: pointer;
     background-color: buttonface;
     border-color: ThreedHighlight ThreeDDarkShadow
                   ThreeDDarkShadow ThreedHighlight;
@@ -182,6 +226,10 @@ BODY {
 /********************/
 /* Sprite button    */
 /********************/
+
+.spritebutton {
+    background-repeat: repeat-x;
+}
 
 .spritebutton:hover {
     cursor: pointer;
@@ -334,6 +382,7 @@ BODY {
 
 .contextmenu .option {
     border: solid transparent;
+    white-space: nowrap;
 }
 
 .contextmenu .option:hover {
@@ -507,6 +556,10 @@ BODY {
     font-size: 12px;
 }
 
+.treenode {
+    white-space: nowrap;
+}
+
 .treenode A {
     color: inherit;
     text-decoration: none;
@@ -552,6 +605,8 @@ BODY {
     background-color: transparent;
     border: none;
     -webkit-appearance: none;
+    width: 100%;
+    height: 100%;
 
     font: inherit;
     text-decoration: inherit;
@@ -568,6 +623,8 @@ BODY {
     background-color: transparent;
     -webkit-appearance: none;
     margin: 0px;
+    position: absolute;
+    z-index: 1;
 
     /*IE inherit Hack*/
     font-size: expression(this.parentNode.currentStyle.fontSize);
@@ -606,6 +663,8 @@ BODY {
 .combodropdown .option {
     cursor: default;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .combodropdown .over,
@@ -625,13 +684,17 @@ BODY {
 }
 
 .spin INPUT {
+    background-color: transparent;
     font-family: Geneva, sans-serif;
     font-size: 11px;
     margin: 0px;
+    position: absolute;
+    text-align: right;
 }
 
 .spin.noneditable INPUT {
     border: none;
+    cursor: default;
 }
 
 .spin.editable INPUT {
@@ -700,6 +763,14 @@ BODY {
 /* Flow box         */
 /********************/
 
+.flowbox > * {
+    float: left
+}
+
+.flowbox[dir=ltr] > * {
+    float: right;
+}
+
 .flowbox .selected {
     background-color: #6699FF;
 }
@@ -738,4 +809,13 @@ BODY {
 
 .scrollview #_sb {
     border: 1px solid #666;
+}
+
+/********************/
+/* IFrame           */
+/********************/
+
+.ifrm iframe {
+    width: 100%;
+    height: 100%;
 }

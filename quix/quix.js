@@ -16,11 +16,9 @@
 //=============================================================================
 
 var QuiX = {};
-QuiX.version = '1.1 build 20110715';
+QuiX.version = '1.1 build 20110416';
 QuiX.namespace = 'http://www.innoscript.org/quix';
-QuiX.root = document.location.href.slice(0, 4) == 'http'?
-    (new RegExp("https?://[^/]+(?:/[^/\?]+)?(?:/(?:{|%7B)(?:.*?)(?:}|%7D))?",
-     "i")).exec(document.location.href) + '/':'';
+QuiX.root = '';
 QuiX.baseUrl = '__quix/';
 QuiX.maxz = 999999999;
 
@@ -52,14 +50,15 @@ QuiX._activeLoaders = 0;
 QuiX._scrollbarSize = 16;
 QuiX.dir = '';
 QuiX.effectsEnabled = true;
+QuiX.desktops = [];
 QuiX.ui = {};
 QuiX.supportTouches = (typeof ce('DIV').ontouchstart != 'undefined');
 
 QuiX.queryString = function(param) {
     function urlEncodeIfNecessary(s) {
-        var regex = /[\\\"<>\.;]/;
-        var hasBadChars = regex.exec(s) != null;
-        return hasBadChars ? encodeURIComponent(s) : s;
+        var regex = /[\\\"<>\.;]/,
+            hasBadChars = regex.exec(s) != null;
+        return hasBadChars? encodeURIComponent(s):s;
     }
     var q = document.location.search || document.location.hash;
     if (param == null) {
@@ -77,6 +76,14 @@ QuiX.queryString = function(param) {
     return '';
 }
 
+QuiX.resolveUrl = function(url) {
+    url = url.replace('$THEME_URL$', QuiX.getThemeUrl());
+    if (url.slice(0,4) != 'http' && url.slice(0,1) != '/') {
+        url = QuiX.root + url;
+    }
+    return url;
+}
+
 QuiX.getThemeUrl = function() {
     var theme = document.theme || QuiX.queryString('_qt') || 'default';
     return QuiX.baseUrl + 'themes/' + theme + '/';
@@ -87,7 +94,7 @@ QuiX.getThemeUrl = function() {
 QuiX.Module = function(sName, sFile, depends, prio) {
     this.isLoaded = false;
     this.name = sName;
-    this.file = sFile;
+    this.file = QuiX.resolveUrl(sFile);
     this.dependencies = depends;
     this.priority = prio;
     this.type = 'script';
@@ -97,6 +104,11 @@ QuiX.Module = function(sName, sFile, depends, prio) {
 QuiX.Module.loadModules = function(modList, oncomplete) {
     var mod,
         counter = modList.length;
+
+    if (counter == 0) {
+        oncomplete();
+        return;
+    }
 
     function _decrease() {
         counter--;
@@ -141,21 +153,21 @@ QuiX.Module.prototype.load = function(callback) {
 // image
 
 QuiX.Image = function(url) {
-    this.url = url.replace('$THEME_URL$', QuiX.getThemeUrl());
+    this.url = QuiX.resolveUrl(url);
     this.isLoaded = false;
     this.callback = null;
     this.width = 0;
     this.height = 0;
 }
 
-QuiX.Image.loadImages = function(urlList, oncomplete) {
+QuiX.Image.loadImages = function(urlList, progress, oncomplete) {
     var img,
         counter = urlList.length;
 
     function _decrease() {
         counter--;
-        if (document._progress) {
-            document._progress.increase(1);
+        if (progress) {
+            progress.increase(1);
         }
         if (counter == 0) {
             oncomplete();
@@ -175,8 +187,8 @@ QuiX.Image.prototype.load = function(callback) {
     img.onload = QuiX.__resource_onstatechange;
     img.onerror = QuiX.__resource_error;
     img.src = this.url;
-    img.style.display = 'none';
-    document.body.appendChild(img);
+    //img.style.display = 'none';
+    //document.body.appendChild(img);
 }
 
 QuiX.__resource_error = function() {
@@ -201,7 +213,7 @@ QuiX.__resource_onstatechange = function() {
         if (this.tagName == 'IMG') {
             this.resource.width = this.width;
             this.resource.height = this.height;
-            QuiX.removeNode(this);
+            //QuiX.removeNode(this);
             QuiX._imgCache[this.src] = true;
         }
         this.resource.isLoaded = true;
@@ -288,7 +300,9 @@ QuiX.bootLibraries = function() {
 QuiX.__init__ = function(id /*,params*/) {
     var params = arguments[1] || {},
         boot_loader_url = params.bootLoader || QuiX.getThemeUrl() + 'images/boot_loader.gif',
-        preloadImages = (typeof params.preload == 'undefined')? false:params.preload;
+        preloadImages = (typeof params.preload == 'undefined')? false:params.preload,
+        rootCont = (typeof params.container == 'undefined')? document.body:
+            (typeof params.container == 'string')? document.getElementById(params.container):params.container;
 
     var modules = [];
     QuiX.bootLibraries().each(
@@ -296,7 +310,9 @@ QuiX.__init__ = function(id /*,params*/) {
             var m = new QuiX.Module(null, this, []);
             m.type = (this.substring(this.length - 3) == 'css')?
                      'stylesheet':'script';
-            modules.push(m);
+            if (!document.getElementById(this.toString())) {
+                modules.push(m);
+            }
         });
 
     QuiX.Module.loadModules(modules,
@@ -306,36 +322,31 @@ QuiX.__init__ = function(id /*,params*/) {
 
             var desktop = new QuiX.ui.Desktop({
                 style: "background: url('" + boot_loader_url + "') no-repeat center"
-            }, document.body);
-            document._progress = new QuiX.ui.ProgressBar({
+            }, rootCont);
+            parser.progress = new QuiX.ui.ProgressBar({
                 width: 170,
                 height: 14,
                 top: '75%',
                 left: 'center',
                 padding: '1,1,1,1'
             });
-            desktop.appendChild(document._progress);
+            desktop.appendChild(parser.progress);
             desktop.redraw();
 
             parser.oncomplete = function() {
-                desktop.destroy();
-                document._progress = null;
-
                 if (!QuiX.supportTouches) {
                     // calculate scrollbars size
-                    var w1 = document.desktop.div.clientWidth,
-                        overflow = document.desktop.getOverflow();
-
-                    document.desktop.div.style.overflow = 'scroll';
-                    QuiX._scrollbarSize = w1 - document.desktop.div.clientWidth;
-                    document.desktop.setOverflow(overflow);
-                    document.desktop.redraw();
+                    var w1 = desktop.div.clientWidth;
+                    desktop.div.style.overflow = 'scroll';
+                    QuiX._scrollbarSize = w1 - desktop.div.clientWidth;
                 }
                 else {
                     QuiX._scrollbarSize = 0;
                 }
+                desktop.destroy();
+                //document._progress = null;
             }
-            parser.parse(QuiX.parsers.domFromString(QuiX.getInnerText(root)));
+            parser.parse(QuiX.parsers.domFromString(QuiX.getInnerText(root)), rootCont);
         }
     );
 }
@@ -356,16 +367,6 @@ QuiX.removeLoader = function() {
     }
 }
 
-QuiX.cleanupOverlays = function() {
-    var ovr = document.desktop.overlays;
-    while (ovr.length > 0) {
-        ovr[0].close();
-    }
-    if (QuiX.ui.DataGrid) {
-        QuiX.ui.DataGrid._removeEditWidget();
-    }
-}
-
 QuiX.Exception = function(name, msg) {
     this.name = name;
     this.message = msg;
@@ -380,24 +381,7 @@ QuiX.displayError = function(e) {
     if (e.lineNumber && e.fileName) {
         msg += '\nFile: "' + e.fileName + '" Line: ' + e.lineNumber;
     }
-    document.desktop.parseFromString(
-        '<dialog xmlns="http://www.innoscript.org/quix" title="Error" ' +
-                'resizable="true" close="true" width="560" height="240" ' +
-                'left="center" top="center">'+
-            '<wbody>' +
-                '<hbox spacing="8" width="100%" height="100%">' +
-                    '<icon width="56" height="56" padding="12,12,12,12" ' +
-                        'img="$THEME_URL$images/error32.gif"/>' +
-                    '<rect padding="4,4,4,4" overflow="auto"><xhtml><![CDATA[' +
-                        '<pre style="color:red;font-size:12px;' +
-                            'font-family:monospace;padding-left:4px">' + msg +
-                        '</pre>]]></xhtml>' +
-                    '</rect>' +
-                '</hbox>' +
-            '</wbody>' +
-            '<dlgbutton onclick="__closeDialog__" width="70" height="22" ' +
-                'caption="Close"/>' +
-        '</dialog>');
+    alert(msg);
 }
 
 QuiX.getTarget = function(evt) {
@@ -601,12 +585,9 @@ QuiX.wrappers = {
 
 QuiX.getImage = function(url) {
     var img;
-    url = url.replace('$THEME_URL$', QuiX.getThemeUrl());
-    if (url.slice(0,4) != 'http' && url.slice(0,1) != '/') {
-        url = QuiX.root + url;
-    }
+    url = QuiX.resolveUrl(url);
     img = new Image();
-    img.src = (document.imageData && document.imageData[src])? document.imageData[src]:url;
+    img.src = (document.imageData && document.imageData[url])? document.imageData[url]:url;
     return img;
 }
 
@@ -703,7 +684,7 @@ QuiX.stopPropag = function(evt) {
         var coords = QuiX.getEventCoordinates(evt);
         QuiX.startX = QuiX.currentX = coords[0];
         QuiX.startY = QuiX.currentY = coords[1];
-        document.desktop.attachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
+        QuiX.getDesktop(QuiX.getTarget(evt)).attachEvent('onmousemove', QuiX.ui.Desktop._onmousemove);
     }
 }
 
@@ -882,9 +863,6 @@ QuiX.removeWidget = function(w) {
     }
 
     w.div.widget = null;
-    for (var v in w) {
-        w[v] = null;
-    }
     w = null;
 }
 
@@ -897,8 +875,28 @@ QuiX.getParentNode = function(el) {
     }
 }
 
+QuiX.elementContains = function(a, b) {
+    return a.contains ?
+        a != b && a.contains(b) :
+        !!(a.compareDocumentPosition(b) & 16);
+}
+
+QuiX.getDesktop = function(el) {
+    if (document.desktop) {
+        return document.desktop;
+    }
+    else {
+        for (var i=0; i<QuiX.desktops.length; i++) {
+            if (QuiX.elementContains(QuiX.desktops[i].div, el)) {
+                return QuiX.desktops[i];
+            }
+        }
+    }
+    return null;
+}
+
 QuiX.getCssAttribute = function(a) {
-    var style = document.body.style;
+    var style = (document.body)? document.body.style:ce('div').style,
         caped = a.charAt(0).toUpperCase() + a.slice(1);
 
     if (typeof style[a] != 'undefined') {
@@ -912,6 +910,9 @@ QuiX.getCssAttribute = function(a) {
     }
     else if (typeof style['O' + caped] != 'undefined') {
         return 'O' + caped;
+    }
+    else if (typeof style['ms' + caped] != 'undefined') {
+        return 'ms' + caped;
     }
     else {
         return null;
@@ -1031,8 +1032,7 @@ QuiX.attachFrames = function(w) {
     }
 }
 
-QuiX.transformX = function(x /*, parent*/) {
-    var parent = arguments[1] || document.desktop;
+QuiX.transformX = function(x , parent) {
     // rtl xform
     return parent.getWidth(false) +
            parseInt(parent.div.style.paddingRight) +
@@ -1121,6 +1121,7 @@ QuiX.Parser = function(/*preloadImages*/) {
     this.__onload = [];
     this.__customPrio = -1;
     this.dom = null;
+    this.progress = null;
     this.oncomplete = null;
 }
 
@@ -1132,7 +1133,7 @@ QuiX.Parser.prototype.detectModules = function(oNode) {
         iMod = QuiX.tags[sTag],
         i;
 
-    if (iMod > -1) {
+    if (iMod > -1 && typeof QuiX.constructors[sTag] == 'undefined') {
         this._addModule(QuiX.modules[iMod]);
     }
 
@@ -1178,18 +1179,27 @@ QuiX.Parser.prototype.loadModules = function() {
     var module,
         url,
         self = this;
+
     if (this.__modules.length > 0) {
         module = this.__modules.pop();
-        module.load(
-            function(){
-                if (document._progress) {
-                    document._progress.increase(1);
-                }
-                self.loadModules()
-            });
+        if (!document.getElementById(module.file)) {
+            module.load(
+                function(){
+                    if (self.progress) {
+                        self.progress.increase(1);
+                    }
+                    self.loadModules()
+                });
+        }
+        else {
+            if (this.progress) {
+                this.progress.increase();
+            }
+            this.loadModules();
+        }
     }
     else if (this.__images.length > 0) {
-        QuiX.Image.loadImages(this.__images,
+        QuiX.Image.loadImages(this.__images, this.progress,
             function(){
                 self.__images = [];
                 self.loadModules();
@@ -1209,9 +1219,9 @@ QuiX.Parser.prototype.onerror = function(e) {
     QuiX.displayError(e);
 }
 
-QuiX.Parser.prototype.parse = function(dom, parentW) {
+QuiX.Parser.prototype.parse = function(dom, root) {
     this.dom = dom;
-    this.parentWidget = parentW;
+    this.root = root;
 
     if (dom == null || dom.documentElement == null ||
             dom.documentElement.tagName == 'parsererror') {
@@ -1224,11 +1234,11 @@ QuiX.Parser.prototype.parse = function(dom, parentW) {
 
     if (this.__modules.length > 0 || this.__images.length > 0) {
         this.__modules.sortByAttribute('priority');
-        if (parentW) {
+        if (root instanceof QuiX.ui.Widget) {
             QuiX.addLoader();
         }
-        else if (document._progress) {
-            document._progress.maxvalue = this.__modules.length + this.__images.length;
+        else if (this.progress) {
+            this.progress.maxvalue = this.__modules.length + this.__images.length;
         }
         this.loadModules();
     }
@@ -1270,20 +1280,20 @@ QuiX.Parser.prototype.beginRender = function() {
 
 QuiX.Parser.prototype.render = function() {
     var widget,
-        parentW = this.parentWidget,
+        parent = this.root,
         frag = document.createDocumentFragment();
 
-    if (parentW) {
-        var root = parentW.div;
+    if (parent instanceof QuiX.ui.Widget) {
+        var root = parent.div;
         frag.appendChild(root.cloneNode(false));
-        parentW.div = frag.firstChild;
-        widget = this.parseXul(this.dom.documentElement, parentW);
+        parent.div = frag.firstChild;
+        widget = this.parseXul(this.dom.documentElement, parent);
         root.appendChild(widget.div);
-        parentW.div = root;
+        parent.div = root;
     }
     else {
-        widget = this.parseXul(this.dom.documentElement, frag);
-        document.body.appendChild(frag);
+        widget = this.parseXul(this.dom.documentElement, parent);
+        //parent.appendChild(frag);
     }
     frag = null;
     return widget;
@@ -1436,7 +1446,7 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
 
             if (oWidget) {
                 if (parentW && !oWidget.parent &&
-                        !oWidget.owner && oWidget != document.desktop) {
+                        !oWidget.owner && !(oWidget instanceof QuiX.ui.Desktop)) {
                     parentW.appendChild(oWidget);
                 }
 
@@ -1446,9 +1456,9 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
 
                 if (oWidget._customRegistry.onload) {
                     var self = this;
-                    oWidget._customRegistry.onload.each(
+                    oWidget._customRegistry.onload.reverse().each(
                         function() {
-                            self.__onload.push([this, oWidget]);
+                            self.__onload.unshift([this, oWidget]);
                         }
                     )
                 }

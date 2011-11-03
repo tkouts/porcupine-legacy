@@ -9,6 +9,15 @@ QuiX.ui.File = function(/*params*/) {
     this.href = params.href;
     this.readonly = (params.readonly == 'true' ||
                      params.readonly == true)? true:false;
+    this.postUrl = params.posturl;
+    if (!this.postUrl) {
+        var postUrl = document.location.href;
+        if (window.location.protocol.indexOf('https') != -1) {
+            postUrl = "http" + postUrl.substr(5);
+        }
+        postUrl = postUrl.split('?')[0] + '?cmd=http_upload';
+        this.postUrl = postUrl;
+    }
 
     if (params.filename) {
         this.file = {
@@ -37,7 +46,7 @@ QuiX.ui.File = function(/*params*/) {
     this.attachEvent('onload', function() {
         var btn;
         if (params.placeholder) {
-            btn = document.desktop.getWidgetById(params.placeholder);
+            btn = self.getDesktop().getWidgetById(params.placeholder, false, 1);
         }
         else {
             params.caption = '...';
@@ -52,8 +61,7 @@ QuiX.ui.File = function(/*params*/) {
         }
         btn.attachEvent('onmousedown', QuiX.stopPropag);
         btn.div.innerHTML = '<span id="' + btn._uniqueid + '"></span>';
-        self.uploader = QuiX.ui.File._getUploader(
-            self, btn._uniqueid, params);
+        self.uploader = QuiX.ui.File._getUploader(self, btn._uniqueid, params);
         self.redraw();
     });
 }
@@ -71,12 +79,8 @@ QuiX.ui.File.onunload = function(obj) {
 QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
     var action = params.multiple? SWFUpload.BUTTON_ACTION.SELECT_FILES:
                                   SWFUpload.BUTTON_ACTION.SELECT_FILE;
-    var _url = QuiX.root;
-    if (window.location.protocol.indexOf('https') != -1) {
-        _url = "http" + QuiX.root.substr(5);
-    }
     var uploader = new SWFUpload({
-        upload_url : _url + '?cmd=http_upload',
+        upload_url : obj.postUrl,
         flash_url : QuiX.baseUrl + 'swfupload/swfupload.swf',
         post_params : {_state : document.cookie},
         use_query_string : false,
@@ -152,7 +156,7 @@ QuiX.ui.File.prototype.fileSelected = function(file) {
 QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
     if (queued > 0) {
         var self = this;
-        document.desktop.parseFromString(
+        this.getDesktop().parseFromString(
             '<dialog xmlns="http://www.innoscript.org/quix" title="' +
                     this.file.name + '" ' +
                     'width="240" height="90" left="center" top="center">' +
@@ -164,7 +168,7 @@ QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
                     '</progressbar>' +
                 '</wbody>' +
                 '<dlgbutton width="70" height="22" caption="' +
-                    document.desktop.attributes.CANCEL + '"/>' +
+                    this.getDesktop().attributes.CANCEL + '"/>' +
             '</dialog>',
             function(dlg) {
                 self.attributes.pbar =
@@ -238,6 +242,15 @@ QuiX.ui.MultiFile = function(/*params*/) {
     this.method = params.method;
     this.readonly = (params.readonly == 'true' ||
                      params.readonly == true)? true:false;
+    this.postUrl = params.posturl;
+    if (!this.postUrl) {
+        var postUrl = document.location.href;
+        if (window.location.protocol.indexOf('https') != -1) {
+            postUrl = "http" + postUrl.substr(5);
+        }
+        postUrl = postUrl.split('?')[0] + '?cmd=http_upload';
+        this.postUrl = postUrl;
+    }
 
     QuiX.ui.Widget.call(this, params);
 
@@ -261,7 +274,12 @@ QuiX.ui.MultiFile = function(/*params*/) {
     this.appendChild(this.removeButton);
 
     if (params.placeholder) {
-        this.addButton = document.desktop.getWidgetById(params.placeholder);
+        var self = this;
+        this.attachEvent('onload',
+            function() {
+                self.addButton = self.getDesktop().getWidgetById(params.placeholder, false, 1);
+                self.addButton.attachEvent('onmousedown', QuiX.stopPropag);
+            });
     }
     else {
         this.addButton = new QuiX.ui.Widget({
@@ -275,8 +293,8 @@ QuiX.ui.MultiFile = function(/*params*/) {
         });
         this.appendChild(this.addButton);
         this.addButton.div.className = 'btnupload';
+        this.addButton.attachEvent('onmousedown', QuiX.stopPropag);
     }
-    this.addButton.attachEvent('onmousedown', QuiX.stopPropag);
 
     params.multiple = true;
     params.img = params.img || QuiX.getThemeUrl() + 'images/add16.gif';
@@ -325,7 +343,7 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
             self.total_bytes = 0;
             return;
         }
-        document.desktop.parseFromString(
+        this.getDesktop().parseFromString(
             '<dialog xmlns="http://www.innoscript.org/quix" title="Uploading file(s)" ' +
                     'width="240" height="140" left="center" top="center">' +
                 '<wbody>' +

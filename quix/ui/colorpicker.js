@@ -338,7 +338,7 @@ QuiX.ui.ColorPicker.jscolor = {
         function removePicker() {
             delete jscolor.picker.owner;
             // quix
-            QuiX.cleanupOverlays();
+			field.getDesktop().cleanupOverlays();
         }
 
         function drawPicker(x, y) {
@@ -484,13 +484,13 @@ QuiX.ui.ColorPicker.jscolor = {
 
             rect.close = function() {
                 // quix
-                document.desktop.overlays.removeItem(this);
+				field.getDesktop().overlays.removeItem(this);
                 this.destroy();
                 THIS.hidePicker();
                 valueElement.blur();
             }
 
-            document.desktop.appendChild(rect);
+			field.getDesktop().appendChild(rect);
             rect.redraw();
 
             p.padM.style.background = "url('" + jscolor.dir + "cross.gif') no-repeat";
@@ -501,7 +501,7 @@ QuiX.ui.ColorPicker.jscolor = {
             redrawPad();
             redrawSld();
 
-            document.desktop.overlays.push(rect);
+			field.getDesktop().overlays.push(rect);
         }
 
         function redrawPad() {

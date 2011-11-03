@@ -6,8 +6,9 @@ Mobile Widgets
 
 QuiX.ui.ScrollView = function(params) {
     params.overflow = 'hidden';
-
     this.dir = params.sdir || params.dir || 'v';
+    this.ssbar = (!(params.showscrollbars == false || params.showscrollbars == 'false'));
+
     if (params.dir != 'ltr' && params.dir != 'rtl') {
         delete params.dir;
     }
@@ -39,7 +40,6 @@ QuiX.ui.ScrollView = function(params) {
     QuiX.ui.Widget.prototype.appendChild.call(this, this._c);
 
     this.attachEvent('onmousedown', QuiX.ui.ScrollView._startScroll);
-
     this._vs = new QuiX.ui.Widget({
         id: '_sb',
         border: 1,
@@ -192,14 +192,14 @@ QuiX.ui.ScrollView._startScroll = function(evt, sv) {
         w = sv._w,
         sh = sv._sh,
         sw = sv._sw;
-
     if (sh > h || sw > w) {
         var target = QuiX.getTarget(evt),
-            source = QuiX.getWidget(target);
+            source = QuiX.getWidget(target),
+            desktop = sv.getDesktop();
 
         QuiX.widget = sv;
-        document.desktop.attachEvent('onmousemove', QuiX.ui.ScrollView._scroll);
-        document.desktop.attachEvent('onmouseup', QuiX.ui.ScrollView._endScroll);
+        desktop.attachEvent('onmousemove', QuiX.ui.ScrollView._scroll);
+        desktop.attachEvent('onmouseup', QuiX.ui.ScrollView._endScroll);
 
         QuiX.stopPropag(evt);
         if (target.tagName != 'INPUT' && target.tagName != 'TEXTAREA' 
@@ -250,13 +250,13 @@ QuiX.ui.ScrollView._scroll = function(evt, dt) {
         else if (y > 0) {
             y = 0;
         }
-
-        if (sv._vs.isHidden()) {
-            sv._vs.show();
+        if (sv.ssbar) {
+            if (sv._vs.isHidden()) {
+                sv._vs.show();
+            }
+            var perc = (1 - (sv._h / (sv._h - y)));
+            sv._moveScrollBar('v', perc);
         }
-
-        var perc = (1 - (sv._h / (sv._h - y)));
-        sv._moveScrollBar('v', perc);
     }
 
     if (sv._dir != 'v') {
@@ -273,21 +273,23 @@ QuiX.ui.ScrollView._scroll = function(evt, dt) {
         else if (x > 0) {
             x = 0;
         }
-
-        if (sv._hs.isHidden()) {
-            sv._hs.show();
+        if (sv.ssbar) {
+            if (sv._hs.isHidden()) {
+                sv._hs.show();
+            }
+            var perc = (1 - (sv._w / (sv._w - x)));
+            sv._moveScrollBar('h', perc);
         }
-
-        var perc = (1 - (sv._w / (sv._w - x)));
-        sv._moveScrollBar('h', perc);
     }
 
     sv.scrollTo(-x, -y);
 }
 
 QuiX.ui.ScrollView._endScroll = function(evt, dt) {
-    QuiX.widget._vs.hide();
-    QuiX.widget._hs.hide();
+    if (QuiX.widget.ssbar) {
+        QuiX.widget._vs.hide();
+        QuiX.widget._hs.hide();
+    }
     dt.detachEvent('onmousemove', QuiX.ui.ScrollView._scroll);
     dt.detachEvent('onmouseup', QuiX.ui.ScrollView._endScroll);
 }

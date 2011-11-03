@@ -490,7 +490,7 @@ QuiX.ui.RichText.prototype.initEdit = function() {
     }
     QuiX.addEvent(this.doc, "onmouseup",
         function() {
-            QuiX.cleanupOverlays();
+            self.getDesktop().cleanupOverlays();
             self._updateState();
             return true;
         });
@@ -501,7 +501,7 @@ QuiX.ui.RichText.prototype.initEdit = function() {
         });
     QuiX.addEvent(this.doc, "onkeydown",
         function(e){
-            QuiX.cleanupOverlays();
+            self.getDesktop().cleanupOverlays();
             self.detectPaste(e);
             return true;
         });
@@ -860,6 +860,7 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
     var theIframe = theWidgEditor.frame.frame;
     var theSelection = "";
     var action = btn.getId();
+    var desktop = btn.getDesktop();
 
     /* If somehow a button other than "HTML source" is clicked
      * while viewing HTML source, ignore click */
@@ -887,14 +888,14 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
                 }
                 if (theSelection == "")	{
                     theWidgEditor._setButtonState("hyperlink", "off");
-                    document.desktop.msgbox(
+                    desktop.msgbox(
                         'Error',
                         'Please select the text you wish to hyperlink.',
-                        document.desktop.attributes.CLOSE, null,
+                        desktop.attributes.CLOSE, null,
                         'center', 'center', 240, 80);
                     break;
                 }
-                document.desktop.parseFromString(
+                desktop.parseFromString(
                     '<dialog xmlns="http://www.innoscript.org/quix"\
                         title="Enter Hyperlink URL" padding="4,4,4,4"\
                         width="240" height="60" left="center" top="center">\
@@ -903,10 +904,10 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
                       </wbody>\
                       <dlgbutton width="70" height="22"\
                         onclick="__closeDialog__" caption="' +
-                        document.desktop.attributes.OK + '"/>\
+                        desktop.attributes.OK + '"/>\
                       <dlgbutton width="70" height="22"\
                         onclick="__closeDialog__" caption="' +
-                        document.desktop.attributes.CANCEL + '"/>\
+                        desktop.attributes.CANCEL + '"/>\
                     </dialog>',
                     function(dlg) {
                         var url = dlg.getWidgetById('url');
@@ -920,7 +921,7 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
             }
             return;
         case "image":
-            document.desktop.parseFromString(
+            desktop.parseFromString(
                 '<dialog xmlns="http://www.innoscript.org/quix" \
                     title="Enter Image details" padding="4,4,4,4"\
                     width="240" height="120" left="center" top="center">\
@@ -932,10 +933,10 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
                   </wbody>\
                   <dlgbutton width="70" height="22"\
                     onclick="__closeDialog__" caption="' +
-                    document.desktop.attributes.OK + '"/>\
+                    desktop.attributes.OK + '"/>\
                   <dlgbutton width="70" height="22"\
                     onclick="__closeDialog__" caption="' +
-                    document.desktop.attributes.CANCEL + '"/>\
+                    desktop.attributes.CANCEL + '"/>\
                 </dialog>',
                 function(dlg) {
                     var url = dlg.getWidgetById('url'),

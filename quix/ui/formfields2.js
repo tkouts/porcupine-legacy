@@ -5,7 +5,13 @@ Field controls 2
 // combo box
 
 QuiX.ui.Combo = function(/*params*/) {
-    var params = arguments[0] || {};
+    var params;
+    if (arguments.length == 0) {
+        return;
+    }
+    else {
+        params = arguments[0];
+    }
     params.border = (typeof params.border != 'undefined')? params.border:1;
     params.overflow = 'hidden';
     params.height = params.height || 22;
@@ -42,8 +48,6 @@ QuiX.ui.Combo = function(/*params*/) {
         e = ce('INPUT');
         e.style.padding = '0px ' + (params.textpadding ||
                                     QuiX.theme.combo.textpadding) + 'px';
-        e.style.position = 'absolute';
-        e.style.zIndex = 1;
         // dropdown
         this.dropdown = QuiX.theme.combo.dropdown.get();
         this.dropdown.combo = this;
@@ -74,8 +78,6 @@ QuiX.ui.Combo = function(/*params*/) {
         e = ce('SELECT');
         e.style.padding = '0px ' + (params.textpadding ||
                                     QuiX.theme.combo.textpadding) + 'px';
-        e.style.width = '100%';
-        e.style.height = '100%';
         this.options = e.childNodes;
     }
 
@@ -99,7 +101,7 @@ QuiX.ui.Combo = function(/*params*/) {
         if (this.readonly) {
             e.readonly = true;
         }
-        this.div.className += ' editable';
+        this.addClass('editable');
         if (params.prompt) {
             this.setPrompt(params.prompt);
         }
@@ -116,7 +118,7 @@ QuiX.ui.Combo = function(/*params*/) {
             this.attachEvent('onclick',
                              QuiX.ui.Combo._btn_onclick);
         }
-        this.div.className += ' noneditable';
+        this.addClass('noneditable');
         this._ival = params.value;
     }
 
@@ -188,7 +190,7 @@ QuiX.ui.Combo._dropdown_onclick = function(evt, w) {
 }
 
 QuiX.ui.Combo._closeDropdown = function() {
-    document.desktop.overlays.removeItem(this);
+    this.getDesktop().overlays.removeItem(this);
     this.combo.isExpanded = false;
     this.detach();
 }
@@ -304,7 +306,7 @@ QuiX.ui.Combo.prototype.getValue = function() {
 }
 
 QuiX.ui.Combo.prototype.setValue = function(value) {
-    if (this.editable) {
+    if (this.editable || QuiX.supportTouches) {
         this.div.firstChild.value = value;
     }
     else {
@@ -408,10 +410,11 @@ QuiX.ui.Combo.prototype.blur = function() {
 }
 
 QuiX.ui.Combo.prototype.showDropdown = function() {
-    var iLeft = this.getScreenLeft();
-    var iTop = this.getScreenTop() + this.getHeight(true);
+    var iLeft = this.getScreenLeft(),
+        iTop = this.getScreenTop() + this.getHeight(true),
+        desktop = this.getDesktop();
 
-    if (iTop + this.menuHeight > document.desktop.getHeight(true)) {
+    if (iTop + this.menuHeight > this.getDesktop().getHeight(true)) {
         iTop = this.getScreenTop() - this.menuHeight;
     }
 
@@ -424,10 +427,10 @@ QuiX.ui.Combo.prototype.showDropdown = function() {
     this.dropdown.setBgColor(
         this.div.firstChild.style.backgroundColor);
 
-    document.desktop.appendChild(this.dropdown);
+    desktop.appendChild(this.dropdown);
     this.dropdown.redraw(true);
     this.dropdown.div.style.zIndex = QuiX.maxz;
-    document.desktop.overlays.push(this.dropdown);
+    desktop.overlays.push(this.dropdown);
     this.isExpanded = true;
 }
 
@@ -436,10 +439,8 @@ QuiX.ui.Combo.prototype.addOption = function(params) {
     if (!QuiX.supportTouches) {
         params.align = params.align || ((QuiX.dir != 'rtl')? 'left':'right');
         params.height = params.height || 24;
-        params.overflow = 'hidden';
         opt = new QuiX.ui.Icon(params);
         opt.div.className = 'option';
-        opt.div.style.textOverflow = 'ellipsis';
         opt.selected = false;
         opt.value = params.value;
         this.dropdown.widgets[0].appendChild(opt);
@@ -456,6 +457,9 @@ QuiX.ui.Combo.prototype.addOption = function(params) {
         opt.value = params.value;
         QuiX.setInnerText(opt, params.caption || '');
         this.div.firstChild.appendChild(opt);
+        if (((params.selected == 'true' || params.selected == true) || this._ival == opt.value)) {
+            this.selectOption(opt);
+        }
     }
 }
 
@@ -552,7 +556,7 @@ QuiX.ui.AutoComplete.prototype._getResults = function() {
         });
     }
     else {
-        var rpc = new QuiX.rpc.JSONRPCRequest(QuiX.root + this.url);
+        var rpc = new QuiX.rpc.JSONRPCRequest(this.url);
         rpc.oncomplete = this._showResults;
         rpc.callback_info = this;
         rpc.callmethod(this.method, this.textField.value);
@@ -652,7 +656,7 @@ QuiX.ui.SelectList  = function(/*params*/) {
 
     QuiX.ui.Widget.call(this, params);
 
-    if(params.rules) {
+    if (params.rules) {
         this._validator = new QuiX.ui.Validator({
             widget: this,
             rules: params.rules
@@ -697,14 +701,13 @@ QuiX.ui.SelectList.prototype.addOption = function(params) {
     params.imgalign = 'left';
     params.align = (QuiX.dir != 'rtl')? 'left':'right';
     params.height = params.height || QuiX.theme.selectlist.optionheight;
-    params.overflow = 'hidden';
     params.padding = params.padding || QuiX.theme.selectlist.optionpadding;
 
     var w = new QuiX.ui.Icon(params);
+    w.addClass('option');
     w.attachEvent('onmousedown', QuiX.ui.SelectList._option_onmousedown);
     this.appendChild(w);
 
-    w.div.style.textOverflow = 'ellipsis';
     w.selected = false;
     w.value = params.value;
     if (params.selected == 'true' || params.selected == true) {
@@ -746,7 +749,7 @@ QuiX.ui.SelectList.prototype.selectOption = function(option) {
         if (!this.multiple) {
             this.clearSelection();
         }
-        option.div.className = 'optionselected';
+        option.addClass('selected');
         option.selected = true;
         this.selection.push(option);
         this.trigger('onselect', this, option);
@@ -755,7 +758,7 @@ QuiX.ui.SelectList.prototype.selectOption = function(option) {
 
 QuiX.ui.SelectList.prototype.deSelectOption = function(option) {
     if (option.selected) {
-        option.div.className = 'label';
+        option.removeClass('selected');
         option.selected = false;
         this.selection.removeItem(option);
     }

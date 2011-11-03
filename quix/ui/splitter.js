@@ -11,7 +11,7 @@ QuiX.ui.Splitter = function(/*params*/) {
     QuiX.ui.Box.call(this, params);
 
     this._spacing = spacing;
-    this.div.className = 'splitter';
+    this.addClass('splitter');
     this.panes = [];
     this._handles = [];
     this.attachEvent('onresize', QuiX.ui.Splitter._onresize);
