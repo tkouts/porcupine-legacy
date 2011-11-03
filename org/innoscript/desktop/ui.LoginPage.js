@@ -36,7 +36,18 @@ login.checkKey = function(evt, fld) {
 
 login.login_oncomplete = function(req) {
     if (req.response) {
-        document.location.href = QuiX.root;
+        var ru = QuiX.queryString('ru');
+        if (ru) {
+            document.location.href = decodeURIComponent(unescape(ru));
+        }
+        else {
+            // no return url is provided
+            ru = document.location.href
+                .replace(/cmd=login&?/, '')
+                .replace('?&', '?')
+                .replace(/\?$/, '');
+            document.location.href = ru;
+        }
     }
     else {
         req.callback_info.enable();
