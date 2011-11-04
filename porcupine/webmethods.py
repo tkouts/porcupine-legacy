@@ -129,7 +129,6 @@ def mobileui(of_type, lang='', qs='',
     return WebMethod
 
 
-
 def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8',
                  allowed_origins=None):
 
@@ -142,6 +141,7 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8',
             if allowed_origins:
                 from porcupine import context
                 from porcupine import filters
+
                 @filters.runas('system')
                 @webmethod(of_type=of_type,
                            http_method="OPTIONS",
@@ -165,10 +165,10 @@ def remotemethod(of_type, client='', lang='', qs='', encoding='utf-8',
                         context.response.set_header(
                             "Cache-Control", "no-cache")
 
-        @staticmethod                  
+        @staticmethod
         def _getAccessControlAllowOrigin(allowed_origins, context):
             origin = context.request.HTTP_ORIGIN
-            if origin:            
+            if origin:
                 if "*" in allowed_origins:
                     if origin == "null":
                         return "*"

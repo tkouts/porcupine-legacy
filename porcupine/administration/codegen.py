@@ -229,7 +229,8 @@ class ItemEditor(GenericSchemaEditor):
 
             # event handlers
             try:
-                self._eventHandlers = object.__getattr__(self._class, '_eventHandlers')[:]
+                self._eventHandlers = object.__getattr__(self._class,
+                                                         '_eventHandlers')[:]
             except AttributeError:
                 self._eventHandlers = []
 
@@ -262,7 +263,8 @@ class ItemEditor(GenericSchemaEditor):
             return '**%s.__props__' % bases[0]
         else:
             base = bases.pop(0)
-            return '**dict(%s.__props__, %s)' % (base, self._generate_bases_props(bases))
+            return ('**dict(%s.__props__, %s)' %
+                    (base, self._generate_bases_props(bases)))
 
     def generate_code(self):
         bases = [self._get_full_name(x) for x in self._bases]

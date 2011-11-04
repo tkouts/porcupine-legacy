@@ -74,7 +74,7 @@ class ElasticSchemaTest(TestWithDb):
             try:
                 # update it in order for schema updates to persist
                 folder.update()
-    
+
                 # reload it
                 folder2 = db.get_item(folder.id)
                 self.assertRaises(AttributeError, getattr, folder2, 'x')

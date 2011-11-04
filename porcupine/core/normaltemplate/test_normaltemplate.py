@@ -193,7 +193,6 @@ class NormalTemplateTestCases(unittest.TestCase):
             {'title': 'Hello2', 'count': 2, 'forum': {'title': 'Forum2'}}]}
         self.assertEquals('Hello1 Forum1 1Hello2 Forum2 2', t(data))
 
-
     def test_if_else_scope(self):
         t = compile(
             '{:if none}{=none}{:e}None{/:if} {=count}')
@@ -201,14 +200,12 @@ class NormalTemplateTestCases(unittest.TestCase):
                 'count': 2}
         self.assertEquals('Something 2', t(data))
 
-
     def test_select_else_scope(self):
         t = compile(
             '{:s none}{=.}{:e}None{/:s} {=count}')
         data = {'none': 'Something',
                 'count': 2}
         self.assertEquals('Something 2', t(data))
-
 
     def test_reduce_else_scope(self):
         t = compile(

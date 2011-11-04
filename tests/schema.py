@@ -108,10 +108,10 @@ class TestItem(systemObjects.Item):
 
     def getter(self):
         return 'getter'
-    
+
     def setter(self, value):
         pass
-    
+
     p = property(getter, setter)
 
 

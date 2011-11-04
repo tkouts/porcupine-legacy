@@ -34,8 +34,8 @@ def open(**kwargs):
     global _db_handle, _indices
     pid = os.getpid()
     if not pid in _pids or not _db_handle.is_open():
-        _db_handle = misc.get_rto_by_name(settings['store']['interface'])\
-                     (**kwargs)
+        _db_handle = misc.get_rto_by_name(
+            settings['store']['interface'])(**kwargs)
         _pids.append(pid)
         # update indexed attributes
         _indices = [x[0] for x in settings['store']['indices']]

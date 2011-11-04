@@ -60,4 +60,3 @@ class FilePreserver(unittest.TestCase):
                 compiled = [f + c for c in ('c', 'o')
                             if os.path.isfile(f + c)]
                 [os.remove(f) for f in compiled]
-

@@ -23,6 +23,7 @@ from errno import EISCONN, EADDRINUSE
 
 from porcupine.core.decorators import synchronized
 
+
 class BaseRequest(object):
     """
     Synchronous base request object

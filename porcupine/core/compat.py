@@ -26,6 +26,7 @@ except NameError:
     str = str
     basestring = (str, bytes)
 
+
 # functions
 def get_func_name(f):
     try:

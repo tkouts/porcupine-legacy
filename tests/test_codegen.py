@@ -13,8 +13,10 @@ except (ValueError, ImportError):
 from porcupine import datatypes
 from porcupine.administration import codegen
 
+
 class ExternalDatatype(datatypes.String):
     pass
+
 
 class CodegenTest(FilePreserver):
 
