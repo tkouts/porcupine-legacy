@@ -163,7 +163,7 @@ QuiX.ui.Widget.prototype.parseFromString = function(s /*, oncomplete, preloadIma
     this.parse(QuiX.parsers.domFromString(s), oncomplete, preloadImages);
 }
 
-QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete, preloadImages */) {
+QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete, preloadImages, async */) {
     var oncomplete = arguments[1] || null,
         xmlhttp = QuiX.XHRPool.getInstance(),
         self = this;
@@ -1116,6 +1116,11 @@ QuiX.ui.Widget.prototype.bringToFront = function() {
             this.parent.widgets.push(this);
         }
         this.div.style.zIndex = ++this.parent.maxz;
+        if (QuiX.getParentNode(this.div) && this.div.style.position != 'absolute') {
+            // reposition div
+            QuiX.removeNode(this.div);
+            this.parent.div.appendChild(this.div);
+        }
     }
 }
 
@@ -1127,6 +1132,11 @@ QuiX.ui.Widget.prototype.sendToBack = function() {
             this.parent.widgets.splice(0, 0, this);
         }
         this.div.style.zIndex = --this.parent.minz;
+        if (QuiX.getParentNode(this.div) && this.div.style.position != 'absolute') {
+            // reposition div
+            QuiX.removeNode(this.div);
+            this.parent.div.insertBefore(this.div, this.parent.widgets[1].div);
+        }
     }
 }
 
@@ -1635,7 +1645,7 @@ QuiX.ui.Widget.prototype.attachEvent = function(eventType , f) {
     }
     else if (eventType == 'onswipe') {
         eventType = 'onmouseup';
-        //this.attachEvent('onmousedown', QuiX.cancelDefault);
+        this.attachEvent('onmousedown', QuiX.cancelDefault);
     }
 
     if (!this._isDisabled && !isCustom) {
@@ -1879,10 +1889,9 @@ QuiX.ui.Desktop = function(params, root) {
         this.div.onselectstart = QuiX.cancelDefault;
     }
 
-    this.setPosition('relative');
+    this.setPosition('');
     root.appendChild(this.div);
     this.div.className = 'desktop';
-
 
     if (root == document.body) {
         document.body.style.height = '100%';
