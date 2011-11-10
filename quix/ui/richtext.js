@@ -26,7 +26,7 @@ QuiX.ui.RichText = function(/*params*/) {
 
     QuiX.ui.VBox.call(this, params);
 
-    this.div.className = 'richtext';
+    this.addClass('richtext');
 
     var toolbar = !(params.toolbar == false || params.toolbar == 'false');
     this.insertParagraphs = !(params.paragraphs == false || params.paragraphs == 'false');
@@ -161,7 +161,7 @@ QuiX.ui.RichText = function(/*params*/) {
         src: params.template || QuiX.baseUrl + 'ui/richtext.htm',
         border: (typeof params.frameborder != 'undefined')? params.frameborder:1
     });
-    this.frame.div.className = 'editframe';
+    this.frame.addClass('editframe');
     this.appendChild(this.frame);
 
     this.locked = false;
