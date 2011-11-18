@@ -276,6 +276,9 @@ QuiX.ui.Box.prototype.redraw = function(bForceAll /*, memo*/) {
             this.widgets[i]._i = i;
             this._setChildVars(this.widgets[i]);
         }
+        if (this.orientation == 'h') {
+            this.div.style.whiteSpace = 'nowrap';
+        }
     }
 
     if (this.orientation == 'h') {

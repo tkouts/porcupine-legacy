@@ -53,7 +53,9 @@ QuiX.ui.Widget = function(/*params*/) {
         this.div.style.padding = '0px';
     }
 
-    this.div.dir = params.dir || QuiX.dir;
+    if (params.dir || QuiX.dir) {
+        this.div.dir = params.dir || QuiX.dir;
+    }
 
     if (params.display) {
         this.setDisplay(params.display);
@@ -1645,7 +1647,7 @@ QuiX.ui.Widget.prototype.attachEvent = function(eventType , f) {
     }
     else if (eventType == 'onswipe') {
         eventType = 'onmouseup';
-        this.attachEvent('onmousedown', QuiX.cancelDefault);
+        this.attachEvent('onmousedown', QuiX.handlers.allowFieldFocus);
     }
 
     if (!this._isDisabled && !isCustom) {
@@ -1683,7 +1685,7 @@ QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, f*/) {
                 }
                 else if (eventType == 'onswipe') {
                     eventType = 'onmouseup';
-                    this.detachEvent('onmousedown', QuiX.cancelDefault);
+                    this.detachEvent('onmousedown', QuiX.handlers.allowFieldFocus);
                 }
                 QuiX.removeEvent(this.div, eventType, f);
                 this._registry[eventType].removeItem(f);

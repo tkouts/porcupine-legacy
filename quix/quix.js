@@ -507,6 +507,15 @@ QuiX.getEventListener = function(f) {
     return f;
 }
 
+QuiX.handlers = {
+    allowFieldFocus: function(evt, w) {
+        var target = QuiX.getTarget(evt);
+        if (target.tagName != 'INPUT' && target.tagName != 'SELECT' && target.tagName != 'TEXTAREA') {
+            QuiX.cancelDefault(evt);
+        }
+    }
+}
+
 QuiX.wrappers = {
     eventWrapper : function(f1, f2) {
         f1 = QuiX.getEventListener(f1);
@@ -542,6 +551,7 @@ QuiX.wrappers = {
                     evt.dir = 'right';
                 }
                 f(evt, w);
+                QuiX.stopPropag(evt);
             }
             else if (Math.abs(dy) > 32) {
                 if (dy > 0) {
@@ -551,6 +561,7 @@ QuiX.wrappers = {
                     evt.dir = 'bottom';
                 }
                 f(evt, w);
+                QuiX.stopPropag(evt);
             }
         }
         f.wrapper = wrapper;
