@@ -27,8 +27,8 @@
             </tab>
         </tabpane>
     </wbody>
-    <dlgbutton onclick="__closeDialog__" width="70" height="22"
+    <dlgbutton onclick="QuiX.handlers.closeWindow" width="70" height="22"
         caption="@@RESTORE@@"/>
-    <dlgbutton onclick="__closeDialog__" width="70" height="22"
+    <dlgbutton onclick="QuiX.handlers.closeWindow" width="70" height="22"
         caption="@@CLOSE@@"/>
 </dialog>

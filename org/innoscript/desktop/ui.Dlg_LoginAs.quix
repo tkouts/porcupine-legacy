@@ -25,6 +25,6 @@
     </wbody>
     <dlgbutton width="80" height="24" onclick="login.login"
         caption="@@LOGIN@@" default="true"/>
-    <dlgbutton width="80" height="24" onclick="__closeDialog__"
+    <dlgbutton width="80" height="24" onclick="QuiX.handlers.closeWindow"
         caption="@@CLOSE@@"/>
 </dialog>

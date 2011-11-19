@@ -44,8 +44,8 @@
 			</selectlist>
 		</vbox>
 	</wbody>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22"
+	<dlgbutton onclick="QuiX.handlers.closeWindow" width="70" height="22"
 		caption="@@SELECT@@"/>
-	<dlgbutton onclick="__closeDialog__" width="70" height="22"
+	<dlgbutton onclick="QuiX.handlers.closeWindow" width="70" height="22"
 		caption="@@CLOSE@@"/>
 </dialog>

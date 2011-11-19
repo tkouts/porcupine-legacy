@@ -12,5 +12,5 @@
 		<field id="tree_image" width="120" height="22" top="60" left="90"/>
 	</wbody>
 	<dlgbutton width="60" height="22" caption="OK" onclick="queryPerformer.applyPreferences"/>
-	<dlgbutton width="60" height="22" onclick="__closeDialog__" caption="Cancel"/>
+	<dlgbutton width="60" height="22" onclick="QuiX.handlers.closeWindow" caption="Cancel"/>
 </dialog>

@@ -47,6 +47,6 @@
             ]]></xhtml>
         </rect>
     </wbody>
-    <dlgbutton onclick="__closeDialog__" width="60" height="22"
+    <dlgbutton onclick="QuiX.handlers.closeWindow" width="60" height="22"
         caption="@@CLOSE@@"/>
 </dialog>

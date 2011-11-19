@@ -513,6 +513,9 @@ QuiX.handlers = {
         if (target.tagName != 'INPUT' && target.tagName != 'SELECT' && target.tagName != 'TEXTAREA') {
             QuiX.cancelDefault(evt);
         }
+    },
+    closeWindow: function(evt, w) {
+        w.getParentByType(QuiX.ui.Window).close();
     }
 }
 

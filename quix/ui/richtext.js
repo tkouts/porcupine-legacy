@@ -903,10 +903,10 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
                         <field id="url" width="100%" value="http://"/>\
                       </wbody>\
                       <dlgbutton width="70" height="22"\
-                        onclick="__closeDialog__" caption="' +
+                        onclick="QuiX.handlers.closeWindow" caption="' +
                         desktop.attributes.OK + '"/>\
                       <dlgbutton width="70" height="22"\
-                        onclick="__closeDialog__" caption="' +
+                        onclick="QuiX.handlers.closeWindow" caption="' +
                         desktop.attributes.CANCEL + '"/>\
                     </dialog>',
                     function(dlg) {
@@ -932,10 +932,10 @@ QuiX.ui.RichText._toolbarAction = function(evt , btn) {
                     <field id="alt" top="30" left="34" width="186"/>\
                   </wbody>\
                   <dlgbutton width="70" height="22"\
-                    onclick="__closeDialog__" caption="' +
+                    onclick="QuiX.handlers.closeWindow" caption="' +
                     desktop.attributes.OK + '"/>\
                   <dlgbutton width="70" height="22"\
-                    onclick="__closeDialog__" caption="' +
+                    onclick="QuiX.handlers.closeWindow" caption="' +
                     desktop.attributes.CANCEL + '"/>\
                 </dialog>',
                 function(dlg) {

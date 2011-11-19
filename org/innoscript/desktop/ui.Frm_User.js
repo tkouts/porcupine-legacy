@@ -12,5 +12,5 @@ formUser.createUser = function(evt, w) {
             "desktop/images/error32.gif", 'center', 'center', 260, 82);
     }
     else
-        oForm.submit(__closeDialog__);
+        oForm.submit(QuiX.handlers.closeWindow);
 }

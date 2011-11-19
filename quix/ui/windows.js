@@ -2,11 +2,9 @@
 Windows & Dialogs
 ************************/
 
-// generic event handlers
+// kept for backwards compatibility
 
-function __closeDialog__(evt, w) {
-    w.getParentByType(QuiX.ui.Window).close();
-}
+var __closeDialog__ = QuiX.handlers.closeWindow;
 
 // window
 

@@ -16,7 +16,7 @@ generic.submitForm = function(evt, w) {
     var oDialog = w.getParentByType(QuiX.ui.Dialog),
         oForm = oDialog.getWidgetsByType(QuiX.ui.Form)[0];
 
-    oForm.submit(__closeDialog__);
+    oForm.submit(QuiX.handlers.closeWindow);
 }
 
 generic.openContainer = function(evt, w) {

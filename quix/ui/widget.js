@@ -1990,7 +1990,7 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
         }
     }
     else {
-        sButtons = '<dlgbutton onclick="__closeDialog__" caption="' +
+        sButtons = '<dlgbutton onclick="QuiX.handlers.closeWindow" caption="' +
                    buttons + '" width="80" height="22"/>';
     }
 
@@ -2007,7 +2007,7 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
             if (typeof buttons == 'object') {
                 for (var i=0; i<buttons.length; i++) {
                     oButton = buttons[i];
-                    handler = '__closeDialog__';
+                    handler = 'QuiX.handlers.closeWindow';
                     if (oButton.length > 2) {
                         handler = oButton[2];
                     };

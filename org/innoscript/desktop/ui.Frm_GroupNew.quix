@@ -41,6 +41,6 @@
     </wbody>
     <dlgbutton onclick="generic.submitForm" width="70" height="22"
         caption="@@CREATE@@" default="true"/>
-    <dlgbutton onclick="__closeDialog__" width="70" height="22"
+    <dlgbutton onclick="QuiX.handlers.closeWindow" width="70" height="22"
         caption="@@CLOSE@@"/>
 </dialog>

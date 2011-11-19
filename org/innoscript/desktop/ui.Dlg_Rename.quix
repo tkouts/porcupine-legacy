@@ -9,8 +9,8 @@
             caption="@@ENTER_NEW_NAME@@:"/>
         <field id="new_name" left="125" top="12" width="50%%" value="$DN"/>
     </wbody>
-    <dlgbutton default="true" onclick="__closeDialog__" width="80" height="22"
+    <dlgbutton default="true" onclick="QuiX.handlers.closeWindow" width="80" height="22"
         caption="@@RENAME@@"/>
-    <dlgbutton onclick="__closeDialog__" width="80" height="22"
+    <dlgbutton onclick="QuiX.handlers.closeWindow" width="80" height="22"
         caption="@@CANCEL@@"/>
 </dialog>
