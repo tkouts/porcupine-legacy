@@ -79,6 +79,7 @@ NEW: Added new CSS helpers "addClass", "removeClass" and "hasClass" to the base
      QuiX widget class.
 NEW: New "onclose" custom event for editable tab panes triggered before a
      tab is closed.
+NEW: New method "getDesktop" for the base QuiX widget class.
 
 OPT: Using btree instead of hash for main database in order to exploit
      locality of reference for containers' children.
@@ -193,7 +194,7 @@ FIX: Fixed server error when using GZIP filter and Accept-Encoding header is
      missing.
 
 DEP: The signature of the "executeOqlCommand" remote method has changed.
-     The range parameter is now the third.
+     The range parameter is now the third one.
      The second refers to the query parameters.
 DEP: Schema "__props__" attribute is now a dict instead of a tuple.
 DEP: Removed deprecated APIs.
