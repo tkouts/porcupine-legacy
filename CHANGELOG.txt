@@ -7,9 +7,9 @@ NEW: Porcupine now integrates the "py-normal-template" template engine
      (http://github.com/tkouts/py-normal-template).
 NEW: Added support for JSON-RPC2 for remote method calls.
 NEW: Added support for Python 3 (thanks to feedback from Alexander Slesarev).
-NEW: Added new lightweight widget "QuiX.ui.Image".
+NEW: Added new lightweight image widget ("QuiX.ui.Image").
 NEW: New widget "QuiX.ui.SpriteButton" with toggle group support.
-NEW: Added support for Firefox 4 and Safari 5.
+NEW: Added support for Firefox 4-8 and Safari 5, IE 9-10.
 NEW: Added nose unit tests inside the "tests" folder (partially contributed by
      Alexander Slesarev).
 NEW: Added "onfocus" custom event for fields.
@@ -51,6 +51,7 @@ NEW: New "QuiX.ui.Colorpicker" widget.
 NEW: The widgets' event subsystem has been completely re-written in order to
      support the registration of multiple DOM event handlers per event type.
 NEW: QuiX now supports touch enabled mobile devices.
+NEW: QuiX.ui.Widget: Added support for 2D rotation using the rotation attribute.
 NEW: New "QuiX.getCssAttribute" and "QuiX.getEventName" for getting the names
      of vendor specific CSS attributes and events.
 NEW: QuiX now supports "ontap" and "onswipe" touch events.
@@ -74,6 +75,10 @@ NEW: New "QuiX.Image.loadImages" function for pre-loading a series of images.
 NEW: New "QuiX.Module.loadModules" function for loading a series of modules
      faster.
 NEW: New SrollView Widget.
+NEW: Added new CSS helpers "addClass", "removeClass" and "hasClass" to the base
+     QuiX widget class.
+NEW: New "onclose" custom event for editable tab panes triggered before a
+     tab is closed.
 
 OPT: Using btree instead of hash for main database in order to exploit
      locality of reference for containers' children.
@@ -87,6 +92,7 @@ OPT: Ability to bind an action to the published directory's root URL.
 OPT: Speed enhancements for icon and label redraws.
 OPT: Using SWFUpload instead of Java applet for file uploads.
 OPT: QuiX pages now contain valid markup.
+OPT: Added support for multiple QuiX UIs living in the same DOM document.
 OPT: Window dimensions are now referring to the window's client area excluding
      theme-dependent decorations.
 OPT: Added themeable elements retreived from $THEME_URL$/theme.js.
@@ -151,6 +157,10 @@ OPT: Faster auto sized widgets.
 OPT: QuiX parser, "parseFromUrl" and "parseFromString" now accept an extra
      optional argument for preloading images.
 OPT: Enhanced "minw" and "minh" parameters for QuiX widgets.
+OPT: Multi-processing NT services are now supported (requires Python 2.7.2 or
+     later when using non frozen scripts)
+OPT: New script "__quix/mcore.js" for loading the most commonly used QuiX
+     libraries on mobile devices using a single request.
 
 FIX: Fixed etag generation of web methods in order to be template,
      implementation, request language and containment aware.
@@ -179,6 +189,8 @@ FIX: Fixed default values initialization for external datatypes.
 FIX: Added missing dependencies for the data grid QuiX module.
 FIX: Fixed enabling and disabling of spin buttons.
 FIX: Fixed "xmlDecode" method of JavaScript strings.
+FIX: Fixed server error when using GZIP filter and Accept-Encoding header is
+     missing.
 
 DEP: The signature of the "executeOqlCommand" remote method has changed.
      The range parameter is now the third.
@@ -198,6 +210,8 @@ DEP: List views' "altcolors" is deprecated. Use "altrows" instead using a
 DEP: The base widget's "detachEvent" method now requires an additional argument
      of the handler to be detached. Otherwise detaches all handlers of ceratin
      type.
+DEP: The "__closeDialog__" handler is deprecated.
+     Use "QuiX.handlers.closeWindow" instead.
 
 -----------
 Version 0.6
