@@ -411,7 +411,8 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
             case 'moz':
                 if (bgc.length <= 3) {
                     this.div.style.backgroundImage = '-moz-linear-gradient(' + bgc[0] + ',' + bgc[1] + ',' + bgc[2] + ')';
-                } else {
+                }
+                else {
                     var grad = '-moz-linear-gradient(' + bgc[0] + ',';
                     for (i = 1; i < bgc.length-1; i++) {
                         grad += bgc[i] + ',';
@@ -450,15 +451,14 @@ QuiX.ui.Widget.prototype.setBgColor = function(color) {
                             if (pct < 10) {
                                 pct = '0' + pct;
                             }
-                            grad += 'color-stop(.'+pct+','+parts[0]+'),';
+                            grad += 'color-stop(.' + pct + ',' + parts[0] + '),';
                         } else {
                             if (i == 1) {
-                                grad += 'color-stop(0,'+parts[0]+'),';
+                                grad += 'color-stop(0,' + parts[0] + '),';
                             }
                             if (i == bgc.length-1) {
-                                grad += 'color-stop(1,'+parts[0]+'))';
+                                grad += 'color-stop(1,' + parts[0] + '))';
                             }
-                            
                         }
                     }
                     this.div.style.backgroundImage = grad;
