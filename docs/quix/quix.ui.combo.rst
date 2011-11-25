@@ -41,91 +41,102 @@ Combo
 Attributes
 ----------
 
-   .. js:attribute:: QuiX.ui.Combo.name
+.. js:attribute:: QuiX.ui.Combo.name
 
-      Defines the combo's name when used inside a QuiX form.
+   Defines the combo's name when used inside a QuiX form.
 
-   .. js:attribute:: QuiX.ui.Combo.options
+--------------------------------------------------------------------------------
 
-      An array containing all the available option widgets of the combo.
+.. js:attribute:: QuiX.ui.Combo.options
+
+   An array containing all the available option widgets of the combo.
 
 Methods
 -------
 
-   .. js:function:: QuiX.ui.Combo.getValue()
+.. js:function:: QuiX.ui.Combo.getValue()
 
-      :returns: The value of the combo.
+   :returns: The value of the combo.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.setValue(value)
+.. js:function:: QuiX.ui.Combo.setValue(value)
 
-      Sets the value of the combo.
+   Sets the value of the combo.
 
-      :param string value: If the combo is editable then any string
-         sets the value accordingly.
+   :param string value: If the combo is editable then any string
+      sets the value accordingly.
 
-         If not the value must be one of the available options' values.
+      If not the value must be one of the available options' values.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.focus()
+.. js:function:: QuiX.ui.Combo.focus()
 
-      Sets the focus to the current combo.
+   Sets the focus to the current combo.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.blur()
+.. js:function:: QuiX.ui.Combo.blur()
 
-      Removes the focus from the current combo.
+   Removes the focus from the current combo.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.getPrompt()
+.. js:function:: QuiX.ui.Combo.getPrompt()
 
-      Valid only for editable combos.
-      Returns the prompt text appearing inside the field.
+   Valid only for editable combos.
+   Returns the prompt text appearing inside the field.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.setPrompt()
+.. js:function:: QuiX.ui.Combo.setPrompt()
 
-      Valid only for editable combos.
-      Sets the prompt text appearing inside the field.
-      Usefull for creating labeless combos.
+   Valid only for editable combos.
+   Sets the prompt text appearing inside the field.
+   Usefull for creating labeless combos.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.selectOption(option)
+.. js:function:: QuiX.ui.Combo.selectOption(option)
 
-      Selects the provided option.
+   Selects the provided option.
 
-      :param QuiX.ui.Widget option: The option widget to select
+   :param QuiX.ui.Widget option: The option widget to select
 
-      Example usage::
+   Example usage::
 
-         // select the second option
-         combo.selectOption(combo.options[1]);
+      // select the second option
+      combo.selectOption(combo.options[1]);
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.reset()
+.. js:function:: QuiX.ui.Combo.reset()
 
-      Resets the combo to its initial value.
+   Resets the combo to its initial value.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.clearOptions()
+.. js:function:: QuiX.ui.Combo.clearOptions()
 
-      Clears all combo's options.
+   Clears all combo's options.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Combo.addOption(params)
+.. js:function:: QuiX.ui.Combo.addOption(params)
 
-      Adds a new combo option.
+   Adds a new combo option.
 
-      :param object params: The option's parameters
+   :param object params: The option's parameters
 
-      Example usage::
+   Example usage::
 
-         // select the second option
-         combo.addOption({caption: 'New Option',
-                          img: 'IMG_URL',
-                          align: 'right',
-                          selected: true,
-                          value: 'new'});
+      // select the second option
+      combo.addOption({caption: 'New Option',
+                       img: 'IMG_URL',
+                       align: 'right',
+                       selected: true,
+                       value: 'new'});
 
 Events
 ------

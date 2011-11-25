@@ -68,112 +68,124 @@ Field
 Attributes
 ----------
 
-   .. js:attribute:: QuiX.ui.Field.name
+.. js:attribute:: QuiX.ui.Field.name
 
-      Defines the field's name when used inside a QuiX form.
+   Defines the field's name when used inside a QuiX form.
 
+--------------------------------------------------------------------------------
 
-   .. js:attribute:: QuiX.ui.Field.align
+.. js:attribute:: QuiX.ui.Field.align
 
-      String attribute specifying the fields's text alignment.
-      Valid values are ``left``, ``right`` and ``auto`` which translates
-      to left aligned text for ltr layouts and right aligned text for rtl
-      layouts.
-      Default value is ``auto``.
+   String attribute specifying the fields's text alignment.
+   Valid values are ``left``, ``right`` and ``auto`` which translates
+   to left aligned text for ltr layouts and right aligned text for rtl
+   layouts.
+   Default value is ``auto``.
 
-      Example usage::
+   Example usage::
 
-         field.align = 'right';
-         field.redraw(true);
+      field.align = 'right';
+      field.redraw(true);
 
+--------------------------------------------------------------------------------
 
-   .. js:attribute:: QuiX.ui.Field.textPadding
+.. js:attribute:: QuiX.ui.Field.textPadding
 
-      Defines the field's horizontal padding.
-      Valid only for text inputs, text areas and password fields.
+   Defines the field's horizontal padding.
+   Valid only for text inputs, text areas and password fields.
 
-      Example usage::
+   Example usage::
 
-         field.textPadding = '8px';
-         field.redraw(true);
+      field.textPadding = '8px';
+      field.redraw(true);
 
 
 Methods
 -------
 
-   .. js:function:: QuiX.ui.Field.getValue()
+.. js:function:: QuiX.ui.Field.getValue()
 
-      :returns: The value of the field. For radio groups getting the value
-        of every radio in the group returns the same value.
+   :returns: The value of the field. For radio groups getting the value
+      of every radio in the group returns the same value.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.setValue(value)
+.. js:function:: QuiX.ui.Field.setValue(value)
 
-      Sets the value of the field.
+   Sets the value of the field.
 
-      :param value: In case of text, textarea and password fields value should
-         be a string. In case of checkboxes value should be a boolean.
-         In case of radio buttons value should be a one of the distinct string
-         values as defined in the radio group.
+   :param value: In case of text, textarea and password fields value should
+      be a string. In case of checkboxes value should be a boolean.
+      In case of radio buttons value should be a one of the distinct string
+      values as defined in the radio group.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.getCaption()
+.. js:function:: QuiX.ui.Field.getCaption()
 
-      Valid only for radio buttons and check boxes.
+   Valid only for radio buttons and check boxes.
 
-      :returns: The text of the field's caption otherwise
-         if not a radio button or a check box ``null`` is returned.
+   :returns: The text of the field's caption otherwise
+      if not a radio button or a check box ``null`` is returned.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.setCaption(caption)
+.. js:function:: QuiX.ui.Field.setCaption(caption)
 
-      Valid only for radio buttons and check boxes. Sets the text of the field's
-      caption.
+   Valid only for radio buttons and check boxes. Sets the text of the field's
+   caption.
 
-      :param string caption: The text to set
+   :param string caption: The text to set
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.focus()
+.. js:function:: QuiX.ui.Field.focus()
 
-      Sets the focus to the current field.
+   Sets the focus to the current field.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.blur()
+.. js:function:: QuiX.ui.Field.blur()
 
-      Removes the focus from the current field.
+   Removes the focus from the current field.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.getPrompt()
+.. js:function:: QuiX.ui.Field.getPrompt()
 
-      Valid only for text input, text areas and password fields.
-      Returns the prompt text appearing inside the field.
+   Valid only for text input, text areas and password fields.
+   Returns the prompt text appearing inside the field.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.setPrompt()
+.. js:function:: QuiX.ui.Field.setPrompt()
 
-      Valid only for text input, text areas and password fields.
-      Sets the prompt text appearing inside the field.
-      Usefull for creating labeless fields.
+   Valid only for text input, text areas and password fields.
+   Sets the prompt text appearing inside the field.
+   Usefull for creating labeless fields.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.setReadOnly(readonly)
+.. js:function:: QuiX.ui.Field.setReadOnly(readonly)
 
-      Set the field to be read-only.
+   Set the field to be read-only.
 
-      :param bool readonly: If ``true`` then the field becomes read-only. If
-        ``false`` then the field is editable.
+   :param bool readonly: If ``true`` then the field becomes read-only. If
+     ``false`` then the field is editable.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.getTextOpacity()
+.. js:function:: QuiX.ui.Field.getTextOpacity()
 
-      :returns: The text opacity expressed as a float number between 0 and 1.
+   :returns: The text opacity expressed as a float number between 0 and 1.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Field.setTextOpacity(op)
+.. js:function:: QuiX.ui.Field.setTextOpacity(op)
 
-      Adjusts the text opacity.
+   Adjusts the text opacity.
 
-      :param number op: The text opacity expressed as a float number between 0 and 1.
+   :param number op: The text opacity expressed as a float number between 0 and 1.
 
 Events
 ------
@@ -181,4 +193,4 @@ Events
 Custom Events
 ^^^^^^^^^^^^^
 
-   onchange, onfocus, onblur
+onchange, onfocus, onblur

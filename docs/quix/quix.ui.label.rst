@@ -28,50 +28,55 @@ Label
 Attributes
 ----------
 
-   .. js:attribute:: QuiX.ui.Label.wrap
+.. js:attribute:: QuiX.ui.Label.wrap
 
-      Boolean attribute specifying if the text wraps. Default value is ``false``.
+   Boolean attribute specifying if the text wraps. Default value is ``false``.
 
-      Example usage::
+   Example usage::
 
-         label.wrap = true;
-         label.redraw(true);
+      label.wrap = true;
+      label.redraw(true);
 
-   .. js:attribute:: QuiX.ui.Label.align
+--------------------------------------------------------------------------------
 
-      String attribute specifying the text alignment.
-      Valid values are ``left``, ``right`` and ``auto`` which translates
-      to left aligned text for ltr layouts and right aligned text for rtl
-      layouts.
-      Default value is ``auto``.
+.. js:attribute:: QuiX.ui.Label.align
 
-      Example usage::
+   String attribute specifying the text alignment.
+   Valid values are ``left``, ``right`` and ``auto`` which translates
+   to left aligned text for ltr layouts and right aligned text for rtl
+   layouts.
+   Default value is ``auto``.
 
-         label.align = 'right';
-         label.redraw(true);
+   Example usage::
+
+      label.align = 'right';
+      label.redraw(true);
 
 Methods
 -------
 
-   .. js:function:: QuiX.ui.Label.getCaption()
+.. js:function:: QuiX.ui.Label.getCaption()
 
-      :returns: The text of the label
+   :returns: The text of the label
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Label.setCaption(caption)
+.. js:function:: QuiX.ui.Label.setCaption(caption)
 
-      Sets the text of the label.
+   Sets the text of the label.
 
-      :param string caption: The text to set
+   :param string caption: The text to set
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Label.getTextOpacity()
+.. js:function:: QuiX.ui.Label.getTextOpacity()
 
-      :returns: The text opacity expressed as a float number between 0 and 1.
+   :returns: The text opacity expressed as a float number between 0 and 1.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Label.setTextOpacity(op)
+.. js:function:: QuiX.ui.Label.setTextOpacity(op)
 
-      Adjusts the text opacity.
+   Adjusts the text opacity.
 
-      :param number op: The text opacity expressed as a float number between 0 and 1.
+   :param number op: The text opacity expressed as a float number between 0 and 1.

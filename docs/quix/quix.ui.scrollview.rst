@@ -42,15 +42,16 @@ Scroll View
 Methods
 -------
 
-   .. js:function:: QuiX.ui.ScrollView.scrollTo(x, y)
+.. js:function:: QuiX.ui.ScrollView.scrollTo(x, y)
 
-      Causes the scroll view to scroll at the specified co-ordinates.
+   Causes the scroll view to scroll at the specified co-ordinates.
 
-      :param number x: The horizontal scroll offset
-      :param number y: The vertical scroll offset
+   :param number x: The horizontal scroll offset
+   :param number y: The vertical scroll offset
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.ScrollView.getScrollOffset()
+.. js:function:: QuiX.ui.ScrollView.getScrollOffset()
 
-      :returns: An array in in the form of [x, y] that contains the
-         current horizontal and vertical scroll offsets respectively.
+   :returns: An array in in the form of [x, y] that contains the
+      current horizontal and vertical scroll offsets respectively.

@@ -30,78 +30,85 @@ Button
 Attributes
 ----------
 
-   .. js:attribute:: QuiX.ui.Button.align
+.. js:attribute:: QuiX.ui.Button.align
 
-      String attribute specifying the button's text alignment.
-      Valid values are ``left``, ``right`` and ``auto`` which translates
-      to left aligned text for ltr layouts and right aligned text for rtl
-      layouts.
-      Default value is ``auto``.
+   String attribute specifying the button's text alignment.
+   Valid values are ``left``, ``right`` and ``auto`` which translates
+   to left aligned text for ltr layouts and right aligned text for rtl
+   layouts.
+   Default value is ``auto``.
 
-      Example usage::
+   Example usage::
 
-         button.align = 'right';
-         button.redraw();
+      button.align = 'right';
+      button.redraw();
 
+--------------------------------------------------------------------------------
 
-   .. js:attribute:: QuiX.ui.Button.imgAlign
+.. js:attribute:: QuiX.ui.Button.imgAlign
 
-      String attribute specifying the button's image alignment.
-      Valid values are ``left``, ``right``, ``top`` and ``bottom``.
+   String attribute specifying the button's image alignment.
+   Valid values are ``left``, ``right``, ``top`` and ``bottom``.
 
-      Default value is ``left``.
+   Default value is ``left``.
 
-      Example usage::
+   Example usage::
 
-         button.imgAlign = 'top';
-         button.redraw();
+      button.imgAlign = 'top';
+      button.redraw();
 
+--------------------------------------------------------------------------------
 
-   .. js:attribute:: QuiX.ui.Button.spacing
+.. js:attribute:: QuiX.ui.Button.spacing
 
-      Number attribute specifying the spacing between the button's image and
-      the button's text in pixels.
-      Default value is 4.
+   Number attribute specifying the spacing between the button's image and
+   the button's text in pixels.
+   Default value is 4.
 
-      Example usage::
+   Example usage::
 
-         button.spacing = 8;
-         button.redraw();
+      button.spacing = 8;
+      button.redraw();
 
 Methods
 -------
 
-   .. js:function:: QuiX.ui.Button.getCaption()
+.. js:function:: QuiX.ui.Button.getCaption()
 
-      :returns: The text of the button
+   :returns: The text of the button
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Button.setCaption(caption)
+.. js:function:: QuiX.ui.Button.setCaption(caption)
 
-      Sets the text of the button.
+   Sets the text of the button.
 
-      :param string caption: The text to set
+   :param string caption: The text to set
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Button.getTextOpacity()
+.. js:function:: QuiX.ui.Button.getTextOpacity()
 
-      :returns: The text opacity expressed as a float number between 0 and 1.
+   :returns: The text opacity expressed as a float number between 0 and 1.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Button.setTextOpacity(op)
+.. js:function:: QuiX.ui.Button.setTextOpacity(op)
 
-      Adjusts the text opacity.
+   Adjusts the text opacity.
 
-      :param number op: The text opacity expressed as a float number between 0 and 1.
+   :param number op: The text opacity expressed as a float number between 0 and 1.
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Button.getImageURL()
+.. js:function:: QuiX.ui.Button.getImageURL()
 
-      :returns: The URL of the button's image if specified, otherwise ``null``
+   :returns: The URL of the button's image if specified, otherwise ``null``
 
+--------------------------------------------------------------------------------
 
-   .. js:function:: QuiX.ui.Button.setImageURL(url)
+.. js:function:: QuiX.ui.Button.setImageURL(url)
 
-      Specifies the button's image URL.
+   Specifies the button's image URL.
 
-      :param string url: The URL of the button's image
+   :param string url: The URL of the button's image

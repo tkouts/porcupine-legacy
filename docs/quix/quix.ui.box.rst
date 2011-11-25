@@ -40,30 +40,31 @@ Box
 Attributes
 ----------
 
-   .. js:attribute:: QuiX.ui.Box.spacing
+.. js:attribute:: QuiX.ui.Box.spacing
 
-      Attribute specifying the box's spacing in pixels.
-      Default value is 2.
+   Attribute specifying the box's spacing in pixels.
+   Default value is 2.
 
-      Example usage::
+   Example usage::
 
-         box.spacing = 4;
-         box.redraw(true);
+      box.spacing = 4;
+      box.redraw(true);
 
+--------------------------------------------------------------------------------
 
-   .. js:attribute:: QuiX.ui.Button.childrenAlign
+.. js:attribute:: QuiX.ui.Button.childrenAlign
 
-      Specifies the children alignment.
-      For vertical boxes it should be set to ``left``, ``right`` or ``center``.
-      For horizontal boxes it should be set to ``top``, ``bottom`` or ``center``.
+   Specifies the children alignment.
+   For vertical boxes it should be set to ``left``, ``right`` or ``center``.
+   For horizontal boxes it should be set to ``top``, ``bottom`` or ``center``.
 
-      Default value is ``top`` for horizontal boxes and ``left``
-      for vertical boxes.
+   Default value is ``top`` for horizontal boxes and ``left``
+   for vertical boxes.
 
-      Example usage::
+   Example usage::
 
-         box.childrenAlign = 'center';
-         box.redraw(true);
+      box.childrenAlign = 'center';
+      box.redraw(true);
 
 HBox
 ====
