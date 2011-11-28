@@ -7,7 +7,65 @@ Widget (Base Widget Class)
 
    Creates a new widget (rectangle).
 
-   :param object params: The parameters object
+   :param object params: The parameters object.
+
+      The ``top`` attribute defines the widget's top offset in pixels.
+
+      The ``left`` attribute defines the widget's left offset in pixels.
+
+      The ``width`` attribute defines the widget's width in pixels.
+
+      The ``height`` attribute defines the widget's height in pixels.
+
+         .. seealso:: :js:attr:`~QuiX.ui.Widget.top`,
+            :js:attr:`~QuiX.ui.Widget.left`,
+            :js:attr:`~QuiX.ui.Widget.width` and
+            :js:attr:`~QuiX.ui.Widget.height` attributes
+
+      The ``border`` attribute defines the widget's border width in pixels.
+
+         .. seealso:: :js:func:`~QuiX.ui.Widget.getBorderWidth` and
+            :js:func:`~QuiX.ui.Widget.setBorderWidth` methods
+
+      The ``padding`` attribute defines the widget's padding in pixels.
+      This should be a comma separated string of four numbers for the
+      left, right, top and bottom padding offsets respectively i.e. ``'2,2,2,2'``.
+
+         .. seealso:: :js:func:`~QuiX.ui.Widget.getPadding` and
+            :js:func:`~QuiX.ui.Widget.setPadding` methods
+
+
+      The ``minw`` attribute defines the widget's minimum width in pixels.
+
+      The ``minh`` attribute defines the widget's minimum height in pixels.
+
+         .. seealso:: :js:attr:`~QuiX.ui.Widget.minw` and
+            :js:attr:`~QuiX.ui.Widget.minh` attributes
+
+      The ``style`` attribute defines the widget's inline CSS style.
+
+      The ``tooltip`` attribute defines the tooltip text that appears when
+         the mouse remains over the widget for some time.
+
+      The ``overflow`` attribute defines the widget's overflow behavior.
+
+         .. seealso:: :js:func:`~QuiX.ui.Widget.setOverflow` method for
+            allowed values.
+
+      The ``display`` attribute sets the widget's CSS display setting.
+
+         .. seealso:: :js:func:`~QuiX.ui.Widget.getDisplay` and
+            :js:func:`~QuiX.ui.Widget.setDisplay` methods
+
+      The ``rotation`` attribute sets the widget's z-axis rotation in degrees.
+
+         .. seealso:: :js:func:`~QuiX.ui.Widget.getRotation` and
+            :js:func:`~QuiX.ui.Widget.setRotation` methods
+
+      The ``shadow`` attribute sets the widget's box-shadow CSS attribute.
+      This should be a comma separated string of four value for the
+      shadow's x offset, y offset, blur and shadow color i.e. ``'2,2,2,#CCCCCC'``.
+
 
    Example usage::
 
@@ -104,6 +162,35 @@ The :js:class:`~QuiX.ui.Widget` objects expose the following attributes:
           or sizing attributes (:js:attr:`~QuiX.ui.Widget.width`, :js:attr:`~QuiX.ui.Widget.height`)
           at runtime requires the widget to be redrawn in order for the new values
           to be reflected by using ``w.redraw();``
+
+--------------------------------------------------------------------------------
+
+.. js:attribute:: QuiX.ui.Widget.minw
+
+   Defines the widget's minimum width in pixels.
+   Valid values are:
+
+   * A number::
+
+      w.minw = 100;
+
+
+   * A function. The following example is equivalent to '50%'::
+
+      w.minw = function(memo) {
+          return this.parent.getWidth(false, memo) * 0.5;
+      };
+
+   * A string that eventually is transformed into a single line function::
+
+      w.minw = 'this.parent.getWidth(false, memo) * 0.5';
+
+--------------------------------------------------------------------------------
+
+.. js:attribute:: QuiX.ui.Widget.minh
+
+   Defines the widget's height in minh.
+   For a list of accepted values see :js:attr:`~QuiX.ui.Widget.minw`.
 
 --------------------------------------------------------------------------------
 
