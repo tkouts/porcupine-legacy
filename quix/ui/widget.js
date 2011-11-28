@@ -165,7 +165,7 @@ QuiX.ui.Widget.prototype.parseFromString = function(s /*, oncomplete, preloadIma
     this.parse(QuiX.parsers.domFromString(s), oncomplete, preloadImages);
 }
 
-QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete, preloadImages, async */) {
+QuiX.ui.Widget.prototype.parseFromUrl = function(url /*, oncomplete, preloadImages*/) {
     var oncomplete = arguments[1] || null,
         xmlhttp = QuiX.XHRPool.getInstance(),
         self = this;
