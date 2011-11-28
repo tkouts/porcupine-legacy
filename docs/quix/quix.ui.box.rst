@@ -13,6 +13,14 @@ Box
 
    :param object params: The parameters object
 
+      The ``spacing`` attribute defines the box's children spacing in pixels.
+
+         .. seealso:: :js:attr:`~QuiX.ui.Box.spacing` attribute
+
+      The ``childrenalign`` attribute defines the box's children alignment.
+
+         .. seealso:: :js:attr:`~QuiX.ui.Box.childrenAlign` attribute
+
    Example usage::
 
       var w = new QuiX.ui.Box({left: 0,
@@ -52,7 +60,7 @@ Attributes
 
 --------------------------------------------------------------------------------
 
-.. js:attribute:: QuiX.ui.Button.childrenAlign
+.. js:attribute:: QuiX.ui.Box.childrenAlign
 
    Specifies the children alignment.
    For vertical boxes it should be set to ``left``, ``right`` or ``center``.

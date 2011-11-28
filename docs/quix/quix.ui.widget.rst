@@ -215,7 +215,7 @@ Methods
 
 --------------------------------------------------------------------------------
 
-.. js:function:: QuiX.ui.Widget.getWidgetById(id [, shallow, [limit]])
+.. js:function:: QuiX.ui.Widget.getWidgetById(id [, shallow [, limit]])
 
    Searches the widget hierarchy and returns the widgets with the specified ID.
 
@@ -232,6 +232,155 @@ Methods
    .. TIP:: If the current document contains a single desktop and searching
             for a single widget ``document.getElementById(ID).widget`` works
             faster.
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.getParentByType(type)
+
+   Returns the first parent widget of a certain type.
+
+   :param function type: the constructor class function.
+
+   Example usage::
+
+      var win = w.getParentByType(QuiX.ui.Window);
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.getWidgetsByType(type [,shallow [, limit]])
+
+   Queries the widget's children and returns those of certain type.
+
+   :param function type: the constructor class function
+   :param bool shallow: Optional parameter specifying if this is a shallow search.
+                        Default value is ``false``.
+   :param number limit: Specify optionally the maximum number of widgets to return.
+                        If set to 1 the first widget found will be returned.
+                        Used mainly for speed optimization purposes.
+   :returns: an array of widgets of the specified type.
+
+   Example usage::
+
+      var fields = w.getWidgetsByType(QuiX.ui.Field);
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.getWidgetsByClassName(className [,shallow [, limit]])
+
+   Queries the widget's children and returns those who have a certain CSS class
+   applied.
+
+   :param string className: the CSS class name
+   :param bool shallow: Optional parameter specifying if this is a shallow search.
+                        Default value is ``false``.
+   :param number limit: Specify optionally the maximum number of widgets to return.
+                        If set to 1 the first widget found will be returned.
+                        Used mainly for speed optimization purposes.
+   :returns: an array of widgets.
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.getWidgetsByAttribute(attrName [,shallow [, limit]])
+
+   Queries the widget's children and returns those who have a specific attribute
+   defined.
+
+   :param string attrName: the attribute name
+   :param bool shallow: Optional parameter specifying if this is a shallow search.
+                        Default value is ``false``.
+   :param number limit: Specify optionally the maximum number of widgets to return.
+                        If set to 1 the first widget found will be returned.
+                        Used mainly for speed optimization purposes.
+   :returns: an array of widgets who have a specific attribute set.
+
+   Example usage::
+
+      var valueProviders = w.getWidgetsByAttribute('getValue');
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.getWidgetsByAttributeValue(attrName, value [,shallow [, limit]])
+
+   Queries the widget's children and returns those who have an attribute
+   set to a specific value.
+
+   :param string attrName: the attribute name
+   :param value: the value
+   :param bool shallow: Optional parameter specifying if this is a shallow search.
+                        Default value is ``false``.
+   :param number limit: Specify optionally the maximum number of widgets to return.
+                        If set to 1 the first widget found will be returned.
+                        Used mainly for speed optimization purposes.
+   :returns: an array of widgets who have their attribute set to the value
+      provided.
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.getWidgetsByCustomAttributeValue(attrName, value [,shallow [, limit]])
+
+   Queries the widget's children and returns those who have a custom attribute
+   set to a specific value.
+
+   :param string attrName: the custom attribute name
+   :param value: the value
+   :param bool shallow: Optional parameter specifying if this is a shallow search.
+                        Default value is ``false``.
+   :param number limit: Specify optionally the maximum number of widgets to return.
+                        If set to 1 the first widget found will be returned.
+                        Used mainly for speed optimization purposes.
+   :returns: an array of widgets who have their attribute set to the value
+      provided.
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.parseFromUrl(url, [,oncomplete [, preloadImages]])
+
+   Loads and renders an external QuiX UI over HTTP.
+
+   :param string url: the URL of the QuiX XML definition file
+   :param function oncomlete: the callback to call once the UI is rendered.
+      The first argument passed to the callback function is the top level widget
+      of the newly added hierarchy.
+   :param bool preloadImages: Optional parameter specifying if images
+      are preloaded. Default value is ``false``.
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.parseFromString(s, [,oncomplete [, preloadImages]])
+
+   Renders a QuiX UI defined in a string.
+
+   :param string s: the string that contains the QuiX UI XML definition
+   :param function oncomlete: the callback to call once the UI is rendered.
+      The first argument passed to the callback function is the top level widget
+      of the newly added hierarchy.
+   :param bool preloadImages: Optional parameter specifying if images
+      are preloaded. Default value is ``false``.
+
+   Example usage::
+
+      w.parseFromString('<rect xmlns="http://www.innoscript.org/quix" width="100%" height="100%">' +
+          '<label caption="Label" top="20" left="0"/>' +
+        '</rect>');
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.detach()
+
+   Detaches a widget from the DOM. The widget can then be re-attached by
+   using the :js:func:`~QuiX.ui.Widget.appendChild` method.
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.disable()
+
+   Disables the widget by removing all its event handlers.
+
+--------------------------------------------------------------------------------
+
+.. js:function:: QuiX.ui.Widget.enable()
+
+   Enables a disabled widget.
 
 --------------------------------------------------------------------------------
 

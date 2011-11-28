@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
 
    quix/index
-   oql/index
+.. oql/index
 
 
 Indices and tables
