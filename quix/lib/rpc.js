@@ -48,8 +48,9 @@ QuiX.rpc._cache = (function() {
             }
         }
     }
-    else
+    else {
         return null;
+    }
 })();
 
 QuiX.rpc._requestId = 0;
@@ -64,7 +65,7 @@ QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
         this.response = null;
         this.use_cache = true;
         this.id = ++QuiX.rpc._requestId;
-        this._xmlhttp = null;
+        this._xhr = null;
 
         // events
         this.onreadystatechange = null;
@@ -79,12 +80,14 @@ QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
 
 QuiX.rpc.BaseRPCRequest._onstatechange = function() {
     var request = QuiX.rpc._requests[this.id];
+
     if (this.readyState == 4) {
         var response = null;
         var status = this.status;
+
         // parse response...
         try {
-            if (status == 304 ||(status == 0 && QuiX.utils.BrowserInfo.family == 'op') ) { //Not modfied
+            if (status == 304 || (status == 0 && QuiX.utils.BrowserInfo.family == 'op')) { //Not modfied
                 response = request._parser.parseResponse(request._cached);
             }
             else if (status!=0 && this.responseText != "") {
@@ -112,8 +115,9 @@ QuiX.rpc.BaseRPCRequest._onstatechange = function() {
         }
     }
     else {
-        if (request.onreadystatechange)
+        if (request.onreadystatechange) {
             request.onreadystatechange(request);
+        }
     }
 }
 
@@ -126,36 +130,35 @@ QuiX.rpc.BaseRPCRequest.prototype.onerror = function(e) {
 }
 
 QuiX.rpc.BaseRPCRequest.prototype._getResponse = function() {
-	var xmlhttp = this._xmlhttp;
+	var xhr = this._xhr;
     return this._parser.parseResponse(
-                    (xmlhttp.responseXML && xmlhttp.responseXML.documentElement)?
-                     xmlhttp.responseXML:xmlhttp.responseText, xmlhttp.id);
+        (xhr.responseXML && xhr.responseXML.documentElement)?
+         xhr.responseXML:xhr.responseText, xhr.id);
 }
 
 QuiX.rpc.BaseRPCRequest.prototype.abort = function() {
-	if(this._xmlhttp != null) {
-		this._xmlhttp.abort();
-		QuiX.XHRPool.release(this._xmlhttp);
+	if (this._xhr != null) {
+		//this._xhr.abort();
+		QuiX.XHRPool.release(this._xhr);
         delete QuiX.rpc._requests[this.id];
-		this._xmlhttp = null;
+		this._xhr = null;
 		QuiX.removeLoader();
 	}
 }
 
-QuiX.rpc.BaseRPCRequest.prototype.callmethod =
-function(method_name /*, arg1, arg2, ...*/) {
+QuiX.rpc.BaseRPCRequest.prototype.callmethod = function(method_name /*, arg1, arg2, ...*/) {
     if (this._validateMethodName(method_name)) {
         var args = Array.prototype.slice.call(arguments);
         var request = this._parser.packRequest(this.id, method_name,
                                                args.slice(1, args.length));
-        this._xmlhttp = QuiX.XHRPool.getInstance();
+        this._xhr = QuiX.XHRPool.getInstance();
 
-        this._xmlhttp.id = this.id;
-        this._xmlhttp.open('POST', this.url, this.async);
-        this._xmlhttp.setRequestHeader('Content-Type', this._contentType);
+        this._xhr.id = this.id;
+        this._xhr.open('POST', this.url, this.async);
+        this._xhr.setRequestHeader('Content-Type', this._contentType);
 
         if (this.async) {
-            this._xmlhttp.onreadystatechange = function() {
+            this._xhr.onreadystatechange = function() {
                 QuiX.rpc.BaseRPCRequest._onstatechange.apply(this);
             }
         }
@@ -172,21 +175,21 @@ function(method_name /*, arg1, arg2, ...*/) {
             var self = this;
             QuiX.rpc._cache.get(this.key, function(val) {
                 if (val != null) {
-                    self._xmlhttp.setRequestHeader("If-None-Match", val[0]);
+                    self._xhr.setRequestHeader("If-None-Match", val[0]);
                     self._cached = val[1];
                 }
-                self._xmlhttp.send(request);
+                self._xhr.send(request);
             });
         }
         else {
-            this._xmlhttp.send(request);
+            this._xhr.send(request);
             if (!this.async) {
                 try {
                     return this._getResponse();
                 }
                 finally {
                     QuiX.removeLoader();
-                    QuiX.XHRPool.release(this._xmlhttp);
+                    QuiX.XHRPool.release(this._xhr);
                     delete QuiX.rpc._requests[this.id];
                 }
             }
@@ -194,8 +197,7 @@ function(method_name /*, arg1, arg2, ...*/) {
     }
     else {
         throw new QuiX.Exception('QuiX.rpc.BaseRPCRequest.callMethod',
-                                 'Invalid RPC method name "' +
-                                 method_name + '"');
+                                 'Invalid RPC method name "' + method_name + '"');
     }
 }
 

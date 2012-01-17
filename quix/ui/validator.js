@@ -58,8 +58,8 @@ QuiX.ui.Validator.rules = {
 
             if (!loader.parent) {
                 var it = window.setInterval(
-                    function(){
-                        if(loader.parent) {
+                    function() {
+                        if (loader.parent) {
                             loader.destroy();
                             window.clearInterval(it);
                         }
