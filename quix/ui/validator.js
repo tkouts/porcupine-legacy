@@ -55,8 +55,20 @@ QuiX.ui.Validator.rules = {
                 rpc = new QuiX.rpc.JSONRPCRequest(url, false),
                 loader = this._validator._showLoader(),
                 resp = rpc.callmethod(method, this.getValue());
-            
-            loader.destroy();
+
+            if (!loader.parent) {
+                var it = window.setInterval(
+                    function(){
+                        if(loader.parent) {
+                            loader.destroy();
+                            window.clearInterval(it);
+                        }
+                    }, 50);
+            }
+            else {
+                loader.destroy();
+            }
+
             this._validator._ajaxError = !resp;
 
             return {error: !resp,
@@ -176,7 +188,7 @@ QuiX.ui.Validator.prototype._showLoader = function() {
         img : url
     });
     image.load(
-        function(){
+        function() {
             ld.width = this.width;
             ld.height = this.height;
             ld.left = (self.element.getScreenLeft() + self.element.getWidth()) - this.width;

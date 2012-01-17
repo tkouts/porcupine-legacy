@@ -50,9 +50,43 @@
 /* HBox             */
 /********************/
 
+.hflexbox {
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+    -webkit-box-align: start;
+
+    display: -moz-box;
+    -moz-box-orient: horizontal;
+    -moz-box-align: start;
+
+    display: box;
+    box-orient: horizontal;
+    box-align: start;
+}
+
+.hbox {
+    white-space: nowrap;
+}
+
 .hbox > * {
     vertical-align: top;
     display: inline-block;
+}
+
+/********************/
+/* VBox             */
+/********************/
+
+.vflexbox {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+
+    display: -moz-box;
+    -moz-box-orient: vertical;
+
+    display: box;
+    box-orient: vertical;
+    box-align: start;
 }
 
 /********************/
@@ -990,6 +1024,9 @@
 /********************/
 
 .ifrm iframe {
+    position: absolute;
     width: 100%;
     height: 100%;
+    top: 0px;
+    bottom: 0px;
 }

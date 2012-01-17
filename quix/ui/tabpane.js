@@ -70,7 +70,7 @@ QuiX.ui.TabPane._calcPageHeight = function(memo) {
 QuiX.ui.TabPane.prototype.addTab = function(params) {
     var oTab = QuiX.theme.tabpane.tabbutton.get(params.img, params.caption,
         params.bgcolor, params.color);
-    oTab.height = this.headerSize + 2;
+    oTab.height = this.headerSize + ((QuiX.css.boxSizing)? 1:2);
     oTab.attachEvent('onclick', QuiX.ui.TabPane._tabClick);
     oTab.attachEvent('onmouseover', QuiX.ui.TabPane._tabOver);
     oTab.attachEvent('onmouseout', QuiX.ui.TabPane._tabOut);

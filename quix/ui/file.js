@@ -155,7 +155,8 @@ QuiX.ui.File.prototype.fileSelected = function(file) {
 
 QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
     if (queued > 0) {
-        var self = this;
+        var self = this,
+        	caption = this.getDesktop().attributes.CANCEL || 'Cancel';
         this.getDesktop().parseFromString(
             '<dialog xmlns="http://www.innoscript.org/quix" title="' +
                     this.file.name + '" ' +
@@ -167,8 +168,7 @@ QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
                         'caption="0%"/>' +
                     '</progressbar>' +
                 '</wbody>' +
-                '<dlgbutton width="70" height="22" caption="' +
-                    this.getDesktop().attributes.CANCEL + '"/>' +
+                '<dlgbutton width="70" height="22" caption="' + caption + '"/>' +
             '</dialog>',
             function(dlg) {
                 self.attributes.pbar =
@@ -333,7 +333,8 @@ QuiX.ui.MultiFile.prototype.setFileTypes = QuiX.ui.File.prototype.setFileTypes;
 QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
     if (queued > 0) {
         var self = this;
-        var proceed = self.trigger('onbeforeupload');
+        var proceed = self.trigger('onbeforeupload'),
+        	caption = this.getDesktop().attributes.CANCEL || 'Cancel';
         if (!proceed) {
             var f;
             while (self.upload_queue.length > 0) {
@@ -357,7 +358,7 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
                         'caption="0%"/>' +
                     '</progressbar>' +
                 '</wbody>' +
-                '<dlgbutton width="70" height="22" caption="CANCEL"/>' +
+                '<dlgbutton width="70" height="22" caption="' + caption + '"/>' +
             '</dialog>',
             function (dlg) {
                 self.attributes.pbars =

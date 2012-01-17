@@ -14,30 +14,52 @@
 //  along with Porcupine; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //=============================================================================
-<%
-    from porcupine.utils.date import Date
-    resources = Date.resources
-
-    sLang = Request.get_lang()
-    lstMonths = resources.get_resource("MONTHS", sLang)
-    lstDays = resources.get_resource("DAYS", sLang)
-    sMonths = ','.join(['"' + x + '"' for x in lstMonths])
-    sDays = ','.join(['"' + x + '"' for x in lstDays[-1:] + lstDays[:-1]])
-
-    sAM = resources.get_resource("AM", sLang)
-    sPM = resources.get_resource("PM", sLang)
-
-    Response.content_type = 'application/x-javascript'
-%>
 
 //=============================================================================
 //  Date extensions
 //=============================================================================
 
-Date.prototype.Months = [<%Response.write(sMonths)%>];
-Date.prototype.Days = [<%Response.write(sDays)%>];
-Date.prototype.AM = '<%Response.write(sAM)%>';
-Date.prototype.PM = '<%Response.write(sPM)%>';
+Date.prototype.Months = (function() {
+    switch (navigator.locale) {
+        case 'el':
+            return ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος',
+                    'Μάϊος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος',
+                    'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
+        default:
+            return ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November',
+                    'December'];
+    }
+})();
+
+Date.prototype.Days = (function() {
+    switch (navigator.locale) {
+        case 'el':
+            return ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη',
+                    'Παρασκευή', 'Σάββατο', 'Κυριακή'];
+        default:
+            return ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                    'Friday', 'Saturday', 'Sunday'];
+    }
+})();
+
+Date.prototype.AM = (function() {
+    switch (navigator.locale) {
+        case 'el':
+            return 'πμ';
+        default:
+            return 'AM';
+    }
+})();
+
+Date.prototype.PM = (function() {
+    switch (navigator.locale) {
+        case 'el':
+            return 'μμ';
+        default:
+            return 'PM';
+    }
+})();
 
 Date.prototype.toUtc = function() {
     return new Date(this.getTime() + (this.getTimezoneOffset() * 60000));
@@ -231,7 +253,7 @@ if (!Array.prototype.indexOf) {
 }
 
 if (!Array.prototype.filter) {
-    Array.prototype.filter = function(fun /*, thisp*/) {    
+    Array.prototype.filter = function(fun /*, thisp*/) {
         if (this === void 0 || this === null) {
             throw new TypeError();
         }

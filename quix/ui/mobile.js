@@ -84,13 +84,18 @@ QuiX.ui.ScrollView.prototype.appendChild = function(w /*, index*/) {
 }
 
 QuiX.ui.ScrollView.prototype._adjust = function(memo) {
+    var ch = this.getHeight(false, memo),
+        cw = this.getWidth(false, memo),
+        sh = this._c.getHeight(true, memo),
+        sw = this._c.getWidth(true, memo);
+
     if (this.dir != 'h') {
         this._vs.left = this.getWidth(false, memo) - 6;
-        this._vs.height = (this.getHeight(false, memo) / this._c.getHeight(true, memo)) * this.getHeight(false, memo) - ((this.dir != 'v')? 8:0);
+        this._vs.height = (ch / sh) * ch - ((this.dir != 'v')? 8:0);
     }
     if (this.dir != 'v') {
         this._hs.top = this.getHeight(false) - 6;
-        this._hs.width = (this.getWidth(false, memo) / this._c.getWidth(true, memo)) * this.getWidth(false, memo) - ((this.dir != 'h')? 8:0);
+        this._hs.width = (cw / sw) * cw - ((this.dir != 'h')? 8:0);
     }
 
     if (this.dir != 'h') {
@@ -104,20 +109,22 @@ QuiX.ui.ScrollView.prototype._adjust = function(memo) {
     this._vs.hide();
     this._hs.hide();
 
-    this._h = this.getHeight(false, memo);
-    this._w = this.getWidth(false, memo);
-    this._sh = this._c.getHeight(true, memo);
-    this._sw = this._c.getWidth(true, memo);
+    this._h = ch;
+    this._w = cw;
+    this._sh = sh;
+    this._sw = sw;
 }
 
 QuiX.ui.ScrollView.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
 
-    if (bForceAll || typeof this._rds == 'undefined') {
-        this._adjust(memo);
-    }
+    if (!memo[this._uniqueid + 'r']) {
+        if (bForceAll || typeof this._rds == 'undefined') {
+            this._adjust(memo);
+        }
 
-    QuiX.ui.Widget.prototype.redraw.call(this, bForceAll, memo);
+        QuiX.ui.Widget.prototype.redraw.call(this, bForceAll, memo);
+    }
 }
 
 QuiX.ui.ScrollView.prototype.getScrollOffset = function() {
@@ -192,6 +199,7 @@ QuiX.ui.ScrollView._startScroll = function(evt, sv) {
         w = sv._w,
         sh = sv._sh,
         sw = sv._sw;
+
     if (sh > h || sw > w) {
         var target = QuiX.getTarget(evt),
             source = QuiX.getWidget(target),

@@ -64,6 +64,7 @@ QuiX.rpc.BaseRPCRequest = function(url /*, async*/) {
         this.response = null;
         this.use_cache = true;
         this.id = ++QuiX.rpc._requestId;
+        this._xmlhttp = null;
 
         // events
         this.onreadystatechange = null;
@@ -124,10 +125,21 @@ QuiX.rpc.BaseRPCRequest.prototype.onerror = function(e) {
     QuiX.displayError(e);
 }
 
-QuiX.rpc.BaseRPCRequest.prototype._getResponse = function(xmlhttp) {
+QuiX.rpc.BaseRPCRequest.prototype._getResponse = function() {
+	var xmlhttp = this._xmlhttp;
     return this._parser.parseResponse(
                     (xmlhttp.responseXML && xmlhttp.responseXML.documentElement)?
                      xmlhttp.responseXML:xmlhttp.responseText, xmlhttp.id);
+}
+
+QuiX.rpc.BaseRPCRequest.prototype.abort = function() {
+	if(this._xmlhttp != null) {
+		this._xmlhttp.abort();
+		QuiX.XHRPool.release(this._xmlhttp);
+        delete QuiX.rpc._requests[this.id];
+		this._xmlhttp = null;
+		QuiX.removeLoader();
+	}
 }
 
 QuiX.rpc.BaseRPCRequest.prototype.callmethod =
@@ -136,14 +148,14 @@ function(method_name /*, arg1, arg2, ...*/) {
         var args = Array.prototype.slice.call(arguments);
         var request = this._parser.packRequest(this.id, method_name,
                                                args.slice(1, args.length));
-        var xmlhttp = QuiX.XHRPool.getInstance();
+        this._xmlhttp = QuiX.XHRPool.getInstance();
 
-        xmlhttp.id = this.id;
-        xmlhttp.open('POST', this.url, this.async);
-        xmlhttp.setRequestHeader('Content-Type', this._contentType);
+        this._xmlhttp.id = this.id;
+        this._xmlhttp.open('POST', this.url, this.async);
+        this._xmlhttp.setRequestHeader('Content-Type', this._contentType);
 
         if (this.async) {
-            xmlhttp.onreadystatechange = function() {
+            this._xmlhttp.onreadystatechange = function() {
                 QuiX.rpc.BaseRPCRequest._onstatechange.apply(this);
             }
         }
@@ -160,21 +172,21 @@ function(method_name /*, arg1, arg2, ...*/) {
             var self = this;
             QuiX.rpc._cache.get(this.key, function(val) {
                 if (val != null) {
-                    xmlhttp.setRequestHeader("If-None-Match", val[0]);
+                    self._xmlhttp.setRequestHeader("If-None-Match", val[0]);
                     self._cached = val[1];
                 }
-                xmlhttp.send(request);
+                self._xmlhttp.send(request);
             });
         }
         else {
-            xmlhttp.send(request);
+            this._xmlhttp.send(request);
             if (!this.async) {
                 try {
-                    return this._getResponse(xmlhttp);
+                    return this._getResponse();
                 }
                 finally {
                     QuiX.removeLoader();
-                    QuiX.XHRPool.release(xmlhttp);
+                    QuiX.XHRPool.release(this._xmlhttp);
                     delete QuiX.rpc._requests[this.id];
                 }
             }

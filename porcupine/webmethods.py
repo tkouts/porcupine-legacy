@@ -69,11 +69,16 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
                     context.request.get_query_string())
 
                 # get revision of quix core files
-                core_revision = misc.get_revision('__quix', 'core.js')
+                core_revision = misc.get_revision('quix', 'core.js')
 
-                vars = (bgcolor, title, script_name, script_name,
-                        core_revision, str(cookies_required).lower(),
+                vars = (bgcolor,
+                        title,
+                        script_name,
+                        core_revision,
+                        context.request.get_lang(),
+                        str(cookies_required).lower(),
                         no_cookies_url)
+
                 context.response.content_type = 'text/html'
                 context.response.write(('''
 <!DOCTYPE html>
@@ -81,26 +86,27 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
     <head>
         <title>%s</title>
         <script type="text/javascript" defer="defer"
-            src="%s/__quix/lib/extensions.js">
-        </script>
-        <script type="text/javascript" defer="defer"
-            src="%s/__quix/core.js?r=%d">
+            src="%s/quix/core.js?r=%d">
         </script>
         <script type="text/javascript">
             (function() {
+                navigator.locale = '%s';
                 document.cookiesEnabled = false;
                 document.cookiesRequired = %s;
                 var session_id = (
                     new RegExp("/\(?:{|%%7b)(.*?)\(?:}|%%7d)", "i"))
                     .exec(document.location.href);
-                if (session_id)
+                if (session_id) {
                     session_id = session_id[1];
+                }
                 if (typeof document.cookie == "string" &&
-                        document.cookie.length != 0)
+                        document.cookie.length != 0) {
                     document.cookiesEnabled = true;
-                if (!session_id && !document.cookiesEnabled)
+                }
+                if (!session_id && !document.cookiesEnabled) {
                     document.location.href = '%s';
-                })();
+                }
+            })();
         </script>
         <script id="quix" type="application/xml">''' % vars).strip())
 

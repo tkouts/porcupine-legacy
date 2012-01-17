@@ -8,10 +8,12 @@
             max-age="31556926">
         <filter type="porcupine.filters.output.JSMerge"
                 files="quix/quix.js,
+                       quix/lib/extensions.js,
                        quix/lib/parsers_hashlib.js,
                        quix/lib/utils.js,
                        quix/lib/persist.js,
                        quix/lib/utils.js,
+                       quix/lib/swfobject.js,
                        quix/lib/rpc.js,
                        quix/ui/widget.js,
                        quix/swfupload/swfupload.js"/>
@@ -24,10 +26,12 @@
             max-age="31556926">
         <filter type="porcupine.filters.output.JSMerge"
                 files="quix/quix.js,
+                       quix/lib/extensions.js,
                        quix/lib/parsers_hashlib.js,
                        quix/lib/utils.js,
                        quix/lib/persist.js,
                        quix/lib/utils.js,
+                       quix/lib/swfobject.js,
                        quix/lib/rpc.js,
                        quix/ui/widget.js,
                        quix/swfupload/swfupload.js"/>
@@ -41,6 +45,7 @@
             max-age="31556926">
         <filter type="porcupine.filters.output.JSMerge"
                 files="quix/quix.js,
+                       quix/lib/extensions.js,
                        quix/lib/parsers_hashlib.js,
                        quix/lib/utils.js,
                        quix/lib/persist.js,

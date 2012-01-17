@@ -139,7 +139,6 @@ QuiX.ui.Effect = function(/*params*/) {
 }
 
 QuiX.ui.Effect.cssTransition = QuiX.getCssAttribute('transition');
-QuiX.ui.Effect.cssTransform = QuiX.getCssAttribute('transform');
 
 QuiX.constructors['effect'] = QuiX.ui.Effect;
 QuiX.ui.Effect.prototype = new QuiX.ui.Timer;
@@ -159,6 +158,11 @@ QuiX.ui.Effect.easePresets = {
 QuiX.ui.Effect.supports3d = (function() {
     if (!document.body) {
         setTimeout(arguments.callee, 250);
+        return false;
+    }
+
+    if (QuiX.utils.BrowserInfo.OS == 'Android') {
+        // disable 3d support on android
         return false;
     }
 
@@ -383,11 +387,11 @@ QuiX.ui.Effect.prototype._apply_css_effect = function(wd) {
                     tx = '0px,' + (range[1] - range[0]) + 'px';
                 }
                 if (QuiX.ui.Effect.supports3d) {
-                    wd.div.style[QuiX.ui.Effect.cssTransform] =
+                    wd.div.style[QuiX.css.transform] =
                         'translate3d(' + tx + ',0px)';
                 }
                 else {
-                    wd.div.style[QuiX.ui.Effect.cssTransform] =
+                    wd.div.style[QuiX.css.transform] =
                         'translate(' + tx  + ')';
                 }
             }
@@ -454,10 +458,10 @@ QuiX.ui.Effect.prototype.stop = function() {
                 if (QuiX.ui.Effect.cssTransition) {
                     // restore x and y coordinates
                     if (QuiX.ui.Effect.supports3d) {
-                        wd.div.style[QuiX.ui.Effect.cssTransform] = 'translate3d(0px,0px,0px)';
+                        wd.div.style[QuiX.css.transform] = 'translate3d(0px,0px,0px)';
                     }
                     else {
-                        wd.div.style[QuiX.ui.Effect.cssTransform] = 'translate(0px,0px)';
+                        wd.div.style[QuiX.css.transform] = 'translate(0px,0px)';
                     }
                 }
                 break;

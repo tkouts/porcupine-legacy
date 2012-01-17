@@ -38,13 +38,17 @@ QuiX.ui.Widget = function(/*params*/) {
     }
     this.div.widget = this;
     this._uniqueid = QuiX.utils.uid();
+
     if (params.id) {
         this.setId(params.id);
     }
+
     if (params.bgcolor) {
         this.setBgColor(params.bgcolor);
     }
+
     this.setBorderWidth(parseInt(params.border) || 0);
+
     if (params.padding) {
         var padding = params.padding.split(',');
         this.setPadding(padding);
@@ -60,13 +64,19 @@ QuiX.ui.Widget = function(/*params*/) {
     if (params.display) {
         this.setDisplay(params.display);
     }
+
     if (params.overflow) {
         this.setOverflow(params.overflow);
     }
+
     if (params.rotation) {
         this.setRotation(params.rotation);
     }
+
     this.div.style.position = 'absolute';
+    if (QuiX.css.boxSizing) {
+        this.div.style[QuiX.css.boxSizing] = 'border-box';
+    }
 
     this._buildEventRegistry(params);
     this._attachEvents();
@@ -101,7 +111,6 @@ QuiX.ui.Widget.prototype.__class__ = QuiX.ui.Widget;
 QuiX.ui.Widget.prototype.appendChild = function(w /*, index*/) {
     var index = (typeof arguments[1] != 'undefined')? arguments[1]:null;
     w.parent = this;
-    w.bringToFront();
 
     if (this._isDisabled) {
         w.disable();
@@ -110,10 +119,16 @@ QuiX.ui.Widget.prototype.appendChild = function(w /*, index*/) {
     if (index != null && index >= 0 && index < this.widgets.length) {
         this.div.insertBefore(w.div, this.widgets[index].div);
         this.widgets.splice(index, 0, w);
+        if (w.div.style.position == 'absolute') {
+            w.setOrder(index);
+        }
     }
     else {
         this.div.appendChild(w.div);
         this.widgets.push(w);
+        if (w.div.style.position == 'absolute') {
+            w.div.style.zIndex = ++this.maxz;
+        }
     }
 }
 
@@ -218,6 +233,15 @@ QuiX.ui.Widget.prototype.getParentByType = function(wtype) {
     var w = this.parent;
     while (w) {
         if (w instanceof wtype) return w;
+        w = w.parent;
+    }
+    return null;
+}
+
+QuiX.ui.Widget.prototype.getParentById = function(wid) {
+    var w = this.parent;
+    while (w) {
+        if (w._id == wid) return w;
         w = w.parent;
     }
     return null;
@@ -342,21 +366,35 @@ QuiX.ui.Widget.prototype._setAbsProps = function(memo) {
 QuiX.ui.Widget.prototype._setCommonProps = function(/*memo*/) {
     var memo = arguments[0] || {},
         w = '', h = '',
-        borders = 2 * this.getBorderWidth(),
         isIE7 = document.all && QuiX.utils.BrowserInfo.version < 8;
 
-    if (((this.width != null && this.width != 'auto') ||
-            (this.width == 'auto' && this._calcAuto)) &&
-            !(this.width == '100%' && this.div.style.position != 'absolute' && !isIE7)) {
-        w = (typeof memo[this._uniqueid + 'cw'] != 'undefined')?
-            memo[this._uniqueid + 'cw']:this._calcWidth(false, memo);
-        if (this.div.offsetWidth > 0 &&
-                (this.div.style.overflow == 'auto' ||
-                 this.div.style.overflowY == 'auto')) {
-            // include scrollbar width
-            w += this.div.offsetWidth - this.div.clientWidth - borders;
+    if (((this.width != null && this.width != 'auto') || (this.width == 'auto' && this._calcAuto)) &&
+            !(this.width == '100%' && this.div.style.position != 'absolute'
+               && !(QuiX.css.boxFlex && this.parent.orientation == 'v') && !isIE7)) {
+
+        if (typeof this.width == 'string' && this.width.charAt(0) == '@') {
+            w = 0;
         }
-        w = w + 'px';
+        else {
+            if (QuiX.css.boxSizing) {
+                w = (typeof memo[this._uniqueid + 'w'] != 'undefined')?
+                    memo[this._uniqueid + 'w']:this._calcWidth(true, memo);
+            }
+            else {
+                var borders = 2 * this.getBorderWidth();
+                w = (typeof memo[this._uniqueid + 'cw'] != 'undefined')?
+                    memo[this._uniqueid + 'cw']:this._calcWidth(false, memo);
+                if (this.div.offsetWidth > 0 &&
+                        (this.div.style.overflow == 'auto' ||
+                         this.div.style.overflowY == 'auto')) {
+                    // include scrollbar width
+                    w += this.div.offsetWidth - this.div.clientWidth - borders;
+                }
+            }
+        }
+        if (typeof w == 'number') {
+            w = w + 'px';
+        }
     }
     else if (this.minw) {
         var minw = this._calcMinWidth(memo);
@@ -368,16 +406,31 @@ QuiX.ui.Widget.prototype._setCommonProps = function(/*memo*/) {
 
     if ((this.height != null && this.height != 'auto') ||
             (this.height == 'auto' && this._calcAuto)) {
-        h = (typeof memo[this._uniqueid + 'ch'] != 'undefined')?
-            memo[this._uniqueid + 'ch']:this._calcHeight(false, memo);
 
-        if (this.div.offsetHeight > 0 &&
-                (this.div.style.overflow == 'auto' ||
-                 this.div.style.overflowX == 'auto')) {
-            // include scrollbar width
-            h += this.div.offsetHeight - this.div.clientHeight - borders;
+        if (typeof this.height == 'string' && this.height.charAt(0) == '@') {
+            h = 0;
         }
-        h = h + 'px';
+        else {
+            if (QuiX.css.boxSizing) {
+                h = (typeof memo[this._uniqueid + 'h'] != 'undefined')?
+                    memo[this._uniqueid + 'h']:this._calcHeight(true, memo);
+            }
+            else {
+                var borders = 2 * this.getBorderWidth();
+                h = (typeof memo[this._uniqueid + 'ch'] != 'undefined')?
+                    memo[this._uniqueid + 'ch']:this._calcHeight(false, memo);
+                if (this.div.offsetHeight > 0 &&
+                        (this.div.style.overflow == 'auto' ||
+                         this.div.style.overflowX == 'auto')) {
+                    // include scrollbar width
+                    h += this.div.offsetHeight - this.div.clientHeight - borders;
+                }
+            }
+        }
+
+        if (typeof h == 'number') {
+            h = h + 'px';
+        }
     }
     else if (this.minh) {
         var minh = this._calcMinHeight(memo);
@@ -518,9 +571,16 @@ QuiX.ui.Widget.prototype.getBgColor = function() {
 
 // rotation attribute
 QuiX.ui.Widget.prototype.setRotation = function(degrees) {
-    var transform = QuiX.getCssAttribute('transform');
-    if (transform) {
-        this.div.style[transform] = "rotate(" + degrees + "deg)";
+    if (QuiX.css.transform) {
+        this.div.style[QuiX.css.transform] = this.div.style[QuiX.css.transform].replace(/rotateZ?\(\-*[0-9.]{1,10}deg\)/gi, "");
+        if (degrees != 0) {
+            if (QuiX.ui.Effect.supports3d) {
+                this.div.style[QuiX.css.transform] += "rotateZ(" + degrees +  "deg)";
+            }
+            else {
+                this.div.style[QuiX.css.transform] += "rotate(" + degrees +  "deg)";
+            }
+        }
         this._rot = degrees;
     }
 }
@@ -656,39 +716,71 @@ QuiX.ui.Widget.prototype.addClass = function(cls) {
 }
 
 QuiX.ui.Widget.prototype._mustRedraw = function () {
-    return  isNaN(this.left) || isNaN(this.top) || (isNaN(this.height) && this.height != null)
-            || (isNaN(this.width) && this.width != null);
+    return  isNaN(this.left) || isNaN(this.top) || isNaN(this.height)
+            || isNaN(this.width);
 }
 
 QuiX.ui.Widget.prototype.getLeft = function() {
-    var lf = this.div.offsetLeft;
-    if (this.div.style.position == 'absolute') {
-        lf -= parseInt(this.parent.div.style.paddingLeft);
+    var lf,
+        tx = null;
+
+    if (QuiX.utils.BrowserInfo.family == 'op' && this.parent.div.style[QuiX.css.transform]) {
+        tx = this.parent.div.style[QuiX.css.transform];
+        this.parent.div.style[QuiX.css.transform] = '';
+    }
+    lf = this.div.offsetLeft;
+    lf -= parseInt(this.parent.div.style.paddingLeft);
+    if (QuiX.css.boxSizing && QuiX.utils.BrowserInfo.family != 'saf') {
+        lf -= this.parent.getBorderWidth();
     }
     if (QuiX.dir == 'rtl') {
         lf = QuiX.transformX(lf + this.getWidth(true), this.parent);
+    }
+    if (tx) {
+        this.parent.div.style[QuiX.css.transform] = tx;
     }
     return lf;
 }
 
 QuiX.ui.Widget.prototype.getTop = function() {
-    var top = this.div.offsetTop;
-    if (this.div.style.position == 'absolute') {
-        top -= parseInt(this.parent.div.style.paddingTop);
+    var top,
+        tx = null;
+
+    if (QuiX.utils.BrowserInfo.family == 'op' && this.parent.div.style[QuiX.css.transform]) {
+        tx = this.parent.div.style[QuiX.css.transform];
+        this.parent.div.style[QuiX.css.transform] = '';
+    }
+    top = this.div.offsetTop;
+    top -= parseInt(this.parent.div.style.paddingTop);
+    if (QuiX.css.boxSizing && QuiX.utils.BrowserInfo.family != 'saf') {
+        top -= this.parent.getBorderWidth();
+    }
+    if (tx) {
+        this.parent.div.style[QuiX.css.transform] = tx;
     }
     return top;
 }
 
-QuiX.ui.Widget._funCache = {};
+QuiX.ui.Widget._funCache = {
+    'bottom': function(memo) {
+        this.div.style.top = '0px';
+        return this.parent.getHeight(false, memo) - this.getHeight(true, memo) - this.getTop();
+    },
+    'right': function(memo) {
+        this.div.style.left = '0px';
+        return this.parent.getWidth(false, memo) - this.getWidth(true, memo) - this.getLeft();
+    }
+};
 
-QuiX.ui.Widget.prototype._calcAuto = function(dim, memo /*, offset*/) {
+QuiX.ui.Widget.prototype._calcAuto = function(dim, memo) {
     var padding_offset = (dim == 'height')? 2:0,
         padding = this.getPadding(),
-        offset = arguments[2] || '_calc',
-        offset_func = (dim == 'height')? offset + 'Top': offset + 'Left',
+        offset_func = (dim == 'height')? '_calcTop':'_calcLeft',
         min_size = (dim == 'height')? 'minh':'minw',
         offset_var = (dim == 'height')? 'top':'left',
+        offset_key = (dim == 'height')? 't':'l',
         length_func = (dim == 'height')? '_calcHeight':'_calcWidth',
+        length_key = (dim == 'height')? 'h':'w',
         value = 0,
         old_dim = this[dim];
 
@@ -700,22 +792,22 @@ QuiX.ui.Widget.prototype._calcAuto = function(dim, memo /*, offset*/) {
         this[dim] = 0;
     }
 
-    var memo2 = {};
-
     for (var i=0; i<this.widgets.length; i++) {
         var w = this.widgets[i],
             w_length;
 
         if (w.div.style.display != 'none') {
-            if (w[dim] == 'auto') {
-                w.redraw(false, memo2);
+            if (w[dim] == 'auto' && !memo[w._uniqueid + 'r']) {
+                w.redraw(false, memo);
             }
             if (!isNaN(w[dim]) || w[dim] == 'auto' || this[min_size]) {
-                var offs = 0;
+                w_length = 0;
                 if (!isNaN(w[offset_var])) {
-                    offs = w[offset_func](memo);
+                    w_length = (typeof memo[w._uniqueid + offset_key] == 'undefined')?
+                        w[offset_func](memo):memo[w._uniqueid + offset_key];
                 }
-                w_length = offs + w[length_func](true, memo);
+                w_length += (typeof memo[w._uniqueid + length_key] == 'undefined')?
+                    w[length_func](true, memo):memo[w._uniqueid + length_key];
                 value = Math.max(value, w_length);
             }
         }
@@ -727,6 +819,7 @@ QuiX.ui.Widget.prototype._calcAuto = function(dim, memo /*, offset*/) {
             padding[padding_offset] +
             padding[padding_offset + 1] +
             2 * this.getBorderWidth();
+
     return value;
 }
 
@@ -734,15 +827,21 @@ QuiX.ui.Widget.prototype._calcSize = function(height, memo) {
     var value = 0,
         length_func = (height == 'height')? '_calcHeight':'_calcWidth';
 
+    value = (typeof this[height] == 'function')?
+            this[height].apply(this, [memo]):this[height];
+
     if (this[height] == 'auto' && this._calcAuto) {
-        value = this._calcAuto(height, memo);
+        var key = (height == 'height')? 'h':'w';
+        value = memo[this._uniqueid + key] || this._calcAuto(height, memo);
     }
-    else if (this[height] == null || this[height] == 'auto') {
-        value = this.div['offset' + height.charAt(0).toUpperCase() + height.slice(1)];
+    else if (this[height] == null || this[height] == 'auto' || value == null ||
+             (typeof this[height] == 'string' &&  this[height].charAt(0) == '@')) {
+        if (value == null) {
+            this.div.style[height] = '';
+        }
+        value = this.div['offset' + ((height == 'height')? 'Height':'Width')];
     }
     else {
-        value = (typeof this[height] == 'function')?
-                this[height].apply(this, [memo]):this[height];
         if (value) {
             if (!isNaN(value)) {
                 value = Math.floor(value);
@@ -779,7 +878,7 @@ QuiX.ui.Widget.prototype._calcPos = function(left, memo) {
     var value = 0,
         length_func = (left == 'left')? '_calcWidth':'_calcHeight';
 
-    value = (typeof(this[left]) == 'function')?
+    value = (typeof this[left] == 'function')?
             this[left].apply(this, [memo]):this[left];
 
     if (value) {
@@ -797,8 +896,10 @@ QuiX.ui.Widget.prototype._calcPos = function(left, memo) {
         }
         else if (value == 'center') {
             if (this.parent) {
-                value = Math.round((this.parent[length_func](false, memo) / 2) -
-                                   (this[length_func](true, memo) / 2)) || 0;
+                this.div.style[left] = '0px';
+                value = (Math.round(
+                    (this.parent[length_func](false, memo) - this[length_func](true, memo)) / 2) -
+                    this[left == 'left'? 'getLeft':'getTop']()) || 0;
             }
             else {
                 return 0;
@@ -836,7 +937,7 @@ QuiX.ui.Widget.prototype._calcHeight = function(b /*, memo*/) {
         if (fs < ms) {
             fs = ms;
         }
-        memo[this._uniqueid + 'h'] = (fs > 0)? fs:0;
+        memo[this._uniqueid + 'h'] = (fs == null || fs > 0)? fs:0;
     }
     else {
         fs = memo[this._uniqueid + 'h'];
@@ -878,7 +979,7 @@ QuiX.ui.Widget.prototype._calcWidth = function(b /*, memo*/) {
         if (fs < ms) {
             fs = ms;
         }
-        memo[this._uniqueid + 'w'] = (fs > 0)? fs:0;
+        memo[this._uniqueid + 'w'] = (fs == null || fs > 0)? fs:0;
     }
     else {
         fs = memo[this._uniqueid + 'w'];
@@ -986,80 +1087,74 @@ QuiX.ui.Widget.prototype.getWidth = QuiX.ui.Widget.prototype._calcWidth;
 
 QuiX.ui.Widget.prototype.getHeight = QuiX.ui.Widget.prototype._calcHeight;
 
-QuiX.ui.Widget.prototype.getLeftOffsetFrom = function(/*w*/) {
-    var desktop = this.getDesktop(),
-        w = arguments[0] || desktop,
-        curleft = 0,
+QuiX.ui.Widget.prototype.getOffsetFrom = function(w, offset) {
+    var offs = 0,
         bf = QuiX.utils.BrowserInfo.family,
-        bv = QuiX.utils.BrowserInfo.version,
         el = this.div,
-        includeBorders = !(bf == 'op' || (bf == 'ie' && bv == 8));
+        includeBorders = !QuiX.css.boxSizing || bf == 'saf',
+        eltx = null,
+        tx = null;
+
+    offset = (offset == 'left')? 'offsetLeft':'offsetTop';
+
+    if (bf == 'op' && this.div.style[QuiX.css.transform]) {
+        eltx = el.style[QuiX.css.transform];
+        this.div.style[QuiX.css.transform] = '';
+    }
 
     if (el.offsetParent) {
-        if (bf == 'moz' && el.style.position == 'absolute') {
-            curleft += (parseInt(el.style.left) || 0);
+        if (bf == 'op' && el.offsetParent.style[QuiX.css.transform]) {
+            tx = el.offsetParent.style[QuiX.css.transform];
+            el.offsetParent.style[QuiX.css.transform] = '';
         }
-        else {
-            curleft += el.offsetLeft;
+        offs += el[offset];
+        if (includeBorders) {
+            offs += parseInt(el.offsetParent.style.borderWidth) || 0;
+        }
+        if (tx) {
+            el.offsetParent.style[QuiX.css.transform] = tx;
+            tx = null;
         }
         while (el = el.offsetParent) {
             if (w && el == w.div) {
                 break;
             }
             if (el.tagName != 'TR') {
-                curleft -= QuiX.getScrollLeft(el);
-                if (bf == 'moz' && el.style.position == 'absolute') {
-                    curleft += (parseInt(el.style.left) || 0);
+                if (bf == 'op' && el.style[QuiX.css.transform]) {
+                    tx = el.style[QuiX.css.transform];
+                    el.style[QuiX.css.transform] = '';
                 }
-                else {
-                    curleft += el.offsetLeft;
-                }
+                offs -= (offset == 'offsetLeft')? QuiX.getScrollLeft(el):el.scrollTop;
+                offs += el[offset];
                 if (includeBorders) {
-                    curleft += parseInt(el.style.borderWidth) || 0;
+                    offs += parseInt(el.style.borderWidth) || 0;
+                }
+                if (tx) {
+                    el.style[QuiX.css.transform] = tx;
+                    tx = null;
                 }
             }
         }
     }
     if (QuiX.dir == 'rtl') {
-        curleft = QuiX.transformX(curleft + this.div.offsetWidth, desktop);
+        offs = QuiX.transformX(offs + this.div.offsetWidth, desktop);
     }
-    return curleft;
+
+    if (eltx) {
+        this.div.style[QuiX.css.transform] = eltx;
+    }
+
+    return offs;
+}
+
+QuiX.ui.Widget.prototype.getLeftOffsetFrom = function(/*w*/) {
+    var w = arguments[0] || this.getDesktop();
+    return this.getOffsetFrom(w, 'left');
 }
 
 QuiX.ui.Widget.prototype.getTopOffsetFrom = function(/*w*/) {
-    var w = arguments[0] || this.getDesktop(),
-        curtop = 0,
-        bf = QuiX.utils.BrowserInfo.family,
-        bv = QuiX.utils.BrowserInfo.version,
-        el = this.div,
-        includeBorders = !(bf == 'op' || (bf == 'ie' && bv == 8));
-
-    if (el.offsetParent) {
-        if (bf == 'moz' && el.style.position == 'absolute') {
-            curtop += (parseInt(el.style.top) || 0);
-        }
-        else {
-            curtop += el.offsetTop;
-        }
-        while (el = el.offsetParent) {
-            if (w && el == w.div) {
-                break;
-            }
-            if (el.tagName != 'TR') {
-                curtop -= el.scrollTop;
-                if (bf == 'moz' && el.style.position == 'absolute') {
-                    curtop += (parseInt(el.style.top) || 0);
-                }
-                else {
-                    curtop += el.offsetTop;
-                }
-                if (includeBorders) {
-                    curtop += parseInt(el.style.borderWidth) || 0;
-                }
-            }
-        }
-    }
-    return curtop;
+    var w = arguments[0] || this.getDesktop();
+    return this.getOffsetFrom(w, 'top');
 }
 
 QuiX.ui.Widget.prototype.getScreenLeft = function() {
@@ -1143,14 +1238,30 @@ QuiX.ui.Widget.prototype.sendToBack = function() {
 }
 
 QuiX.ui.Widget.prototype.setOrder = function(order) {
-    this.parent.widgets.removeItem(this);
-    this.parent.widgets.splice(order, 0, this);
+    if (this != this.parent.widgets[order]) {
+        this.parent.widgets.removeItem(this);
+        if (this.div.style.position != 'absolute') {
+            QuiX.removeNode(this.div);
+            if (order >= this.parent.widgets.length) {
+                this.parent.div.appendChild(this.div);
+            }
+            else {
+                this.parent.div.insertBefore(this.div, this.parent.widgets[order].div);
+            }
+        }
+        this.parent.widgets.splice(order, 0, this);
+    }
 
-    // re-order z-index
-    this.parent.maxz = 0;
-    this.parent.minz = 0;
-    for (var i=0; i<this.parent.widgets.length; i++) {
-        this.parent.widgets[i].div.style.zIndex = ++this.parent.maxz;
+    if (this.div.style.position == 'absolute') {
+        // re-order z-index
+        this.parent.maxz = 0;
+        this.parent.minz = 0;
+    
+        for (var i=0; i<this.parent.widgets.length; i++) {
+            if (this.parent.widgets[i].div.style.position == 'absolute') {
+                this.parent.widgets[i].div.style.zIndex = ++this.parent.maxz;
+            }
+        }
     }
 }
 
@@ -1330,46 +1441,47 @@ QuiX.ui.Widget.prototype._startDrag = function(x, y) {
 }
 
 QuiX.ui.Widget.prototype._getSig = function(memo) {
-    return memo[this._uniqueid + 's'] || (memo[this._uniqueid + 's'] = (this._calcWidth(true, memo) << 16) | (this._calcHeight(true, memo)));
+    return memo[this._uniqueid + 's'] ||
+           (memo[this._uniqueid + 's'] = (this._calcWidth(true, memo) << 16) | (this._calcHeight(true, memo)));
 }
 
-QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
-    var container = this.div.parentNode || this.div.parentElement;
-    if (container && this.div.style.display != 'none') {
-        var memo = arguments[1] || {},
-            sig = this._rds,
+QuiX.ui.Widget.prototype.redraw = function(/*bForceAll , memo*/) {
+    var container = this.div.parentNode || this.div.parentElement,
+        bForceAll = arguments[0] || false,
+        memo = arguments[1] || {};
+
+    if (container && this.div.style.display != 'none' && !memo[this._uniqueid + 'r']) {
+        var sig = this._rds,
             overflAuto = !QuiX.supportTouches &&
                          (this.div.style.overflow == 'auto' ||
                           this.div.style.overflowY == 'auto' ||
                           this.div.style.overflowX == 'auto'),
             scrollX, scrollY, borders;
 
+        this._setCommonProps(memo);
         if (this.div.style.position != '') {
             this._setAbsProps(memo);
         }
-        this._setCommonProps(memo);
+
+        memo[this._uniqueid + 'r'] = true;
 
         if (bForceAll || this.div.style.visibility != 'hidden') {
-            var w_sig, w;
+            var w;
 
             if (overflAuto) {
                 borders = 2 * this.getBorderWidth();
                 scrollY = this.div.offsetWidth - this.div.clientWidth - borders;
                 scrollX = this.div.offsetHeight - this.div.clientHeight - borders;
-                delete memo[this._uniqueid + 'cw'];
-                delete memo[this._uniqueid + 'ch'];
             }
 
             for (var i=0; i<this.widgets.length; i++) {
                 w = this.widgets[i];
-                if (w.div.style.display != 'none') {
+                if (w.div.style.display != 'none' && !memo[w._uniqueid + 'r']) {
                     if (bForceAll) {
                         w.redraw(true, memo);
                     }
-                    else if (w._mustRedraw() ||
-                             (typeof w._rds == 'undefined')) {
-                        w_sig = w._getSig(memo);
-                        if (!w_sig || w_sig != w._rds) {
+                    else if (w._mustRedraw() || (typeof w._rds == 'undefined')) {
+                        if (typeof w._rds == 'undefined' || w._getSig(memo) != w._rds) {
                             w.redraw(false, memo);
                         }
                         else if (w.div.style.position != '') {
@@ -1395,6 +1507,7 @@ QuiX.ui.Widget.prototype.redraw = function(bForceAll /*, memo*/) {
             if (sig && sig != this._rds) {
                 this.trigger('onresize', this, memo);
             }
+
         }
     }
 }
@@ -1561,7 +1674,7 @@ QuiX.ui.Widget.prototype._attachEvents = function() {
     if (!this._isDisabled) {
         var domEvent;
         for (var evt_type in this._registry) {
-            domEvent = (evt_type == 'onswipe')? 'onmouseup':evt_type;
+            domEvent = (evt_type == 'onswipe')? ((QuiX.supportTouches)? 'onmousemove':'onmouseup'):evt_type;
             for (var i=0; i<this._registry[evt_type].length; i++) {
                 QuiX.addEvent(this.div, domEvent, this._registry[evt_type][i]);
             }
@@ -1580,7 +1693,7 @@ QuiX.ui.Widget.prototype._detachEvents = function(/*deep*/) {
                 domEvent = 'onclick';
             }
             else if (evt_type == 'onswipe') {
-                domEvent = 'onmouseup';
+                domEvent = (QuiX.supportTouches)? 'onmousemove':'onmouseup';
             }
             else {
                 domEvent = evt_type;
@@ -1646,8 +1759,8 @@ QuiX.ui.Widget.prototype.attachEvent = function(eventType , f) {
         eventType = 'onclick';
     }
     else if (eventType == 'onswipe') {
-        eventType = 'onmouseup';
-        this.attachEvent('onmousedown', QuiX.handlers.allowFieldFocus);
+        eventType = (QuiX.supportTouches)? 'onmousemove':'onmouseup';
+        //this.attachEvent('onmousedown', QuiX.handlers.allowFieldFocus);
     }
 
     if (!this._isDisabled && !isCustom) {
@@ -1684,8 +1797,8 @@ QuiX.ui.Widget.prototype.detachEvent = function(eventType /*, f*/) {
                     eventType = 'onclick';
                 }
                 else if (eventType == 'onswipe') {
-                    eventType = 'onmouseup';
-                    this.detachEvent('onmousedown', QuiX.handlers.allowFieldFocus);
+                    eventType = (QuiX.supportTouches)? 'onmousemove':'onmouseup';
+                    //this.detachEvent('onmousedown', QuiX.handlers.allowFieldFocus);
                 }
                 QuiX.removeEvent(this.div, eventType, f);
                 this._registry[eventType].removeItem(f);
@@ -1834,7 +1947,6 @@ QuiX.ui.Widget._drag = function(evt, desktop) {
             if (dropable) break;
             w = w.parent;
         }
-
         if (w && w != QuiX.dragable && w != QuiX.dragable.parent) {
             QuiX.tmpWidget.div.style.borderColor = 'red';
             QuiX.dropTarget = w;
@@ -1895,7 +2007,7 @@ QuiX.ui.Desktop = function(params, root) {
     root.appendChild(this.div);
     this.div.className = 'desktop';
 
-    if (root == document.body) {
+    if (root.tagName == 'BODY') {
         document.body.style.height = '100%';
         document.documentElement.style.height = '100%';
         document.body.style.margin = '0px';
@@ -1979,8 +2091,9 @@ QuiX.ui.Desktop.prototype.msgbox = function(mtitle, message, buttons, image,
         innHTML = '<td><img src="' + image + '"></img></td><td>' +
         message + '</td>';
     }
-    else
+    else {
         innHTML = '<td>' + message + '</td>';
+    }
 
     if (typeof buttons == 'object') {
         for (var i=0; i<buttons.length; i++) {

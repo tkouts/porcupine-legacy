@@ -19,7 +19,7 @@ var QuiX = {};
 QuiX.version = '1.1 build 20110416';
 QuiX.namespace = 'http://www.innoscript.org/quix';
 QuiX.root = '';
-QuiX.baseUrl = '__quix/';
+QuiX.baseUrl = 'quix/';
 QuiX.maxz = 999999999;
 
 QuiX.startX = 0;
@@ -52,7 +52,55 @@ QuiX.dir = '';
 QuiX.effectsEnabled = true;
 QuiX.desktops = [];
 QuiX.ui = {};
-QuiX.supportTouches = (typeof ce('DIV').ontouchstart != 'undefined');
+
+QuiX.getCssAttribute = function(a) {
+    var style = (document.body)? document.body.style:ce('div').style,
+        caped = a.charAt(0).toUpperCase() + a.slice(1);
+
+    if (typeof style[a] != 'undefined') {
+        return a;
+    }
+    else if (typeof style['Moz' + caped] != 'undefined') {
+        return 'Moz' + caped;
+    }
+    else if (typeof style['webkit' + caped] != 'undefined') {
+        return 'webkit' + caped;
+    }
+    else if (typeof style['O' + caped] != 'undefined') {
+        return 'O' + caped;
+    }
+    else if (typeof style['ms' + caped] != 'undefined') {
+        return 'ms' + caped;
+    }
+    else {
+        return null;
+    }
+}
+
+QuiX.css = {
+    boxSizing: (function() {
+        if (navigator.appVersion.indexOf("MSIE 7.") > -1) {
+            return null;
+        }
+        else {
+            return QuiX.getCssAttribute('boxSizing');
+        }
+    })(),
+    boxFlex: (function() {
+        if (QuiX.getCssAttribute('MozBoxFlex')) {
+            // boxFlex does not work correctly on mozilla
+            return false;
+        }
+        else {
+            return QuiX.getCssAttribute('boxFlex');
+        }
+    })(),
+    boxAlign: QuiX.getCssAttribute('boxAlign'),
+    transform: QuiX.getCssAttribute('transform')
+}
+
+QuiX.supportTouches = (typeof ce('DIV').ontouchstart != 'undefined'
+                       && navigator.userAgent.indexOf('hpwOS') == -1);
 
 QuiX.queryString = function(param) {
     function urlEncodeIfNecessary(s) {
@@ -406,7 +454,7 @@ QuiX.getWidget = function(el) {
     while (el && !el.widget) {
         el = QuiX.getParentNode(el);
     }
-    return (el)? el.widget:null;    
+    return (el)? el.widget:null;
 }
 
 QuiX.getWidgetFromPoint = function(x, y) {
@@ -544,9 +592,29 @@ QuiX.wrappers = {
     },
     onSwipe: function(f) {
         function wrapper(evt, w) {
-            var dx = QuiX.startX - QuiX.currentX,
+            var dx, dy, abx, aby;
+            if (QuiX.supportTouches) {
+                if (QuiX.startX == 0 && QuiX.startY == 0) {
+                    return;
+                }
+                var coords = QuiX.getEventCoordinates(evt);
+                dx = QuiX.startX - coords[0];
+                dy = QuiX.startY - coords[1];
+                QuiX.currentX = coords[0];
+                QuiX.currentY = coords[1];
+            }
+            else {
+                dx = QuiX.startX - QuiX.currentX;
                 dy = QuiX.startY - QuiX.currentY;
-            if (Math.abs(dx) > 32) {
+            }
+
+            abx = Math.abs(dx);
+            aby = Math.abs(dy);
+
+            if (abx > 2 && aby > 2 && abx < 16 && aby < 16) {
+                QuiX.stopPropag(evt);
+            }
+            else if (abx > 16) {
                 if (dx > 0) {
                     evt.dir = 'left';
                 }
@@ -554,9 +622,15 @@ QuiX.wrappers = {
                     evt.dir = 'right';
                 }
                 f(evt, w);
+                if (QuiX.supportTouches) {
+                    QuiX.startX = 0;
+                    QuiX.startY = 0;
+                    QuiX.currentX = 0;
+                    QuiX.currentY = 0;
+                }
                 QuiX.stopPropag(evt);
             }
-            else if (Math.abs(dy) > 32) {
+            else if (aby > 16) {
                 if (dy > 0) {
                     evt.dir = 'top';
                 }
@@ -564,6 +638,12 @@ QuiX.wrappers = {
                     evt.dir = 'bottom';
                 }
                 f(evt, w);
+                if (QuiX.supportTouches) {
+                    QuiX.startY = 0;
+                    QuiX.startX = 0;
+                    QuiX.currentX = 0;
+                    QuiX.currentY = 0;
+                }
                 QuiX.stopPropag(evt);
             }
         }
@@ -598,10 +678,11 @@ QuiX.wrappers = {
 };
 
 QuiX.getImage = function(url) {
-    var img;
+    var img, cleanUrl;
+    cleanUrl = url.split('?')[0];
     url = QuiX.resolveUrl(url);
     img = new Image();
-    img.src = (document.imageData && document.imageData[url])? document.imageData[url]:url;
+    img.src = (document.imageData && document.imageData[cleanUrl])? document.imageData[cleanUrl]:url;
     return img;
 }
 
@@ -909,30 +990,6 @@ QuiX.getDesktop = function(el) {
     return null;
 }
 
-QuiX.getCssAttribute = function(a) {
-    var style = (document.body)? document.body.style:ce('div').style,
-        caped = a.charAt(0).toUpperCase() + a.slice(1);
-
-    if (typeof style[a] != 'undefined') {
-        return a;
-    }
-    else if (typeof style['Moz' + caped] != 'undefined') {
-        return 'Moz' + caped;
-    }
-    else if (typeof style['webkit' + caped] != 'undefined') {
-        return 'webkit' + caped;
-    }
-    else if (typeof style['O' + caped] != 'undefined') {
-        return 'O' + caped;
-    }
-    else if (typeof style['ms' + caped] != 'undefined') {
-        return 'ms' + caped;
-    }
-    else {
-        return null;
-    }
-}
-
 QuiX.setOpacity = function(el, op) {
     var cssOpacity = QuiX.getCssAttribute('opacity');
     if (cssOpacity) {
@@ -1139,44 +1196,53 @@ QuiX.Parser = function(/*preloadImages*/) {
     this.oncomplete = null;
 }
 
-QuiX.Parser.prototype.detectModules = function(oNode) {
-    if (oNode.nodeType != 1) {
+QuiX.Parser.prototype.prepare = function(oNode) {
+    if (oNode.nodeType != 1 || oNode.namespaceURI != QuiX.namespace) {
         return;
     }
+
     var sTag = QuiX.localName(oNode),
-        iMod = QuiX.tags[sTag],
-        i;
+        iMod = QuiX.tags[sTag];
+
+    oNode.params = {};
+    for (var i=0; i<oNode.attributes.length; i++) {
+        oNode.params[oNode.attributes[i].name] = oNode.attributes[i].value;
+    }
 
     if (iMod > -1 && typeof QuiX.constructors[sTag] == 'undefined') {
         this._addModule(QuiX.modules[iMod]);
     }
 
-    if (oNode.getAttribute('img') &&
-             (oNode.getAttribute('preload') == 'true' || this.preloadImages) &&
-             !(QuiX.utils.BrowserInfo.family == 'ie' && QuiX.utils.BrowserInfo.version <= 8)) {
-        var src = oNode.getAttribute('img');
-        if (src != '' && !(QuiX._imgCache[src]) && !(document.imageData && document.imageData[src])) {
+    if (oNode.params['img']
+            && (oNode.params['preload'] == 'true' || this.preloadImages)
+            && !(QuiX.utils.BrowserInfo.family == 'ie' && QuiX.utils.BrowserInfo.version <= 8)) {
+        var src = oNode.params['img'],
+            cleanSrc = src.split('?')[0];
+
+        if (src != '' && !(QuiX._imgCache[src]) && !(document.imageData && document.imageData[cleanSrc])) {
             this.__images.push(src);
         }
     }
     else if (sTag == 'script' || sTag == 'module' || sTag == 'stylesheet') {
-        var params = this.getNodeParams(oNode);
-        if (!document.getElementById(params.src)) {
-            var oMod = new QuiX.Module(params.name, params.src, [],
+        if (!document.getElementById(oNode.params.src)) {
+            var oMod = new QuiX.Module(oNode.params.name, oNode.params.src, [],
                                        this.__customPrio);
             if (sTag == 'stylesheet') {
                 oMod.type = 'stylesheet';
             }
-            else if (params.depends) {
-                oMod.dependencies = params.depends.split(',');
+            else if (oNode.params.depends) {
+                oMod.dependencies = oNode.params.depends.split(',');
             }
             this._addModule(oMod);
             this.__customPrio--;
         }
     }
 
-    for (i=0; i<oNode.childNodes.length; i++) {
-        this.detectModules(oNode.childNodes[i]);
+    for (var i=0; i<oNode.childNodes.length; i++) {
+        if (oNode.childNodes[i].nodeType == 1
+                && oNode.childNodes[i].namespaceURI == QuiX.namespace) {
+            this.prepare(oNode.childNodes[i]);
+        }
     }
 }
 
@@ -1220,12 +1286,15 @@ QuiX.Parser.prototype.loadModules = function() {
             });
     }
     else {
+        var self = this;
+        window.setTimeout(function() {
         try {
-            this.beginRender();
+            self.render();
         }
         finally {
             QuiX.removeLoader();
         }
+        }, 0);
     }
 }
 
@@ -1244,7 +1313,7 @@ QuiX.Parser.prototype.parse = function(dom, root) {
             'Invalid QuiX XML'));
         return;
     }
-    this.detectModules(dom.documentElement);
+    this.prepare(dom.documentElement);
 
     if (this.__modules.length > 0 || this.__images.length > 0) {
         this.__modules.sortByAttribute('priority');
@@ -1259,7 +1328,7 @@ QuiX.Parser.prototype.parse = function(dom, root) {
     else {
         QuiX.addLoader();
         try {
-            this.beginRender();
+            this.render();
         }
         finally {
             QuiX.removeLoader();
@@ -1267,33 +1336,9 @@ QuiX.Parser.prototype.parse = function(dom, root) {
     }
 }
 
-QuiX.Parser.prototype.beginRender = function() {
-    var on_load,
-        widget = this.render();
-
-    while (this.__onload.length > 0) {
-        on_load = this.__onload.shift();
-        try {
-            on_load[0](on_load[1]);
-        }
-        catch(e) {
-            this.onerror(e);
-        }
-    }
-    this.dom = null;
-    if (this.oncomplete) {
-        try {
-            this.oncomplete(widget);
-        }
-        catch(e) {
-            this.onerror(e);
-        }
-    }
-    widget.redraw();
-}
-
 QuiX.Parser.prototype.render = function() {
-    var widget,
+    var on_load,
+        widget,
         parent = this.root,
         frag = document.createDocumentFragment();
 
@@ -1306,175 +1351,203 @@ QuiX.Parser.prototype.render = function() {
         parent.div = root;
     }
     else {
-        widget = this.parseXul(this.dom.documentElement, parent);
-        //parent.appendChild(frag);
+        frag.appendChild(parent.cloneNode(false));
+        widget = this.parseXul(this.dom.documentElement, frag.firstChild);
+        parent.appendChild(widget.div);
     }
+
     frag = null;
-    return widget;
+
+    // call onload handlers
+    while (this.__onload.length > 0) {
+        on_load = this.__onload.shift();
+        try {
+            on_load[0](on_load[1]);
+        }
+        catch(e) {
+            this.onerror(e);
+        }
+    }
+
+    this.dom = null;
+
+    if (this.oncomplete) {
+        try {
+            this.oncomplete(widget);
+        }
+        catch(e) {
+            this.onerror(e);
+        }
+    }
+
+    // redraw widget
+    widget.redraw();
 }
 
-QuiX.Parser.prototype.getNodeParams = function(oNode) {
+QuiX.Parser.prototype.getNodeParams = function(node) {
     var params = {};
-    for (var i=0; i<oNode.attributes.length; i++) {
-        params[oNode.attributes[i].name] = oNode.attributes[i].value;
+    for (var i=0; i<node.attributes.length; i++) {
+        params[node.attributes[i].name] = node.attributes[i].value;
     }
     return params;
 }
 
 QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
     var oWidget = null;
+    if (oNode.nodeType == 1 && oNode.namespaceURI == QuiX.namespace) {
+        var params = oNode.params,
+            localName = QuiX.localName(oNode).toLowerCase();
 
-    if (oNode.nodeType == 1) {
-        var params = this.getNodeParams(oNode);
-        if (oNode.namespaceURI == QuiX.namespace) {
-            var localName = QuiX.localName(oNode).toLowerCase();
-            switch(localName) {
-                case 'flatbutton':
-                    oWidget = new QuiX.ui.FlatButton(params);
-                    if (params.type == 'menu') {
-                        parentW.appendChild(oWidget);
-                        oWidget = oWidget.contextMenu;
-                    }
-                    break;
-                case 'field':
-                    if (params.type == 'textarea') {
-                        params.value = QuiX.getInnerText(oNode);
-                    }
-                    oWidget = new QuiX.ui.Field(params);
-                    break;
-                case 'richtext':
+        switch(localName) {
+            case 'flatbutton':
+                oWidget = new QuiX.ui.FlatButton(params);
+                if (params.type == 'menu') {
+                    parentW.appendChild(oWidget);
+                    oWidget = oWidget.contextMenu;
+                }
+                break;
+            case 'field':
+                if (params.type == 'textarea') {
                     params.value = QuiX.getInnerText(oNode);
-                    oWidget = new QuiX.ui.RichText(params);
-                    break;
-                case 'mfile':
-                    parentW.addFile(params);
-                    break;
-                case 'option':
-                    oWidget = parentW.addOption(params);
-                    break;
-                case 'dlgbutton':
-                    oWidget = parentW.addButton(params);
-                    break;
-                case 'wbody':
-                    oWidget = parentW.body;
-                    break;
-                case 'tab':
-                    oWidget = parentW.addTab(params);
-                    break;
-                case 'listheader':
-                    oWidget = parentW.addHeader(params);
-                    break;
-                case 'column':
-                    var oCol = parentW.parent.addColumn(params);
-                    if (params.type == 'optionlist') {
-                        var options, p;
-                        options = oNode.childNodes;
-                        oCol.options = [];
-                        for (var k=0; k<options.length; k++) {
-                            if (options[k].nodeType == 1) {
-                                p = this.getNodeParams(options[k]);
-                                oCol.options.push(p);
-                            }
+                }
+                oWidget = new QuiX.ui.Field(params);
+                break;
+            case 'richtext':
+                params.value = QuiX.getInnerText(oNode);
+                oWidget = new QuiX.ui.RichText(params);
+                break;
+            case 'mfile':
+                parentW.addFile(params);
+                break;
+            case 'option':
+                oWidget = parentW.addOption(params);
+                break;
+            case 'dlgbutton':
+                oWidget = parentW.addButton(params);
+                break;
+            case 'wbody':
+                oWidget = parentW.body;
+                break;
+            case 'tab':
+                oWidget = parentW.addTab(params);
+                break;
+            case 'listheader':
+                oWidget = parentW.addHeader(params);
+                break;
+            case 'column':
+                var oCol = parentW.parent.addColumn(params);
+                if (params.type == 'optionlist') {
+                    var options;
+                    options = oNode.childNodes;
+                    oCol.options = [];
+                    for (var k=0; k<options.length; k++) {
+                        if (options[k].nodeType == 1) {
+                            oCol.options.push(options[k].params);
                         }
                     }
-                    break;
-                case 'tbbutton':
-                    oWidget = parentW.addButton(params);
-                    if (params.type == 'menu') {
-                        oWidget = oWidget.contextMenu;
-                    }
-                    break;
-                case 'tbsep':
-                    oWidget = parentW.addSeparator();
-                    break;
-                case 'tool':
-                    oWidget = parentW.addPane(params);
-                    break;
-                case 'menu':
-                    oWidget = parentW.addRootMenu(params);
-                    break;
-                case 'menuoption':
-                    oWidget = parentW.addOption(params);
-                    break;
-                case 'sep':
-                    oWidget = parentW.addOption(-1);
-                    break;
-                case 'groupbox':
-                    oWidget = new QuiX.ui.GroupBox(params);
-                    parentW.appendChild(oWidget);
-                    oWidget = oWidget.body;
-                    break;
-                case 'custom':
-                    oWidget = eval('new ' + params.classname + '(params)');
-                    break;
-                case 'prop':
-                    var attr_value = params['value'] || '';
-                    switch (params.type) {
-                        case 'int':
-                            attr_value = parseInt(attr_value);
-                            attr_value = (isNaN(attr_value))?null:attr_value;
-                            break;
-                        case 'bool':
-                            attr_value = new Boolean(parseInt(attr_value)).
-                                         valueOf();
-                            break;
-                        case 'float':
-                            attr_value = parseFloat(attr_value);
-                            attr_value = (isNaN(attr_value))?null:attr_value;
-                            break;
-                        case 'strlist':
-                            var delimeter = params['delimeter'] || ';';
-                            if (attr_value != '') {
-                                attr_value = attr_value.split(delimeter);
-                            }
-                            else {
-                                attr_value = [];
-                            }
-                            break;
-                        case 'json':
-                            attr_value = QuiX.parsers.JSON.parse(attr_value);
-                    }
-                    if (attr_value!=null) {
-                        parentW.attributes[params['name']] = attr_value;
-                    }
-                    else {
-                        throw new QuiX.Exception('QuiX.Parser.parseXul',
-                            'Illegal custom property value. ' +
-                            params['name'] + '=' + params['value']);
-                    }
-                    break;
-                case 'xhtml':
-                    parentW.div.innerHTML = QuiX.getInnerText(oNode).xmlDecode();
-                    break;
-                default:
-                    var widget_contructor = QuiX.constructors[localName];
-                    if (widget_contructor != null) {
-                        oWidget = new widget_contructor(params, parentW);
-                    }
-                    else if (typeof widget_contructor == 'undefined') {
-                        throw new QuiX.Exception(
-                            'QuiX.Parser.parseXul',
-                            'Uknown widget tag name (' + localName + ')');
-                    }
+                }
+                break;
+            case 'tbbutton':
+                oWidget = parentW.addButton(params);
+                if (params.type == 'menu') {
+                    oWidget = oWidget.contextMenu;
+                }
+                break;
+            case 'tbsep':
+                oWidget = parentW.addSeparator();
+                break;
+            case 'tool':
+                oWidget = parentW.addPane(params);
+                break;
+            case 'menu':
+                oWidget = parentW.addRootMenu(params);
+                break;
+            case 'menuoption':
+                oWidget = parentW.addOption(params);
+                break;
+            case 'sep':
+                oWidget = parentW.addOption(-1);
+                break;
+            case 'groupbox':
+                oWidget = new QuiX.ui.GroupBox(params);
+                parentW.appendChild(oWidget);
+                oWidget = oWidget.body;
+                break;
+            case 'custom':
+                oWidget = new (eval(params.classname))(params);
+                break;
+            case 'prop':
+                var attr_value = params['value'] || '';
+                switch (params.type) {
+                    case 'int':
+                        attr_value = parseInt(attr_value);
+                        attr_value = (isNaN(attr_value))?null:attr_value;
+                        break;
+                    case 'bool':
+                        attr_value = new Boolean(parseInt(attr_value)).
+                                     valueOf();
+                        break;
+                    case 'float':
+                        attr_value = parseFloat(attr_value);
+                        attr_value = (isNaN(attr_value))?null:attr_value;
+                        break;
+                    case 'strlist':
+                        var delimeter = params['delimeter'] || ';';
+                        if (attr_value != '') {
+                            attr_value = attr_value.split(delimeter);
+                        }
+                        else {
+                            attr_value = [];
+                        }
+                        break;
+                    case 'json':
+                        attr_value = QuiX.parsers.JSON.parse(attr_value);
+                }
+                if (attr_value!=null) {
+                    parentW.attributes[params['name']] = attr_value;
+                }
+                else {
+                    throw new QuiX.Exception('QuiX.Parser.parseXul',
+                        'Illegal custom property value. ' +
+                        params['name'] + '=' + params['value']);
+                }
+                break;
+            case 'xhtml':
+                parentW.div.innerHTML = QuiX.getInnerText(oNode).xmlDecode();
+                break;
+            default:
+                var widget_contructor = QuiX.constructors[localName];
+                if (widget_contructor != null) {
+                    oWidget = new widget_contructor(params, parentW);
+                }
+                else if (typeof widget_contructor == 'undefined') {
+                    throw new QuiX.Exception(
+                        'QuiX.Parser.parseXul',
+                        'Uknown widget tag name (' + localName + ')');
+                }
+        }
+
+        if (oWidget) {
+            if (parentW && !oWidget.parent
+                    && !oWidget.owner
+                    && !(oWidget instanceof QuiX.ui.Desktop)) {
+                parentW.appendChild(oWidget);
             }
 
-            if (oWidget) {
-                if (parentW && !oWidget.parent &&
-                        !oWidget.owner && !(oWidget instanceof QuiX.ui.Desktop)) {
-                    parentW.appendChild(oWidget);
-                }
+            // add onload handlers
+            if (oWidget._customRegistry.onload) {
+                var self = this;
+                oWidget._customRegistry.onload.reverse().each(
+                    function() {
+                        self.__onload.unshift([this, oWidget]);
+                    }
+                )
+            }
 
-                for (var i=0; i<oNode.childNodes.length; i++) {
+            for (var i=0; i<oNode.childNodes.length; i++) {
+                if (oNode.childNodes[i].nodeType == 1
+                        && oNode.childNodes[i].namespaceURI == QuiX.namespace) {
                     this.parseXul(oNode.childNodes[i], oWidget);
-                }
-
-                if (oWidget._customRegistry.onload) {
-                    var self = this;
-                    oWidget._customRegistry.onload.reverse().each(
-                        function() {
-                            self.__onload.unshift([this, oWidget]);
-                        }
-                    )
                 }
             }
         }

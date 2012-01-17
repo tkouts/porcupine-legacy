@@ -166,7 +166,10 @@ QuiX.ui.TreeNode.prototype.redraw = function(bForceAll /*, memo*/) {
         this.show();
     }
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
-    this.div.style.lineHeight = this.div.style.height;
+
+    if (this.div.style.height) {
+        this.div.style.lineHeight = this.getHeight(false, memo) + 'px';
+    }
 
     // redraw child nodes
     for (var i=0; i<this.childNodes.length; i++) {

@@ -1,6 +1,6 @@
 <config>
 	<dirs>
-		<dir name="__quix" path="quix"/>
+		<dir name="quix" path="quix"/>
 		<dir name="desktop" path="org/innoscript/desktop"/>
 		<dir name="hypersearch" path="org/innoscript/hypersearch"/>
 		<dir name="usermgmnt" path="org/innoscript/usermgmnt"/>

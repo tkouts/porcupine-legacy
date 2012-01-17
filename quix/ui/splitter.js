@@ -26,7 +26,9 @@ QuiX.ui.Splitter.prototype.appendChild = function(w) {
         this._addHandle();
     }
     QuiX.ui.Box.prototype.appendChild.apply(this, arguments);
-    w.destroy = QuiX.ui.Splitter._destroy;
+    if (!QuiX.css.boxFlex) {
+        w.destroy = QuiX.ui.Splitter._destroy;
+    }
     this.panes.push(w);
 }
 
@@ -95,7 +97,7 @@ QuiX.ui.Splitter._destroy = function() {
         length_var = (oSplitter.orientation == 'h')? 'width':'height',
         idx = oSplitter.panes.indexOf(this);
 
-    if (this[length_var] == QuiX.ui.Box._calcWidgetLength &&
+    if (this[length_var] == QuiX.ui.Box._getAvailableLength &&
             oSplitter.panes.length > 1) {
         if (idx == 0) {
             oSplitter.panes[1][length_var] = '-1';
@@ -145,8 +147,8 @@ QuiX.ui.Splitter._onmousedown = function(evt, w) {
         splitter._l2 = pane2[length_func](false, memo);
         splitter._m1 = pane1[min_length_var]();
         splitter._m2 = pane2[min_length_var]();
-        splitter._f1 = (pane1[length_var] == QuiX.ui.Box._calcWidgetLength);
-        splitter._f2 = (pane2[length_var] == QuiX.ui.Box._calcWidgetLength);
+        splitter._f1 = (pane1[length_var] == QuiX.ui.Box._getAvailableLength);
+        splitter._f2 = (pane2[length_var] == QuiX.ui.Box._getAvailableLength);
 
         splitter.attachEvent('onmouseup',
             function(evt, w){w._endMoveHandle(evt, idx)});
@@ -219,47 +221,49 @@ QuiX.ui.Splitter._ondblclick = function(evt, w) {
 }
 
 QuiX.ui.Splitter._onresize = function(splitter, memo) {
-    var length_var = (splitter.orientation == 'h')? 'width':'height',
-        length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight',
-        min_func = (splitter.orientation == 'h')? '_calcMinWidth':'_calcMinHeight',
-        nl = splitter[length_func](false, memo);
-
-    var sum = 0;
-    splitter.widgets.each(
-        function() {
-            if (!this.isHidden()) {
-                sum += this[length_func](true, memo);
-            }
-        });
-
-    if (Math.abs(sum - nl) > 1) {
-        // we need to resize panes
-        var space1 = nl - ((splitter.panes.length - 1) * splitter._spacing),
-            space2 = sum - ((splitter.panes.length - 1) * splitter._spacing);
-
-        splitter.panes.each(
-            function(i) {
+    if (!QuiX.dragging) {
+        var length_var = (splitter.orientation == 'h')? 'width':'height',
+            length_func = (splitter.orientation == 'h')? 'getWidth':'getHeight',
+            min_func = (splitter.orientation == 'h')? '_calcMinWidth':'_calcMinHeight',
+            nl = splitter[length_func](false, memo);
+    
+        var sum = 0;
+        splitter.widgets.each(
+            function() {
                 if (!this.isHidden()) {
-                    var nl = parseInt(Math.round(this[length_func](true, memo) * space1 / space2));
-                    space2 -= this[length_func](true, memo);
-                    this[length_var] = Math.max(nl, this[min_func]());
-                    if (this[length_var] > nl && i == splitter.panes.length - 1) {
-                        // the last cannot fit
-                        var diff = this[length_var] - nl,
-                            previousPane;
-
-                        while (i > 0) {
-                            previousPane = splitter.panes[--i];
-                            if (previousPane[length_var] - diff >= previousPane[min_func]()) {
-                                previousPane[length_var] -= diff;
-                                break;
-                            }
-                        }
-                    }
-                    space1 -= this[length_var];
+                    sum += this[length_func](true, memo);
                 }
             });
-
-        splitter.redraw();
+    
+        if (Math.abs(sum - nl) > 1) {
+            // we need to resize panes
+            var space1 = nl - ((splitter.panes.length - 1) * splitter._spacing),
+                space2 = sum - ((splitter.panes.length - 1) * splitter._spacing);
+    
+            splitter.panes.each(
+                function(i) {
+                    if (!this.isHidden()) {
+                        var nl = parseInt(Math.round(this[length_func](true, memo) * space1 / space2));
+                        space2 -= this[length_func](true, memo);
+                        this[length_var] = Math.max(nl, this[min_func]());
+                        if (this[length_var] > nl && i == splitter.panes.length - 1) {
+                            // the last cannot fit
+                            var diff = this[length_var] - nl,
+                                previousPane;
+    
+                            while (i > 0) {
+                                previousPane = splitter.panes[--i];
+                                if (previousPane[length_var] - diff >= previousPane[min_func]()) {
+                                    previousPane[length_var] -= diff;
+                                    break;
+                                }
+                            }
+                        }
+                        space1 -= this[length_var];
+                    }
+                });
+    
+            splitter.redraw();
+        }
     }
 }

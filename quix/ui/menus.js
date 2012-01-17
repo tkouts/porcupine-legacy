@@ -43,10 +43,6 @@ QuiX.ui.MenuOption.prototype._mustRedraw = function() {
     return true;
 }
 
-QuiX.ui.MenuOption.prototype._getSig = function(memo) {
-    return null;
-}
-
 QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
     if (this.subMenu) {

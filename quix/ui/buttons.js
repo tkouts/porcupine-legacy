@@ -53,6 +53,14 @@ QuiX.ui.Label.prototype.__class__ = QuiX.ui.Label;
 
 QuiX.ui.Label.prototype._calcAuto = null;
 
+QuiX.ui.Label.prototype._getSig = function(memo) {
+    if (typeof this.height == 'function' && this.height.call(this, memo) == null) {
+        this.div.style.lineHeight = '';
+        this.div.style.height = '';
+    }
+    return QuiX.ui.Widget.prototype._getSig.apply(this, arguments);
+}
+
 QuiX.ui.Label.prototype.setTextOpacity = function(op) {
     var span = this.div.getElementsByTagName('SPAN')[0];
     QuiX.setOpacity(span, op);
@@ -89,10 +97,12 @@ QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
             }
         }
     }
+
     QuiX.ui.Widget.prototype.redraw.apply(this, [bForceAll, memo]);
+
     if (!this.wrap) {
-        if (this.height != 'auto') {
-            this.div.style.lineHeight = this.div.style.height;
+        if (this.div.style.height) {
+            this.div.style.lineHeight = this.getHeight(false, memo) + 'px';
         }
         else {
             this.div.style.lineHeight = '';
@@ -105,11 +115,13 @@ QuiX.ui.Label.prototype.redraw = function(bForceAll /*, memo*/) {
 }
 
 QuiX.ui.Label._onmousedown = function(evt, w) {
-    if (!w.canSelect) {
-        QuiX.cancelDefault(evt);
-    }
-    else {
-        QuiX.stopPropag(evt);
+    if (!QuiX.supportTouches) {
+        if (!w.canSelect) {
+            QuiX.cancelDefault(evt);
+        }
+        else {
+            QuiX.stopPropag(evt);
+        }
     }
 }
 
@@ -651,11 +663,12 @@ QuiX.ui.SpriteButton.prototype.toggle = function() {
 
 QuiX.ui.SpriteButton.prototype.resetToggleGroup = function() {
     var grp = this.parent.getWidgetById(this.getId(), true);
-
-    for (var i=0; i<grp.length; i++) {
-        if (grp[i].state == 'on') {
-            grp[i]._setBackgroundPosition('0px');
-            grp[i].state = 'off';
+    if (grp instanceof Array) {    
+        for (var i=0; i<grp.length; i++) {
+            if (grp[i].state == 'on') {
+                grp[i]._setBackgroundPosition('0px');
+                grp[i].state = 'off';
+            }
         }
     }
 }
