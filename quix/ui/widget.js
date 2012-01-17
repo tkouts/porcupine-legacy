@@ -314,7 +314,7 @@ QuiX.ui.Widget.prototype.getWidgetsByClassName = function(cssName /*, shallow, l
         function() {
             return this.div.className.match(regExp);
         }, shallow, limit);
-} 
+}
 
 QuiX.ui.Widget.prototype.getWidgetsByAttribute = function(attr_name /*, shallow, limit*/) {
     var shallow = arguments[1] || false,
@@ -368,9 +368,12 @@ QuiX.ui.Widget.prototype._setCommonProps = function(/*memo*/) {
         w = '', h = '',
         isIE7 = document.all && QuiX.utils.BrowserInfo.version < 8;
 
-    if (((this.width != null && this.width != 'auto') || (this.width == 'auto' && this._calcAuto)) &&
-            !(this.width == '100%' && this.div.style.position != 'absolute'
-               && !(QuiX.css.boxFlex && this.parent.orientation == 'v') && !isIE7)) {
+    if (((this.width != null && this.width != 'auto') || (this.width == 'auto' && this._calcAuto))
+            && !(this.width == '100%'
+                 && this.div.style.position != 'absolute'
+                 && !(QuiX.css.boxFlex && this.parent.orientation == 'v')
+                 && this.parent.div.className.indexOf('flowbox') == -1
+                 && !isIE7)) {
 
         if (typeof this.width == 'string' && this.width.charAt(0) == '@') {
             w = 0;
@@ -949,7 +952,7 @@ QuiX.ui.Widget.prototype._calcHeight = function(b /*, memo*/) {
         offset = parseInt(this.div.style.paddingTop) +
                  parseInt(this.div.style.paddingBottom) +
                  borders;
-    
+
         if (this.div.offsetHeight > 0 &&
                 (this.div.style.overflow == 'auto' ||
                  this.div.style.overflowX == 'auto')) {
@@ -1256,7 +1259,7 @@ QuiX.ui.Widget.prototype.setOrder = function(order) {
         // re-order z-index
         this.parent.maxz = 0;
         this.parent.minz = 0;
-    
+
         for (var i=0; i<this.parent.widgets.length; i++) {
             if (this.parent.widgets[i].div.style.position == 'absolute') {
                 this.parent.widgets[i].div.style.zIndex = ++this.parent.maxz;
@@ -1908,7 +1911,7 @@ QuiX.ui.Widget._startDrag = function(evt, w) {
                 function _draghandler() {
                     w._startDrag(coords[0], coords[1], el);
                 }, 400);
-            
+
             QuiX.cancelDefault(evt);
             QuiX.dragging = true;
         }
@@ -2253,7 +2256,7 @@ QuiX.ui.ProgressBar.prototype._update = function() {
 }
 
 QuiX.ui.ProgressBar.prototype.setValue = function(v) {
-    var oldValue = this.value; 
+    var oldValue = this.value;
     this.value = parseInt(v);
     if (this.value>this.maxvalue) this.value = this.maxvalue;
     if (this.value<this.minvalue) this.value = this.minvalue;
