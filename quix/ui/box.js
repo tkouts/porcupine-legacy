@@ -6,7 +6,8 @@ Box layout
 
 QuiX.ui.Box = function(/*params*/) {
     var params = arguments[0] || {};
-    params.overflow = params.overflow || 'hidden';
+    params.overflow = (typeof params.overflow != 'undefined')?
+                      params.overflow:'hidden';
 
     QuiX.ui.Widget.call(this, params);
 
@@ -61,7 +62,7 @@ QuiX.ui.Box._getAvailableLength = function(memo) {
             if (w.div.style.display == 'none') {
                 continue;
             }
-            else if (w[length_var] && 
+            else if (w[length_var] &&
                      w[length_var] == QuiX.ui.Box._getAvailableLength) {
                 totflex += w._flex;
             }
@@ -184,7 +185,7 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
     }
 
     if (typeof(w[length_var]) == 'string'
-            && w[length_var].indexOf('@') == 0 
+            && w[length_var].indexOf('@') == 0
             && w[length_var].match('%$')) {
         var flex = parseInt(w[length_var].slice(1));
 

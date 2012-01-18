@@ -207,7 +207,7 @@ QuiX.ui.Icon = function(/*params*/) {
     params.border = params.border || 0;
     params.canSelect = false;
     params.align = params.align || 'center';
-    
+
     QuiX.ui.Label.call(this, params);
 
     this.img = params.img || null;
@@ -663,7 +663,7 @@ QuiX.ui.SpriteButton.prototype.toggle = function() {
 
 QuiX.ui.SpriteButton.prototype.resetToggleGroup = function() {
     var grp = this.parent.getWidgetById(this.getId(), true);
-    if (grp instanceof Array) {    
+    if (grp instanceof Array) {
         for (var i=0; i<grp.length; i++) {
             if (grp[i].state == 'on') {
                 grp[i]._setBackgroundPosition('0px');

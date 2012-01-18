@@ -1106,8 +1106,8 @@ QuiX.attachFrames = function(w) {
 QuiX.transformX = function(x , parent) {
     // rtl xform
     return parent.getWidth(false) +
-           parseInt(parent.div.style.paddingRight) +
-           parseInt(parent.div.style.paddingLeft) -
+           parseInt(parent.div.style.paddingRight || 0) +
+           parseInt(parent.div.style.paddingLeft || 0) -
            x;
 }
 
