@@ -15,7 +15,10 @@
 #   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #==============================================================================
 "Porcupine JSON-RPC 2.0 Library"
-import json
+try:
+    import simplejson as json
+except:
+    import json
 
 from porcupine.core.rpc import BaseEncoder
 from porcupine.utils.date import Date
