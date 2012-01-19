@@ -139,12 +139,13 @@ QuiX.getThemeUrl = function() {
 
 // module
 
-QuiX.Module = function(sName, sFile, depends, prio) {
+QuiX.Module = function(name, file, depends , prio /*, checkTag*/) {
     this.isLoaded = false;
-    this.name = sName;
-    this.file = QuiX.resolveUrl(sFile);
+    this.name = name;
+    this.file = QuiX.resolveUrl(file);
     this.dependencies = depends;
     this.priority = prio;
+    this.checkTag = arguments[4] || null;
     this.type = 'script';
     this.callback = null;
 }
@@ -273,45 +274,45 @@ QuiX.__resource_onstatechange = function() {
 
 QuiX.modules = [
     new QuiX.Module('Windows and Dialogs',  //0
-                    QuiX.baseUrl + 'ui/windows.js', [3,13,15], 5),
+                    QuiX.baseUrl + 'ui/windows.js', [3,13,15], 5, 'window'),
     new QuiX.Module('Menus',                //1
-                    QuiX.baseUrl + 'ui/menus.js', [3,13], 5),
+                    QuiX.baseUrl + 'ui/menus.js', [3,13], 5, 'menu'),
     new QuiX.Module('Splitter',             //2
-                    QuiX.baseUrl + 'ui/splitter.js', [15], 5),
+                    QuiX.baseUrl + 'ui/splitter.js', [15], 5, 'splitter'),
     new QuiX.Module('Labels & Buttons',     //3
-                    QuiX.baseUrl + 'ui/buttons.js', [1], 10),
+                    QuiX.baseUrl + 'ui/buttons.js', [], 10, 'label'),
     new QuiX.Module('Tab Pane',             //4
-                    QuiX.baseUrl + 'ui/tabpane.js', [3], 5),
+                    QuiX.baseUrl + 'ui/tabpane.js', [3], 5, 'tabpane'),
     new QuiX.Module('List View',            //5
-                    QuiX.baseUrl + 'ui/listview.js', [], 10),
+                    QuiX.baseUrl + 'ui/listview.js', [], 10, 'listview'),
     new QuiX.Module('Tree',                 //6
-                    QuiX.baseUrl + 'ui/tree.js', [], 10),
+                    QuiX.baseUrl + 'ui/tree.js', [], 10, 'tree'),
     new QuiX.Module('Toolbars',             //7
-                    QuiX.baseUrl + 'ui/toolbars.js', [3], 5),
+                    QuiX.baseUrl + 'ui/toolbars.js', [3], 5, 'toolbar'),
     new QuiX.Module('Forms & Fields',       //8
-                    QuiX.baseUrl + 'ui/formfields.js', [3,18], 5),
+                    QuiX.baseUrl + 'ui/formfields.js', [3,18], 5, 'field'),
     new QuiX.Module('Common Widgets',       //9
-                    QuiX.baseUrl + 'ui/common.js', [3,8], 4),
+                    QuiX.baseUrl + 'ui/common.js', [3,8], 4, 'iframe'),
     new QuiX.Module('Datagrid',             //10
-                    QuiX.baseUrl + 'ui/datagrid.js', [5,8,14,17], 4),
+                    QuiX.baseUrl + 'ui/datagrid.js', [5,8,14,17], 4, 'datagrid'),
     new QuiX.Module('File Control',         //11
-                    QuiX.baseUrl + 'ui/file.js', [1,3,8,9,14], 4),
+                    QuiX.baseUrl + 'ui/file.js', [1,3,8,9,14], 4, 'file'),
     new QuiX.Module('Date Picker',          //12
-                    QuiX.baseUrl + 'ui/datepicker.js', [14,8], 4),
+                    QuiX.baseUrl + 'ui/datepicker.js', [14,8], 4, 'datepicker'),
     new QuiX.Module('Timers & Effects',     //13
-                    QuiX.baseUrl + 'ui/timers.js', [], 10),
+                    QuiX.baseUrl + 'ui/timers.js', [], 10, 'timer'),
     new QuiX.Module('Forms & Fields 2',     //14
-                    QuiX.baseUrl + 'ui/formfields2.js', [3,18], 5),
+                    QuiX.baseUrl + 'ui/formfields2.js', [3,18], 5, 'combo'),
     new QuiX.Module('VBox & HBox',          //15
-                    QuiX.baseUrl + 'ui/box.js', [], 10),
+                    QuiX.baseUrl + 'ui/box.js', [], 10, 'box'),
     new QuiX.Module('Rich Text Editor',     //16
-                    QuiX.baseUrl + 'ui/richtext.js', [8,15,9], 4),
+                    QuiX.baseUrl + 'ui/richtext.js', [8,15,9], 4, 'richtext'),
     new QuiX.Module('Color Picker',         //17
-                    QuiX.baseUrl + 'ui/colorpicker.js', [8], 4),
+                    QuiX.baseUrl + 'ui/colorpicker.js', [8], 4, 'colorpicker'),
     new QuiX.Module('Validator',            //18
                     QuiX.baseUrl + 'ui/validator.js', [3], 5),
     new QuiX.Module('Mobile',               //19
-                    QuiX.baseUrl + 'ui/mobile.js', [13], 5)
+                    QuiX.baseUrl + 'ui/mobile.js', [13], 5, 'scrollview')
 ];
 
 QuiX.tags = {
@@ -319,9 +320,9 @@ QuiX.tags = {
     'rect':-1, 'module':-1, 'custom':-1,
 
     'window':0, 'dialog':0,
-    'menubar':1, 'menu':1, 'menuoption':1, 'contextmenu':1,
+    'menubar':1, 'menu':1, 'menuoption':1, 'contextmenu':1, 'flatbutton':1,
     'splitter':2,
-    'dlgbutton':3, 'button':3, 'flatbutton':3, 'label':3, 'icon':3, 'link':3,
+    'dlgbutton':3, 'button':3, 'label':3, 'icon':3, 'link':3,
         'spritebutton':3, 'image':3,
     'tabpane':4, 'tab':4,
     'listview':5,
@@ -1202,37 +1203,45 @@ QuiX.Parser.prototype.prepare = function(oNode) {
     }
 
     var sTag = QuiX.localName(oNode),
-        iMod = QuiX.tags[sTag];
+        iMod = QuiX.tags[sTag],
+        isIE8 = QuiX.utils.BrowserInfo.family == 'ie'
+                && QuiX.utils.BrowserInfo.version <= 8,
+        src,
+        depends;
 
-    oNode.params = {};
-    for (var i=0; i<oNode.attributes.length; i++) {
-        oNode.params[oNode.attributes[i].name] = oNode.attributes[i].value;
+    if (!isIE8) {
+        oNode.params = {};
+        for (var i=0; i<oNode.attributes.length; i++) {
+            oNode.params[oNode.attributes[i].name] = oNode.attributes[i].value;
+        }
     }
 
     if (iMod > -1 && typeof QuiX.constructors[sTag] == 'undefined') {
         this._addModule(QuiX.modules[iMod]);
     }
 
-    if (oNode.params['img']
-            && (oNode.params['preload'] == 'true' || this.preloadImages)
-            && !(QuiX.utils.BrowserInfo.family == 'ie' && QuiX.utils.BrowserInfo.version <= 8)) {
-        var src = oNode.params['img'],
-            cleanSrc = src.split('?')[0];
-
+    if (src = oNode.getAttribute('img')
+            && (oNode.getAttribute('preload') == 'true' || this.preloadImages)
+            && !isIE8) {
+        var cleanSrc = src.split('?')[0];
         if (src != '' && !(QuiX._imgCache[src]) && !(document.imageData && document.imageData[cleanSrc])) {
             this.__images.push(src);
         }
     }
     else if (sTag == 'script' || sTag == 'module' || sTag == 'stylesheet') {
-        if (!document.getElementById(oNode.params.src)) {
-            var oMod = new QuiX.Module(oNode.params.name, oNode.params.src, [],
+        if (!document.getElementById(oNode.getAttribute('src'))) {
+            var oMod = new QuiX.Module(oNode.getAttribute('name'),
+                                       oNode.getAttribute('src'),
+                                       [],
                                        this.__customPrio);
+
             if (sTag == 'stylesheet') {
                 oMod.type = 'stylesheet';
             }
-            else if (oNode.params.depends) {
-                oMod.dependencies = oNode.params.depends.split(',');
+            else if (depends = oNode.getAttribute('depends')) {
+                oMod.dependencies = depends.split(',');
             }
+
             this._addModule(oMod);
             this.__customPrio--;
         }
@@ -1248,6 +1257,11 @@ QuiX.Parser.prototype.prepare = function(oNode) {
 
 QuiX.Parser.prototype._addModule = function(oMod) {
     if (!oMod.isLoaded && !this.__modules.hasItem(oMod)) {
+        if (oMod.checkTag && typeof QuiX.constructors[oMod.checkTag] != 'undefined') {
+            // the module is included in core files
+            oMod.isLoaded = true;
+            return;
+        }
         this.__modules.push(oMod);
         for (var i=0; i<oMod.dependencies.length; i++) {
             this._addModule(QuiX.modules[parseInt(oMod.dependencies[i])]);
@@ -1395,7 +1409,7 @@ QuiX.Parser.prototype.getNodeParams = function(node) {
 QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
     var oWidget = null;
     if (oNode.nodeType == 1 && oNode.namespaceURI == QuiX.namespace) {
-        var params = oNode.params,
+        var params = oNode.params || this.getNodeParams(oNode),
             localName = QuiX.localName(oNode).toLowerCase();
 
         switch(localName) {
@@ -1442,7 +1456,7 @@ QuiX.Parser.prototype.parseXul = function(oNode, parentW) {
                     oCol.options = [];
                     for (var k=0; k<options.length; k++) {
                         if (options[k].nodeType == 1) {
-                            oCol.options.push(options[k].params);
+                            oCol.options.push(options[k].params || this.getNodeParams(options[k]));
                         }
                     }
                 }

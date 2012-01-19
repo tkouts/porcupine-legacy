@@ -46,10 +46,10 @@ QuiX.ui.MenuOption.prototype._mustRedraw = function() {
 QuiX.ui.MenuOption.prototype.redraw = function(bForceAll /*, memo*/) {
     var memo = arguments[1] || {};
     if (this.subMenu) {
-        this.div.className = 'option submenu';
+        this.addClass('submenu');
     }
     else {
-        this.div.className = 'option';
+        this.removeClass('submenu');
     }
     if (this.type) {
         if (this.selected) {
@@ -77,7 +77,7 @@ QuiX.ui.MenuOption.prototype.destroy = function() {
 
     QuiX.ui.Icon.prototype.destroy.apply(this, arguments);
 
-    if (parent.options.length==0
+    if (parent.options.length == 0
             && parent.owner instanceof QuiX.ui.MenuOption) {
         parent.owner.subMenu = null;
         parent.close();
@@ -96,10 +96,13 @@ QuiX.ui.MenuOption.prototype.select = function() {
             if (!this.selected) {
                 var id = this.getId();
                 if (id) {
-                    var oOptions = this.parent.getWidgetById(id);
+                    var oOptions = this.parent.getWidgetById(id, true);
                     if (oOptions.length) {
                         for (var i=0; i<oOptions.length; i++) {
-                            oOptions[i].selected = false;
+                            if (oOptions[i] != this && oOptions[i].selected) {
+                                oOptions[i].selected = false;
+                                oOptions[i].setImageURL(QuiX.baseUrl + 'images/transp.gif');
+                            }
                         }
                     }
                     else {
@@ -107,10 +110,17 @@ QuiX.ui.MenuOption.prototype.select = function() {
                     }
                 }
                 this.selected = true;
+                this.setImageURL(QuiX.theme.contextmenu.radioImg);
             }
             break;
         case 'check':
             this.selected = !this.selected;
+            if (this.selected) {
+                this.setImageURL(QuiX.theme.contextmenu.checkImg);
+            }
+            else {
+                this.setImageURL(QuiX.baseUrl + 'images/transp.gif');
+            }
     }
 }
 
@@ -126,7 +136,7 @@ QuiX.ui.MenuOption.prototype.expand = function() {
             this.div.offsetWidth,
             this.getScreenTop() - this.parent.getScreenTop() -
             this.parent.getPadding()[2]);
-        
+
         if (this.subMenu.getScreenTop() + this.subMenu.div.offsetHeight >
                 desktop.getHeight(true)) {
             this.subMenu.top -= this.subMenu.getScreenTop() +
@@ -134,7 +144,7 @@ QuiX.ui.MenuOption.prototype.expand = function() {
                                 desktop.getHeight(true);
             this.subMenu.redraw();
         }
-        
+
         if (this.subMenu.getScreenLeft() + this.subMenu.div.offsetWidth >
                 desktop.getWidth(true)) {
             this.subMenu.left = - this.subMenu.div.offsetWidth;
@@ -196,6 +206,7 @@ QuiX.ui.ContextMenu = function(params, owner) {
 
     if (QuiX.theme.contextmenu.inner) {
         this.appendChild(QuiX.theme.contextmenu.inner.get());
+        this.widgets[0].div.style.zIndex = -1;
     }
 
     this.options = [];
@@ -436,4 +447,105 @@ QuiX.ui.MenuBar._menuonmouseover = function(evt, w) {
 
 QuiX.ui.MenuBar._menuonmouseout = function(evt, w) {
     w.div.className = 'menu';
+}
+
+// flat button
+
+QuiX.ui.FlatButton = function(/*params*/) {
+    var params = arguments[0] || {};
+    params.border = 1;
+    params.padding = params.padding || '3,3,3,3';
+    params.overflow = 'hidden';
+    params.align = params.align || 'center';
+
+    params.onclick = QuiX.wrappers.eventWrapper(QuiX.ui.FlatButton._onclick,
+                                                params.onclick);
+
+    QuiX.ui.Icon.call(this, params);
+    this.div.className = 'flat';
+
+    this.attachEvent('onmouseover', QuiX.ui.FlatButton._onmouseover);
+    this.attachEvent('onmouseout', QuiX.ui.FlatButton._onmouseout);
+    this.attachEvent('onmousedown', QuiX.ui.FlatButton._onmousedown);
+    this.attachEvent('onmouseup', QuiX.ui.FlatButton._onmouseup);
+
+    this.type = params.type || 'normal';
+    this._ispressed = false;
+
+    if (this.type=='menu') {
+        delete params.height;
+        delete params.overflow;
+        delete params.border;
+        delete params.padding;
+        var oCMenu = new QuiX.ui.ContextMenu(params, this);
+        this.contextMenu = oCMenu;
+    }
+
+    if (this.type == 'toggle') {
+        this.value = params.value || 'off';
+        if (this.value == 'on') {
+            this.value = 'off';
+            this.toggle();
+        }
+    }
+}
+
+QuiX.constructors['flatbutton'] = QuiX.ui.FlatButton;
+QuiX.ui.FlatButton.prototype = new QuiX.ui.Icon;
+QuiX.ui.FlatButton.prototype.__class__ = QuiX.ui.FlatButton;
+
+QuiX.ui.FlatButton.prototype.toggle = function() {
+    if (this.value == 'off') {
+        this.addClass('on');
+        this.value = 'on';
+    }
+    else {
+        this.div.className = 'flat';
+        this.value = 'off';
+    }
+}
+
+QuiX.ui.FlatButton._onmouseover = function(evt, w) {
+    if (!(w.type == 'toggle' && w.value == 'on')) {
+        w.addClass('over');
+    }
+}
+
+QuiX.ui.FlatButton._onmouseout = function(evt, w) {
+    if (!(w.type == 'toggle' && w.value == 'on')) {
+        w.div.className = 'flat';
+        if (w.type != 'toggle' && w._ispressed) {
+            w._ispressed = false;
+        }
+    }
+}
+
+QuiX.ui.FlatButton._onmousedown = function(evt, w) {
+    w.addClass('on');
+    if (w.type != 'toggle') {
+        w._ispressed = true;
+    }
+}
+
+QuiX.ui.FlatButton._onmouseup = function(evt, w) {
+    w.removeClass('on');
+    if (w.type != 'toggle' && w._ispressed) {
+        w._ispressed = false;
+    }
+}
+
+QuiX.ui.FlatButton._onclick = function(evt, w) {
+    if (w.type == 'toggle') {
+        w.toggle();
+    }
+    else if (w.type == 'menu') {
+        if (!w.contextMenu.isOpen) {
+            w.addClass('menu');
+            QuiX.ui.ContextMenu._showWidgetContextMenu(w, w.contextMenu);
+        }
+        else {
+            w.div.className = 'flat';
+            w.contextMenu.close();
+        }
+    }
 }

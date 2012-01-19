@@ -16,6 +16,9 @@
                        quix/lib/swfobject.js,
                        quix/lib/rpc.js,
                        quix/ui/widget.js,
+                       quix/ui/box.js,
+                       quix/ui/timers.js,
+                       quix/ui/buttons.js,
                        quix/swfupload/swfupload.js"/>
         <filter type="porcupine.filters.output.JSMin"/>
     </context>
@@ -34,6 +37,9 @@
                        quix/lib/swfobject.js,
                        quix/lib/rpc.js,
                        quix/ui/widget.js,
+                       quix/ui/box.js,
+                       quix/ui/timers.js,
+                       quix/ui/buttons.js,
                        quix/swfupload/swfupload.js"/>
         <filter type="porcupine.filters.output.JSMin"/>
         <filter type="porcupine.filters.output.Gzip"/>

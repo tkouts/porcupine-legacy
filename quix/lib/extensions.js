@@ -22,9 +22,9 @@
 Date.prototype.Months = (function() {
     switch (navigator.locale) {
         case 'el':
-            return ['Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος',
-                    'Μάϊος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος',
-                    'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'];
+            return ['Ξ™Ξ±Ξ½ΞΏΟ…Ξ¬ΟΞΉΞΏΟ‚', 'Ξ¦ΞµΞ²ΟΞΏΟ…Ξ¬ΟΞΉΞΏΟ‚', 'ΞΞ¬ΟΟ„ΞΉΞΏΟ‚', 'Ξ‘Ο€ΟΞ―Ξ»ΞΉΞΏΟ‚',
+                    'ΞΞ¬ΟΞΏΟ‚', 'Ξ™ΞΏΟΞ½ΞΉΞΏΟ‚', 'Ξ™ΞΏΟΞ»ΞΉΞΏΟ‚', 'Ξ‘ΟΞ³ΞΏΟ…ΟƒΟ„ΞΏΟ‚',
+                    'Ξ£ΞµΟ€Ο„Ξ­ΞΌΞ²ΟΞΉΞΏΟ‚', 'ΞΞΊΟ„ΟΞ²ΟΞΉΞΏΟ‚', 'ΞΞΏΞ­ΞΌΞ²ΟΞΉΞΏΟ‚', 'Ξ”ΞµΞΊΞ­ΞΌΞ²ΟΞΉΞΏΟ‚'];
         default:
             return ['January', 'February', 'March', 'April', 'May', 'June',
                     'July', 'August', 'September', 'October', 'November',
@@ -35,8 +35,8 @@ Date.prototype.Months = (function() {
 Date.prototype.Days = (function() {
     switch (navigator.locale) {
         case 'el':
-            return ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη',
-                    'Παρασκευή', 'Σάββατο', 'Κυριακή'];
+            return ['Ξ”ΞµΟ…Ο„Ξ­ΟΞ±', 'Ξ¤ΟΞ―Ο„Ξ·', 'Ξ¤ΞµΟ„Ξ¬ΟΟ„Ξ·', 'Ξ Ξ­ΞΌΟ€Ο„Ξ·',
+                    'Ξ Ξ±ΟΞ±ΟƒΞΊΞµΟ…Ξ®', 'Ξ£Ξ¬Ξ²Ξ²Ξ±Ο„ΞΏ', 'ΞΟ…ΟΞΉΞ±ΞΊΞ®'];
         default:
             return ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
                     'Friday', 'Saturday', 'Sunday'];
@@ -46,7 +46,7 @@ Date.prototype.Days = (function() {
 Date.prototype.AM = (function() {
     switch (navigator.locale) {
         case 'el':
-            return 'πμ';
+            return 'Ο€ΞΌ';
         default:
             return 'AM';
     }
@@ -55,7 +55,7 @@ Date.prototype.AM = (function() {
 Date.prototype.PM = (function() {
     switch (navigator.locale) {
         case 'el':
-            return 'μμ';
+            return 'ΞΌΞΌ';
         default:
             return 'PM';
     }

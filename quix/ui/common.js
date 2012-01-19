@@ -96,13 +96,14 @@ QuiX.ui.GroupBox = function(/*params*/) {
             type : 'checkbox'
         });
     }
-    else
+    else {
         this.caption = new QuiX.ui.Label({
             left : 5,
             width : 'auto',
             bgcolor : params.bgcolor,
             caption : params.caption
         });
+	}
 
 	QuiX.ui.Widget.call(this, params);
 
