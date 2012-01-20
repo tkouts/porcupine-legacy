@@ -1220,7 +1220,7 @@ QuiX.Parser.prototype.prepare = function(oNode) {
         this._addModule(QuiX.modules[iMod]);
     }
 
-    if (src = oNode.getAttribute('img')
+    if ((src = oNode.getAttribute('img'))
             && (oNode.getAttribute('preload') == 'true' || this.preloadImages)
             && !isIE8) {
         var cleanSrc = src.split('?')[0];
