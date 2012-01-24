@@ -1204,12 +1204,12 @@ QuiX.Parser.prototype.prepare = function(oNode) {
 
     var sTag = QuiX.localName(oNode),
         iMod = QuiX.tags[sTag],
-        isIE8 = QuiX.utils.BrowserInfo.family == 'ie'
-                && QuiX.utils.BrowserInfo.version <= 8,
+        isIE = QuiX.utils.BrowserInfo.family == 'ie',
+        isIE8 = isIE && QuiX.utils.BrowserInfo.version <= 8,
         src,
         depends;
 
-    if (!isIE8) {
+    if (!isIE) {
         oNode.params = {};
         for (var i=0; i<oNode.attributes.length; i++) {
             oNode.params[oNode.attributes[i].name] = oNode.attributes[i].value;
