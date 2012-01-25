@@ -202,8 +202,8 @@ QuiX.ui.Box.prototype._setChildVars = function(w /*, ffloat*/) {
     }
     else if (QuiX.css.boxFlex) {
         var index = null;
-        if (w.div.style[QuiX.css.boxFlex] && QuiX.utils.BrowserInfo.browser == 'Chrome') {
-            // bug in chrome - workaround in order to re-calculate box
+        if (w.div.style[QuiX.css.boxFlex] && QuiX.utils.BrowserInfo.family == 'saf') {
+            // bug in webkit - workaround in order to re-calculate box
             index = this.widgets.indexOf(w);
             w.detach();
         }
@@ -256,7 +256,7 @@ QuiX.ui.Box.prototype.redraw = function(/*bForceAll , memo*/) {
                     if (w.div.style[QuiX.css.boxFlex] == '') {
                         w.redraw(bForceAll, memo);
                     }
-                    else if (QuiX.utils.BrowserInfo.browser == 'Chrome') {
+                    else if (QuiX.utils.BrowserInfo.family == 'saf') {
                         var l = (this.orientation == 'h')? 'width':'height';
                         if (!(typeof w[l] == 'string' && w[l].charAt(0) == '@')) {
                             this._setChildVars(w);
