@@ -1396,6 +1396,9 @@ QuiX.Parser.prototype.render = function() {
 
     // redraw widget
     widget.redraw();
+    if (this.root.tagName && this.root.tagName == 'BODY' && QuiX._scrollbarSize > 0) {
+        widget.redraw();
+    }
 }
 
 QuiX.Parser.prototype.getNodeParams = function(node) {
