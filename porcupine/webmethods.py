@@ -48,7 +48,7 @@ def quixui(of_type, isPage=False, title='Untitled', bgcolor='white',
             WebMethodDescriptor.__init__(self, function, of_type,
                 ('GET',
                  '(MSIE (?:[6-9]|10).+Windows NT)|' +
-                 '(Mozilla/5\.0.+rv:(1\.[7-9]|2\.\d|[5-9]\.\d))|' +
+                 '(Mozilla/5\.0.+rv:(1\.[7-9]|2\.\d|(?:[5-9]|1[0-9])\.\d))|' +
                  'Version/[3-5]\.\d(.*)Safari|' +
                  'Chrome/(\d)+\.(\d)+|' +
                  'Opera/9',
