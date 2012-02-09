@@ -35,11 +35,11 @@ Date.prototype.Months = (function() {
 Date.prototype.Days = (function() {
     switch (navigator.locale) {
         case 'el':
-            return ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη',
-                    'Παρασκευή', 'Σάββατο', 'Κυριακή'];
+            return ['Κυριακή', 'Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη',
+                    'Παρασκευή', 'Σάββατο'];
         default:
-            return ['Monday', 'Tuesday', 'Wednesday', 'Thursday',
-                    'Friday', 'Saturday', 'Sunday'];
+            return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                    'Friday', 'Saturday'];
     }
 })();
 
