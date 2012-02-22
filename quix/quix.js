@@ -595,14 +595,12 @@ QuiX.wrappers = {
         function wrapper(evt, w) {
             var dx, dy, abx, aby;
             if (QuiX.supportTouches) {
-                if (QuiX.startX == 0 && QuiX.startY == 0) {
+                if (QuiX.currentX == -1 || QuiX.currentY == -1) {
                     return;
                 }
                 var coords = QuiX.getEventCoordinates(evt);
                 dx = QuiX.startX - coords[0];
                 dy = QuiX.startY - coords[1];
-                QuiX.currentX = coords[0];
-                QuiX.currentY = coords[1];
             }
             else {
                 dx = QuiX.startX - QuiX.currentX;
@@ -612,10 +610,7 @@ QuiX.wrappers = {
             abx = Math.abs(dx);
             aby = Math.abs(dy);
 
-            if (abx > 2 && aby > 2 && abx < 16 && aby < 16) {
-                QuiX.stopPropag(evt);
-            }
-            else if (abx > 16) {
+            if (abx > 16) {
                 if (dx > 0) {
                     evt.dir = 'left';
                 }
@@ -624,10 +619,7 @@ QuiX.wrappers = {
                 }
                 f(evt, w);
                 if (QuiX.supportTouches) {
-                    QuiX.startX = 0;
-                    QuiX.startY = 0;
-                    QuiX.currentX = 0;
-                    QuiX.currentY = 0;
+                    QuiX.currentX = -1;
                 }
                 QuiX.stopPropag(evt);
             }
@@ -640,10 +632,7 @@ QuiX.wrappers = {
                 }
                 f(evt, w);
                 if (QuiX.supportTouches) {
-                    QuiX.startY = 0;
-                    QuiX.startX = 0;
-                    QuiX.currentX = 0;
-                    QuiX.currentY = 0;
+                    QuiX.currentY = -1;
                 }
                 QuiX.stopPropag(evt);
             }
@@ -743,7 +732,10 @@ QuiX.removeEvent = function(el, type, proc) {
 }
 
 QuiX.sendEvent = function(el, module, type /*, args*/) {
-    if (el.dispatchEvent) {
+    if (el.fireEvent) {
+        return el.fireEvent(type);
+    }
+    else if (el.dispatchEvent) {
         if (!document.implementation.hasFeature(module, "")) {
             return false;
         }
@@ -752,11 +744,9 @@ QuiX.sendEvent = function(el, module, type /*, args*/) {
         el.dispatchEvent(e);
         return true;
     }
-    else if (el.fireEvent) {
-        return el.fireEvent(type);
-    }
-    else
+    else {
         return false;
+    }
 }
 
 QuiX.getEventCoordinates = function(evt) {
@@ -1361,7 +1351,9 @@ QuiX.Parser.prototype.render = function() {
         frag.appendChild(root.cloneNode(false));
         parent.div = frag.firstChild;
         widget = this.parseXul(this.dom.documentElement, parent);
-        root.appendChild(widget.div);
+        if (!QuiX.elementContains(document.body, widget.div)) {
+            root.appendChild(widget.div);
+        }
         parent.div = root;
     }
     else {

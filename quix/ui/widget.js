@@ -2229,8 +2229,12 @@ QuiX.ui.Desktop._onmouseup = function(evt, desktop) {
 
 QuiX.ui.Desktop._onmousemove = function(evt, desktop) {
     var coords = QuiX.getEventCoordinates(evt);
-    QuiX.currentX = coords[0];
-    QuiX.currentY = coords[1];
+    if (QuiX.currentX != -1) {
+        QuiX.currentX = coords[0];
+    }
+    if (QuiX.currentY != -1) {
+        QuiX.currentY = coords[1];
+    }
 }
 
 QuiX.ui.Desktop._oncontextmenu = function(evt, w) {
