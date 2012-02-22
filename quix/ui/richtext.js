@@ -1095,6 +1095,7 @@ QuiX.ui.RichText.prototype.getState = function() {
                 state.sub = true;
                 break;
             case "font":
+                state.color = theParentNode.color;
             case "span":
                 break;
             default:
