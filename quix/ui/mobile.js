@@ -30,14 +30,18 @@ QuiX.ui.ScrollView = function(params) {
         }
     });
 
-    if (typeof this.div.style.webkitTransform !== 'undefined' && !window.adbuilder) {
-        if (QuiX.ui.Effect.supports3d) {
-            this.div.style.webkitTransform = 'translate3d(0,0,0)';
-            this._c.div.style.webkitTransform = 'translate3d(0,0,0)';
-        }
+    if (QuiX.ui.Effect.supports3d && !this.div.style.webkitTransform && !window.adbuilder) {
+        this.div.style.webkitTransform = 'translate3d(0,0,0)';
+        this._c.div.style.webkitTransform = 'translate3d(0,0,0)';
     }
 
     QuiX.ui.Widget.prototype.appendChild.call(this, this._c);
+
+    if (typeof this.div.style.webkitOverflowScrolling != 'undefined') {
+        // required by iOS 5 in order to prevent
+        // default behavior correctly
+        this.div.style.overflow = 'scroll';
+    }
 
     this.attachEvent('onmousedown', QuiX.ui.ScrollView._startScroll);
     this._vs = new QuiX.ui.Widget({
@@ -206,14 +210,15 @@ QuiX.ui.ScrollView._startScroll = function(evt, sv) {
             desktop = sv.getDesktop();
 
         QuiX.widget = sv;
-        desktop.attachEvent('onmousemove', QuiX.ui.ScrollView._scroll);
-        desktop.attachEvent('onmouseup', QuiX.ui.ScrollView._endScroll);
 
         QuiX.stopPropag(evt);
-        if (target.tagName != 'INPUT' && target.tagName != 'TEXTAREA' 
+        if (target.tagName != 'INPUT' && target.tagName != 'TEXTAREA'
                 && target.tagName != 'SELECT' && target.tagName != 'IMG') {
             QuiX.cancelDefault(evt);
         }
+
+        desktop.attachEvent('onmousemove', QuiX.ui.ScrollView._scroll);
+        desktop.attachEvent('onmouseup', QuiX.ui.ScrollView._endScroll);
 
         if (source == sv._vs) {
             sv._dir = 'v';
