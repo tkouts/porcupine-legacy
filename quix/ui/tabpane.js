@@ -14,12 +14,13 @@ QuiX.ui.TabPane = function(/*params*/) {
     this.editable = (params.editable == true || params.editable == 'true');
     this.activeTab = params.active || 0;
 }
-QuiX.ui.TabPane.prototype.customEvents =
-    QuiX.ui.Widget.prototype.customEvents.concat(['ontabclose']);
 
 QuiX.constructors['tabpane'] = QuiX.ui.TabPane;
 QuiX.ui.TabPane.prototype = new QuiX.ui.Widget;
 QuiX.ui.TabPane.prototype.__class__ = QuiX.ui.TabPane;
+
+QuiX.ui.TabPane.prototype.customEvents =
+    QuiX.ui.Widget.prototype.customEvents.concat(['ontabclose']);
 
 QuiX.ui.TabPane._destroyTab = function() {
     var oTab = this.parent;
