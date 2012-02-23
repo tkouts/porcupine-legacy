@@ -76,7 +76,7 @@ certain conditions; See COPYING for more details.''')
 
     def _async_loop(self):
         _use_poll = False
-        if hasattr(select, 'poll'):
+        if hasattr(select, 'poll') and sys.platform != 'darwin':
             _use_poll = True
         try:
             asyncore.loop(16.0, _use_poll)
