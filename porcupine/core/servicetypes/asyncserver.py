@@ -469,7 +469,7 @@ if multiprocessing:
 
         def _async_loop(self, socket_map):
             use_poll = False
-            if hasattr(select, 'poll'):
+            if hasattr(select, 'poll') and sys.platform != 'darwin':
                 use_poll = True
             try:
                 asyncore.loop(16.0, use_poll, socket_map)
