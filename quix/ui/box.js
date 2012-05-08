@@ -76,8 +76,9 @@ QuiX.ui.Box._getAvailableLength = function(memo) {
     }
 
     var attrs = memo[box._uniqueid + 'flex'],
+        diff = (box.widgets[0].div.style.display == 'none')? 0:1,
         calc_percentage = this._flex / attrs[2],
-        fixed_space = attrs[0] + (attrs[1] - 1) * box.spacing;
+        fixed_space = attrs[0] + (attrs[1] - diff) * box.spacing;
 
     if (box[min_size]) {
         var min_func = (min_size == 'minw')? '_calcMinWidth':'_calcMinHeight',
