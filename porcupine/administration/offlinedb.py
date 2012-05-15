@@ -29,6 +29,8 @@ def get_handle(**kwargs):
         kwargs.setdefault('recover', 0)
         _db.open(**kwargs)
         identity = kwargs.get('identity', _db.get_item('system'))
+        if isinstance(identity, basestring):
+            identity = _db.get_item(identity)
         context.user = identity
     return _db
 
