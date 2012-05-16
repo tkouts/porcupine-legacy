@@ -206,5 +206,10 @@ def get_revision(pubdir, path):
     from porcupine.filters.output import JSMerge
 
     registration = (pubdirs.dirs[pubdir].get_registration(path))
-    files = (registration.get_filter_by_type(JSMerge)[1]['files'].split(','))
+    s_files = registration.get_filter_by_type(JSMerge)[1]['files']
+    if ',' in s_files:
+        files = ([f.strip() for f in s_files.split(',')])
+    else:
+        files = get_rto_by_name(s_files)()
+
     return JSMerge.get_revision(files)

@@ -60,26 +60,26 @@ class Gzip(PostProcessFilter):
                 'gzip' in context.request.HTTP_ACCEPT_ENCODING):
             context.response.set_header('Content-Encoding', 'gzip')
             isStatic = (registration is not None and registration.type == 0)
-    
+
             if isStatic:
                 filename = registration.context
                 modified = hex(int(os.path.getmtime(filename)))[2:]
-    
+
                 compressed = filename.replace(os.path.sep, '_')
                 if os.name == 'nt':
                     compressed = (compressed.replace(os.path.altsep, '_').
                                   replace(':', ''))
-    
+
                 glob_f = '%s/%s' % (Gzip.cache_folder, compressed)
                 compressed = '%s#%s.gzip' % (glob_f, modified)
-    
+
                 if not(os.path.exists(compressed)):
                     Gzip.lock.acquire()
                     try:
                         # remove old compressed files
                         oldfiles = glob.glob(glob_f + '*.gzip')
                         [os.remove(old) for old in oldfiles]
-    
+
                         output = io.FileIO(compressed, 'wb')
                         Gzip.compress(context.response._get_body(),
                                       output,
@@ -87,12 +87,11 @@ class Gzip(PostProcessFilter):
                         output.close()
                     finally:
                         Gzip.lock.release()
-    
+
                 context.response.clear()
                 cache_file = io.FileIO(compressed)
                 context.response.write(cache_file.read())
                 cache_file.close()
-    
             else:
                 output = io.BytesIO()
                 Gzip.compress(
@@ -186,7 +185,7 @@ class JSMin(PostProcessFilter):
         else:
             output = io.BytesIO()
             JSMin.compress(context.response._body, output)
-            context.response._body = ouput
+            context.response._body = output
 
 
 class JSMerge(PreProcessFilter):
@@ -210,7 +209,11 @@ class JSMerge(PreProcessFilter):
             if not(os.path.isdir(JSMerge.cache_folder)):
                 os.makedirs(JSMerge.cache_folder)
 
-        files = [f.strip() for f in kwargs['files'].split(',')]
+        s_files = kwargs['files']
+        if ',' in s_files:
+            files = ([f.strip() for f in s_files.split(',')])
+        else:
+            files = misc.get_rto_by_name(s_files)()
 
         # check if output folder exists
         path = registration.path
