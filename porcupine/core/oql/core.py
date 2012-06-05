@@ -170,6 +170,11 @@ def evaluate_stack(stack, variables, for_object=None):
         return op
 
 
+class hashabledict(dict):
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
+
+
 def get_attribute(obj, name_list):
     try:
         attr_name = name_list.pop(0)
@@ -182,12 +187,16 @@ def get_attribute(obj, name_list):
                 obj = attr.get_items()
             elif isinstance(attr, datatypes.List):
                 obj = tuple(attr.value)
+            elif isinstance(attr, datatypes.Dictionary):
+                obj = hashabledict(attr.value)
             elif isinstance(attr, datatypes.Date):
                 obj = attr
             else:
                 obj = attr.value
         elif attr_name in ('created', 'modified'):
             obj = Date(attr)
+        elif isinstance(attr, dict):
+            obj = hashabledict(attr)
         else:
             obj = attr
 
