@@ -34,8 +34,8 @@ class BaseTask(BaseService):
 
     def start(self):
         BaseService.start(self)
-        self.thread = Thread('%s thread' % self.name,
-                             self.thread_loop)
+        self.thread = Thread(name='%s thread' % self.name,
+                             target=self.thread_loop)
         self.running = True
         self.thread.start()
 
@@ -46,14 +46,17 @@ class BaseTask(BaseService):
 
     def thread_loop(self):
         # run as system
+        time_to_run = int(time.time()) + self.interval
         context.user = _db.get_item('system')
         while self.running:
-            time.sleep(self.interval)
-            try:
-                self.execute()
-            except:
-                e = exceptions.InternalServerError()
-                e.emit()
+            time.sleep(1)
+            if int(time.time()) >= time_to_run:
+                time_to_run = int(time.time()) + self.interval
+                try:
+                    self.execute()
+                except:
+                    e = exceptions.InternalServerError()
+                    e.emit()
 
     def execute(self):
         raise NotImplementedError
