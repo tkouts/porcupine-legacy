@@ -7,8 +7,7 @@ QuiX.ui.File = function(/*params*/) {
     params.height = params.height || 24;
     this.name = params.name;
     this.href = params.href;
-    this.readonly = (params.readonly == 'true' ||
-                     params.readonly == true)? true:false;
+    this.readonly = (params.readonly == 'true' || params.readonly == true);
     this.postUrl = params.posturl;
     if (!this.postUrl) {
         var postUrl = document.location.href;
@@ -95,8 +94,7 @@ QuiX.ui.File._getUploader = function(obj, placeholder_id, params) {
         button_window_mode : 'transparent',
         button_action : action,
         button_image_url: params.img || (QuiX.baseUrl + 'images/transp.gif'),
-        button_disabled : (params.readonly == 'true' ||
-                           params.readonly == true)? true:false,
+        button_disabled : (params.readonly == 'true' || params.readonly == true),
 
         file_size_limit : params.maxfilesize || 0,
         file_types : params.filetypes || '*',
@@ -159,7 +157,7 @@ QuiX.ui.File.prototype.beginupload = function(nfiles, queued, tqueued) {
         	caption = this.getDesktop().attributes.CANCEL || 'Cancel';
         this.getDesktop().parseFromString(
             '<dialog xmlns="http://www.innoscript.org/quix" title="' +
-                    this.file.name + '" ' +
+                    this.file.name.xmlEncode() + '" ' +
                     'width="240" height="90" left="center" top="center">' +
                 '<wbody>' +
                     '<progressbar width="90%" height="20" left="center" ' +
@@ -240,8 +238,7 @@ QuiX.ui.MultiFile = function(/*params*/) {
 
     this.name = params.name;
     this.method = params.method;
-    this.readonly = (params.readonly == 'true' ||
-                     params.readonly == true)? true:false;
+    this.readonly = (params.readonly == 'true' || params.readonly == true);
     this.postUrl = params.posturl;
     if (!this.postUrl) {
         var postUrl = document.location.href;
@@ -315,7 +312,7 @@ QuiX.constructors['multifile'] = QuiX.ui.MultiFile;
 QuiX.ui.MultiFile.prototype = new QuiX.ui.Widget;
 QuiX.ui.MultiFile.prototype.__class__ = QuiX.ui.MultiFile;
 QuiX.ui.MultiFile.prototype.customEvents =
-    QuiX.ui.Widget.prototype.customEvents.concat(['oncomplete', 'onbeforeupload', 
+    QuiX.ui.Widget.prototype.customEvents.concat(['oncomplete', 'onbeforeupload',
                                                   'onerror', 'oncancel']);
 
 QuiX.ui.MultiFile.prototype.reset = function() {
@@ -383,7 +380,7 @@ QuiX.ui.MultiFile.prototype.beginupload = function(nfiles, queued, tqueued) {
 }
 
 QuiX.ui.MultiFile.prototype.removeSelectedFiles = function(evt, btn) {
-    var mf = btn.parent
+    var mf = btn.parent;
     mf.selectlist.removeSelected();
     mf.files = [];
     var opts = mf.selectlist.options;
@@ -403,7 +400,7 @@ QuiX.ui.MultiFile.prototype.addFile = function(params) {
         temp_file : params.tmpfile || ''
     }
     this.files.push(fileinfo);
-    
+
     var opt = this.selectlist.addOption({
         caption : fileinfo.filename,
         value : fileinfo.id,
