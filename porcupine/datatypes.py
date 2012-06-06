@@ -55,7 +55,11 @@ class DataType(object):
         if self._default is None and 'value' not in kwargs:
             self.value = None
         else:
-            self.value = safetype(kwargs.get('value', self._default))
+            value = kwargs.get('value', safetype(self._default))
+            if isinstance(value, safetype):
+                self.value = value
+            else:
+                self.value = safetype(value)
 
     def validate(self):
         """
@@ -81,8 +85,8 @@ class DataType(object):
                 safe_type_name = '"%s"' % self._safetype.__name__
             raise TypeError(
                 self.__class__.__name__,
-               'Got "%s" instead of %s.' %
-               (self.value.__class__.__name__, safe_type_name))
+                'Got "%s" instead of %s.' %
+                (self.value.__class__.__name__, safe_type_name))
         if self.isRequired and not self.value:
             raise ValueError(self.__class__.__name__, 'Attribute is mandatory')
 
@@ -230,6 +234,7 @@ class Password(DataType):
             if type(value) == str:
                 value = value.encode('utf-8')
             self._value = str(hashlib.md5(value).hexdigest())
+
     value = property(get_value, set_value)
 
 
@@ -381,7 +386,7 @@ class RelatorN(ReferenceN):
         items = [db.get_item(id) for id in self.value]
         return ObjectSet([item for item in items
                           if item is not None and
-                          self.relAttr in item.__props__])
+                             self.relAttr in item.__props__])
 
 
 class RequiredRelatorN(RelatorN):
@@ -467,11 +472,13 @@ class ExternalAttribute(DataType):
         "L{value} property setter"
         self._isDirty = True
         self._value = value
+
     value = property(get_value, set_value, None, 'the byte stream')
 
     def get_is_dirty(self):
         "L{is_dirty} property getter"
         return self._isDirty
+
     is_dirty = property(get_is_dirty, None, None,
                         'boolean indicating if the value has changed')
 
@@ -518,6 +525,7 @@ class File(ExternalAttribute):
     @ivar filename: the file's name
     @type filename: str
     """
+
     def __init__(self, **kwargs):
         kwargs.setdefault('value', bytes())
         ExternalAttribute.__init__(self, **kwargs)
@@ -526,6 +534,7 @@ class File(ExternalAttribute):
     def set_value(self, value):
         ExternalAttribute.set_value(self, value)
         self._size = len(value)
+
     value = property(ExternalAttribute.get_value, set_value, None,
                      'the file\'s byte stream')
 
