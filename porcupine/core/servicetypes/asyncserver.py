@@ -279,8 +279,11 @@ class BaseServer(BaseService, Dispatcher):
             if request_handler == self.sentinel:
                 break
             else:
-                thread.handle_request(request_handler)
-                request_handler.has_response = True
+                try:
+                    thread.handle_request(request_handler)
+                    request_handler.has_response = True
+                except Exception as e:
+                    request_handler.close()
 
     def shutdown(self):
         if self.running:
@@ -332,6 +335,8 @@ class RequestHandler(asyncore.dispatcher):
                     # put it in the queue so that is served
                     self.server.request_queue.put(self)
                 self.has_request = True
+            else:
+                self.close()
 
     def handle_write(self):
         try:
@@ -486,6 +491,7 @@ if multiprocessing:
                     break
                 if isinstance(command, (list, tuple)):
                     command, params = command
+
                 if command == 'DB_LOCK':
                     self.lock_db()
                 elif command == 'DB_UNLOCK':
@@ -609,8 +615,11 @@ if multiprocessing:
                 else:
                     if self.done_queue is None:
                         # we have a RequestHandler
-                        thread.handle_request(request_handler)
-                        request_handler.has_response = True
+                        try:
+                            thread.handle_request(request_handler)
+                            request_handler.has_response = True
+                        except Exception as e:
+                            request_handler.close()
                     else:
                         # we have a RequestHandlerProxy
                         fd, input_buffer = request_handler
