@@ -11,9 +11,8 @@
                        quix/lib/extensions.js,
                        quix/lib/parsers_hashlib.js,
                        quix/lib/utils.js,
-                       quix/lib/persist.js,
-                       quix/lib/utils.js,
                        quix/lib/swfobject.js,
+                       quix/lib/persist.js,
                        quix/lib/rpc.js,
                        quix/ui/widget.js,
                        quix/ui/box.js,
@@ -32,9 +31,8 @@
                        quix/lib/extensions.js,
                        quix/lib/parsers_hashlib.js,
                        quix/lib/utils.js,
-                       quix/lib/persist.js,
-                       quix/lib/utils.js,
                        quix/lib/swfobject.js,
+                       quix/lib/persist.js,
                        quix/lib/rpc.js,
                        quix/ui/widget.js,
                        quix/ui/box.js,
@@ -55,7 +53,6 @@
                        quix/lib/parsers_hashlib.js,
                        quix/lib/utils.js,
                        quix/lib/persist.js,
-                       quix/lib/utils.js,
                        quix/lib/rpc.js,
                        quix/ui/widget.js,
                        quix/ui/common.js,
@@ -72,13 +69,13 @@
         method="MSIE 6"
         client=".*"
         lang=".*"
-        max-age="300"
+        max-age="3600"
         action="lib/extensions.js.psp"/>
     <context path="lib/extensions.js"
             method="GET"
             client=""
             lang=".*"
-            max-age="300"
+            max-age="3600"
             action="lib/extensions.js.psp">
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
@@ -88,7 +85,7 @@
         method="GET"
         client=".*"
         lang=".*"
-        max-age="300"
+        max-age="3600"
         action="$1.htm"/>
 
     <!-- Stylesheets -->
@@ -96,13 +93,13 @@
             method="GET"
             client="MSIE 6"
             lang=".*"
-            max-age="300"
+            max-age="3600"
             action="$1.css"/>
     <context match="(.*)\.css"
             method="GET"
             client=".*"
             lang=".*"
-            max-age="300"
+            max-age="3600"
             action="$1.css">
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
@@ -112,13 +109,13 @@
         method="GET"
         client="MSIE 6"
         lang=".*"
-        max-age="300"
+        max-age="3600"
         action="$1.js"/>
     <context match="(.*)\.js"
             method="GET"
             client=".*"
             lang=".*"
-            max-age="300"
+            max-age="3600"
             action="$1.js">
         <filter type="porcupine.filters.output.JSMin"/>
         <filter type="porcupine.filters.output.Gzip"/>
@@ -130,7 +127,7 @@
         client=".*"
         lang=".*"
         action="$1.swf"
-        max-age="300"/>
+        max-age="3600"/>
 
     <!-- QuiX images-->
     <context match="(.*)images/(.*)"
