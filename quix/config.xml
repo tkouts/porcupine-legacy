@@ -42,6 +42,8 @@
         <filter type="porcupine.filters.output.JSMin"/>
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
+
+    <!-- mobile core -->
     <context path="mcore.js"
             method="GET"
             client=".*"
@@ -63,20 +65,6 @@
                        quix/ui/formfields2.js,
                        quix/ui/mobile.js"/>
         <filter type="porcupine.filters.output.JSMin"/>
-        <filter type="porcupine.filters.output.Gzip"/>
-    </context>
-    <context path="lib/extensions.js"
-        method="MSIE 6"
-        client=".*"
-        lang=".*"
-        max-age="3600"
-        action="lib/extensions.js.psp"/>
-    <context path="lib/extensions.js"
-            method="GET"
-            client=""
-            lang=".*"
-            max-age="3600"
-            action="lib/extensions.js.psp">
         <filter type="porcupine.filters.output.Gzip"/>
     </context>
 
