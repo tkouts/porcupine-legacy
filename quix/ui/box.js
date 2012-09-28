@@ -136,8 +136,8 @@ QuiX.ui.Box.prototype.appendChild = function(w) {
     w._i = this.widgets.length;
     this._setChildVars(w);
     w.setPosition('relative');
-    w.div.style.zIndex = '';
     QuiX.ui.Widget.prototype.appendChild.apply(this, arguments);
+	w.div.style.zIndex = '';
 }
 
 QuiX.ui.Box.prototype._calcAuto = null;

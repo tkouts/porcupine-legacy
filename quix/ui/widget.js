@@ -122,14 +122,14 @@ QuiX.ui.Widget.prototype.appendChild = function(w /*, index*/) {
     if (index != null && index >= 0 && index < this.widgets.length) {
         this.div.insertBefore(w.div, this.widgets[index].div);
         this.widgets.splice(index, 0, w);
-        if (w.div.style.position == 'absolute') {
+        if (w.div.style.position) {
             w.setOrder(index);
         }
     }
     else {
         this.div.appendChild(w.div);
         this.widgets.push(w);
-        if (w.div.style.position == 'absolute') {
+        if (w.div.style.position) {
             w.div.style.zIndex = ++this.maxz;
         }
     }
