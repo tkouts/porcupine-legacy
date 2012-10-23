@@ -79,9 +79,9 @@ class HttpRequest(object):
         self.serverVariables['PATH_INFO'] = path_info.decode('utf-8')
 
         query_string = self.serverVariables.setdefault('QUERY_STRING', '')
-        if type(query_string) == bytes:
-            # python 2.6: convert to unicode
-            query_string = query_string.decode('latin-1')
+        # if type(query_string) == bytes:
+        #    # python 2.6: convert to unicode
+        #    query_string = query_string.decode('latin-1')
         self.queryString = urlparse.parse_qs(query_string)
 
         self.cookies = cookies.SimpleCookie()
