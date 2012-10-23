@@ -137,8 +137,10 @@ class DB(object):
 
             if init_rep:
                 # check multiprocessing
-                is_multiprocess = services['main'].is_multiprocess or \
-                                  services['management'].is_multiprocess
+                is_multiprocess = (('main' in services and
+                                   services['main'].is_multiprocess) or
+                                   ('management' in services and
+                                   services['management'].is_multiprocess))
 
                 if is_multiprocess and int(rep_config['priority']) > 0 \
                         and db.version() < (4, 8):
