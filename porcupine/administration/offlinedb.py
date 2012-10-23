@@ -18,12 +18,15 @@
 This modules provides an offline handle for database access through
 the Porcupine API.
 """
+from porcupine.config import settings
 from porcupine import context
 from porcupine.db import _db
 
 
 def get_handle(**kwargs):
     if _db._db_handle is None or not _db._db_handle.is_open():
+        # clear rep_config
+        settings.settings['store']['rep_config'] = None
         # open database
         kwargs.setdefault('maintain', False)
         kwargs.setdefault('recover', 0)
